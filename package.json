@@ -1,0 +1,63 @@
+{
+  "name": "peterportal-api-next",
+  "version": "0.0.0",
+  "private": true,
+  "workspaces": [
+    "api/*",
+    "cdk",
+    "db",
+    "docs",
+    "packages/*",
+    "tools/*"
+  ],
+  "scripts": {
+    "build": "turbo run build",
+    "commit": "cz",
+    "dev": "turbo run dev --parallel",
+    "format": "prettier --write .",
+    "lint": "eslint --quiet --fix",
+    "prepare": "husky install",
+    "test": "turbo run test",
+    "test:watch": "turbo run test:watch"
+  },
+  "lint-staged": {
+    "*.(js|ts)": [
+      "eslint --quiet --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,sql,yaml,yml}": [
+      "prettier --write"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog",
+      "maxHeaderWidth": 50,
+      "maxLineWidth": 72
+    }
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.2.0",
+    "@commitlint/config-conventional": "^17.2.0",
+    "@typescript-eslint/eslint-plugin": "^5.42.1",
+    "@typescript-eslint/parser": "^5.42.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "dotenv-cli": "^6.0.0",
+    "eslint": "^8.27.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-config-turbo": "^0.0.4",
+    "eslint-import-resolver-typescript": "^3.5.2",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-simple-import-sort": "^8.0.0",
+    "husky": "^8.0.2",
+    "lint-staged": "^13.0.3",
+    "prettier": "^2.7.1",
+    "prettier-plugin-packagejson": "^2.3.0",
+    "prettier-plugin-sql": "^0.12.1",
+    "turbo": "^1.6.3"
+  },
+  "packageManager": "npm@8.19.3",
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}

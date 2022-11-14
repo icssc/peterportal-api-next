@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "composite": false,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "inlineSourceMap": true,
+    "inlineSources": false,
+    "isolatedModules": true,
+    "moduleResolution": "node",
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "preserveWatchOutput": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": false
+  },
+  "exclude": ["node_modules/"],
+  "include": [
+    "api/**/*",
+    "cdk/*",
+    "db/*",
+    "docs/*",
+    "packages/**/*",
+    "tools/**/*"
+  ]
+}
