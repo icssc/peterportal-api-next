@@ -1,0 +1,230 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model course_history {
+  course_id           String
+  instructor_ucinetid String      @db.VarChar(8)
+  term_name           String      @db.VarChar(15)
+  courses             courses     @relation(fields: [course_id], references: [course_id], onUpdate: Restrict, map: "course_history_ibfk_1")
+  instructors         instructors @relation(fields: [instructor_ucinetid], references: [ucinetid], onUpdate: Restrict, map: "course_history_ibfk_2")
+  terms               terms       @relation(fields: [term_name], references: [term_name], onUpdate: Restrict, map: "course_history_ibfk_3")
+
+  @@id([course_id, instructor_ucinetid, term_name])
+  @@index([instructor_ucinetid], map: "instructor_ucinetid")
+  @@index([term_name], map: "term_name")
+}
+
+model courses {
+  course_id                                                      String                  @id
+  department                                                     String                  @db.VarChar(7)
+  course_number                                                  String
+  school                                                         String
+  title                                                          String
+  course_level                                                   String                  @db.VarChar(33)
+  minimum_units                                                  String                  @db.VarChar(5)
+  maximum_units                                                  String                  @db.VarChar(5)
+  course_description                                             String                  @db.Text
+  department_name                                                String
+  prerequisite_tree                                              String                  @db.LongText
+  prerequisite_text                                              String                  @db.Text
+  repeatability                                                  String
+  grading_option                                                 String
+  concurrent_with                                                String
+  same_as                                                        String
+  restriction                                                    String
+  overlap                                                        String
+  corequisite                                                    String
+  ge_text                                                        String                  @db.Text
+  departments_courses_departmentTodepartments                    departments             @relation("courses_departmentTodepartments", fields: [department], references: [department_id], onUpdate: Restrict, map: "courses_ibfk_1")
+  schools                                                        schools                 @relation(fields: [school], references: [school_name], onUpdate: Restrict, map: "courses_ibfk_2")
+  departments_courses_department_nameTodepartments               departments             @relation("courses_department_nameTodepartments", fields: [department_name], references: [department_name], onUpdate: Restrict, map: "courses_ibfk_3")
+  course_history                                                 course_history[]
+  prerequisite_mappings_coursesToprerequisite_mappings_course_id prerequisite_mappings[] @relation("coursesToprerequisite_mappings_course_id")
+  prerequisite_mappings_coursesToprerequisite_mappings_for_id    prerequisite_mappings[] @relation("coursesToprerequisite_mappings_for_id")
+
+  @@index([department], map: "department")
+  @@index([department_name], map: "department_name")
+  @@index([school], map: "school")
+}
+
+model department_mappings {
+  instructor_ucinetid String      @db.VarChar(8)
+  department_id       String      @db.VarChar(7)
+  instructors         instructors @relation(fields: [instructor_ucinetid], references: [ucinetid], onUpdate: Restrict, map: "department_mappings_ibfk_1")
+  departments         departments @relation(fields: [department_id], references: [department_id], onUpdate: Restrict, map: "department_mappings_ibfk_2")
+
+  @@id([instructor_ucinetid, department_id])
+  @@index([department_id], map: "department_id")
+}
+
+model departments {
+  department_id                                String                @id @db.VarChar(7)
+  department_name                              String                @unique(map: "department_name")
+  courses_courses_departmentTodepartments      courses[]             @relation("courses_departmentTodepartments")
+  courses_courses_department_nameTodepartments courses[]             @relation("courses_department_nameTodepartments")
+  department_mappings                          department_mappings[]
+  grades                                       grades[]
+}
+
+model ge_categories {
+  ge_full_name String?       @db.VarChar(36)
+  ge_id        String        @unique(map: "ge_id") @db.VarChar(4)
+  ge_name      String        @unique(map: "ge_name") @db.VarChar(28)
+  ge_mappings  ge_mappings[]
+
+  @@id([ge_id, ge_name])
+}
+
+model ge_mappings {
+  course_id     String
+  ge_id         String        @db.VarChar(4)
+  ge_categories ge_categories @relation(fields: [ge_id], references: [ge_id], onUpdate: Restrict, map: "ge_mappings_ibfk_1")
+
+  @@id([course_id, ge_id])
+  @@index([ge_id], map: "ge_id")
+}
+
+model grades {
+  academic_year    String      @db.Char(7)
+  academic_quarter String      @db.VarChar(6)
+  instructor       String
+  department       String      @db.VarChar(7)
+  course_number    String
+  course_code      Int         @db.UnsignedInt
+  grade_a_count    Int         @db.UnsignedInt
+  grade_b_count    Int         @db.UnsignedInt
+  grade_c_count    Int         @db.UnsignedInt
+  grade_d_count    Int         @db.UnsignedInt
+  grade_f_count    Int         @db.UnsignedInt
+  grade_p_count    Int         @db.UnsignedInt
+  grade_np_count   Int         @db.UnsignedInt
+  grade_w_count    Int         @db.UnsignedInt
+  average_gpa      Float
+  pnp_only         Boolean?
+  departments      departments @relation(fields: [department], references: [department_id], onUpdate: Restrict, map: "grades_ibfk_1")
+
+  @@id([academic_year, academic_quarter, course_code])
+  @@index([department], map: "department")
+}
+
+model instructors {
+  ucinetid            String                @id @db.VarChar(8)
+  instructor_name     String                @unique(map: "instructor_name")
+  shortened_name      String                @unique(map: "shortened_name")
+  title               String                @unique(map: "title")
+  department          String                @unique(map: "department")
+  course_history      course_history[]
+  department_mappings department_mappings[]
+  school_mappings     school_mappings[]
+}
+
+model prerequisite_mappings {
+  course_id                                        String
+  for_id                                           String
+  courses_coursesToprerequisite_mappings_course_id courses @relation("coursesToprerequisite_mappings_course_id", fields: [course_id], references: [course_id], onUpdate: Restrict, map: "prerequisite_mappings_ibfk_1")
+  courses_coursesToprerequisite_mappings_for_id    courses @relation("coursesToprerequisite_mappings_for_id", fields: [for_id], references: [course_id], onUpdate: Restrict, map: "prerequisite_mappings_ibfk_2")
+
+  @@id([course_id, for_id])
+  @@index([for_id], map: "for_id")
+}
+
+model school_mappings {
+  instructor_ucinetid String      @db.VarChar(8)
+  school_name         String
+  instructors         instructors @relation(fields: [instructor_ucinetid], references: [ucinetid], onUpdate: Restrict, map: "school_mappings_ibfk_1")
+  schools             schools     @relation(fields: [school_name], references: [school_name], onUpdate: Restrict, map: "school_mappings_ibfk_2")
+
+  @@id([instructor_ucinetid, school_name])
+  @@index([school_name], map: "school_name")
+}
+
+model schools {
+  school_name     String            @id
+  courses         courses[]
+  school_mappings school_mappings[]
+}
+
+model soc_courses {
+  department_code   String          @db.VarChar(7)
+  course_number     String
+  course_title      String          @db.VarChar(19)
+  course_comment    String?         @db.Text
+  prerequisite_link String?
+  soc_departments   soc_departments @relation(fields: [department_code], references: [department_code], onUpdate: Restrict, map: "soc_courses_ibfk_1")
+  soc_sections      soc_sections[]
+
+  @@id([department_code, course_number, course_title])
+}
+
+model soc_departments {
+  department_code              String        @id @db.VarChar(7)
+  department_name              String        @unique(map: "department_name")
+  department_comment           String?       @db.Text
+  course_number_range_comments String?       @db.LongText
+  section_code_range_comments  String?       @db.LongText
+  school_name                  String
+  soc_schools                  soc_schools   @relation(fields: [school_name], references: [school_name], onUpdate: Restrict, map: "soc_departments_ibfk_1")
+  soc_courses                  soc_courses[]
+
+  @@index([school_name], map: "school_name")
+}
+
+model soc_instructors {
+  instructor_idx  BigInt       @id @default(autoincrement()) @db.UnsignedBigInt
+  section_year    String       @db.VarChar(4)
+  section_quarter String       @db.VarChar(10)
+  section_code    String       @db.Char(5)
+  shortened_name  String
+  soc_sections    soc_sections @relation(fields: [section_year, section_quarter, section_code], references: [section_year, section_quarter, section_code], onUpdate: Restrict, map: "soc_instructors_ibfk_1")
+
+  @@index([section_year, section_quarter, section_code], map: "section_year")
+}
+
+model soc_schools {
+  school_name     String            @id
+  school_comment  String?           @db.Text
+  soc_departments soc_departments[]
+}
+
+model soc_sections {
+  department_code              String            @db.VarChar(7)
+  course_number                String
+  course_title                 String            @db.VarChar(19)
+  section_year                 String            @db.VarChar(4)
+  section_quarter              String            @db.VarChar(10)
+  section_code                 String            @db.Char(5)
+  section_type                 String            @db.Char(3)
+  section_num                  String            @db.VarChar(3)
+  units                        String            @db.VarChar(11)
+  meetings                     String            @db.LongText
+  final_exam                   String            @db.VarChar(24)
+  max_capacity                 String            @db.VarChar(6)
+  num_currently_enrolled_total String            @db.VarChar(6)
+  num_section_enrolled_total   String            @db.VarChar(6)
+  num_on_waitlist              String            @db.VarChar(6)
+  num_requested                String            @db.VarChar(6)
+  num_new_only_reserved        String            @db.VarChar(6)
+  restrictions                 String
+  section_status               String            @db.VarChar(7)
+  section_comment              String?           @db.Text
+  soc_courses                  soc_courses       @relation(fields: [department_code, course_number, course_title], references: [department_code, course_number, course_title], onUpdate: Restrict, map: "soc_sections_ibfk_1")
+  soc_instructors              soc_instructors[]
+
+  @@id([section_year, section_quarter, section_code])
+  @@index([department_code, course_number, course_title], map: "department_code")
+}
+
+model terms {
+  term_name      String?          @unique(map: "term_name") @db.VarChar(15)
+  term_year      String           @db.VarChar(4)
+  term_quarter   String           @db.VarChar(10)
+  course_history course_history[]
+
+  @@id([term_year, term_quarter])
+}
