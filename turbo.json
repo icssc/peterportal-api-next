@@ -1,10 +1,18 @@
 {
   "pipeline": {
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "^db:generate"],
       "outputs": ["dist/**"]
     },
+    "db:generate": {
+      "dependsOn": ["db:pull"],
+      "cache": false
+    },
+    "db:pull": {
+      "cache": false
+    },
     "dev": {
+      "dependsOn": ["^db:generate"],
       "cache": false
     },
     "format": {
