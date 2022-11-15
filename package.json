@@ -14,8 +14,8 @@
     "build": "turbo run build",
     "commit": "cz",
     "dev": "turbo run dev --parallel",
-    "format": "prettier --write .",
-    "lint": "eslint --quiet --fix",
+    "format": "turbo run format",
+    "lint": "turbo run lint",
     "prepare": "husky install",
     "test": "turbo run test",
     "test:watch": "turbo run test:watch"
@@ -25,7 +25,7 @@
       "eslint --quiet --fix",
       "prettier --write"
     ],
-    "*.{json,md,sql,yaml,yml}": [
+    "*.{json,md,prisma,sql,yaml,yml}": [
       "prettier --write"
     ]
   },
