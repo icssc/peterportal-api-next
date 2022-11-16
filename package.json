@@ -31,9 +31,7 @@
   },
   "config": {
     "commitizen": {
-      "path": "cz-conventional-changelog",
-      "maxHeaderWidth": 50,
-      "maxLineWidth": 72
+      "path": "cz-conventional-changelog"
     }
   },
   "devDependencies": {
