@@ -7,6 +7,7 @@
     "cdk",
     "db",
     "docs",
+    "misc/*",
     "packages/*",
     "tools/*"
   ],

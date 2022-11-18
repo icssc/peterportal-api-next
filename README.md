@@ -24,10 +24,11 @@ The _Next_ version of the PeterPortal API is rewritten from the ground up, with 
 ## 📂 Repository Structure
 
 - `api`: Components of the API
-- `cdk`: AWS CDK app used for deploying the API
+- `cdk`: AWS CDK app used for managing deployment
 - `db`: Prisma Client configuration shared between API components
 - `docs`: Docusaurus app containing the API documentation
-- `packages`: Miscellaneous code shared between components
+- `misc`: Miscellaneous code shared between components
+- `packages`: Packages published to registries
 - `tools`: Tools used to maintain and update the API
 
 ## 📖 Documentation
@@ -36,6 +37,6 @@ The _Next_ version of the PeterPortal API is rewritten from the ground up, with 
 
 ## ⚠️ Caveats
 
-Please note that while our data is obtained directly from official UCI sources, such as the Catalogue, the Public Records Office, and the Registrar, this is not an official UCI tool. While we strive to keep our data as accurate as possible with the limited support we have from the school, errors can and do happen; please take this into consideration when using this API.
+Please note that while our data is obtained directly from official UCI sources, such as the Catalogue, the Public Records Office, and the Registrar, this is not an official UCI tool. While we strive to keep our data as accurate as possible with the limited support we have from the University, errors can and do happen; please take this into consideration when using this API.
 
 We appreciate any and all reports of erroneous information and will take action as quickly as possible. If while using this API you encounter any such errors or bugs, please open an issue [here](https://github.com/icssc/peterportal-api-next/issues/new).
