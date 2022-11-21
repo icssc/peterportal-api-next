@@ -36,7 +36,9 @@ To use Commitizen, simply run the following command after staging your changes u
 $ npm run commit
 ```
 
-You can also write commit messages manually using `git commit`, but do note that our system will reject any commit messages that don't meet the spec.
+Note that due to limitations of the Commitizen tool, you must run this command in the root of the repository.
+
+You can also write commit messages manually using `git commit`, which can be done anywhere in the repo, but do note that our system will reject any commit messages that don't meet the spec.
 
 ## Drafting and Testing
 
