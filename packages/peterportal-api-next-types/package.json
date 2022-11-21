@@ -1,0 +1,10 @@
+{
+  "name": "peterportal-api-next-types",
+  "version": "0.1.0",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "format": "prettier --write .",
+    "lint": "eslint --quiet --fix"
+  }
+}
