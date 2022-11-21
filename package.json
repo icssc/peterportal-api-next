@@ -3,13 +3,13 @@
   "version": "0.0.0",
   "private": true,
   "workspaces": [
-    "api/*",
+    "api/**/*",
     "cdk",
     "db",
     "docs",
-    "misc/*",
-    "packages/*",
-    "tools/*"
+    "misc/**/*",
+    "packages/**/*",
+    "tools/**/*"
   ],
   "scripts": {
     "build": "turbo run build",
@@ -55,7 +55,7 @@
     "prettier-plugin-prisma": "^4.4.0",
     "prettier-plugin-sql": "^0.12.1",
     "turbo": "^1.6.3",
-    "typescript": "^4.9.3"
+    "typescript": "<4.9.0"
   },
   "packageManager": "npm@8.19.3",
   "engines": {
