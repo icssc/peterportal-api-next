@@ -80,7 +80,7 @@
     "description": "Further information is required to take appropriate action"
   },
   {
-    "name": "status: wont do/fix",
+    "name": "status: wontfix",
     "color": "eeeeee",
     "description": "This will not be worked on"
   },
@@ -93,6 +93,11 @@
     "name": "type: chore",
     "color": "fef2c0",
     "description": "All other necessary (but less impactful) tasks"
+  },
+  {
+    "name": "type: dependency",
+    "color": "0366d6",
+    "description": "Pull requests that update a dependency file"
   },
   {
     "name": "type: discussion",
