@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "alwaysStrict": true,
+    "composite": false,
+    "declaration": true,
+    "declarationMap": true,
+    "esModuleInterop": true,
+    "experimentalDecorators": true,
+    "forceConsistentCasingInFileNames": true,
+    "inlineSourceMap": true,
+    "inlineSources": false,
+    "isolatedModules": true,
+    "module": "ES2020",
+    "moduleResolution": "Node",
+    "noFallthroughCasesInSwitch": false,
+    "noImplicitAny": true,
+    "noImplicitReturns": true,
+    "noImplicitThis": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "outDir": "dist",
+    "preserveWatchOutput": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "strictNullChecks": true,
+    "strictPropertyInitialization": false,
+    "target": "ES2020"
+  },
+  "exclude": ["build/", "dist/", "node_modules/"],
+  "include": [
+    "api/**/*",
+    "cdk/**/*",
+    "db/**/*",
+    "docs/**/*",
+    "packages/**/*",
+    "tools/**/*"
+  ]
+}

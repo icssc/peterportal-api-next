@@ -1,0 +1,93 @@
+- name: "priority: critical"
+  color: b60205
+  description: Critical issue, necessitates immediate action
+- name: "priority: high"
+  color: d93f0b
+  description: High priority issue
+- name: "priority: medium"
+  color: fbca04
+  description: Medium priority issue
+- name: "priority: low"
+  color: 0e8a16
+  description: Low priority issue
+- name: "story point: 1"
+  color: 91ca55
+  description: Quick copy change
+- name: "story point: 2"
+  color: c2e2a2
+  description: Small DX/UX change or bugfix
+- name: "story point: 3"
+  color: e9f4dc
+  description: Change to endpoint or response
+- name: "story point: 5"
+  color: fef6d7
+  description: Significant feature added to project
+- name: "story point: 8"
+  color: fef2c0
+  description: Technology added to stack or major redesign
+- name: breaking
+  color: d73a4a
+  description: Introduces a breaking change
+- name: good first task
+  color: 7057ff
+  description: Good for newcomers
+- name: help wanted
+  color: 0e8a16
+  description: Extra attention is needed
+- name: "status: can't reproduce"
+  color: fec1c1
+  description: The bug cannot be reproduced using the information provided
+- name: "status: confirmed"
+  color: 215cea
+  description: The bug has been reproduced and is confirmed
+- name: "status: duplicate"
+  color: cfd3d7
+  description: This issue or pull request already exists
+- name: "status: needs information"
+  color: fef2c0
+  description: Further information is required to take appropriate action
+- name: "status: wontfix"
+  color: eeeeee
+  description: This will not be worked on
+- name: "type: bug"
+  color: d73a4a
+  description: Something isn't working
+- name: "type: chore"
+  color: fef2c0
+  description: All other necessary (but less impactful) tasks
+- name: "type: dependency"
+  color: 0366d6
+  description: Pull requests that update a dependency file
+- name: "type: discussion"
+  color: d4c5f9
+  description: Questions, proposals and info that requires discussion
+- name: "type: documentation"
+  color: fef2c0
+  description: Related to documentation and information
+- name: "type: feature request"
+  color: 5ebeff
+  description: Brand new functionality, features, pages, workflows, endpoints, etc
+- name: "type: fix"
+  color: 91ca55
+  description: Iterations on existing features or infrastructure
+- name: "type: testing"
+  color: fbca04
+  description: Related to testing
+- name: "type: question"
+  color: d876e3
+  description: Further information is requested
+- name: "area: rest-api"
+  color: 006b75
+  description: Related to the REST API
+- name: "area: graphql-api"
+  color: aef093
+  description: Related to the GraphQL API
+- name: "area: cdk"
+  color: 615d2e
+  description: Related to the AWS CDK
+- name: "area: db"
+  color: 42890d
+  description: Related to the Prisma database client
+- name: "area: tools"
+  color: 9951a0
+  description: Related to the API's maintenance tooling

@@ -1,0 +1,5 @@
+.cdk.staging
+.docusaurus
+cdk.out
+build
+dist
