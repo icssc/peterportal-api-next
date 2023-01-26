@@ -46,7 +46,6 @@ export type FullCourses =
 export type CancelledCourses = "Exclude" | "Include" | "Only";
 
 export interface WebsocAPIOptions {
-  term: Term;
   ge?: GE;
   department?: string;
   courseNumber?: string;
@@ -157,26 +156,30 @@ const getCodedDiv = (div: Division): string | void => {
 
 /* region Exported functions */
 
-export const callWebSocAPI = async ({
-  term,
-  ge = "ANY",
-  department = "ALL",
-  courseNumber = "",
-  division = "ANY",
-  sectionCodes = "",
-  instructorName = "",
-  courseTitle = "",
-  sectionType = "ALL",
-  units = "",
-  days = "",
-  startTime = "",
-  endTime = "",
-  maxCapacity = "",
-  fullCourses = "ANY",
-  cancelledCourses = "Exclude",
-  building = "",
-  room = "",
-}: WebsocAPIOptions): Promise<WebsocAPIResponse> => {
+export const callWebSocAPI = async (
+  term: Term,
+  options: WebsocAPIOptions
+): Promise<WebsocAPIResponse> => {
+  const {
+    ge = "ANY",
+    department = "ALL",
+    courseNumber = "",
+    division = "ANY",
+    sectionCodes = "",
+    instructorName = "",
+    courseTitle = "",
+    sectionType = "ALL",
+    units = "",
+    days = "",
+    startTime = "",
+    endTime = "",
+    maxCapacity = "",
+    fullCourses = "",
+    cancelledCourses = "",
+    building = "",
+    room = "",
+  } = options;
+
   if (
     department === "ALL" &&
     ge === "ANY" &&

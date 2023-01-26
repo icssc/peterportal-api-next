@@ -10,8 +10,7 @@ describe("websoc-api-next tests", () => {
     expect(await getDeptCodes()).toContain("COMPSCI");
   });
   test("WebSOC query for Lower Division I&C SCI courses in 2021 Fall contains I&C SCI 32A", async () => {
-    const res = await callWebSocAPI({
-      term: "2021 Fall",
+    const res = await callWebSocAPI("2021 Fall", {
       department: "I&C SCI",
       division: "LowerDiv",
     });
@@ -25,8 +24,7 @@ describe("websoc-api-next tests", () => {
     ).toEqual(1);
   });
   test("WebSOC query for Upper Division COMPSCI courses in 2022 Winter includes COMPSCI 161", async () => {
-    const res = await callWebSocAPI({
-      term: "2022 Winter",
+    const res = await callWebSocAPI("2022 Winter", {
       department: "COMPSCI",
       division: "UpperDiv",
     });
@@ -40,8 +38,7 @@ describe("websoc-api-next tests", () => {
     ).toEqual(1);
   });
   test("WebSOC query for Graduate/Professional COMPSCI courses in 2022 Spring includes COMPSCI 260P", async () => {
-    const res = await callWebSocAPI({
-      term: "2022 Spring",
+    const res = await callWebSocAPI("2022 Spring", {
       department: "COMPSCI",
       division: "Graduate",
     });
@@ -55,8 +52,7 @@ describe("websoc-api-next tests", () => {
     ).toEqual(1);
   });
   test("WebSOC query for COMPSCI courses in 2022 Summer Session 1 includes COMPSCI 143A", async () => {
-    const res = await callWebSocAPI({
-      term: "2022 Summer1",
+    const res = await callWebSocAPI("2022 Summer1", {
       department: "COMPSCI",
     });
     expect(res.schools).toHaveLength(1);
@@ -69,8 +65,7 @@ describe("websoc-api-next tests", () => {
     ).toEqual(1);
   });
   test("WebSOC query for I&C SCI courses in 2022 10-wk Summer includes I&C SCI 31", async () => {
-    const res = await callWebSocAPI({
-      term: "2022 Summer10wk",
+    const res = await callWebSocAPI("2022 Summer10wk", {
       department: "I&C SCI",
     });
     expect(res.schools).toHaveLength(1);
@@ -83,8 +78,7 @@ describe("websoc-api-next tests", () => {
     ).toEqual(1);
   });
   test("WebSOC query for I&C SCI courses in 2022 Summer Session 2 includes I&C SCI 6B", async () => {
-    const res = await callWebSocAPI({
-      term: "2022 Summer2",
+    const res = await callWebSocAPI("2022 Summer2", {
       department: "I&C SCI",
     });
     expect(res.schools).toHaveLength(1);
@@ -96,9 +90,8 @@ describe("websoc-api-next tests", () => {
       ).length
     ).toEqual(1);
   });
-  test("WebSOC query for ECON courses in 2023 Winter includes course number range comments", async () => {
-    const res = await callWebSocAPI({
-      term: "2023 Winter",
+  test("WebSOC query for ECON courses in 2023 Winter includes multiple course number range comments", async () => {
+    const res = await callWebSocAPI("2023 Winter", {
       department: "ECON",
     });
     expect(res.schools).toHaveLength(1);
@@ -109,8 +102,7 @@ describe("websoc-api-next tests", () => {
     ).toBeTruthy();
   });
   test("WebSOC query for HUMAN courses in 2023 Winter includes section code range comments", async () => {
-    const res = await callWebSocAPI({
-      term: "2023 Winter",
+    const res = await callWebSocAPI("2023 Winter", {
       department: "HUMAN",
     });
     expect(res.schools).toHaveLength(1);
@@ -121,12 +113,11 @@ describe("websoc-api-next tests", () => {
     ).toBeTruthy();
   });
   test("Malformed WebSOC query with only term provided throws error", () => {
-    expect(callWebSocAPI({ term: "2023 Winter" })).rejects.toThrow();
+    expect(callWebSocAPI("2023 Winter", {})).rejects.toThrow();
   });
   test("Malformed WebSOC query with room number but no building provided throws error", () => {
     expect(
-      callWebSocAPI({
-        term: "2023 Winter",
+      callWebSocAPI("2023 Winter", {
         department: "COMPSCI",
         room: "100",
       })
