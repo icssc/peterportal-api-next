@@ -126,7 +126,7 @@ export interface WebsocAPIResponse {
 
 /* region Internal helper functions */
 
-const getCodedTerm = (term: Term): string => {
+const getCodedTerm = (term: Term): string | void => {
   if (term.includes("Fall")) {
     return term.slice(0, 4) + "-92";
   } else if (term.includes("Winter")) {
@@ -140,10 +140,9 @@ const getCodedTerm = (term: Term): string => {
   } else if (term.includes("Summer2")) {
     return term.slice(0, 4) + "-76";
   }
-  throw new Error("Error: Invalid term provided.");
 };
 
-const getCodedDiv = (div: Division): string => {
+const getCodedDiv = (div: Division): string | void => {
   if (div === "ANY") {
     return "all";
   } else if (div === "LowerDiv") {
@@ -153,7 +152,6 @@ const getCodedDiv = (div: Division): string => {
   } else if (div === "Graduate") {
     return "2xx";
   }
-  throw new Error("Error: Invalid division provided.");
 };
 /* endregion */
 
@@ -196,13 +194,13 @@ export const callWebSocAPI = async ({
 
   const postData = {
     Submit: "Display XML Results",
-    YearTerm: getCodedTerm(term),
+    YearTerm: getCodedTerm(term) as string,
     ShowComments: "on",
     ShowFinals: "on",
     Breadth: ge,
     Dept: department,
     CourseNum: courseNumber,
-    Division: getCodedDiv(division),
+    Division: getCodedDiv(division) as string,
     CourseCodes: sectionCodes,
     InstrName: instructorName,
     CourseTitle: courseTitle,
@@ -319,11 +317,7 @@ export const callWebSocAPI = async ({
           })),
         }))
       : [];
-  if (json.schools === undefined) {
-    throw new Error("Error: Could not retrieve any data from WebSoc.");
-  } else {
-    return json;
-  }
+  return json;
 };
 
 // Returns all currently visible undergraduate and graduate terms.
@@ -343,27 +337,26 @@ export const getTerms = async (): Promise<Term[]> => {
     .split("\n")
     .map((x) => x.trim())
     .filter((x) => x && !x.includes("Law") && !x.includes("COM"))
-    .map((x) => {
+    .map((x): string | void => {
       if (x.includes("Fall")) {
-        return `${x.slice(0, 4)} Fall` as Term;
+        return `${x.slice(0, 4)} Fall`;
       }
       if (x.includes("Winter")) {
-        return `${x.slice(0, 4)} Winter` as Term;
+        return `${x.slice(0, 4)} Winter`;
       }
       if (x.includes("Spring")) {
-        return `${x.slice(0, 4)} Spring` as Term;
+        return `${x.slice(0, 4)} Spring`;
       }
       if (x.includes("10-wk")) {
-        return `${x.slice(0, 4)} 10wk` as Term;
+        return `${x.slice(0, 4)} 10wk`;
       }
       if (x.includes("Session 1")) {
-        return `${x.slice(0, 4)} Summer1` as Term;
+        return `${x.slice(0, 4)} Summer1`;
       }
       if (x.includes("Session 2")) {
-        return `${x.slice(0, 4)} Summer2` as Term;
+        return `${x.slice(0, 4)} Summer2`;
       }
-      throw new Error(`Invalid term ${x} provided.`);
-    });
+    }) as Term[];
 };
 
 // Returns all department codes.

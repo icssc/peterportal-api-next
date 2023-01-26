@@ -19,8 +19,8 @@
   ],
   "scripts": {
     "build": "tsup index.ts --format cjs,esm --dts --clean",
-    "test": "jest",
-    "test:watch": "jest --watch"
+    "test": "jest --collectCoverage",
+    "test:watch": "jest --collectCoverage --watch"
   },
   "dependencies": {
     "cheerio": "^1.0.0-rc.12",
