@@ -12,6 +12,7 @@
   ],
   "scripts": {
     "build": "dotenv -c production -- turbo run build",
+    "commit": "cz",
     "deploy": "dotenv -c production -- turbo run deploy",
     "dev": "dotenv -c development -- turbo run dev",
     "format": "prettier --write .",
