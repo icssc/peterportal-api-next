@@ -1,6 +1,6 @@
 import { load } from "cheerio";
+import fetch from "cross-fetch";
 import { XMLParser } from "fast-xml-parser";
-import fetch from "node-fetch";
 
 /* region Type declarations */
 
