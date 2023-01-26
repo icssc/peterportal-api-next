@@ -1,3 +1,4 @@
+import { load } from "cheerio";
 import { XMLParser } from "fast-xml-parser";
 import fetch from "node-fetch";
 
@@ -323,5 +324,64 @@ export const callWebSocAPI = async ({
   } else {
     return json;
   }
+};
+
+// Returns all currently visible undergraduate and graduate terms.
+export const getTerms = async (): Promise<Term[]> => {
+  const response = await (
+    await fetch("https://www.reg.uci.edu/perl/WebSoc")
+  ).text();
+  const $ = load(response);
+  return $("form")
+    .eq(1)
+    .find("td")
+    .eq(2)
+    .text()
+    .replace(/\t/g, "")
+    .replace(/ {2}/g, " ")
+    .replace(/ {2}/g, "")
+    .split("\n")
+    .map((x) => x.trim())
+    .filter((x) => x && !x.includes("Law") && !x.includes("COM"))
+    .map((x) => {
+      if (x.includes("Fall")) {
+        return `${x.slice(0, 4)} Fall` as Term;
+      }
+      if (x.includes("Winter")) {
+        return `${x.slice(0, 4)} Winter` as Term;
+      }
+      if (x.includes("Spring")) {
+        return `${x.slice(0, 4)} Spring` as Term;
+      }
+      if (x.includes("10-wk")) {
+        return `${x.slice(0, 4)} 10wk` as Term;
+      }
+      if (x.includes("Session 1")) {
+        return `${x.slice(0, 4)} Summer1` as Term;
+      }
+      if (x.includes("Session 2")) {
+        return `${x.slice(0, 4)} Summer2` as Term;
+      }
+      throw new Error(`Invalid term ${x} provided.`);
+    });
+};
+
+// Returns all department codes.
+export const getDeptCodes = async (): Promise<string[]> => {
+  const response = await (
+    await fetch("https://www.reg.uci.edu/perl/WebSoc")
+  ).text();
+  const $ = load(response);
+  return $("form")
+    .eq(1)
+    .find("select")
+    .eq(2)
+    .text()
+    .replace(/\t/g, "")
+    .replace(/ {4}/g, "")
+    .split("\n")
+    .map((x) => x.split(" .")[0])
+    .filter((x) => x)
+    .slice(1);
 };
 /* endregion */
