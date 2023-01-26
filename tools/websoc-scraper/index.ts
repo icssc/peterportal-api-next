@@ -327,5 +327,4 @@ async function handler() {
       shortened_name: i.shortenedName,
     })),
   });
-  console.timeEnd("Inserting data took");
 }
