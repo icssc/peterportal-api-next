@@ -3,16 +3,18 @@ import { describe, expect, test } from "@jest/globals";
 import { callWebSocAPI, getDepts, getTerms } from "./index";
 
 describe("websoc-api-next tests", () => {
-  test("getTerms return includes 2023 Winter", async () => {
-    expect(await getTerms()).toContainEqual({
-      shortName: "2023 Winter",
-      longName: "2023 Winter Quarter",
+  describe("websoc-api-next tests", () => {
+    test("getDepts return includes COMPSCI", async () => {
+      expect(await getDepts()).toContainEqual({
+        deptLabel: "COMPSCI: Computer Science",
+        deptValue: "COMPSCI",
+      });
     });
-  });
-  test("getDepts return includes COMPSCI", async () => {
-    expect(await getDepts()).toContainEqual({
-      deptLabel: "COMPSCI: Computer Science",
-      deptValue: "COMPSCI",
+    test("getTerms return includes 2023 Winter", async () => {
+      expect(await getTerms()).toContainEqual({
+        shortName: "2023 Winter",
+        longName: "2023 Winter Quarter",
+      });
     });
   });
   test("WebSOC query for Lower Division I&C SCI courses in 2021 Fall contains I&C SCI 32A", async () => {

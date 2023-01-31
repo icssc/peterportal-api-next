@@ -1,21 +1,90 @@
-export type AcademicQuarter = "Fall" | "Winter" | "Spring" | "Summer";
+/* region Constants */
 
-export type CourseLevel =
-  | "Lower Division (1-99)"
-  | "Upper Division (100-199)"
-  | "Graduate/Professional Only (200+)";
+const quarters = [
+  "Fall",
+  "Winter",
+  "Spring",
+  "Summer1",
+  "Summer10wk",
+  "Summer2",
+] as const;
+const websocGECategories = [
+  "GE-1A",
+  "GE-1B",
+  "GE-2",
+  "GE-3",
+  "GE-4",
+  "GE-5A",
+  "GE-5B",
+  "GE-6",
+  "GE-7",
+  "GE-8",
+] as const;
+const divisions = ["LowerDiv", "UpperDiv", "Graduate"] as const;
+const sectionTypes = [
+  "Act",
+  "Col",
+  "Dis",
+  "Fld",
+  "Lab",
+  "Lec",
+  "Qiz",
+  "Res",
+  "Sem",
+  "Stu",
+  "Tap",
+  "Tut",
+] as const;
+const fullCoursesOptions = [
+  "SkipFullWaitlist",
+  "FullOnly",
+  "OverEnrolled",
+] as const;
+const cancelledCoursesOptions = ["Exclude", "Include", "Only"] as const;
+const courseLevels = [
+  "Lower Division (1-99)",
+  "Upper Division (100-199)",
+  "Graduate/Professional Only (200+)",
+] as const;
+const geCategories = [
+  "GE Ia: Lower Division Writing",
+  "GE Ib: Upper Division Writing",
+  "GE II: Science and Technology",
+  "GE III: Social & Behavioral Sciences",
+  "GE IV: Arts and Humanities",
+  "GE Va: Quantitative Literacy",
+  "GE Vb: Formal Reasoning",
+  "GE VI: Language Other Than English",
+  "GE VII: Multicultural Studies",
+  "GE VIII: International/Global Issues",
+] as const;
+const academicQuarters = ["Fall", "Winter", "Spring", "Summer"] as const;
 
-export type GECategory =
-  | "GE Ia: Lower Division Writing"
-  | "GE Ib: Upper Division Writing"
-  | "GE II: Science and Technology"
-  | "GE III: Social & Behavioral Sciences"
-  | "GE IV: Arts and Humanities"
-  | "GE Va: Quantitative Literacy"
-  | "GE Vb: Formal Reasoning"
-  | "GE VI: Language Other Than English"
-  | "GE VII: Multicultural Studies"
-  | "GE VIII: International/Global Issues";
+/* endregion */
+
+/* region Type declarations */
+
+export type CourseLevel = (typeof courseLevels)[number];
+export type GECategory = (typeof geCategories)[number];
+export type AcademicQuarter = (typeof academicQuarters)[number];
+export type Any = "ANY";
+export type GE = Any | (typeof websocGECategories)[number];
+export type Division = Any | (typeof divisions)[number];
+export type SectionType = Any | (typeof sectionTypes)[number];
+export type FullCourses = Any | (typeof fullCoursesOptions)[number];
+export type CancelledCourses = (typeof cancelledCoursesOptions)[number];
+export interface Department {
+  deptLabel: string;
+  deptValue: string;
+}
+export interface Term {
+  year: string;
+  quarter: (typeof quarters)[number];
+}
+export interface TermData {
+  shortName: `${string} ${(typeof quarters)[number]}`;
+  longName: string;
+}
 
 export interface PrerequisiteTree {
   AND?: string[];
@@ -161,13 +230,19 @@ export type GradesCalculatedResponse = Response<{
   courseList: GradeSection[];
 }>;
 
-export type WebsocResponse = Response<WebsocSchool[]>;
+export type WebsocResponse = Response<{ schools: WebsocSchool[] }>;
 
 export interface ErrorResponse extends IResponse {
   error: string;
   message: string;
 }
 
-export function isErrorResponse(r: IResponse): r is ErrorResponse {
+/* endregion */
+
+/* region Exported functions */
+
+export const isErrorResponse = (r: IResponse): r is ErrorResponse => {
   return typeof r?.error === "string" && typeof r?.message === "string";
-}
+};
+
+/* endregion */
