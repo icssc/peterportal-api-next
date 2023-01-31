@@ -3,47 +3,66 @@ import fetch from "cross-fetch";
 import { XMLParser } from "fast-xml-parser";
 
 /* region Type declarations */
+const quarters = [
+  "Fall",
+  "Winter",
+  "Spring",
+  "Summer1",
+  "Summer10wk",
+  "Summer2",
+] as const;
+const geCategories = [
+  "GE-1A",
+  "GE-1B",
+  "GE-2",
+  "GE-3",
+  "GE-4",
+  "GE-5A",
+  "GE-5B",
+  "GE-6",
+  "GE-7",
+  "GE-8",
+] as const;
+const divisions = ["LowerDiv", "UpperDiv", "Graduate"] as const;
+const sectionTypes = [
+  "Act",
+  "Col",
+  "Dis",
+  "Fld",
+  "Lab",
+  "Lec",
+  "Qiz",
+  "Res",
+  "Sem",
+  "Stu",
+  "Tap",
+  "Tut",
+] as const;
+const fullCoursesOptions = [
+  "SkipFullWaitlist",
+  "FullOnly",
+  "OverEnrolled",
+] as const;
+const cancelledCoursesOptions = ["Exclude", "Include", "Only"] as const;
 
-export type Term = `${string}${
-  | "Fall"
-  | "Winter"
-  | "Spring"
-  | "Summer1"
-  | "Summer10wk"
-  | "Summer2"}`;
-export type GE =
-  | "ANY"
-  | "GE-1A"
-  | "GE-1B"
-  | "GE-2"
-  | "GE-3"
-  | "GE-4"
-  | "GE-5A"
-  | "GE-5B"
-  | "GE-6"
-  | "GE-7"
-  | "GE-8";
-export type Division = "ANY" | "LowerDiv" | "UpperDiv" | "Graduate";
-export type SectionType =
-  | "ALL"
-  | "Act"
-  | "Col"
-  | "Dis"
-  | "Fld"
-  | "Lab"
-  | "Lec"
-  | "Qiz"
-  | "Res"
-  | "Sem"
-  | "Stu"
-  | "Tap"
-  | "Tut";
-export type FullCourses =
-  | "ANY"
-  | "SkipFullWaitlist"
-  | "FullOnly"
-  | "OverEnrolled";
-export type CancelledCourses = "Exclude" | "Include" | "Only";
+export type Any = "ANY";
+export type GE = Any | (typeof geCategories)[number];
+export type Division = Any | (typeof divisions)[number];
+export type SectionType = Any | (typeof sectionTypes)[number];
+export type FullCourses = Any | (typeof fullCoursesOptions)[number];
+export type CancelledCourses = (typeof cancelledCoursesOptions)[number];
+export interface Department {
+  deptLabel: string;
+  deptValue: string;
+}
+export interface Term {
+  year: string;
+  quarter: (typeof quarters)[number];
+}
+export interface TermData {
+  shortName: `${string} ${(typeof quarters)[number]}`;
+  longName: string;
+}
 
 export interface WebsocAPIOptions {
   ge?: GE;
@@ -125,31 +144,33 @@ export interface WebsocAPIResponse {
 
 /* region Internal helper functions */
 
-const getCodedTerm = (term: Term): string | void => {
-  if (term.includes("Fall")) {
-    return term.slice(0, 4) + "-92";
-  } else if (term.includes("Winter")) {
-    return term.slice(0, 4) + "-03";
-  } else if (term.includes("Spring")) {
-    return term.slice(0, 4) + "-14";
-  } else if (term.includes("Summer10wk")) {
-    return term.slice(0, 4) + "-39";
-  } else if (term.includes("Summer1")) {
-    return term.slice(0, 4) + "-25";
-  } else if (term.includes("Summer2")) {
-    return term.slice(0, 4) + "-76";
+const getCodedTerm = (term: Term): string => {
+  switch (term.quarter) {
+    case "Fall":
+      return `${term.year}-92`;
+    case "Winter":
+      return `${term.year}-03`;
+    case "Spring":
+      return `${term.year}-14`;
+    case "Summer10wk":
+      return `${term.year}-39`;
+    case "Summer1":
+      return `${term.year}-25`;
+    case "Summer2":
+      return `${term.year}-76`;
   }
 };
 
-const getCodedDiv = (div: Division): string | void => {
-  if (div === "ANY") {
-    return "all";
-  } else if (div === "LowerDiv") {
-    return "0xx";
-  } else if (div === "UpperDiv") {
-    return "1xx";
-  } else if (div === "Graduate") {
-    return "2xx";
+const getCodedDiv = (div: Division): string => {
+  switch (div) {
+    case "ANY":
+      return "all";
+    case "LowerDiv":
+      return "0xx";
+    case "UpperDiv":
+      return "1xx";
+    case "Graduate":
+      return "2xx";
   }
 };
 /* endregion */
@@ -197,13 +218,13 @@ export const callWebSocAPI = async (
 
   const postData = {
     Submit: "Display XML Results",
-    YearTerm: getCodedTerm(term) as string,
+    YearTerm: getCodedTerm(term),
     ShowComments: "on",
     ShowFinals: "on",
     Breadth: ge,
     Dept: department,
     CourseNum: courseNumber,
-    Division: getCodedDiv(division) as string,
+    Division: getCodedDiv(division),
     CourseCodes: sectionCodes,
     InstrName: instructorName,
     CourseTitle: courseTitle,
@@ -322,7 +343,7 @@ export const callWebSocAPI = async (
 };
 
 // Returns all currently visible undergraduate and graduate terms.
-export const getTerms = async (): Promise<Term[]> => {
+export const getTerms = async (): Promise<TermData[]> => {
   const response = await (
     await fetch("https://www.reg.uci.edu/perl/WebSoc")
   ).text();
@@ -338,30 +359,49 @@ export const getTerms = async (): Promise<Term[]> => {
     .split("\n")
     .map((x) => x.trim())
     .filter((x) => x && !x.includes("Law") && !x.includes("COM"))
-    .map((x): string | void => {
+    .map((x): TermData | void => {
+      const year = x.slice(0, 4);
       if (x.includes("Fall")) {
-        return `${x.slice(0, 4)} Fall`;
+        return {
+          shortName: `${year} Fall`,
+          longName: x,
+        };
       }
       if (x.includes("Winter")) {
-        return `${x.slice(0, 4)} Winter`;
+        return {
+          shortName: `${year} Winter`,
+          longName: x,
+        };
       }
       if (x.includes("Spring")) {
-        return `${x.slice(0, 4)} Spring`;
+        return {
+          shortName: `${year} Spring`,
+          longName: x,
+        };
       }
       if (x.includes("10-wk")) {
-        return `${x.slice(0, 4)} 10wk`;
+        return {
+          shortName: `${year} Summer10wk`,
+          longName: x,
+        };
       }
       if (x.includes("Session 1")) {
-        return `${x.slice(0, 4)} Summer1`;
+        return {
+          shortName: `${year} Summer1`,
+          longName: x,
+        };
       }
       if (x.includes("Session 2")) {
-        return `${x.slice(0, 4)} Summer2`;
+        return {
+          shortName: `${year} Summer2`,
+          longName: x,
+        };
       }
-    }) as Term[];
+    }) as TermData[];
 };
 
-// Returns all department codes.
-export const getDeptCodes = async (): Promise<string[]> => {
+// Returns all departments.
+export const getDepts = async (): Promise<Department[]> => {
   const response = await (
     await fetch("https://www.reg.uci.edu/perl/WebSoc")
   ).text();
@@ -374,8 +414,24 @@ export const getDeptCodes = async (): Promise<string[]> => {
     .replace(/\t/g, "")
     .replace(/ {4}/g, "")
     .split("\n")
-    .map((x) => x.split(" .")[0])
-    .filter((x) => x)
-    .slice(1);
+    .map((x) =>
+      x
+        .split(".")
+        .filter((y) => y != " ")
+        .map((y) => y.trim())
+    )
+    .filter((x) => x[0].length)
+    .map((x): Department => {
+      return x.length === 1
+        ? {
+            deptLabel: `ALL: Include All Departments`,
+            deptValue: "ALL",
+          }
+        : {
+            deptLabel: `${x[0]}: ${x[1].split("(started")[0].trim()}`,
+            deptValue: x[0],
+          };
+    })
+    .filter((x) => !x.deptLabel.includes("until"));
 };
 /* endregion */
