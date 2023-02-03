@@ -1,6 +1,6 @@
 /* region Constants */
 
-const quarters = [
+export const quarters = [
   "Fall",
   "Winter",
   "Spring",
@@ -8,7 +8,7 @@ const quarters = [
   "Summer10wk",
   "Summer2",
 ] as const;
-const websocGECategories = [
+export const websocGECategories = [
   "GE-1A",
   "GE-1B",
   "GE-2",
@@ -20,8 +20,8 @@ const websocGECategories = [
   "GE-7",
   "GE-8",
 ] as const;
-const divisions = ["LowerDiv", "UpperDiv", "Graduate"] as const;
-const sectionTypes = [
+export const divisions = ["LowerDiv", "UpperDiv", "Graduate"] as const;
+export const sectionTypes = [
   "Act",
   "Col",
   "Dis",
@@ -35,18 +35,18 @@ const sectionTypes = [
   "Tap",
   "Tut",
 ] as const;
-const fullCoursesOptions = [
+export const fullCoursesOptions = [
   "SkipFullWaitlist",
   "FullOnly",
   "OverEnrolled",
 ] as const;
-const cancelledCoursesOptions = ["Exclude", "Include", "Only"] as const;
-const courseLevels = [
+export const cancelledCoursesOptions = ["Exclude", "Include", "Only"] as const;
+export const courseLevels = [
   "Lower Division (1-99)",
   "Upper Division (100-199)",
   "Graduate/Professional Only (200+)",
 ] as const;
-const geCategories = [
+export const geCategories = [
   "GE Ia: Lower Division Writing",
   "GE Ib: Upper Division Writing",
   "GE II: Science and Technology",
@@ -58,7 +58,7 @@ const geCategories = [
   "GE VII: Multicultural Studies",
   "GE VIII: International/Global Issues",
 ] as const;
-const academicQuarters = ["Fall", "Winter", "Spring", "Summer"] as const;
+export const academicQuarters = ["Fall", "Winter", "Spring", "Summer"] as const;
 
 /* endregion */
 
@@ -73,16 +73,17 @@ export type Division = Any | (typeof divisions)[number];
 export type SectionType = Any | (typeof sectionTypes)[number];
 export type FullCourses = Any | (typeof fullCoursesOptions)[number];
 export type CancelledCourses = (typeof cancelledCoursesOptions)[number];
+export type Quarter = (typeof quarters)[number];
 export interface Department {
   deptLabel: string;
   deptValue: string;
 }
 export interface Term {
   year: string;
-  quarter: (typeof quarters)[number];
+  quarter: Quarter;
 }
 export interface TermData {
-  shortName: `${string} ${(typeof quarters)[number]}`;
+  shortName: `${string} ${Quarter}`;
   longName: string;
 }
 
@@ -136,6 +137,13 @@ export interface GradeDistribution {
   gradeNPCount: number;
   gradeWCount: number;
   averageGPA: number;
+}
+
+export type GradesRaw = (GradeSection & GradeDistribution)[];
+
+export interface GradesCalculated {
+  gradeDistribution: GradeDistribution & { count: number };
+  courseList: GradeSection[];
 }
 
 export interface Instructor {
@@ -202,6 +210,10 @@ export interface WebsocSchool {
   departments: WebsocDepartment[];
 }
 
+export interface WebsocAPIResponse {
+  schools: WebsocSchool[];
+}
+
 export interface IResponse {
   timestamp: string;
   requestId: string;
@@ -215,34 +227,18 @@ export interface Response<T> extends IResponse {
   payload: T;
 }
 
-export type CourseResponse = Response<Course>;
-
-export type CoursesAllResponse = Response<Course[]>;
-
-export type InstructorResponse = Response<Instructor>;
-
-export type InstructorsAllResponse = Response<Instructor[]>;
-
-export type GradesRawResponse = Response<(GradeSection & GradeDistribution)[]>;
-
-export type GradesCalculatedResponse = Response<{
-  gradeDistribution: GradeDistribution & { count: number };
-  courseList: GradeSection[];
-}>;
-
-export type WebsocResponse = Response<{ schools: WebsocSchool[] }>;
-
 export interface ErrorResponse extends IResponse {
   error: string;
   message: string;
 }
 
+export type RawResponse<T> = Response<T> | ErrorResponse;
+
 /* endregion */
 
 /* region Exported functions */
 
-export const isErrorResponse = (r: IResponse): r is ErrorResponse => {
-  return typeof r?.error === "string" && typeof r?.message === "string";
-};
+export const isErrorResponse = (r: IResponse): r is ErrorResponse =>
+  typeof r?.error === "string" && typeof r?.message === "string";
 
 /* endregion */
