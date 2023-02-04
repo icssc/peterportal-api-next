@@ -10,7 +10,7 @@
     "inlineSourceMap": true,
     "inlineSources": false,
     "isolatedModules": true,
-    "module": "CommonJS",
+    "module": "ES2020",
     "moduleResolution": "Node",
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": true,

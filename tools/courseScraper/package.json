@@ -2,6 +2,7 @@
   "name": "course-scraper",
   "version": "0.1.0",
   "description": "",
+  "type": "module",
   "main": "index.ts",
   "scripts": {
     "test": "prettier --write ."
