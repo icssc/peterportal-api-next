@@ -92,9 +92,9 @@ const addMultipleDateRow = (
 export const getTermData = async (
   year: string
 ): Promise<Record<string, TermData>> => {
-  if (year.toString().length !== 4)
+  if (year.length !== 4 || isNaN(parseInt(year)))
     throw new Error("Error: Invalid year provided.");
-  const shortYear = year.toString().slice(2);
+  const shortYear = year.slice(2);
   const response = await (
     await fetch(
       `https://www.reg.uci.edu/calendars/quarterly/${year}-${
