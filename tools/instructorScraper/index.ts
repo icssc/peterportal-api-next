@@ -1,9 +1,11 @@
 import axios, { AxiosError } from 'axios';
 import * as cheerio from 'cheerio';
+import he from 'he';
 
 
 const CATALOGUE_BASE_URL: string = 'http://catalogue.uci.edu';
 const URL_TO_ALL_SCHOOLS: string = 'http://catalogue.uci.edu/schoolsandprograms/';
+const URL_TO_DIRECTORY: string = 'https://directory.uci.edu/';
 
 
 /**
@@ -41,14 +43,13 @@ async function getFacultyLinks(): Promise<{ [key: string]: string }> {
                 // Only traverse when depth > 0
                 if (depth >= 1) {
                     const departmentLinks: string[][] = [];
-                    $('.levelone li a').each(function() {
+                    $('.levelone li a').each(function(this: cheerio.Element) {
                         const departmentURL = $(this).attr('href');
                         departmentLinks.push([CATALOGUE_BASE_URL + departmentURL + '#faculty', schoolName]);
                     });
                     const departmentLinksPromises = departmentLinks.map(x => getFaculty(x[0], x[1], depth-1));
                     const departmentLinksResults = await Promise.all(departmentLinksPromises);
                     departmentLinksResults.forEach(res => {
-                        console.log(res)
                         schoolURLs[schoolName] = schoolURLs[schoolName].concat(res[schoolName]);
                     });
                 }
@@ -59,7 +60,7 @@ async function getFacultyLinks(): Promise<{ [key: string]: string }> {
         const response = await axios.get(URL_TO_ALL_SCHOOLS);
         const $ = cheerio.load(response.data);
         const schoolLinks: string[][] = [];
-        $('#textcontainer h4 a').each(function() {
+        $('#textcontainer h4 a').each(function(this: cheerio.Element) {
             const schoolURL = $(this).attr('href');
             const schoolName = $(this).text();
             schoolLinks.push([CATALOGUE_BASE_URL + schoolURL + '#faculty', schoolName]);
@@ -93,7 +94,7 @@ async function getDepartmentCodes(facultyLink: string): Promise<string[]> {
     if ($('#courseinventorycontainer').length === 0) {
         return departmentCodes;
     }
-    $('#courseinventorycontainer courses').each(function() {
+    $('#courseinventorycontainer courses').each(function(this: cheerio.Element) {
         if ($(this).find('h3').length == 0) {
             //TODO need function from CourseScraper
         }
@@ -101,12 +102,69 @@ async function getDepartmentCodes(facultyLink: string): Promise<string[]> {
     return ['']
 }
 
+/**
+ * Some faculty pages don't have a corresponding course inventory page, so we hardcode them
+ * Go to https://www.reg.uci.edu/perl/InstructHist to find course codes of faculty
+ * 
+ * @param {string} facultyLink - Link to faculty page
+ * @returns {string[]} - A list of department codes that most of the professors have in common
+ */
+function getHardcodedDepartmentCodes(facultyLink: string): string[] {
+    const lookup: { [key: string]: string[] } = {
+        'http://catalogue.uci.edu/thepaulmerageschoolofbusiness/#faculty': ['MGMT','MGMT EP','MGMT FE','MGMT HC','MGMTMBA','MGMTPHD','MPAC'],
+        'http://catalogue.uci.edu/interdisciplinarystudies/pharmacologyandtoxicology/#faculty': ['PHRMSCI','PHARM','BIO SCI'],
+        'http://catalogue.uci.edu/schooloflaw/#faculty': ['LAW'],
+        'http://catalogue.uci.edu/schoolofmedicine/#faculty': []
+    }
+    if (facultyLink in lookup) {
+        return lookup[facultyLink];
+    }
+    console.log(`WARNING! ${facultyLink} does not have an associated Courses page! Use https://www.reg.uci.edu/perl/InstructHist to hardcode.`);
+    return [];
+}
 
+
+// async function getAllInstructors(departmentCodes: string, school:string): { [key: string] } {
+// pain    
+// }
+
+
+/**
+ * Gets the instructor's directory info
+ * 
+ * @param instructorName - name of instructor
+ * @returns {{key: string[]: string}} - Dictionary of instructor's info (name, ucinetid, title, email)
+ */
+async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]: string }> {
+    const data = {'uciKey': instructorName};
+    const info: { [key: string]: string } = {'name': '', 'ucinetid': '', 'title': '', 'email': ''}
+    try {
+
+        const response = await axios.post(URL_TO_DIRECTORY, data, {
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded'
+            }
+        });
+        const json = response.data[0][1];
+        return {
+            'name': he.decode(json.Name),
+            'ucinetid': json.UCInetID,
+            'title': he.decode(json.Title), // decode HTML encoded char
+            'email': Buffer.from(json.Email, 'base64').toString('utf8') // decode Base64 email
+        }
+    }
+    catch (error) {
+        console.log(error);
+    }
+    return {};
+}
 
 
 const test = async () => {
-    const s = await getFacultyLinks();
-    console.log(Object.keys(s).length); 
+    // const s = await getFacultyLinks();
+    // console.log(Object.keys(s).length); 
+    const s = await getDirectoryInfo("Sara A. Ep");
+    console.log(s);
 }
 
 test();
