@@ -1,6 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import * as cheerio from 'cheerio';
 import he from 'he';
+// import { getCourseInfo } from '../courseScraper/'
 
 
 const CATALOGUE_BASE_URL: string = 'http://catalogue.uci.edu';
@@ -80,11 +81,30 @@ async function getFacultyLinks(): Promise<{ [key: string]: string }> {
     catch (error) {
         console.log(error);
     }
-    finally {
-        return result;
-    }
+    return result;
 }
 
+
+/**
+ * Returns the names of instructors from a faculty page
+ * 
+ * @param facultyLink - link to faculty page
+ * @returns {string[]} - a list of instructor names
+ */
+async function getInstructorNames(facultyLink: string): Promise< string[] > {
+    const result: string[] = [];
+    try {
+        const response = await axios.get(facultyLink);
+        const $ = cheerio.load(response.data);
+        $('.faculty').each(function(this: cheerio.Element) {
+            result.push($(this).find('.name').text());
+        });
+    }
+    catch (error) {
+        console.log(error);
+    }
+    return result;
+}
 
 
 async function getDepartmentCodes(facultyLink: string): Promise<string[]> {
@@ -133,7 +153,7 @@ function getHardcodedDepartmentCodes(facultyLink: string): string[] {
  * Gets the instructor's directory info
  * 
  * @param instructorName - name of instructor
- * @returns {{key: string[]: string}} - Dictionary of instructor's info (name, ucinetid, title, email)
+ * @returns {object} - Dictionary of instructor's info (name, ucinetid, title, email)
  */
 async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]: string }> {
     const data = {'uciKey': instructorName};
@@ -163,7 +183,8 @@ async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]
 const test = async () => {
     // const s = await getFacultyLinks();
     // console.log(Object.keys(s).length); 
-    const s = await getDirectoryInfo("Sara A. Ep");
+    // const s = await getDirectoryInfo("Sara A. Ep");
+    const s = await getInstructorNames('http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty');
     console.log(s);
 }
 
