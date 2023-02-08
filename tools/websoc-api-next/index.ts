@@ -13,12 +13,32 @@ import {
   WebsocAPIResponse,
 } from "peterportal-api-next-types";
 
-/* region Type declarations */
+/* region Internal type declarations */
 
-export interface WebsocAPIOptions {
+type RequireAtLeastOne<T, R extends keyof T = keyof T> = Omit<T, R> &
+  { [P in R]: Required<Pick<T, P>> & Partial<Omit<T, P>> }[R];
+
+type RequiredOptions = RequireAtLeastOne<{
   ge?: GE;
   department?: string;
   courseNumber?: string;
+}>;
+
+type BuildingRoomOptions =
+  | {
+      building?: never;
+      room?: never;
+    }
+  | {
+      building: string;
+      room?: never;
+    }
+  | {
+      building: string;
+      room: string;
+    };
+
+type OptionalOptions = {
   division?: Division;
   sectionCodes?: string;
   instructorName?: string;
@@ -31,9 +51,26 @@ export interface WebsocAPIOptions {
   maxCapacity?: string;
   fullCourses?: FullCourses;
   cancelledCourses?: CancelledCourses;
-  building?: string;
-  room?: string;
-}
+};
+
+/* endregion */
+
+/* region Exported type declarations */
+
+/**
+ * The type alias for the options object accepted by `callWebSocAPI`.
+ *
+ * If your editor supports intelligent code completion, the fully expanded
+ * initial type will probably look horrifying. But it's really not that bad.
+ *
+ * It is an error to not provide any of {GE category, department, section code};
+ * it is also an error to provide only the room number without a building code.
+ * This type alias strictly enforces these invariants instead of checking during
+ * runtime.
+ */
+export type WebsocAPIOptions = RequiredOptions &
+  BuildingRoomOptions &
+  OptionalOptions;
 
 /* endregion */
 
@@ -96,21 +133,6 @@ export const callWebSocAPI = async (
     room = "",
   } = options;
 
-  if (
-    department === "ALL" &&
-    ge === "ANY" &&
-    sectionCodes === "" &&
-    instructorName === ""
-  ) {
-    throw new Error(
-      "You must provide at least one of department, GE, sectionCodes, or instructorName."
-    );
-  } else if (building === "" && room !== "") {
-    throw new Error(
-      "You must specify a building code if you specify a room number."
-    );
-  }
-
   const postData = {
     Submit: "Display XML Results",
     YearTerm: getCodedTerm(term),
@@ -156,82 +178,100 @@ export const callWebSocAPI = async (
         ? (Array.isArray(res.websoc_results.course_list.school)
             ? res.websoc_results.course_list.school
             : [res.websoc_results.course_list.school]
-          ).map((x: any) => ({
-            schoolName: x.__school_name,
-            schoolComment: x.school_comment,
-            departments: (Array.isArray(x.department)
-              ? x.department
-              : [x.department]
-            ).map((y: any) => ({
-              deptComment: y.department_comment ? y.department_comment : "",
-              sectionCodeRangeComments: y.course_code_range_comment
-                ? y.course_code_range_comment.map((z: any) => z.__text)
-                : [],
-              courseNumberRangeComments: y.course_number_range_comment
-                ? Array.isArray(y.course_number_range_comment)
-                  ? y.course_number_range_comment.map((z: any) => z.__text)
-                  : [y.course_number_range_comment.__text]
-                : [],
-              deptCode: y.__dept_code,
-              deptName: y.__dept_name,
-              courses: (Array.isArray(y.course) ? y.course : [y.course]).map(
-                (z: any) => ({
+          )
+            // eslint-disable-next-line
+            .map((x: any) => ({
+              schoolName: x.__school_name,
+              schoolComment: x.school_comment,
+              departments: (Array.isArray(x.department)
+                ? x.department
+                : [x.department]
+              )
+                // eslint-disable-next-line
+                .map((y: any) => ({
+                  deptComment: y.department_comment ? y.department_comment : "",
+                  sectionCodeRangeComments: y.course_code_range_comment
+                    ? // eslint-disable-next-line
+                      y.course_code_range_comment.map((z: any) => z.__text)
+                    : [],
+                  courseNumberRangeComments: y.course_number_range_comment
+                    ? Array.isArray(y.course_number_range_comment)
+                      ? // eslint-disable-next-line
+                        y.course_number_range_comment.map((z: any) => z.__text)
+                      : [y.course_number_range_comment.__text]
+                    : [],
                   deptCode: y.__dept_code,
-                  courseComment: z.course_comment ? z.course_comment : "",
-                  prerequisiteLink: z.course_prereq_link
-                    ? z.course_prereq_link
-                    : "",
-                  courseNumber: z.__course_number,
-                  courseTitle: z.__course_title,
-                  sections: (Array.isArray(z.section)
-                    ? z.section
-                    : [z.section]
-                  ).map((w: any) => ({
-                    sectionCode: w.course_code,
-                    sectionType: w.sec_type,
-                    sectionNum: w.sec_num,
-                    units: w.sec_units,
-                    instructors: (Array.isArray(w.sec_instructors?.instructor)
-                      ? w.sec_instructors.instructor
-                      : [w.sec_instructors?.instructor]
-                    ).filter((x: any) => x),
-                    meetings: (Array.isArray(w.sec_meetings.sec_meet)
-                      ? w.sec_meetings.sec_meet
-                      : [w.sec_meetings.sec_meet]
-                    ).map((v: any) => ({
-                      days: v.sec_days,
-                      time: v.sec_time,
-                      bldg: `${v.sec_bldg} ${v.sec_room}`,
+                  deptName: y.__dept_name,
+                  courses: (Array.isArray(y.course) ? y.course : [y.course])
+                    // eslint-disable-next-line
+                    .map((z: any) => ({
+                      deptCode: y.__dept_code,
+                      courseComment: z.course_comment ? z.course_comment : "",
+                      prerequisiteLink: z.course_prereq_link
+                        ? z.course_prereq_link
+                        : "",
+                      courseNumber: z.__course_number,
+                      courseTitle: z.__course_title,
+                      sections: (Array.isArray(z.section)
+                        ? z.section
+                        : [z.section]
+                      )
+                        // eslint-disable-next-line
+                        .map((w: any) => ({
+                          sectionCode: w.course_code,
+                          sectionType: w.sec_type,
+                          sectionNum: w.sec_num,
+                          units: w.sec_units,
+                          instructors: (Array.isArray(
+                            w.sec_instructors?.instructor
+                          )
+                            ? w.sec_instructors.instructor
+                            : [w.sec_instructors?.instructor]
+                          )
+                            // eslint-disable-next-line
+                            .filter((x: any) => x),
+                          meetings: (Array.isArray(w.sec_meetings.sec_meet)
+                            ? w.sec_meetings.sec_meet
+                            : [w.sec_meetings.sec_meet]
+                          )
+                            // eslint-disable-next-line
+                            .map((v: any) => ({
+                              days: v.sec_days,
+                              time: v.sec_time,
+                              bldg: `${v.sec_bldg} ${v.sec_room}`,
+                            })),
+                          finalExam: w.sec_final
+                            ? w.sec_final.sec_final_date === "TBA"
+                              ? "TBA"
+                              : `${w.sec_final.sec_final_day} ${w.sec_final.sec_final_date} ${w.sec_final.sec_final_time}`
+                            : "",
+                          maxCapacity: w.sec_enrollment.sec_max_enroll,
+                          numCurrentlyEnrolled: {
+                            totalEnrolled: w.sec_enrollment.sec_enrolled,
+                            sectionEnrolled: w.sec_enrollment
+                              .sec_xlist_subenrolled
+                              ? w.sec_enrollment.sec_xlist_subenrolled
+                              : "",
+                          },
+                          numOnWaitlist:
+                            w.sec_enrollment.sec_waitlist !== w.course_code
+                              ? w.sec_enrollment.sec_waitlist
+                              : "",
+                          numRequested: w.sec_enrollment.sec_enroll_requests,
+                          numNewOnlyReserved:
+                            w.sec_enrollment.sec_new_only_reserved !==
+                            w.course_code
+                              ? w.sec_enrollment.sec_new_only_reserved
+                              : "",
+                          restrictions: w.sec_restrictions
+                            ? w.sec_restrictions
+                            : "",
+                          status: w.sec_status,
+                          sectionComment: w.sec_comment ? w.sec_comment : "",
+                        })),
                     })),
-                    finalExam: w.sec_final
-                      ? w.sec_final.sec_final_date === "TBA"
-                        ? "TBA"
-                        : `${w.sec_final.sec_final_day} ${w.sec_final.sec_final_date} ${w.sec_final.sec_final_time}`
-                      : "",
-                    maxCapacity: w.sec_enrollment.sec_max_enroll,
-                    numCurrentlyEnrolled: {
-                      totalEnrolled: w.sec_enrollment.sec_enrolled,
-                      sectionEnrolled: w.sec_enrollment.sec_xlist_subenrolled
-                        ? w.sec_enrollment.sec_xlist_subenrolled
-                        : "",
-                    },
-                    numOnWaitlist:
-                      w.sec_enrollment.sec_waitlist !== w.course_code
-                        ? w.sec_enrollment.sec_waitlist
-                        : "",
-                    numRequested: w.sec_enrollment.sec_enroll_requests,
-                    numNewOnlyReserved:
-                      w.sec_enrollment.sec_new_only_reserved !== w.course_code
-                        ? w.sec_enrollment.sec_new_only_reserved
-                        : "",
-                    restrictions: w.sec_restrictions ? w.sec_restrictions : "",
-                    status: w.sec_status,
-                    sectionComment: w.sec_comment ? w.sec_comment : "",
-                  })),
-                })
-              ),
-            })),
-          }))
+                })),
+            }))
         : [],
   };
 };
