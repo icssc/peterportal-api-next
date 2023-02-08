@@ -115,13 +115,13 @@ export const callWebSocAPI = async (
 ): Promise<WebsocAPIResponse> => {
   const {
     ge = "ANY",
-    department = "ALL",
+    department = "ANY",
     courseNumber = "",
     division = "ANY",
     sectionCodes = "",
     instructorName = "",
     courseTitle = "",
-    sectionType = "ALL",
+    sectionType = "ANY",
     units = "",
     days = "",
     startTime = "",
