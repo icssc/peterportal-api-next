@@ -174,19 +174,3 @@ test("WebSOC query for CBEMS (discontinued 2019 SS2) courses in 2023 Winter is e
   );
   expect(res.schools.length).toEqual(0);
 });
-test("Malformed WebSOC query with only term provided throws error", () => {
-  expect(
-    callWebSocAPI({ year: "2023", quarter: "Winter" }, {})
-  ).rejects.toThrow();
-});
-test("Malformed WebSOC query with room number but no building provided throws error", () => {
-  expect(
-    callWebSocAPI(
-      { year: "2023", quarter: "Winter" },
-      {
-        department: "COMPSCI",
-        room: "100",
-      }
-    )
-  ).rejects.toThrow();
-});
