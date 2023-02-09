@@ -74,25 +74,25 @@ export type SectionType = Any | (typeof sectionTypes)[number];
 export type FullCourses = Any | (typeof fullCoursesOptions)[number];
 export type CancelledCourses = (typeof cancelledCoursesOptions)[number];
 export type Quarter = (typeof quarters)[number];
-export interface Department {
+export type Department = {
   deptLabel: string;
   deptValue: string;
-}
-export interface Term {
+};
+export type Term = {
   year: string;
   quarter: Quarter;
-}
-export interface TermData {
+};
+export type TermData = {
   shortName: `${string} ${Quarter}`;
   longName: string;
-}
+};
 
-export interface PrerequisiteTree {
+export type PrerequisiteTree = {
   AND?: string[];
   OR?: string[];
-}
+};
 
-export interface Course {
+export type Course = {
   courseId: string;
   department: string;
   courseNumber: string;
@@ -118,16 +118,16 @@ export interface Course {
   geList: GECategory[];
   geText: string;
   terms: string[];
-}
+};
 
-export interface GradeSection {
+export type GradeSection = {
   academicYear: string;
   academicQuarter: AcademicQuarter;
   instructor: string;
   type: string;
-}
+};
 
-export interface GradeDistribution {
+export type GradeDistribution = {
   gradeACount: number;
   gradeBCount: number;
   gradeCCount: number;
@@ -137,16 +137,16 @@ export interface GradeDistribution {
   gradeNPCount: number;
   gradeWCount: number;
   averageGPA: number;
-}
+};
 
 export type GradesRaw = (GradeSection & GradeDistribution)[];
 
-export interface GradesCalculated {
+export type GradesCalculated = {
   gradeDistribution: GradeDistribution & { count: number };
   courseList: GradeSection[];
-}
+};
 
-export interface Instructor {
+export type Instructor = {
   ucinetid: string;
   instructorName: string;
   shortenedName: string;
@@ -155,20 +155,20 @@ export interface Instructor {
   schools: string[];
   relatedDepartments: string[];
   courseHistory: string[];
-}
+};
 
-export interface WebsocSectionMeeting {
+export type WebsocSectionMeeting = {
   days: string;
   time: string;
   bldg: string;
-}
+};
 
-export interface WebsocSectionEnrollment {
+export type WebsocSectionEnrollment = {
   totalEnrolled: string;
   sectionEnrolled: string;
-}
+};
 
-export interface WebsocSection {
+export type WebsocSection = {
   sectionCode: string;
   sectionType: string;
   sectionNum: string;
@@ -184,53 +184,53 @@ export interface WebsocSection {
   restrictions: string;
   status: string;
   sectionComment: string;
-}
+};
 
-export interface WebsocCourse {
+export type WebsocCourse = {
   deptCode: string;
   courseNumber: string;
   courseTitle: string;
   courseComment: string;
   prerequisiteLink: string;
   sections: WebsocSection[];
-}
+};
 
-export interface WebsocDepartment {
+export type WebsocDepartment = {
   deptName: string;
   deptCode: string;
   deptComment: string;
   courses: WebsocCourse[];
   sectionCodeRangeComments: string[];
   courseNumberRangeComments: string[];
-}
+};
 
-export interface WebsocSchool {
+export type WebsocSchool = {
   schoolName: string;
   schoolComment: string;
   departments: WebsocDepartment[];
-}
+};
 
-export interface WebsocAPIResponse {
+export type WebsocAPIResponse = {
   schools: WebsocSchool[];
-}
+};
 
-export interface IResponse {
+export type IResponse = {
   timestamp: string;
   requestId: string;
   statusCode: number;
   payload?: unknown;
   error?: unknown;
   message?: unknown;
-}
+};
 
-export interface Response<T> extends IResponse {
+export type Response<T> = Omit<IResponse, "error" | "message"> & {
   payload: T;
-}
+};
 
-export interface ErrorResponse extends IResponse {
+export type ErrorResponse = Omit<IResponse, "payload"> & {
   error: string;
   message: string;
-}
+};
 
 export type RawResponse<T> = Response<T> | ErrorResponse;
 
@@ -238,7 +238,7 @@ export type RawResponse<T> = Response<T> | ErrorResponse;
 
 /* region Exported functions */
 
-export const isErrorResponse = (r: IResponse): r is ErrorResponse =>
-  typeof r?.error === "string" && typeof r?.message === "string";
+export const isErrorResponse = <T>(r: RawResponse<T>): r is ErrorResponse =>
+  "error" in r;
 
 /* endregion */
