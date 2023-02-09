@@ -201,20 +201,17 @@ export type WebsocAPIResponse = {
   schools: WebsocSchool[];
 };
 
-export type IResponse = {
+export type BaseResponse = {
   timestamp: string;
   requestId: string;
   statusCode: number;
-  payload?: unknown;
-  error?: unknown;
-  message?: unknown;
 };
 
-export type Response<T> = Omit<IResponse, "error" | "message"> & {
+export type Response<T> = BaseResponse & {
   payload: T;
 };
 
-export type ErrorResponse = Omit<IResponse, "payload"> & {
+export type ErrorResponse = BaseResponse & {
   error: string;
   message: string;
 };
