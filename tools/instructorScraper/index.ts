@@ -7,6 +7,7 @@ import he from 'he';
 const CATALOGUE_BASE_URL: string = 'http://catalogue.uci.edu';
 const URL_TO_ALL_SCHOOLS: string = 'http://catalogue.uci.edu/schoolsandprograms/';
 const URL_TO_DIRECTORY: string = 'https://directory.uci.edu/';
+const URL_TO_INSTRUCT_HISTORY = 'http://www.reg.uci.edu/perl/InstructHist';
 
 
 /**
@@ -180,11 +181,36 @@ async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]
 }
 
 
+async function getCourseHistory(instructorName: string) {
+    const courseHistory = new Set();
+    const name = instructorName.split(' '); // ["Alexander Thorton"]
+    const lastFirstName = `${name[name.length-1], name[0][0]}.`; // "Thorton, A."
+    const params = {
+        'order': 'term',
+        'action': 'Submit',
+        'input_name': lastFirstName,
+        'term_yyyyst': 'ANY',
+        'start_row': '',}
+    const response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
+    parseHistoryPage(response.data);
+    
+}
+
+function parseHistoryPage(instructorHistoryPage: string) {
+   // console.log(instructorHistoryPage)
+    const $ = cheerio.load(instructorHistoryPage);
+    $('table table table tbody tr').each(function (this: cheerio.Element) {
+        console.log($(this).text);
+    });
+    
+}
+
 const test = async () => {
     // const s = await getFacultyLinks();
     // console.log(Object.keys(s).length); 
-    // const s = await getDirectoryInfo("Sara A. Ep");
-    const s = await getInstructorNames('http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty');
+    // const s = await getDirectoryInfo('Sara A. Ep');
+    //const s = await getInstructorNames('http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty');
+    const s = await getCourseHistory("Alexander Thorton")
     console.log(s);
 }
 
