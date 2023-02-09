@@ -188,7 +188,7 @@ async function getAllCourses(courseURL: string, json_data: Object, departmentToS
  * @returns {Promise<string[]>}: array[courseID, courseName, courseUnits]
  * Example: ['I&C SCI 6B', "Boolean Logic and Discrete Structures", "4 Units."]
  */
-async function getCourseInfo(courseBlock: cheerio.Element, courseURL: string): Promise<string[]> {
+export async function getCourseInfo(courseBlock: cheerio.Element, courseURL: string): Promise<string[]> {
     const response = await axios.get(courseURL);
     const $ = cheerio.load(response.data);
     // Regex filed into three categories (id, name, units) each representing an element in the return array
