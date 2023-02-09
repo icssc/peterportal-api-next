@@ -9,6 +9,7 @@ const URL_TO_ALL_SCHOOLS: string = 'http://catalogue.uci.edu/schoolsandprograms/
 const URL_TO_DIRECTORY: string = 'https://directory.uci.edu/';
 const URL_TO_INSTRUCT_HISTORY = 'http://www.reg.uci.edu/perl/InstructHist';
 
+const YEAR_THRESHOLD = 20; // Number of years to look back when grabbing course history
 
 /**
  * Returns the faculty links and their corresponding school name
@@ -183,8 +184,9 @@ async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]
 
 async function getCourseHistory(instructorName: string) {
     const courseHistory = new Set();
-    const name = instructorName.split(' '); // ["Alexander Thorton"]
-    const lastFirstName = `${name[name.length-1], name[0][0]}.`; // "Thorton, A."
+    const name = instructorName.split(' '); // ['Alexander Thorton']
+    const lastFirstName = `${name[name.length-1]}, ${name[0][0]}.`; // 'Thorton, A.'
+    console.log(lastFirstName);
     const params = {
         'order': 'term',
         'action': 'Submit',
@@ -192,26 +194,69 @@ async function getCourseHistory(instructorName: string) {
         'term_yyyyst': 'ANY',
         'start_row': '',}
     const response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
-    parseHistoryPage(response.data);
+    //parseHistoryPage(response.data);    
+}
+
+/**
+ * Parses the instructor history page and returns true if entries are valid. This is used to determine whether
+ * or not we want to continue parsing as there may be more pages of entries.
+ * 
+ * @param {string} instructorHistoryPage - HTML string of an instructor history page
+ * @param {string[]} relatedDepartments - a list of departments related to the instructor
+ * @param {Set<string>} courseHistory - a set of courses that will be mutated with course numbers found in entries
+ * @param {object} nameCounts - a dictionary of instructor names storing the number of name occurrences found in entries
+ * @returns {boolean} - true if entries are found, false if not
+ */
+function parseHistoryPage(instructorHistoryPage: string, relatedDepartments: string[], courseHistory: Set<string>, nameCounts: { [key: string]: number }): boolean {
+    // Map of table fields to index
+    const fieldLabels = {'qtr':0,'empty':1,'instructor':2,'courseCode':3,'dept':4,'courseNo':5,'type':6,'title':7,'units':8,'maxCap':9,'enr':10,'req':11};
+    const currentYear = new Date().getFullYear() % 100;
+    let entryFound = false;
+    const $ = cheerio.load(instructorHistoryPage);
+    $('table tbody tr').each(function (this: cheerio.Element) {
+        const entry = $(this).find('td')
+        // Check if row entry is valid
+        if ($(entry).length == 12) {
+            const qtrValue = $(entry[fieldLabels['qtr']]).text().trim();
+            if (qtrValue.length < 4 && qtrValue != 'Qtr') {
+                entryFound = true;
+                const qtrYear = parseInt(qtrValue.replace(/\D/g, ''));
+                // Stop parsing if year is older than threshold
+                if (currentYear - qtrYear > YEAR_THRESHOLD) {
+                    entryFound = false;
+                    return;
+                }
+                // Get name(s) in the instructor field
+                $(entry[fieldLabels['instructor']]).html()?.trim()?.split('<br>').forEach(name => {
+                    nameCounts[name] = nameCounts[name] ? nameCounts[name]+1 : 1; // Increment name in nameCounts
+                });
+                // Get course code if dept is related
+                const deptValue = $(entry[fieldLabels['dept']]).text().trim()
+                if (deptValue in relatedDepartments) {
+                    courseHistory.add(`${deptValue} ${$(entry[fieldLabels['courseNo']]).text().trim()}`);
+                }
+            }
+        }
+    });
+    return entryFound;
     
 }
 
-function parseHistoryPage(instructorHistoryPage: string) {
-   // console.log(instructorHistoryPage)
-    const $ = cheerio.load(instructorHistoryPage);
-    $('table table table tbody tr').each(function (this: cheerio.Element) {
-        console.log($(this).text);
-    });
-    
-}
+
 
 const test = async () => {
     // const s = await getFacultyLinks();
     // console.log(Object.keys(s).length); 
     // const s = await getDirectoryInfo('Sara A. Ep');
     //const s = await getInstructorNames('http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty');
-    const s = await getCourseHistory("Alexander Thorton")
-    console.log(s);
+    //const s = await getCourseHistory('Kei Akagi')
+    const s = await axios.get('https://www.reg.uci.edu/perl/InstructHist?input_name=PATTIS%2C%20R&printer_friendly=&start_row=102&order=term&term_yyyyst=&show_distribution=&action=Prev')
+    const relatedDepartments = ['I&C SCI'];
+    const courseHistory: Set<string> = new Set();
+    const nameCounts = {};
+    const w = parseHistoryPage(s.data, relatedDepartments, courseHistory, nameCounts);
+    console.log(w);
+    console.log(nameCounts)
 }
 
 test();
