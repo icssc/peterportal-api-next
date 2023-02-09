@@ -12,7 +12,7 @@ const URL_TO_DIRECTORY: string = 'https://directory.uci.edu/';
 /**
  * Returns the faculty links and their corresponding school name
  * 
- * @returns {object}: A map of all faculty links to their corresponding school
+ * @returns {Promise<object>}: A map of all faculty links to their corresponding school
  * Example:
  *      {'http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty':'Claire Trevor School of the Arts',
  *      'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofbiomedicalengineering/#faculty':'The Henry Samueli School of Engineering', ...}
@@ -89,7 +89,7 @@ async function getFacultyLinks(): Promise<{ [key: string]: string }> {
  * Returns the names of instructors from a faculty page
  * 
  * @param facultyLink - link to faculty page
- * @returns {string[]} - a list of instructor names
+ * @returns {Promise<string[]>} - a list of instructor names
  */
 async function getInstructorNames(facultyLink: string): Promise< string[] > {
     const result: string[] = [];
@@ -153,7 +153,7 @@ function getHardcodedDepartmentCodes(facultyLink: string): string[] {
  * Gets the instructor's directory info
  * 
  * @param instructorName - name of instructor
- * @returns {object} - Dictionary of instructor's info (name, ucinetid, title, email)
+ * @returns {Promise<object>} - Dictionary of instructor's info (name, ucinetid, title, email)
  */
 async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]: string }> {
     const data = {'uciKey': instructorName};
