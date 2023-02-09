@@ -8,19 +8,23 @@ export const quarters = [
   "Summer10wk",
   "Summer2",
 ] as const;
-export const websocGECategories = [
-  "GE-1A",
-  "GE-1B",
-  "GE-2",
-  "GE-3",
-  "GE-4",
-  "GE-5A",
-  "GE-5B",
-  "GE-6",
-  "GE-7",
-  "GE-8",
-] as const;
-export const divisions = ["LowerDiv", "UpperDiv", "Graduate"] as const;
+export const geCategories = {
+  "GE-1A": "GE Ia: Lower Division Writing",
+  "GE-1B": "GE Ib: Upper Division Writing",
+  "GE-2": "GE II: Science and Technology",
+  "GE-3": "GE III: Social & Behavioral Sciences",
+  "GE-4": "GE IV: Arts and Humanities",
+  "GE-5A": "GE Va: Quantitative Literacy",
+  "GE-5B": "GE Vb: Formal Reasoning",
+  "GE-6": "GE VI: Language Other Than English",
+  "GE-7": "GE VII: Multicultural Studies",
+  "GE-8": "GE VIII: International/Global Issues",
+} as const;
+export const divisions = {
+  LowerDiv: "Lower Division (1-99)",
+  UpperDiv: "Upper Division (100-199)",
+  Graduate: "Graduate/Professional Only (200+)",
+} as const;
 export const sectionTypes = [
   "Act",
   "Col",
@@ -41,35 +45,18 @@ export const fullCoursesOptions = [
   "OverEnrolled",
 ] as const;
 export const cancelledCoursesOptions = ["Exclude", "Include", "Only"] as const;
-export const courseLevels = [
-  "Lower Division (1-99)",
-  "Upper Division (100-199)",
-  "Graduate/Professional Only (200+)",
-] as const;
-export const geCategories = [
-  "GE Ia: Lower Division Writing",
-  "GE Ib: Upper Division Writing",
-  "GE II: Science and Technology",
-  "GE III: Social & Behavioral Sciences",
-  "GE IV: Arts and Humanities",
-  "GE Va: Quantitative Literacy",
-  "GE Vb: Formal Reasoning",
-  "GE VI: Language Other Than English",
-  "GE VII: Multicultural Studies",
-  "GE VIII: International/Global Issues",
-] as const;
 export const academicQuarters = ["Fall", "Winter", "Spring", "Summer"] as const;
 
 /* endregion */
 
 /* region Type declarations */
 
-export type CourseLevel = (typeof courseLevels)[number];
-export type GECategory = (typeof geCategories)[number];
+export type CourseLevel = (typeof divisions)[keyof typeof divisions];
+export type GECategory = (typeof geCategories)[keyof typeof geCategories];
 export type AcademicQuarter = (typeof academicQuarters)[number];
 export type Any = "ANY";
-export type GE = Any | (typeof websocGECategories)[number];
-export type Division = Any | (typeof divisions)[number];
+export type GE = Any | keyof typeof geCategories;
+export type Division = Any | keyof typeof divisions;
 export type SectionType = Any | (typeof sectionTypes)[number];
 export type FullCourses = Any | (typeof fullCoursesOptions)[number];
 export type CancelledCourses = (typeof cancelledCoursesOptions)[number];
