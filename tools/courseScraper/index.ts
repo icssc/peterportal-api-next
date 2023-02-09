@@ -17,10 +17,10 @@ function normalizeString(s: string): string{
 }
 
 /** 
- * @returns {Promise<object>}: a mapping from department code to school name. Uses the catalogue.
+ * @returns {Promise<{ [key: string]: string }>}: a mapping from department code to school name. Uses the catalogue.
  * Example: {"I&C SCI":"Donald Bren School of Information and Computer Sciences","IN4MATX":"Donald Bren School of Information and Computer Sciences"}
 */
-async function getDepartmentToSchoolMapping(): Promise<Object> {
+async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: string }> {
 
     /** 
      * helper function that takes a URL to a department page and maps the course page to each school on that page
@@ -47,7 +47,7 @@ async function getDepartmentToSchoolMapping(): Promise<Object> {
         const response = await axios.get(schoolURL);
         const $ = cheerio.load(response.data);
         // get school name
-        const school = normalizeString($("#contentarea > h1").text());
+        const school: string = normalizeString($("#contentarea > h1").text());
         // if this school has the "Courses" tab
         const schoolCourses = $("#courseinventorytab");
         if (schoolCourses.text() != '') {
@@ -61,10 +61,10 @@ async function getDepartmentToSchoolMapping(): Promise<Object> {
             // go through each department link
             $(departmentLinks).find("li").each((j, departmentLink) => {
                 // create department cheerio
-                const departmentUrl = CATALOGUE_BASE_URL + $(departmentLink).find('a').attr('href') + "#courseinventory";
+                const departmentUrl: string = CATALOGUE_BASE_URL + $(departmentLink).find('a').attr('href') + "#courseinventory";
                 departmentURLList.push(departmentUrl);
             })
-            const departmentLinksPromises = departmentURLList.map(x => findSchoolNameFromDepartmentPage(x, school));
+            const departmentLinksPromises: Promise<void>[] = departmentURLList.map(x => findSchoolNameFromDepartmentPage(x, school));
             const departmentLinksResult = await Promise.all(departmentLinksPromises);
         }
     }
@@ -94,7 +94,7 @@ async function getDepartmentToSchoolMapping(): Promise<Object> {
         const schoolURL: string = CATALOGUE_BASE_URL + $(lis).find('a').attr('href') + "#courseinventory"
         schoolLinks.push(schoolURL);
     })
-    const schoolLinksPromises = schoolLinks.map(x => findSchoolName(x));
+    const schoolLinksPromises: Promise<void>[] = schoolLinks.map(x => findSchoolName(x));
     const schoolLinksResult = await Promise.all(schoolLinksPromises);
     console.log("Successfully mapped " + Object.keys(mapping).length + " departments!")
     return mapping
@@ -121,12 +121,12 @@ async function mapCoursePageToSchool(mapping: { [key: string]: string }, school:
             courseBlocks.push($(schoolDepartment).find('div')[0]);
         }
     })
-    const courseBlockPromises = courseBlocks.map(x => getCourseInfo(x, courseURL));
-    const courseBlockResults = await Promise.all(courseBlockPromises);
-    courseBlockResults.forEach((courseInfo) => {
+    const courseBlockPromises: Promise<string[]>[] = courseBlocks.map(x => getCourseInfo(x, courseURL));
+    const courseBlockResults: string[][] = await Promise.all(courseBlockPromises);
+    courseBlockResults.forEach((courseInfo: string[]) => {
         // get the course ID from the returned array from getCourseInfo
-        const courseID = courseInfo[0];
-        const id_dept = courseID.split(' ').slice(0, -1).join(" ");
+        const courseID: string = courseInfo[0];
+        const id_dept: string = courseID.split(' ').slice(0, -1).join(" ");
         // set the mapping
         console.log(id_dept);
         mapping[id_dept] = school;
@@ -166,7 +166,7 @@ async function getAllCourses(courseURL: string, json_data: Object, departmentToS
     const response = await axios.get(courseURL);
     const $ = cheerio.load(response.data);
     // department name
-    var department = normalizeString($("#contentarea > h1").text());
+    var department: string = normalizeString($("#contentarea > h1").text());
     // strip off department id
     department = department.slice(0, department.indexOf("(")).trim();
     $("#courseinventorycontainer > .courses").each((i: any, course: cheerio.Element) => {
@@ -192,9 +192,9 @@ async function getCourseInfo(courseBlock: cheerio.Element, courseURL: string): P
     const response = await axios.get(courseURL);
     const $ = cheerio.load(response.data);
     // Regex filed into three categories (id, name, units) each representing an element in the return array
-    const courseInfoPatternWithUnits = /(?<id>.*[0-9]+[^.]*)\.[ ]+(?<name>.*)\.[ ]+(?<units>\d*\.?\d.*Units?)\./;
-    const courseInfoPatternWithoutUnits = /(?<id>.*[0-9]+[^.]*)\. (?<name>.*)\./;
-    const courseBlockString = normalizeString($(courseBlock).find("p").text().trim());
+    const courseInfoPatternWithUnits: RegExp = /(?<id>.*[0-9]+[^.]*)\.[ ]+(?<name>.*)\.[ ]+(?<units>\d*\.?\d.*Units?)\./;
+    const courseInfoPatternWithoutUnits: RegExp = /(?<id>.*[0-9]+[^.]*)\. (?<name>.*)\./;
+    const courseBlockString: string = normalizeString($(courseBlock).find("p").text().trim());
     if (courseBlockString.includes("Unit")) {
         const res = courseBlockString.match(courseInfoPatternWithUnits);
         if (res !== null && res.groups) {
