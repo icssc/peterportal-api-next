@@ -6,6 +6,8 @@
   "type": "module",
   "main": "index.ts",
   "dependencies": {
+    "ddb": "*",
+    "peterportal-api-next-types": "*",
     "registrar-api": "*",
     "websoc-api-next": "*"
   }
