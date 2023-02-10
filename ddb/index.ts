@@ -42,8 +42,8 @@ export class DDBDocClient {
     translateConfig: TranslateConfig = {
       marshallOptions: {
         convertEmptyValues: false,
-        removeUndefinedValues: false,
-        convertClassInstanceToMap: false,
+        removeUndefinedValues: true,
+        convertClassInstanceToMap: true,
       },
       unmarshallOptions: {
         wrapNumbers: false,
