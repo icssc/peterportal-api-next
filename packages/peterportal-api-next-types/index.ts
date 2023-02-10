@@ -1,28 +1,85 @@
-export type AcademicQuarter = "Fall" | "Winter" | "Spring" | "Summer";
+/* region Constants */
 
-export type CourseLevel =
-  | "Lower Division (1-99)"
-  | "Upper Division (100-199)"
-  | "Graduate/Professional Only (200+)";
+export const quarters = [
+  "Fall",
+  "Winter",
+  "Spring",
+  "Summer1",
+  "Summer10wk",
+  "Summer2",
+] as const;
+export const geCategories = {
+  "GE-1A": "GE Ia: Lower Division Writing",
+  "GE-1B": "GE Ib: Upper Division Writing",
+  "GE-2": "GE II: Science and Technology",
+  "GE-3": "GE III: Social & Behavioral Sciences",
+  "GE-4": "GE IV: Arts and Humanities",
+  "GE-5A": "GE Va: Quantitative Literacy",
+  "GE-5B": "GE Vb: Formal Reasoning",
+  "GE-6": "GE VI: Language Other Than English",
+  "GE-7": "GE VII: Multicultural Studies",
+  "GE-8": "GE VIII: International/Global Issues",
+} as const;
+export const divisions = {
+  LowerDiv: "Lower Division (1-99)",
+  UpperDiv: "Upper Division (100-199)",
+  Graduate: "Graduate/Professional Only (200+)",
+} as const;
+export const sectionTypes = [
+  "Act",
+  "Col",
+  "Dis",
+  "Fld",
+  "Lab",
+  "Lec",
+  "Qiz",
+  "Res",
+  "Sem",
+  "Stu",
+  "Tap",
+  "Tut",
+] as const;
+export const fullCoursesOptions = [
+  "SkipFullWaitlist",
+  "FullOnly",
+  "OverEnrolled",
+] as const;
+export const cancelledCoursesOptions = ["Exclude", "Include", "Only"] as const;
+export const academicQuarters = ["Fall", "Winter", "Spring", "Summer"] as const;
 
-export type GECategory =
-  | "GE Ia: Lower Division Writing"
-  | "GE Ib: Upper Division Writing"
-  | "GE II: Science and Technology"
-  | "GE III: Social & Behavioral Sciences"
-  | "GE IV: Arts and Humanities"
-  | "GE Va: Quantitative Literacy"
-  | "GE Vb: Formal Reasoning"
-  | "GE VI: Language Other Than English"
-  | "GE VII: Multicultural Studies"
-  | "GE VIII: International/Global Issues";
+/* endregion */
 
-export interface PrerequisiteTree {
+/* region Type declarations */
+
+export type CourseLevel = (typeof divisions)[keyof typeof divisions];
+export type GECategory = (typeof geCategories)[keyof typeof geCategories];
+export type AcademicQuarter = (typeof academicQuarters)[number];
+export type Any = "ANY";
+export type GE = Any | keyof typeof geCategories;
+export type Division = Any | keyof typeof divisions;
+export type SectionType = Any | (typeof sectionTypes)[number];
+export type FullCourses = Any | (typeof fullCoursesOptions)[number];
+export type CancelledCourses = (typeof cancelledCoursesOptions)[number];
+export type Quarter = (typeof quarters)[number];
+export type Department = {
+  deptLabel: string;
+  deptValue: string;
+};
+export type Term = {
+  year: string;
+  quarter: Quarter;
+};
+export type TermData = {
+  shortName: `${string} ${Quarter}`;
+  longName: string;
+};
+
+export type PrerequisiteTree = {
   AND?: string[];
   OR?: string[];
-}
+};
 
-export interface Course {
+export type Course = {
   courseId: string;
   department: string;
   courseNumber: string;
@@ -48,16 +105,16 @@ export interface Course {
   geList: GECategory[];
   geText: string;
   terms: string[];
-}
+};
 
-export interface GradeSection {
+export type GradeSection = {
   academicYear: string;
   academicQuarter: AcademicQuarter;
   instructor: string;
   type: string;
-}
+};
 
-export interface GradeDistribution {
+export type GradeDistribution = {
   gradeACount: number;
   gradeBCount: number;
   gradeCCount: number;
@@ -67,9 +124,16 @@ export interface GradeDistribution {
   gradeNPCount: number;
   gradeWCount: number;
   averageGPA: number;
-}
+};
 
-export interface Instructor {
+export type GradesRaw = (GradeSection & GradeDistribution)[];
+
+export type GradesCalculated = {
+  gradeDistribution: GradeDistribution & { count: number };
+  courseList: GradeSection[];
+};
+
+export type Instructor = {
   ucinetid: string;
   instructorName: string;
   shortenedName: string;
@@ -78,20 +142,20 @@ export interface Instructor {
   schools: string[];
   relatedDepartments: string[];
   courseHistory: string[];
-}
+};
 
-export interface WebsocSectionMeeting {
+export type WebsocSectionMeeting = {
   days: string;
   time: string;
   bldg: string;
-}
+};
 
-export interface WebsocSectionEnrollment {
+export type WebsocSectionEnrollment = {
   totalEnrolled: string;
   sectionEnrolled: string;
-}
+};
 
-export interface WebsocSection {
+export type WebsocSection = {
   sectionCode: string;
   sectionType: string;
   sectionNum: string;
@@ -107,67 +171,58 @@ export interface WebsocSection {
   restrictions: string;
   status: string;
   sectionComment: string;
-}
+};
 
-export interface WebsocCourse {
+export type WebsocCourse = {
   deptCode: string;
   courseNumber: string;
   courseTitle: string;
   courseComment: string;
   prerequisiteLink: string;
   sections: WebsocSection[];
-}
+};
 
-export interface WebsocDepartment {
+export type WebsocDepartment = {
   deptName: string;
   deptCode: string;
   deptComment: string;
   courses: WebsocCourse[];
   sectionCodeRangeComments: string[];
   courseNumberRangeComments: string[];
-}
+};
 
-export interface WebsocSchool {
+export type WebsocSchool = {
   schoolName: string;
   schoolComment: string;
   departments: WebsocDepartment[];
-}
+};
 
-export interface IResponse {
+export type WebsocAPIResponse = {
+  schools: WebsocSchool[];
+};
+
+export type BaseResponse = {
   timestamp: string;
   requestId: string;
   statusCode: number;
-  payload?: unknown;
-  error?: unknown;
-  message?: unknown;
-}
+};
 
-export interface Response<T> extends IResponse {
+export type Response<T> = BaseResponse & {
   payload: T;
-}
+};
 
-export type CourseResponse = Response<Course>;
-
-export type CoursesAllResponse = Response<Course[]>;
-
-export type InstructorResponse = Response<Instructor>;
-
-export type InstructorsAllResponse = Response<Instructor[]>;
-
-export type GradesRawResponse = Response<(GradeSection & GradeDistribution)[]>;
-
-export type GradesCalculatedResponse = Response<{
-  gradeDistribution: GradeDistribution & { count: number };
-  courseList: GradeSection[];
-}>;
-
-export type WebsocResponse = Response<WebsocSchool[]>;
-
-export interface ErrorResponse extends IResponse {
+export type ErrorResponse = BaseResponse & {
   error: string;
   message: string;
-}
+};
 
-export function isErrorResponse(r: IResponse): r is ErrorResponse {
-  return typeof r?.error === "string" && typeof r?.message === "string";
-}
+export type RawResponse<T> = Response<T> | ErrorResponse;
+
+/* endregion */
+
+/* region Exported functions */
+
+export const isErrorResponse = <T>(r: RawResponse<T>): r is ErrorResponse =>
+  "error" in r;
+
+/* endregion */
