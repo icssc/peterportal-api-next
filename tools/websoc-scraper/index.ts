@@ -1,10 +1,16 @@
-import { DDBDocClient } from "ddb";
+import { ScalarAttributeType } from "@aws-sdk/client-dynamodb";
+import { PutCommandOutput } from "@aws-sdk/lib-dynamodb";
+import { DDBDocClient, Key } from "ddb";
 import {
   GE,
   geCategories,
   Quarter,
   Term,
   WebsocAPIResponse,
+  WebsocCourse,
+  WebsocDepartment,
+  WebsocSchool,
+  WebsocSection,
 } from "peterportal-api-next-types";
 import { getTermDateData } from "registrar-api";
 import { callWebSocAPI, getDepts, getTerms } from "websoc-api-next";
@@ -45,8 +51,33 @@ const combineResponses = (
   return combined;
 };
 
+const reparentSection = (
+  school: WebsocSchool,
+  department: WebsocDepartment,
+  course: WebsocCourse,
+  section: WebsocSection
+): { data: WebsocAPIResponse; deptCode: string; sectionCode: string } => {
+  const data = { schools: [{ ...school }] };
+  const { deptCode } = department;
+  const { sectionCode } = section;
+  data.schools[0].departments = [{ ...department }];
+  data.schools[0].departments[0].courses = [{ ...course }];
+  data.schools[0].departments[0].courses[0].sections = [{ ...section }];
+  return { data, deptCode, sectionCode };
+};
+
+const shortNameToTerm = (shortName: string): Term => {
+  const [year, q] = shortName.split(" ");
+  return {
+    year,
+    quarter: q as Quarter,
+  };
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 export const handler = async () => {
-  // const docClient = new DDBDocClient();
+  const docClient = new DDBDocClient();
 
   /* Determine which term(s) we're scraping. */
 
@@ -60,8 +91,141 @@ export const handler = async () => {
   const termsToScrape = (await getTerms())
     .map((x) => x.shortName)
     .filter((x) => x in currentTerms && now <= currentTerms[x].finalsEnd);
-  const allDepts = (await getDepts()).map((x) => x.deptValue);
-  console.log(termsToScrape);
-};
+  const allDepts = (await getDepts())
+    .map((x) => x.deptValue)
+    .filter((x) => x !== "ALL");
+  for (const t of termsToScrape) {
+    /* Scrape data pertaining to all departments and GE categories for each term. */
 
-handler();
+    const term = shortNameToTerm(t);
+    const deptResponses: WebsocAPIResponse[] = [];
+    for (const department of allDepts) {
+      const res = await callWebSocAPI(term, { department });
+      await sleep(1000);
+      deptResponses.push(res);
+    }
+    const geResponses: Record<string, WebsocAPIResponse> = {};
+    for (const ge of Object.keys(geCategories)) {
+      const res = await callWebSocAPI(term, { ge: ge as GE });
+      await sleep(1000);
+      geResponses[ge] = res;
+    }
+
+    /* Check if all required DynamoDB tables exist. If not, create them. */
+
+    const termString = `${term.year}-${term.quarter.toLowerCase()}`;
+    const tables: Record<string, Key[]> = {
+      [`api-next-websoc-${termString}-main`]: [
+        {
+          name: "sectionCode",
+          type: ScalarAttributeType.S,
+        },
+      ],
+      [`api-next-websoc-${termString}-department`]: [
+        {
+          name: "deptCode",
+          type: ScalarAttributeType.S,
+        },
+        {
+          name: "sectionCode",
+          type: ScalarAttributeType.S,
+        },
+      ],
+      [`api-next-websoc-${termString}-instructor`]: [
+        {
+          name: "instructor",
+          type: ScalarAttributeType.S,
+        },
+        {
+          name: "sectionCode",
+          type: ScalarAttributeType.S,
+        },
+      ],
+      [`api-next-websoc-${termString}-ge`]: [
+        {
+          name: "geCategory",
+          type: ScalarAttributeType.S,
+        },
+        {
+          name: "sectionCode",
+          type: ScalarAttributeType.S,
+        },
+      ],
+    };
+    const missingTables: string[] = [];
+    for (const tableName of Object.keys(tables)) {
+      try {
+        await docClient.describeTable(tableName);
+      } catch {
+        missingTables.push(tableName);
+      }
+    }
+    for (const tableName of missingTables) {
+      await docClient.createTable(
+        tableName,
+        tables[tableName][0],
+        tables[tableName][1]
+      );
+    }
+
+    /* Create the put operations and then execute them in parallel with Promise.all(). */
+
+    const promises: Promise<PutCommandOutput>[] = [];
+    for (const school of combineResponses(deptResponses).schools) {
+      for (const department of school.departments) {
+        for (const course of department.courses) {
+          for (const section of course.sections) {
+            const { data, deptCode, sectionCode } = reparentSection(
+              school,
+              department,
+              course,
+              section
+            );
+            promises.push(
+              docClient.put(`api-next-websoc-${termString}-main`, {
+                sectionCode,
+                data,
+              }),
+              docClient.put(`api-next-websoc-${termString}-department`, {
+                sectionCode,
+                deptCode,
+                data,
+              }),
+              ...section.instructors.map((instructor) =>
+                docClient.put(`api-next-websoc-${termString}-instructor`, {
+                  sectionCode,
+                  instructor,
+                  data,
+                })
+              )
+            );
+          }
+        }
+      }
+    }
+    for (const [geCategory, response] of Object.entries(geResponses)) {
+      for (const school of response.schools) {
+        for (const department of school.departments) {
+          for (const course of department.courses) {
+            for (const section of course.sections) {
+              const { data, sectionCode } = reparentSection(
+                school,
+                department,
+                course,
+                section
+              );
+              promises.push(
+                docClient.put(`api-next-websoc-${termString}-ge`, {
+                  geCategory,
+                  sectionCode,
+                  data,
+                })
+              );
+            }
+          }
+        }
+      }
+    }
+    await Promise.all(promises);
+  }
+};
