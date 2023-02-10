@@ -119,7 +119,7 @@ export class DDBDocClient {
   }
   public async get(
     tableName: string,
-    key?: Record<string, never>
+    key?: Record<string, unknown>
   ): Promise<GetCommandOutput> {
     return this.documentClient.send(
       new GetCommand({
@@ -130,7 +130,7 @@ export class DDBDocClient {
   }
   public async put(
     tableName: string,
-    item: Record<string, never>
+    item: Record<string, unknown>
   ): Promise<PutCommandOutput> {
     return this.documentClient.send(
       new PutCommand({ TableName: tableName, Item: item })
