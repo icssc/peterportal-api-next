@@ -6,6 +6,7 @@
     "api/**/*",
     "cdk",
     "db",
+    "ddb",
     "docs",
     "packages/*",
     "tools/*"

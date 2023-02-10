@@ -6,7 +6,7 @@
   "type": "module",
   "main": "index.ts",
   "dependencies": {
-    "db": "*",
-    "websoc-api": "^3.0.0"
+    "registrar-api": "*",
+    "websoc-api-next": "*"
   }
 }
