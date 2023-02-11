@@ -19,7 +19,7 @@ const combineResponses = (
   responses: WebsocAPIResponse[]
 ): WebsocAPIResponse => {
   const combined = responses.shift();
-  if (combined === undefined) return { schools: [] };
+  if (!combined) return { schools: [] };
   for (const res of responses) {
     for (const school of res.schools) {
       const schoolIndex = combined.schools.findIndex(
@@ -115,13 +115,19 @@ export const handler = async () => {
 
     const termString = `${term.year}-${term.quarter.toLowerCase()}`;
     const tables: Record<string, Key[]> = {
+      "api-next-websoc-instructors": [
+        {
+          name: "term",
+          type: ScalarAttributeType.S,
+        },
+      ],
       [`api-next-websoc-${termString}-main`]: [
         {
           name: "sectionCode",
           type: ScalarAttributeType.S,
         },
       ],
-      [`api-next-websoc-${termString}-department`]: [
+      [`api-next-websoc-${termString}-by-department`]: [
         {
           name: "deptCode",
           type: ScalarAttributeType.S,
@@ -131,7 +137,7 @@ export const handler = async () => {
           type: ScalarAttributeType.S,
         },
       ],
-      [`api-next-websoc-${termString}-instructor`]: [
+      [`api-next-websoc-${termString}-by-instructor`]: [
         {
           name: "instructor",
           type: ScalarAttributeType.S,
@@ -141,7 +147,7 @@ export const handler = async () => {
           type: ScalarAttributeType.S,
         },
       ],
-      [`api-next-websoc-${termString}-ge`]: [
+      [`api-next-websoc-${termString}-by-ge`]: [
         {
           name: "geCategory",
           type: ScalarAttributeType.S,
@@ -171,6 +177,7 @@ export const handler = async () => {
     /* Create the put operations and then execute them in parallel with Promise.all(). */
 
     const promises: Promise<PutCommandOutput>[] = [];
+    const instructors: Set<string> = new Set();
     for (const school of combineResponses(deptResponses).schools) {
       for (const department of school.departments) {
         for (const course of department.courses) {
@@ -186,18 +193,22 @@ export const handler = async () => {
                 sectionCode,
                 data,
               }),
-              docClient.put(`api-next-websoc-${termString}-department`, {
+              docClient.put(`api-next-websoc-${termString}-by-department`, {
                 sectionCode,
                 deptCode,
                 data,
               }),
-              ...section.instructors.map((instructor) =>
-                docClient.put(`api-next-websoc-${termString}-instructor`, {
-                  sectionCode,
-                  instructor,
-                  data,
-                })
-              )
+              ...section.instructors.map((instructor) => {
+                instructors.add(instructor);
+                return docClient.put(
+                  `api-next-websoc-${termString}-by-instructor`,
+                  {
+                    sectionCode,
+                    instructor,
+                    data,
+                  }
+                );
+              })
             );
           }
         }
@@ -215,7 +226,7 @@ export const handler = async () => {
                 section
               );
               promises.push(
-                docClient.put(`api-next-websoc-${termString}-ge`, {
+                docClient.put(`api-next-websoc-${termString}-by-ge`, {
                   geCategory,
                   sectionCode,
                   data,
@@ -226,6 +237,12 @@ export const handler = async () => {
         }
       }
     }
+    promises.push(
+      docClient.put("api-next-websoc-instructors", {
+        term: t,
+        instructors,
+      })
+    );
     await Promise.all(promises);
   }
 };

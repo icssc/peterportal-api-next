@@ -1,5 +1,5 @@
 {
-  "name": "tools-websoc-scraper",
+  "name": "websoc-scraper",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -10,5 +10,9 @@
     "peterportal-api-next-types": "*",
     "registrar-api": "*",
     "websoc-api-next": "*"
+  },
+  "devDependencies": {
+    "@aws-sdk/client-dynamodb": "^3.267.0",
+    "@aws-sdk/lib-dynamodb": "^3.267.0"
   }
 }
