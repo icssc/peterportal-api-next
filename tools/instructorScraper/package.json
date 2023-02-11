@@ -4,14 +4,19 @@
   "description": "",
   "type": "module",
   "main": "index.ts",
+  "types": "index.ts",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest --collectCoverage",
+    "test:watch": "jest --collectCoverage --watch"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
     "@types/axios": "^0.14.0",
+    "@types/jest": "^29.4.0",
+    "jest": "^29.4.2",
     "nodemon": "^2.0.20",
+    "ts-jest": "^29.0.5",
     "ts-node": "^10.9.1"
   },
   "dependencies": {
