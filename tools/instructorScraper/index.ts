@@ -1,7 +1,6 @@
 import axios, { AxiosError } from 'axios';
 import * as cheerio from 'cheerio';
 import he from 'he';
-// import { getCourseInfo } from '../courseScraper/'
 
 
 const CATALOGUE_BASE_URL: string = 'http://catalogue.uci.edu';
@@ -19,16 +18,15 @@ const YEAR_THRESHOLD = 20; // Number of years to look back when grabbing course 
  *      {'http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty':'Claire Trevor School of the Arts',
  *      'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofbiomedicalengineering/#faculty':'The Henry Samueli School of Engineering', ...}
  */
-async function getFacultyLinks(): Promise<{ [key: string]: string }> {
+export async function getFacultyLinks(): Promise<{ [key: string]: string }> {
     const result: { [key: string]: string } = {};
     try {
         /**
-         * Asynchronously traverse the school's page to retrieve its correpsonding faculty links.
-         * Depth determines how many times this function will recurse.
+         * Asynchronously traverse the school's department pages to retrieve its correpsonding faculty links.
          * 
          * @param {string} schoolUrl - URL to scrape data from
          * @param {string} schoolName - Name of the school
-         * @param {number} depth - Depth of search for faculty links
+         * @param {number} depth - Depth of search for faculty links (we only need to crawl once to get departments)
          * @returns {object}: A map of the schoolName to an array of faculty links
          * Example:
          *      {'The Henry Samueli School of Engineering': [ 'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofbiomedicalengineering/#faculty',
@@ -93,7 +91,7 @@ async function getFacultyLinks(): Promise<{ [key: string]: string }> {
  * @param facultyLink - link to faculty page
  * @returns {Promise<string[]>} - a list of instructor names
  */
-async function getInstructorNames(facultyLink: string): Promise< string[] > {
+export async function getInstructorNames(facultyLink: string): Promise< string[] > {
     const result: string[] = [];
     try {
         const response = await axios.get(facultyLink);
@@ -109,32 +107,44 @@ async function getInstructorNames(facultyLink: string): Promise< string[] > {
 }
 
 
-async function getDepartmentCodes(facultyLink: string): Promise<string[]> {
-    const departmentCodes: string[] = [];
-    const response = await axios.get(facultyLink.replace('#faculty', '#courseinventory'));
+/**
+ * Get courses related to a faculty page
+ * 
+ * @param {string} facultyLink - Link to faculty page
+ * @returns {string[]} - A list of courses related to the department
+ * Example:
+ *      ["COMPSCI","IN4MATX","I&C SCI","SWE","STATS"] - http://catalogue.uci.edu/donaldbrenschoolofinformationandcomputersciences/#faculty
+ */
+export async function getDepartmentCourses(facultyLink: string): Promise<string[]> {
+    const departmentCourses: string[] = [];
+    const courseUrl = facultyLink.replace('#faculty', '#courseinventory');
+    const response = await axios.get(courseUrl);
     const $ = cheerio.load(response.data);
-    if ($('#courseinventorycontainer').length === 0) {
-        return departmentCodes;
-    }
-    $('#courseinventorycontainer courses').each(function(this: cheerio.Element) {
+    $('#courseinventorycontainer .courses').each(function(this: cheerio.Element) {
         if ($(this).find('h3').length == 0) {
-            //TODO need function from CourseScraper
+            return;
         }
+        const courseTitle = $(this).find('.courseblocktitle').text().trim().normalize('NFKD');  // I&C SCI 31. Introduction to Programming. 4 Units. 
+        const courseID = courseTitle.substring(0, courseTitle.indexOf('.'));                    // I&C SCI 31
+        const course = courseID.substring(0, courseID.lastIndexOf(' '));                        // I&C SCI
+        departmentCourses.push(course);
     })
-    return ['']
+    // No courses can be found - check if hardcoded
+    if (departmentCourses.length == 0) {
+        return getHardcodedDepartmentCourses(facultyLink);
+    }
+    return departmentCourses;
 }
 
 /**
  * Some faculty pages don't have a corresponding course inventory page, so we hardcode them
- * Go to https://www.reg.uci.edu/perl/InstructHist to find course codes of faculty
+ * Go to https://www.reg.uci.edu/perl/InstructHist to find courses of faculty
  * 
  * @param {string} facultyLink - Link to faculty page
- * @returns {string[]} - A list of department codes that most of the professors have in common
+ * @returns {string[]} - A list of department courses related to the department
  */
-function getHardcodedDepartmentCodes(facultyLink: string): string[] {
+function getHardcodedDepartmentCourses(facultyLink: string): string[] {
     const lookup: { [key: string]: string[] } = {
-        'http://catalogue.uci.edu/thepaulmerageschoolofbusiness/#faculty': ['MGMT','MGMT EP','MGMT FE','MGMT HC','MGMTMBA','MGMTPHD','MPAC'],
-        'http://catalogue.uci.edu/interdisciplinarystudies/pharmacologyandtoxicology/#faculty': ['PHRMSCI','PHARM','BIO SCI'],
         'http://catalogue.uci.edu/schooloflaw/#faculty': ['LAW'],
         'http://catalogue.uci.edu/schoolofmedicine/#faculty': []
     }
@@ -154,7 +164,7 @@ function getHardcodedDepartmentCodes(facultyLink: string): string[] {
 /**
  * Gets the instructor's directory info
  * 
- * @param instructorName - name of instructor
+ * @param instructorName - Name of instructor
  * @returns {Promise<object>} - Dictionary of instructor's info (name, ucinetid, title, email)
  */
 async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]: string }> {
@@ -241,22 +251,3 @@ function parseHistoryPage(instructorHistoryPage: string, relatedDepartments: str
     return entryFound;
     
 }
-
-
-
-const test = async () => {
-    // const s = await getFacultyLinks();
-    // console.log(Object.keys(s).length); 
-    // const s = await getDirectoryInfo('Sara A. Ep');
-    //const s = await getInstructorNames('http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty');
-    //const s = await getCourseHistory('Kei Akagi')
-    const s = await axios.get('https://www.reg.uci.edu/perl/InstructHist?input_name=PATTIS%2C%20R&printer_friendly=&start_row=102&order=term&term_yyyyst=&show_distribution=&action=Prev')
-    const relatedDepartments = ['I&C SCI'];
-    const courseHistory: Set<string> = new Set();
-    const nameCounts = {};
-    const w = parseHistoryPage(s.data, relatedDepartments, courseHistory, nameCounts);
-    console.log(w);
-    console.log(nameCounts)
-}
-
-test();
