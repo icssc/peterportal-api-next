@@ -31,9 +31,7 @@ export class DDBDocClient {
   private readonly documentClient: DynamoDBDocumentClient;
   constructor(
     configuration: DynamoDBClientConfig = {
-      /* eslint-disable turbo/no-undeclared-env-vars */
       region: process.env.AWS_REGION,
-      /* eslint-enable */
     },
     translateConfig: TranslateConfig = {
       marshallOptions: {

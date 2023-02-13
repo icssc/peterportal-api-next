@@ -29,9 +29,7 @@ export const handler = async () => {
     .map((x) => x.shortName)
     .filter((x) => x in currentTerms && now <= currentTerms[x].finalsEnd);
   const lambdaClient = new LambdaClient({
-    /* eslint-disable turbo/no-undeclared-env-vars */
     region: process.env.AWS_REGION,
-    /* eslint-enable */
   });
   await Promise.all(
     termsToScrape.map((t) =>

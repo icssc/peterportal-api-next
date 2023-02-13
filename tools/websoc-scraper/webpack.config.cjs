@@ -11,7 +11,7 @@ module.exports = {
   },
   output: {
     path: __dirname + "/dist/",
-    filename: "[name].js",
+    filename: "[name]/index.js",
     library: {
       type: "commonjs2",
     },

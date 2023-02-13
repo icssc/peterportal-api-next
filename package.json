@@ -9,7 +9,7 @@
     "ddb",
     "docs",
     "packages/*",
-    "tools/**/*"
+    "tools/*"
   ],
   "scripts": {
     "build": "dotenv -c production -- turbo run build",

@@ -1,8 +1,9 @@
 import { PutCommandOutput } from "@aws-sdk/lib-dynamodb";
-import { APIGatewayEvent, APIGatewayProxyResult } from "aws-lambda";
+import { APIGatewayProxyResult } from "aws-lambda";
 import { DDBDocClient } from "ddb";
 import {
   GE,
+  Term,
   WebsocAPIResponse,
   WebsocCourse,
   WebsocDepartment,
@@ -26,11 +27,14 @@ const reparentSection = (
   return { data, deptCode, sectionCode };
 };
 
-export const handler = async (
-  event: APIGatewayEvent
-): Promise<APIGatewayProxyResult> => {
-  if (!event.body) throw new Error("Payload not provided");
-  const { term, department, ge: geCategory } = JSON.parse(event.body);
+export const handler = async (event: {
+  term: Term;
+  department: string;
+  ge: GE;
+}): Promise<APIGatewayProxyResult> => {
+  console.log(JSON.stringify(event));
+  if (!event) throw new Error("Payload not provided");
+  const { term, department, ge: geCategory } = event;
   if (!term || !department === !geCategory)
     throw new Error("Malformed payload");
   const termString = `${term.year}-${term.quarter.toLowerCase()}`;
@@ -49,19 +53,25 @@ export const handler = async (
               section
             );
             promises.push(
-              docClient.put(`api-next-websoc-${termString}-by-section-code`, {
-                sectionCode,
-                data,
-              }),
-              docClient.put(`api-next-websoc-${termString}-by-department`, {
-                sectionCode,
-                deptCode,
-                data,
-              }),
+              docClient.put(
+                `peterportal-api-next-websoc-${termString}-by-section-code`,
+                {
+                  sectionCode,
+                  data,
+                }
+              ),
+              docClient.put(
+                `peterportal-api-next-websoc-${termString}-by-department`,
+                {
+                  sectionCode,
+                  deptCode,
+                  data,
+                }
+              ),
               ...section.instructors.map((instructor) => {
                 instructors.add(instructor);
                 return docClient.put(
-                  `api-next-websoc-${termString}-by-instructor`,
+                  `peterportal-api-next-websoc-${termString}-by-instructor`,
                   {
                     sectionCode,
                     instructor,
@@ -87,7 +97,7 @@ export const handler = async (
               section
             );
             promises.push(
-              docClient.put(`api-next-websoc-${termString}-by-ge`, {
+              docClient.put(`peterportal-api-next-websoc-${termString}-by-ge`, {
                 geCategory,
                 sectionCode,
                 data,
