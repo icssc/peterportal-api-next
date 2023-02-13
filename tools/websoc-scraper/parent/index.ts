@@ -75,10 +75,6 @@ export const handler = async (
   const lambdaClient = new LambdaClient({
     /* eslint-disable turbo/no-undeclared-env-vars */
     region: process.env.AWS_REGION,
-    credentials: {
-      accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-    },
     /* eslint-enable */
   });
   await docClient.put("peterportal-api-next-websoc-instructors-by-term", {

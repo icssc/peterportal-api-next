@@ -33,10 +33,6 @@ export class DDBDocClient {
     configuration: DynamoDBClientConfig = {
       /* eslint-disable turbo/no-undeclared-env-vars */
       region: process.env.AWS_REGION,
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "",
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "",
-      },
       /* eslint-enable */
     },
     translateConfig: TranslateConfig = {
