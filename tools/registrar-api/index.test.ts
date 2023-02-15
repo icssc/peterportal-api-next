@@ -1,16 +1,16 @@
 import { describe, expect, test } from "@jest/globals";
 
-import { getTermData } from "./index";
+import { getTermDateData } from "./index";
 
 describe("registrar-api tests", () => {
   test("getTermData on invalid year throws error", () => {
-    expect(getTermData("0")).rejects.toThrow();
+    expect(getTermDateData("0")).rejects.toThrow();
   });
   test("getTermData on non-numeric year throws error", () => {
-    expect(getTermData("asdf")).rejects.toThrow();
+    expect(getTermDateData("asdf")).rejects.toThrow();
   });
   test("getTermData return for 2022-23 AY is correct", async () => {
-    const data = await getTermData("2022");
+    const data = await getTermDateData("2022");
     expect(data["2022 Fall"]).toEqual({
       instructionStart: new Date(2022, 8, 22),
       instructionEnd: new Date(2022, 11, 2),

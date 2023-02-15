@@ -14,15 +14,7 @@
     "deploy": {
       "cache": false,
       "dependsOn": ["^build"],
-      "env": [
-        "CERTIFICATE_ARN",
-        "DATABASE_URL",
-        "DEPLOY_API",
-        "DEPLOY_DOCS",
-        "HOSTED_ZONE_ID",
-        "NODE_ENV",
-        "PR_NUM"
-      ]
+      "env": ["AWS_REGION"]
     },
     "dev": {
       "cache": false,

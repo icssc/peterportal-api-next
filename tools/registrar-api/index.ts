@@ -21,12 +21,12 @@ const months = [
 
 /* region Type declarations */
 
-export interface TermData {
+export type TermDateData = {
   instructionStart: Date;
   instructionEnd: Date;
   finalsStart: Date;
   finalsEnd: Date;
-}
+};
 
 /* endregion */
 
@@ -36,7 +36,7 @@ const addSingleDateRow = (
   data: string[][],
   index: number,
   key: string,
-  record: Record<string, Partial<TermData & { [p: string]: Date }>>,
+  record: Record<string, Partial<TermDateData & { [p: string]: Date }>>,
   year: string,
   offset = 0
 ): void => {
@@ -56,7 +56,7 @@ const addMultipleDateRow = (
   index: number,
   keyStart: string,
   keyEnd: string,
-  record: Record<string, Partial<TermData & { [p: string]: Date }>>,
+  record: Record<string, Partial<TermDateData & { [p: string]: Date }>>,
   year: string,
   offset = 0
 ): void => {
@@ -88,10 +88,10 @@ const addMultipleDateRow = (
 
 /* region Exported functions */
 
-// Returns relevant data for each term in the given academic year.
-export const getTermData = async (
+// Returns relevant date data for each term in the given academic year.
+export const getTermDateData = async (
   year: string
-): Promise<Record<string, TermData>> => {
+): Promise<Record<string, TermDateData>> => {
   if (year.length !== 4 || isNaN(parseInt(year)))
     throw new Error("Error: Invalid year provided.");
   const shortYear = year.slice(2);
@@ -137,7 +137,7 @@ export const getTermData = async (
     .reduce((p, c) => {
       p[c] = {};
       return p;
-    }, {} as Record<string, Partial<TermData>>);
+    }, {} as Record<string, Partial<TermDateData>>);
   addSingleDateRow(quarterData, 2, "instructionStart", ret, year);
   addSingleDateRow(quarterData, 17, "instructionEnd", ret, year);
   addMultipleDateRow(quarterData, 18, "finalsStart", "finalsEnd", ret, year);
@@ -152,7 +152,7 @@ export const getTermData = async (
     year,
     3
   );
-  return ret as Record<string, TermData>;
+  return ret as Record<string, TermDateData>;
 };
 
 /* endregion */
