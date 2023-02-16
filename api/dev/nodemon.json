@@ -1,0 +1,7 @@
+{
+  "execMap": {
+    "ts": "node -r ts-node/register --loader ts-node/esm --no-warnings"
+  },
+  "ext": "ts",
+  "watch": ["../**/*"]
+}
