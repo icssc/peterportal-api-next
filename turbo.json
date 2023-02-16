@@ -22,14 +22,13 @@
         "HOSTED_ZONE_ID",
         "NODE_ENV",
         "PR_NUM"
-      ],
-      "outputs": []
+      ]
     },
     "dev": {
       "cache": false,
       "dependsOn": ["^db:pull"],
-      "env": ["PORT"],
-      "outputs": []
-    }
+      "env": ["PORT"]
+    },
+    "test": {}
   }
 }
