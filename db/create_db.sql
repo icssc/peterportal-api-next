@@ -98,7 +98,6 @@ CREATE TABLE
   grades (
     academic_year INT UNSIGNED NOT NULL,
     academic_quarter VARCHAR(10) NOT NULL,
-    instructor VARCHAR(191) NOT NULL,
     department VARCHAR(7) NOT NULL,
     course_number VARCHAR(191) NOT NULL,
     course_code INT UNSIGNED NOT NULL,
@@ -127,6 +126,16 @@ CREATE TABLE
     ),
     FOREIGN KEY (department) REFERENCES departments (department_id),
     PRIMARY KEY (academic_year, academic_quarter, course_code)
+  );
+
+CREATE TABLE
+  grades_instructors_mappings (
+    academic_year INT UNSIGNED NOT NULL,
+    academic_quarter VARCHAR(10) NOT NULL,
+    course_code INT UNSIGNED NOT NULL,
+    instructor VARCHAR(50) NOT NULL,
+    FOREIGN KEY (academic_year, academic_quarter, course_code) REFERENCES grades (academic_year, academic_quarter, course_code),
+    PRIMARY KEY (academic_year, academic_quarter, course_code, instructor)
   );
 
 CREATE TABLE
