@@ -1,4 +1,4 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import * as cheerio from 'cheerio';
 import he from 'he';
 
@@ -117,21 +117,26 @@ export async function getInstructorNames(facultyLink: string): Promise< string[]
  */
 export async function getDepartmentCourses(facultyLink: string): Promise<string[]> {
     const departmentCourses: string[] = [];
-    const courseUrl = facultyLink.replace('#faculty', '#courseinventory');
-    const response = await axios.get(courseUrl);
-    const $ = cheerio.load(response.data);
-    $('#courseinventorycontainer .courses').each(function(this: cheerio.Element) {
-        if ($(this).find('h3').length == 0) {
-            return;
+    try {
+        const courseUrl = facultyLink.replace('#faculty', '#courseinventory');
+        const response = await axios.get(courseUrl);
+        const $ = cheerio.load(response.data);
+        $('#courseinventorycontainer .courses').each(function(this: cheerio.Element) {
+            if ($(this).find('h3').length == 0) {
+                return;
+            }
+            const courseTitle = $(this).find('.courseblocktitle').text().trim().normalize('NFKD');  // I&C SCI 31. Introduction to Programming. 4 Units. 
+            const courseID = courseTitle.substring(0, courseTitle.indexOf('.'));                    // I&C SCI 31
+            const course = courseID.substring(0, courseID.lastIndexOf(' '));                        // I&C SCI
+            departmentCourses.push(course);
+        })
+        // No courses can be found - check if hardcoded
+        if (departmentCourses.length == 0) {
+            return getHardcodedDepartmentCourses(facultyLink);
         }
-        const courseTitle = $(this).find('.courseblocktitle').text().trim().normalize('NFKD');  // I&C SCI 31. Introduction to Programming. 4 Units. 
-        const courseID = courseTitle.substring(0, courseTitle.indexOf('.'));                    // I&C SCI 31
-        const course = courseID.substring(0, courseID.lastIndexOf(' '));                        // I&C SCI
-        departmentCourses.push(course);
-    })
-    // No courses can be found - check if hardcoded
-    if (departmentCourses.length == 0) {
-        return getHardcodedDepartmentCourses(facultyLink);
+    }
+    catch (error) {
+        console.log(error);
     }
     return departmentCourses;
 }
@@ -167,7 +172,7 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
  * @param instructorName - Name of instructor
  * @returns {Promise<object>} - Dictionary of instructor's info (name, ucinetid, title, email)
  */
-async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]: string }> {
+export async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]: string }> {
     const data = {'uciKey': instructorName};
     const info: { [key: string]: string } = {'name': '', 'ucinetid': '', 'title': '', 'email': ''}
     try {
@@ -212,12 +217,12 @@ async function getCourseHistory(instructorName: string) {
  * or not we want to continue parsing as there may be more pages of entries.
  * 
  * @param {string} instructorHistoryPage - HTML string of an instructor history page
- * @param {string[]} relatedDepartments - a list of departments related to the instructor
+ * @param {string[]} relatedDepartments - a set of departments related to the instructor
  * @param {Set<string>} courseHistory - a set of courses that will be mutated with course numbers found in entries
- * @param {object} nameCounts - a dictionary of instructor names storing the number of name occurrences found in entries
+ * @param {object} nameCounts - a dictionary of instructor names storing the number of name occurrences found in entries (used to determine the 'official' shortened name - bc older record names may differ from current) ex: Thornton A.W. = Thornton A.
  * @returns {boolean} - true if entries are found, false if not
  */
-function parseHistoryPage(instructorHistoryPage: string, relatedDepartments: string[], courseHistory: Set<string>, nameCounts: { [key: string]: number }): boolean {
+export function parseHistoryPage(instructorHistoryPage: string, relatedDepartments: Set<string>, courseHistory: Set<string>, nameCounts: { [key: string]: number }): boolean {
     // Map of table fields to index
     const fieldLabels = {'qtr':0,'empty':1,'instructor':2,'courseCode':3,'dept':4,'courseNo':5,'type':6,'title':7,'units':8,'maxCap':9,'enr':10,'req':11};
     const currentYear = new Date().getFullYear() % 100;
@@ -234,7 +239,7 @@ function parseHistoryPage(instructorHistoryPage: string, relatedDepartments: str
                 // Stop parsing if year is older than threshold
                 if (currentYear - qtrYear > YEAR_THRESHOLD) {
                     entryFound = false;
-                    return;
+                    return false;
                 }
                 // Get name(s) in the instructor field
                 $(entry[fieldLabels['instructor']]).html()?.trim()?.split('<br>').forEach(name => {
@@ -242,11 +247,12 @@ function parseHistoryPage(instructorHistoryPage: string, relatedDepartments: str
                 });
                 // Get course code if dept is related
                 const deptValue = $(entry[fieldLabels['dept']]).text().trim()
-                if (deptValue in relatedDepartments) {
+                if (relatedDepartments.has(deptValue)) {
                     courseHistory.add(`${deptValue} ${$(entry[fieldLabels['courseNo']]).text().trim()}`);
                 }
             }
         }
+        return;
     });
     return entryFound;
     
