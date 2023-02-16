@@ -158,27 +158,58 @@ async function getAllCourseURLS():Promise<string[]> {
 
 /** 
  * @param {string} courseURL: URL to a Courses page
- * @param {Object} json_data: maps class to its json data ({STATS 280: {metadata: {...}, data: {...}, node: Node}})
- * @param {Object} departmentToSchoolMapping: maps department code to its school {I&C SCI: Donald Bren School of Information and Computer Sciences}
+ * @param {{ [key: string]: Object }} json_data: maps class to its json data ({STATS 280: {metadata: {...}, data: {...}, node: Node}})
+ * @param {{ [key: string]: string }} departmentToSchoolMapping: maps department code to its school {I&C SCI: Donald Bren School of Information and Computer Sciences}
  * @returns {void}: nothing, mutates the json_data passed in
 */
-async function getAllCourses(courseURL: string, json_data: Object, departmentToSchoolMapping: Object){
+async function getAllCourses(courseURL: string, json_data: { [key: string]: Object }, departmentToSchoolMapping: { [key: string]: string }){
     const response = await axios.get(courseURL);
     const $ = cheerio.load(response.data);
     // department name
     var department: string = normalizeString($("#contentarea > h1").text());
     // strip off department id
     department = department.slice(0, department.indexOf("(")).trim();
-    $("#courseinventorycontainer > .courses").each((i: any, course: cheerio.Element) => {
+    $("#courseinventorycontainer > .courses").each(async (i: any, course: cheerio.Element) => {
         // if page is empty for some reason??? (http://catalogue.uci.edu/allcourses/cbems/)
         if ($(course).find('h3').text().length == 0) {return;}
-        $(course).find('div').each((j: any, courseBlock: cheerio.Element) => {
+        //const courseBlocks: cheerio.Element[] = [];
+        $(course).find('div > .courseblock').each(async (j: any, courseBlock: any) => {
             // course identification
-            //var courseID, courseName, courseUnits = getCourseInfo(courseBlock, $);
+            //courseBlocks.push(courseBlock);
+            var courseInfo;
+            await getCourseInfo(courseBlock, courseURL).then((response) => {courseInfo = response;});
+            if (courseInfo != null){
+                const courseID: string = courseInfo[0];
+                const courseName: string = courseInfo[1];
+                const courseUnits: string = courseInfo[2];
+                // get course body (0:Course Description, 1:Prerequisite)
+                const courseBody = $(courseBlock).find('div > p');
+                const courseDescription: string = normalizeString($(courseBody[0]).text());
+                // parse units
+                let unit_range: string[];
+                if (courseUnits.includes("-")) {
+                    unit_range = courseUnits.split(" ")[0].split("-");
+                }
+                else {
+                    unit_range = [courseUnits.split(" ")[0], courseUnits.split(" ")[0]];
+                }
+                // parse course number and department
+                const splitID: string[] = courseID.split(" ");
+                const id_department: string = splitID.slice(0, -1).join(" ");
+                const id_number: string = splitID[splitID.length - 1];
+                console.log(splitID, id_department, id_number);
+                // error detection
+                if (!(id_department in departmentToSchoolMapping)) {
+                    noSchoolDepartment.add(id_department);
+                }
+            }
+            else {throw new Error("CourseInfo is null");}
             // get course body (0:Course Description, 1:Prerequisite)
-            const courseBody = $(courseBlock).find('div').children();
-            //console.log(courseBody[1].length);
+            //const courseBody = $(courseBlock).find('div').children();
         })
+        // const courseBlockPromises: Promise<string[]>[] = courseBlocks.map(x => getCourseInfo(x, courseURL));
+        // const courseBlockResults: string[][] = await Promise.all(courseBlockPromises);
+        // console.log(courseBlockResults);
     })
 }
 
@@ -218,6 +249,8 @@ export async function getCourseInfo(courseBlock: cheerio.Element, courseURL: str
 // getDepartmentToSchoolMapping().then((response) => {
 //     console.log(response);
 // });
+
+const noSchoolDepartment = new Set<string>();
 
 getAllCourseURLS().then((response) => {
     response.map(async (url) => {
