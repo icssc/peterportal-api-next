@@ -96,8 +96,8 @@ CREATE TABLE
 
 CREATE TABLE
   grades (
-    academic_year CHAR(7) NOT NULL,
-    academic_quarter VARCHAR(6) NOT NULL,
+    academic_year INT UNSIGNED NOT NULL,
+    academic_quarter VARCHAR(10) NOT NULL,
     instructor VARCHAR(191) NOT NULL,
     department VARCHAR(7) NOT NULL,
     course_number VARCHAR(191) NOT NULL,
@@ -119,7 +119,7 @@ CREATE TABLE
       AND grade_f_count = 0
     ) VIRTUAL,
     CHECK (
-      academic_quarter IN ('Fall', 'Winter', 'Spring', 'Summer')
+      academic_quarter IN ('Fall', 'Winter', 'Spring', 'Summer1', 'Summer10wk', 'Summer2')
     ),
     CHECK (
       course_code >= 0
