@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "webpack"
+    "build": "tsx build.ts"
   },
   "dependencies": {
     "api-core": "*"
@@ -14,14 +14,11 @@
     "@types/aws-lambda": "^8.10.109",
     "@types/express": "^4.17.14",
     "@types/node": "^18.11.10",
-    "@types/webpack": "^5.28.0",
+    "api-route-example-db": "^0.0.0",
     "aws-lambda": "^1.0.7",
-    "clean-webpack-plugin": "^4.0.0",
+    "esbuild": "^0.17.8",
     "express": "^4.18.2",
-    "ts-loader": "^9.4.2",
-    "ts-node": "^10.9.1",
-    "typescript": "^4.9.4",
-    "webpack": "^5.75.0",
-    "webpack-cli": "^5.0.0"
+    "tsx": "^3.12.3",
+    "typescript": "^4.9.4"
   }
 }

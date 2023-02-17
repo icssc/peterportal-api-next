@@ -90,7 +90,7 @@ export class ApiStack extends Stack {
                 `../routes/${name}/dist`
               )
             ),
-            handler: `${name}.lambdaHandler`,
+            handler: `index.lambdaHandler`,
             environment: {
               DATABASE_URL: this.env.databaseUrl,
             },
