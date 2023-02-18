@@ -1,0 +1,12 @@
+{
+  "name": "grades-updater",
+  "version": "0.0.0",
+  "scripts": {},
+  "dependencies": {
+    "csv-parse": "^5.3.5",
+    "csv-stringify": "^6.2.4",
+    "superagent": "^8.0.9"
+  },
+  "license": "MIT",
+  "type": "module"
+}
