@@ -5,7 +5,8 @@ import { fileURLToPath } from "url";
 
 (async () => {
   const cwd = dirname(fileURLToPath(import.meta.url));
-  await build({
+  /** @type {import("esbuild").BuildOptions} */
+  const options = {
     bundle: true,
     entryPoints: [join(cwd, "index.ts")],
     logLevel: "info",
@@ -37,11 +38,15 @@ import { fileURLToPath } from "url";
               join(cwd, "../../../node_modules/.prisma/client/schema.prisma"),
               join(cwd, "dist/schema.prisma")
             );
-            await chmod(join(cwd, "dist/schema.prisma"), 0o755);
+            await chmod(
+              join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node"),
+              0o755
+            );
           });
         },
       },
     ],
     target: "node16",
-  });
+  };
+  await build(options);
 })();

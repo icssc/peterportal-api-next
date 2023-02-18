@@ -5,7 +5,8 @@ import { fileURLToPath } from "url";
 
 (async () => {
   const cwd = dirname(fileURLToPath(import.meta.url));
-  await build({
+  /** @type {import("esbuild").BuildOptions} */
+  const options = {
     bundle: true,
     entryPoints: [join(cwd, "index.ts")],
     logLevel: "info",
@@ -24,5 +25,6 @@ import { fileURLToPath } from "url";
       },
     ],
     target: "node16",
-  });
+  };
+  await build(options);
 })();
