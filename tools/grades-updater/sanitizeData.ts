@@ -99,7 +99,7 @@ async function wait(): Promise<void> {
  * @param year The academic year for the course in the format "XXXX-XX."
  * @param quarters An array of strings. Takes ["Fall"], ["Winter"], 
  * ["Spring"], or ["Summer1", "Summer10wk", "Summer2"]. 
- * @param courseCode The five-digit course code for the class.
+ * @param courseCode The course code, ranging from 1 to 99999, for the class.
  * @returns An array containing the promises for making requests to WebSOC.
  */
 async function getInfo(year: string, quarters: Quarter[], courseCode: string)
