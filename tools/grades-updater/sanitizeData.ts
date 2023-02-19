@@ -211,6 +211,7 @@ function buildParser(filePath: string): Parser {
             },
             columns: dataColumns,
             from_line: 2,
+            skip_empty_lines: true,
             trim: true
     }));
 }
