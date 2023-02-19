@@ -36,4 +36,4 @@ tools/grades-updater/inputData
 tools/grades-updater/outputData
 
 # grades-updater logs
-tools/grades-updater/*.log
+tools/grades-updater/logs
