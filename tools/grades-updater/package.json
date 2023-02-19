@@ -4,14 +4,15 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "scripts": {},
+  "scripts": {
+    "sanitize": "npx tsx sanitizeData.ts"
+  },
   "dependencies": {
     "csv-parse": "^5.3.5",
     "csv-stringify": "^6.2.4",
     "winston": "^3.8.2"
   },
   "devDependencies": {
-    "ts-node": "^10.9.1",
     "@types/node": "^18.14.0"
   }
 }

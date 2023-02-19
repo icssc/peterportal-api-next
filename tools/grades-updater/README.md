@@ -9,11 +9,11 @@ This folder contains scripts taking a preprocessed CSV file, sanitizing the data
   | year | quarter | department | courseNumber | courseCode | instructors | a | b | c | d | f | p | np | w | gpaAvg
   |--------|----------|----------------------------|--------------|------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|--------------|--------|-----------|
   | ...    | ...      | ...                        | ...          | ...        | ...         | ...         | ...         | ...         | ...         | ...         | ...         | ...         | ...          | ...    | | ...    | ...       |
-3. Execute `npm i` in this folder
-4. Run `node sanitizeData.ts` to execute the program
+3. Run `npm i` in this folder
+4. Execute `npm run sanitize` to execute the program
 5. Find your data under the `outputData` folder
    + If the program fails, then you may want to manually delete the entries that are already processed in the input file and merge the processed data and the rest together in a separate file once the rest is processed.
-   + All errors and warnings are listed in a log file located under this directory
+   + All errors and warnings are listed in a log file located under `logs`
 
 ### Uploading the data
 
