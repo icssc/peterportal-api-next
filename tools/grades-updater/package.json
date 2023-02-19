@@ -1,6 +1,9 @@
 {
   "name": "grades-updater",
   "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
   "scripts": {},
   "dependencies": {
     "csv-parse": "^5.3.5",
@@ -10,7 +13,5 @@
   "devDependencies": {
     "ts-node": "^10.9.1",
     "@types/node": "^18.14.0"
-  },
-  "license": "MIT",
-  "type": "module"
+  }
 }
