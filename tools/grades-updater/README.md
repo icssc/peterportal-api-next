@@ -1,7 +1,7 @@
 # Inserting/updating grade distribution data for PeterPortal
 This folder contains scripts taking a preprocessed CSV file, sanitizing the data, and inserting it into a remote AWS RDS instance. Please read this file thoroughly before processing the grade distribution data from UCI's Public Records Office (PRO).
 
-## Getting Started
+## Getting started
 ### Sanitizing the data
 1. Create two folders named `inputData` and `outputData` in this directory if not already
 2. Take the spreadsheet from PRO, follow the format below, and save it as a CSV file to `inputData`
