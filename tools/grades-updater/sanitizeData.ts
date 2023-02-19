@@ -8,6 +8,7 @@ import { stringify } from "csv-stringify/sync";
 import winston from "winston";
 
 import type { CastingContext, Parser } from "csv-parse";
+import type { Logger } from "winston";
 import type {
     Quarter,
     WebsocAPIResponse,
@@ -69,7 +70,7 @@ const dataColumns: string[] = [
     "w",
     "gpaAvg"
 ];
-const logger: winston.Logger = winston.createLogger({
+const logger: Logger = winston.createLogger({
     format: winston.format.combine(
         winston.format.timestamp(), 
         winston.format.prettyPrint()
