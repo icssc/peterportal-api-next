@@ -163,13 +163,6 @@ async function updateInformation(info: RawGrade): Promise<Grade | null> {
             }
         }
     }
-    logger.warn("No matching course found", {
-        year: info.year,
-        quarter: info.quarter,
-        department: info.department,
-        courseNumber: info.courseNumber,
-        courseCode: info.courseCode
-    });
     return null;
 }
 
@@ -240,6 +233,12 @@ async function processFile(filePath: string): Promise<void> {
         if (info !== null) {
             stream.write(stringify([info]));
             logger.info("Finish processing course", {
+                year: rawInfo.year,
+                quarter: rawInfo.quarter,
+                courseCode: rawInfo.courseCode
+            });
+        } else {
+            logger.warn("No matching course found", {
                 year: rawInfo.year,
                 quarter: rawInfo.quarter,
                 courseCode: rawInfo.courseCode
