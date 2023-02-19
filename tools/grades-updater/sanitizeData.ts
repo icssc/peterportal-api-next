@@ -35,8 +35,7 @@ interface RawGrade {
 
 interface Grade {
     year: string,
-    quarter: "Fall" | "Winter" | "Spring"
-        | "Summer1" | "Summer10wk" | "Summer2",
+    quarter: Quarter,
     department: string,
     courseNumber: string,
     courseCode: number,
