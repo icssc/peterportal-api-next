@@ -34,3 +34,6 @@ dist/
 # grade distribution csv files
 tools/grades-updater/inputData
 tools/grades-updater/outputData
+
+# grades-updater logs
+tools/grades-updater/*.log
