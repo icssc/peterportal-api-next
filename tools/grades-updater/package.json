@@ -13,6 +13,7 @@
     "winston": "^3.8.2"
   },
   "devDependencies": {
-    "@types/node": "^18.14.0"
+    "@types/node": "^18.14.0",
+    "peterportal-api-next-types": "*"
   }
 }
