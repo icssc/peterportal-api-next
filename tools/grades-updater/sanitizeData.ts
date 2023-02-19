@@ -1,15 +1,18 @@
 import { callWebSocAPI } from "websoc-api-next";
-import { CastingContext, parse, Parser } from "csv-parse";
-import { EOL } from 'os';
+import { EOL } from "os";
+import { fileURLToPath } from "url";
 import fs from "fs";
+import { parse } from "csv-parse";
 import path from "path";
+import { stringify } from "csv-stringify/sync";
+import winston from "winston";
+
+import type { CastingContext, Parser } from "csv-parse";
 import type {
     Quarter,
     WebsocAPIResponse,
     WebsocSection
 } from "peterportal-api-next-types";
-import { stringify } from "csv-stringify/sync";
-import winston from "winston";
 
 interface RawGrade {
     year: string,
@@ -48,6 +51,7 @@ interface Grade {
     gpaAvg: number
 }
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const dataColumns: string[] = [
     "year",
     "quarter",
@@ -65,9 +69,6 @@ const dataColumns: string[] = [
     "w",
     "gpaAvg"
 ];
-
-const summerQuarters: Quarter[] = ["Summer1", "Summer10wk", "Summer2"];
-
 const logger: winston.Logger = winston.createLogger({
     format: winston.format.combine(
         winston.format.timestamp(), 
@@ -75,9 +76,12 @@ const logger: winston.Logger = winston.createLogger({
     ),
     transports: [
         new winston.transports.Console(), 
-        new winston.transports.File({ filename: `./${Date.now()}.log` })
+        new winston.transports.File({
+            filename: `${__dirname}/logs/${Date.now()}.log`
+        })
     ]
 });
+const summerQuarters: Quarter[] = ["Summer1", "Summer10wk", "Summer2"];
 
 /**
  * Pause an executing async function for about two to three seconds.
@@ -158,7 +162,9 @@ async function updateInformation(info: RawGrade): Promise<Grade | null> {
                         .courses[0].deptCode,
                     courseNumber: responses[index].schools[0].departments[0]
                         .courses[0].courseNumber,
-                    instructors: section.instructors.join("; ")
+                    instructors: section.instructors
+                        .filter((instructor: string) => instructor !== "STAFF")
+                        .join("; ")
                 };
             }
         }
@@ -231,7 +237,9 @@ async function processFile(filePath: string): Promise<void> {
         });
         let info: Grade | null = await updateInformation(rawInfo);
         if (info !== null) {
-            stream.write(stringify([info]));
+            if (stream.write(stringify([info])) === false) {
+                stream.once("drain", () => {});
+            }
             logger.info("Finish processing course", {
                 year: rawInfo.year,
                 quarter: rawInfo.quarter,
