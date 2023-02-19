@@ -174,7 +174,7 @@ async function updateInformation(info: RawGrade): Promise<Grade | null> {
 }
 
 /**
- * Create a CSV parser with certain settings.
+ * Create a CSV parser with custom settings.
  * @param filePath The absolute path to the CSV file.
  * @returns A parser for the CSV file.
  */
@@ -216,8 +216,8 @@ function buildParser(filePath: string): Parser {
 }
 
 /**
- * Take the CSV file under /inputData, extract the information to a JSON
- * object, and write the updated info to a file under /outputData.
+ * Take the CSV file under /inputData, extract the information as JSON
+ * objects, and write the updated info to a file under /outputData.
  * @param filePath The absolute path to the input CSV file.
  */
 async function processFile(filePath: string): Promise<void> {
