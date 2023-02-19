@@ -241,11 +241,7 @@ async function processFile(filePath: string): Promise<void> {
             if (stream.write(stringify([info])) === false) {
                 stream.once("drain", () => {});
             }
-            logger.info("Finish processing course", {
-                year: rawInfo.year,
-                quarter: rawInfo.quarter,
-                courseCode: rawInfo.courseCode
-            });
+            logger.info("Finish processing course", info);
         } else {
             logger.warn("No matching course found", {
                 year: rawInfo.year,
