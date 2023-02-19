@@ -69,19 +69,34 @@ const dataColumns: string[] = [
     "w",
     "gpaAvg"
 ];
-const logger: Logger = winston.createLogger({
-    format: winston.format.combine(
-        winston.format.timestamp(), 
-        winston.format.prettyPrint()
-    ),
-    transports: [
+const logger: Logger = createLogger();
+const summerQuarters: Quarter[] = ["Summer1", "Summer10wk", "Summer2"];
+
+/**
+ * Create a logger object that will output information to the console
+ * as well as a file under /logs. Also, note that there is no type
+ * annotation to the transports variable because its type information
+ * is simply way too long.
+ * @returns A logger that writes the current status of the program to
+ * the console and a log file.
+ */
+function createLogger(): Logger {
+    const transports = [
         new winston.transports.Console(), 
         new winston.transports.File({
             filename: `${__dirname}/logs/${Date.now()}.log`
         })
-    ]
-});
-const summerQuarters: Quarter[] = ["Summer1", "Summer10wk", "Summer2"];
+    ];
+    return winston.createLogger({
+        exceptionHandlers: transports,
+        format: winston.format.combine(
+            winston.format.timestamp(), 
+            winston.format.prettyPrint()
+        ),
+        rejectionHandlers: transports,
+        transports
+    })
+}
 
 /**
  * Pause an executing async function for about two to three seconds.
@@ -257,6 +272,11 @@ async function processFile(filePath: string): Promise<void> {
  * The entry point of this program.
  */
 async function sanitizeData(): Promise<void> {
+    if (fs.existsSync(`${__dirname}/inputData`) === false
+            || fs.existsSync(`${__dirname}/outputData`) === false) {
+        throw new Error("Please create /inputData and /outputData first");
+    }
+
     fs
         .readdirSync(path.resolve(`${__dirname}/inputData`))
         .forEach(async (file: string) =>
