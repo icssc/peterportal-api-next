@@ -29,8 +29,8 @@
   "exclude": ["build/", "dist/", "node_modules/"],
   "include": [
     "api/**/*",
-    "cdk/**/*",
     "db/**/*",
+    "ddb/**/*",
     "docs/**/*",
     "packages/**/*",
     "tools/**/*"
