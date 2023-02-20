@@ -25,7 +25,7 @@ async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: string }
     /** 
      * helper function that takes a URL to a department page and maps the course page to each school on that page
      * @param {string} departmentUrl: URL to a department page
-     * @param {string} school: school name
+     * @param {string} school: school name 
     */
     async function findSchoolNameFromDepartmentPage(departmentUrl: string, school: string) {
         const response = await axios.get(departmentUrl);
