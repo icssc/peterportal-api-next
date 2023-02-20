@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
@@ -41,10 +42,10 @@ model courses {
   overlap                                                        String
   corequisite                                                    String
   ge_text                                                        String                  @db.Text
+  course_history                                                 course_history[]
   departments_courses_departmentTodepartments                    departments             @relation("courses_departmentTodepartments", fields: [department], references: [department_id], onUpdate: Restrict, map: "courses_ibfk_1")
   schools                                                        schools                 @relation(fields: [school], references: [school_name], onUpdate: Restrict, map: "courses_ibfk_2")
   departments_courses_department_nameTodepartments               departments             @relation("courses_department_nameTodepartments", fields: [department_name], references: [department_name], onUpdate: Restrict, map: "courses_ibfk_3")
-  course_history                                                 course_history[]
   prerequisite_mappings_coursesToprerequisite_mappings_course_id prerequisite_mappings[] @relation("coursesToprerequisite_mappings_course_id")
   prerequisite_mappings_coursesToprerequisite_mappings_for_id    prerequisite_mappings[] @relation("coursesToprerequisite_mappings_for_id")
 
@@ -91,23 +92,23 @@ model ge_mappings {
 }
 
 model grades {
-  academic_year    String      @db.Char(7)
-  academic_quarter String      @db.VarChar(6)
-  instructor       String
-  department       String      @db.VarChar(7)
-  course_number    String
-  course_code      Int         @db.UnsignedInt
-  grade_a_count    Int         @db.UnsignedInt
-  grade_b_count    Int         @db.UnsignedInt
-  grade_c_count    Int         @db.UnsignedInt
-  grade_d_count    Int         @db.UnsignedInt
-  grade_f_count    Int         @db.UnsignedInt
-  grade_p_count    Int         @db.UnsignedInt
-  grade_np_count   Int         @db.UnsignedInt
-  grade_w_count    Int         @db.UnsignedInt
-  average_gpa      Float
-  pnp_only         Boolean?
-  departments      departments @relation(fields: [department], references: [department_id], onUpdate: Restrict, map: "grades_ibfk_1")
+  academic_year               Int                           @db.UnsignedInt
+  academic_quarter            String                        @db.VarChar(10)
+  department                  String                        @db.VarChar(7)
+  course_number               String
+  course_code                 Int                           @db.UnsignedInt
+  grade_a_count               Int                           @db.UnsignedInt
+  grade_b_count               Int                           @db.UnsignedInt
+  grade_c_count               Int                           @db.UnsignedInt
+  grade_d_count               Int                           @db.UnsignedInt
+  grade_f_count               Int                           @db.UnsignedInt
+  grade_p_count               Int                           @db.UnsignedInt
+  grade_np_count              Int                           @db.UnsignedInt
+  grade_w_count               Int                           @db.UnsignedInt
+  average_gpa                 Float
+  pnp_only                    Boolean?
+  departments                 departments                   @relation(fields: [department], references: [department_id], onUpdate: Restrict, map: "grades_ibfk_1")
+  grades_instructors_mappings grades_instructors_mappings[]
 
   @@id([academic_year, academic_quarter, course_code])
   @@index([department], map: "department")
@@ -169,8 +170,8 @@ model soc_departments {
   course_number_range_comments String?       @db.LongText
   section_code_range_comments  String?       @db.LongText
   school_name                  String
-  soc_schools                  soc_schools   @relation(fields: [school_name], references: [school_name], onUpdate: Restrict, map: "soc_departments_ibfk_1")
   soc_courses                  soc_courses[]
+  soc_schools                  soc_schools   @relation(fields: [school_name], references: [school_name], onUpdate: Restrict, map: "soc_departments_ibfk_1")
 
   @@index([school_name], map: "school_name")
 }
@@ -213,8 +214,8 @@ model soc_sections {
   restrictions                 String
   section_status               String            @db.VarChar(7)
   section_comment              String?           @db.Text
-  soc_courses                  soc_courses       @relation(fields: [department_code, course_number, course_title], references: [department_code, course_number, course_title], onUpdate: Restrict, map: "soc_sections_ibfk_1")
   soc_instructors              soc_instructors[]
+  soc_courses                  soc_courses       @relation(fields: [department_code, course_number, course_title], references: [department_code, course_number, course_title], onUpdate: Restrict, map: "soc_sections_ibfk_1")
 
   @@id([section_year, section_quarter, section_code])
   @@index([department_code, course_number, course_title], map: "department_code")
@@ -227,4 +228,14 @@ model terms {
   course_history course_history[]
 
   @@id([term_year, term_quarter])
+}
+
+model grades_instructors_mappings {
+  academic_year    Int    @db.UnsignedInt
+  academic_quarter String @db.VarChar(10)
+  course_code      Int    @db.UnsignedInt
+  instructor       String @db.VarChar(50)
+  grades           grades @relation(fields: [academic_year, academic_quarter, course_code], references: [academic_year, academic_quarter, course_code], onUpdate: Restrict, map: "grades_instructors_mappings_ibfk_1")
+
+  @@id([academic_year, academic_quarter, course_code, instructor])
 }
