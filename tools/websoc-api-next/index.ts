@@ -191,8 +191,10 @@ export const callWebSocAPI = async (
                 .map((y: any) => ({
                   deptComment: y.department_comment ? y.department_comment : "",
                   sectionCodeRangeComments: y.course_code_range_comment
-                    ? // eslint-disable-next-line
-                      y.course_code_range_comment.map((z: any) => z.__text)
+                    ? Array.isArray(y.course_code_range_comment)
+                      ? // eslint-disable-next-line
+                        y.course_code_range_comment.map((z: any) => z.__text)
+                      : y.course_code_range_comment.__text
                     : [],
                   courseNumberRangeComments: y.course_number_range_comment
                     ? Array.isArray(y.course_number_range_comment)

@@ -1,6 +1,9 @@
 {
   "root": true,
   "env": { "es2020": true, "node": true },
+  "parserOptions": {
+    "sourceType": "module"
+  },
   "plugins": ["import", "simple-import-sort"],
   "extends": ["eslint:recommended", "turbo", "prettier"],
   "rules": {
