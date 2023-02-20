@@ -16,6 +16,7 @@ This folder contains scripts taking a preprocessed CSV file, sanitizing the data
    + All messages, warnings, and errors are listed in a log file located under `logs`
 
 ### Uploading the Data
+1. Please make sure all the entries under `outputData` meet your expectation
 
 ## Acknowledgments
 This project is made possible by University of California, Irvine's Public Records Office (PRO) and ICS Student Council (ICSSC).
