@@ -117,16 +117,21 @@ async function wait(): Promise<void> {
  */
 async function getInfo(year: string, quarters: Quarter[], courseCode: string)
         : Promise<WebsocAPIResponse[]> {
-    return Promise.all(quarters.map((quarter: Quarter) => callWebSocAPI(
-        {
-            year,
-            quarter
-        },
-        {
-            department: "ANY",
-            sectionCodes: courseCode
-        }
-    )));
+    let promises: Promise<WebsocAPIResponse>[] = [];
+    for (const quarter of quarters) {
+        await wait();
+        promises.push(callWebSocAPI(
+            {
+                year,
+                quarter
+            },
+            {
+                department: "ANY",
+                sectionCodes: courseCode
+            }
+        ));
+    }
+    return Promise.all(promises);
 }
 
 /**
@@ -244,7 +249,6 @@ async function processFile(filePath: string): Promise<void> {
         fs.createWriteStream(outputFileName, { flags: "a" });
     stream.write(dataColumns.join(",") + EOL);
     for await (const rawInfo of courseParser) {
-        await wait();
         logger.info("Start processing course", {
             year: rawInfo.year,
             quarter: rawInfo.quarter,
@@ -275,7 +279,6 @@ async function sanitizeData(): Promise<void> {
             || fs.existsSync(`${__dirname}/outputData`) === false) {
         throw new Error("Please create /inputData and /outputData first");
     }
-
     fs
         .readdirSync(path.resolve(`${__dirname}/inputData`))
         .forEach(async (file: string) =>
