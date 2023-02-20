@@ -240,12 +240,12 @@ function buildParser(filePath: string): Parser {
  */
 async function processFile(filePath: string): Promise<void> {
     const courseParser: Parser = buildParser(filePath);
-    const outputFileName: string = path.resolve(
+    const outputFilePath: string = path.resolve(
         `${__dirname}/outputData/${path.basename(filePath, ".csv")}.output.csv`
     );
 
     let stream: fs.WriteStream =
-        fs.createWriteStream(outputFileName, { flags: "a" });
+        fs.createWriteStream(outputFilePath, { flags: "a" });
     stream.write(dataColumns.join(",") + EOL);
     for await (const rawInfo of courseParser) {
         logger.info("Start processing course", {
