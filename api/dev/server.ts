@@ -11,14 +11,12 @@ app.use(express.json());
 app.use(router);
 
 app.all("*", (req, res) => {
-  res.status(404);
-  res.send(
-    createErrorResult(
-      404,
-      "The requested resource could not be found.",
-      zeroUUID
-    )
+  const { statusCode, body, headers } = createErrorResult(
+    404,
+    "The requested resource could not be found.",
+    zeroUUID
   );
+  res.status(statusCode).set(headers).json(JSON.parse(body));
 });
 
 app.listen(port, () => {
