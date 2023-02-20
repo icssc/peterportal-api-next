@@ -8,7 +8,8 @@ This folder contains scripts taking a preprocessed CSV file, sanitizing the data
 
   | year | quarter | department | courseNumber | courseCode | instructors | a | b | c | d | f | p | np | w | gpaAvg
   |--------|----------|----------------------------|--------------|------------|-------------|-------------|-------------|-------------|-------------|-------------|-------------|--------------|--------|-----------|
-  | ...    | ...      | ...                        | ...          | ...        | ...         | ...         | ...         | ...         | ...         | ...         | ...         | ...         | ...          | ...    | | ...    | ...       |
+  | 2023-24 | Summer | ... | ... | 12334 | ... | 0 | 0 | 0 | 0 | 0 | 123 | 23 | 4 | 0 |
+  | ...    | ...      | ...    | ...      | ...                        | ...          | ...        | ...         | ...         | ...         | ...         | ...         | ...         | ...         | ...         | ...          | ...    | | ...    | ...       |
 3. Run `npm i` in this folder
 4. Execute `npm run sanitize` to start the program
 5. Find your data under the `outputData` folder
