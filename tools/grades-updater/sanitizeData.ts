@@ -284,5 +284,5 @@ async function sanitizeData(): Promise<void> {
 }
 
 sanitizeData().catch((error: any) =>
-    logger.error(error.message, { trace: error.stack })
+    logger.error("Error encountered", { trace: error.stack })
 );
