@@ -175,8 +175,7 @@ async function updateInformation(info: RawGrade): Promise<Grade | null> {
                 return {
                     ...info,
                     quarter: info.quarter !== "Summer"
-                        ? info.quarter
-                        : summerQuarters[index],
+                        ? info.quarter : summerQuarters[index],
                     department: responses[index].schools[0].departments[0]
                         .courses[0].deptCode,
                     courseNumber: responses[index].schools[0].departments[0]
