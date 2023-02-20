@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "api-core": "*",
-    "db": "*"
+    "api-route-websoc": "*"
   },
   "devDependencies": {
     "@types/express": "^4.17.14",
