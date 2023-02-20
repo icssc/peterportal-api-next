@@ -9,6 +9,7 @@ import winston from "winston";
 
 import type { CastingContext, Parser } from "csv-parse";
 import type { Logger } from "winston";
+import type Transport from "winston-transport";
 import type {
     Quarter,
     WebsocAPIResponse,
@@ -74,14 +75,12 @@ const summerQuarters: Quarter[] = ["Summer1", "Summer10wk", "Summer2"];
 
 /**
  * Create a logger object that will output information to the console
- * as well as a file under /logs. Also, note that there is no type
- * annotation to the transports variable because its type information
- * is simply way too long.
+ * as well as a file under /logs.
  * @returns A logger that writes the current status of the program to
  * the console and a log file.
  */
 function createLogger(): Logger {
-    const transports = [
+    const transports: Transport[] = [
         new winston.transports.Console(), 
         new winston.transports.File({
             filename: `${__dirname}/logs/${Date.now()}.log`
