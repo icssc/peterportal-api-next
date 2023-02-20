@@ -1,20 +1,20 @@
+import { basename, dirname, resolve } from "path";
 import { callWebSocAPI } from "websoc-api-next";
 import { EOL } from "os";
 import { fileURLToPath } from "url";
 import fs from "fs";
 import { parse } from "csv-parse";
-import path from "path";
 import { stringify } from "csv-stringify/sync";
 import winston from "winston";
 
-import type { CastingContext, Parser } from "csv-parse";
+import type { CastingContext, Options, Parser } from "csv-parse";
 import type { Logger } from "winston";
-import type Transport from "winston-transport";
 import type {
     Quarter,
     WebsocAPIResponse,
     WebsocSection
 } from "peterportal-api-next-types";
+import type Transport from "winston-transport";
 
 interface RawGrade {
     year: string,
@@ -52,7 +52,8 @@ interface Grade {
     gpaAvg: number
 }
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
 const dataColumns: string[] = [
     "year",
     "quarter",
@@ -70,7 +71,43 @@ const dataColumns: string[] = [
     "w",
     "gpaAvg"
 ];
+
 const logger: Logger = createLogger();
+
+const parseOptions: Options = {
+    cast: (value: string, context: CastingContext): any => {
+        switch (context.column) {
+            case "year":
+            case "quarter":
+            case "department":
+            case "courseNumber": 
+                return value;
+            case "courseCode":
+            case "a":
+            case "b":
+            case "c":
+            case "d":
+            case "f":
+            case "p":
+            case "np":
+            case "w":
+                return parseInt(value || "0");
+            case "instructors":
+                return null;
+            case "gpaAvg":
+                return parseFloat(value || "0");
+            default:
+                throw new Error(
+                    `Unknown entry: ${context.column}=${value}`
+                );
+        }
+    },
+    columns: dataColumns,
+    from_line: 2,
+    skip_empty_lines: true,
+    trim: true
+};
+
 const summerQuarters: Quarter[] = ["Summer1", "Summer10wk", "Summer2"];
 
 /**
@@ -141,7 +178,7 @@ async function getInfo(year: string, quarters: Quarter[], courseCode: string)
  * @returns The academic year in the format of "XXXX."
  */
 function parseYear(year: string, quarter: string): string {
-    return (["Summer", "Fall"].includes(quarter))
+    return ["Summer", "Fall"].includes(quarter)
         ? year.substring(0, 4)
         : `${parseInt(year.substring(0, 4)) + 1}`;
 }
@@ -191,57 +228,16 @@ async function updateInformation(info: RawGrade): Promise<Grade | null> {
 }
 
 /**
- * Create a CSV parser with custom settings.
- * @param filePath The absolute path to the CSV file.
- * @returns A parser for the CSV file.
- */
-function buildParser(filePath: string): Parser {
-    return fs
-        .createReadStream(filePath)
-        .pipe(parse({
-            cast: (value: string, context: CastingContext): any => {
-                switch (context.column) {
-                    case "year":
-                    case "quarter":
-                    case "department":
-                    case "courseNumber": 
-                        return value;
-                    case "courseCode":
-                    case "a":
-                    case "b":
-                    case "c":
-                    case "d":
-                    case "f":
-                    case "p":
-                    case "np":
-                    case "w":
-                        return parseInt(value || "0");
-                    case "instructors":
-                        return null;
-                    case "gpaAvg":
-                        return parseFloat(value || "0");
-                    default:
-                        throw new Error(
-                            `Unknown entry: ${context.column}=${value}`
-                        );
-                }
-            },
-            columns: dataColumns,
-            from_line: 2,
-            skip_empty_lines: true,
-            trim: true
-    }));
-}
-
-/**
  * Take the CSV file under /inputData, extract the information as JSON
  * objects, and write the updated info to a file under /outputData.
  * @param filePath The absolute path to the input CSV file.
  */
 async function processFile(filePath: string): Promise<void> {
-    const courseParser: Parser = buildParser(filePath);
-    const outputFilePath: string = path.resolve(
-        `${__dirname}/outputData/${path.basename(filePath, ".csv")}.output.csv`
+    const courseParser: Parser = fs
+        .createReadStream(filePath)
+        .pipe(parse(parseOptions));
+    const outputFilePath: string = resolve(
+        `${__dirname}/outputData/${basename(filePath, ".csv")}.output.csv`
     );
 
     let stream: fs.WriteStream =
@@ -279,9 +275,9 @@ async function sanitizeData(): Promise<void> {
         throw new Error("Please create /inputData and /outputData first");
     }
     fs
-        .readdirSync(path.resolve(`${__dirname}/inputData`))
+        .readdirSync(resolve(`${__dirname}/inputData`))
         .forEach(async (file: string) =>
-            await processFile(path.resolve(`${__dirname}/inputData/${file}`))
+            await processFile(resolve(`${__dirname}/inputData/${file}`))
         );
 }
 
