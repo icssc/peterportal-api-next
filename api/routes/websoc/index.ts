@@ -9,6 +9,7 @@ import type {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
+import hash from "object-hash";
 import type {
   CancelledCourses,
   Division,
@@ -18,6 +19,10 @@ import type {
   SectionType,
   Term,
   WebsocAPIResponse,
+  WebsocCourse,
+  WebsocDepartment,
+  WebsocSchool,
+  WebsocSection,
 } from "peterportal-api-next-types";
 import {
   cancelledCoursesOptions,
@@ -44,7 +49,7 @@ const normalizeVector = (vec: string | string[] | undefined): string[] =>
   Array.from(
     new Set(
       typeof vec === "undefined"
-        ? []
+        ? [""]
         : typeof vec === "string"
         ? vec.split(",")
         : vec.map((x) => x.split(",")).flat()
@@ -76,53 +81,146 @@ const normalizeQuery = (
   return unitArray
     .map((units) => ({ ...baseQuery, units }))
     .map((q) =>
-      Array(Math.ceil(sectionCodeArray.length / 5)).map((x) => ({
-        ...q,
-        sectionCodes: sectionCodeArray.slice(x * 5, (x + 1) * 5).join(","),
-      }))
+      Array.from(Array(Math.ceil(sectionCodeArray.length / 5)).keys()).map(
+        (x) => ({
+          ...q,
+          sectionCodes: sectionCodeArray.slice(x * 5, (x + 1) * 5).join(","),
+        })
+      )
     )
     .flat();
 };
 
+const isolateSection = (
+  school: WebsocSchool,
+  department: WebsocDepartment,
+  course: WebsocCourse,
+  section: WebsocSection
+): WebsocAPIResponse => {
+  const data = { schools: [{ ...school }] };
+  data.schools[0].departments = [{ ...department }];
+  data.schools[0].departments[0].courses = [{ ...course }];
+  data.schools[0].departments[0].courses[0].sections = [{ ...section }];
+  return data;
+};
+
 const combineResponses = (...responses: WebsocAPIResponse[]) => {
-  const combined = responses.shift();
-  if (!combined) return { schools: [] };
+  const sectionsHashSet: Record<string, WebsocAPIResponse> = {};
   for (const res of responses) {
     for (const school of res.schools) {
-      const schoolIndex = combined.schools.findIndex(
-        (s) => s.schoolName === school.schoolName
-      );
-      if (schoolIndex !== -1) {
-        for (const dept of school.departments) {
-          const deptIndex = combined.schools[schoolIndex].departments.findIndex(
-            (d) => d.deptCode === dept.deptCode
-          );
-          if (deptIndex !== -1) {
-            const courses = new Set(
-              combined.schools[schoolIndex].departments[deptIndex].courses
-            );
-            for (const course of dept.courses) {
-              courses.add(course);
-            }
-            const coursesArray = Array.from(courses);
-            coursesArray.sort(
-              (left, right) =>
-                parseInt(left.courseNumber.replace(/\D/g, "")) -
-                parseInt(right.courseNumber.replace(/\D/g, ""))
-            );
-            combined.schools[schoolIndex].departments[deptIndex].courses =
-              coursesArray;
-          } else {
-            combined.schools[schoolIndex].departments.push(dept);
+      for (const department of school.departments) {
+        for (const course of department.courses) {
+          for (const section of course.sections) {
+            const s = isolateSection(school, department, course, section);
+            sectionsHashSet[hash(s)] = s;
           }
         }
-      } else {
-        combined.schools.push(school);
       }
     }
   }
+  const sections = Object.values(sectionsHashSet);
+  const combined = sections.shift();
+  if (!combined) return { schools: [] };
+  for (const section of sections) {
+    if (
+      combined.schools.findIndex(
+        (s) => s.schoolName === section.schools[0].schoolName
+      ) === -1
+    ) {
+      combined.schools.push(section.schools[0]);
+      continue;
+    }
+    if (
+      combined.schools.every(
+        (s) =>
+          s.departments.findIndex(
+            (d) => d.deptCode === section.schools[0].departments[0].deptCode
+          ) === -1
+      )
+    ) {
+      combined.schools
+        .find((s) => s.schoolName === section.schools[0].schoolName)
+        ?.departments.push(section.schools[0].departments[0]);
+      continue;
+    }
+    if (
+      combined.schools.every((s) =>
+        s.departments.every(
+          (d) =>
+            d.courses.findIndex(
+              (c) =>
+                c.courseNumber ===
+                  section.schools[0].departments[0].courses[0].courseNumber &&
+                c.courseTitle ===
+                  section.schools[0].departments[0].courses[0].courseTitle
+            ) === -1
+        )
+      )
+    ) {
+      combined.schools
+        .find((s) => s.schoolName === section.schools[0].schoolName)
+        ?.departments.find(
+          (d) => d.deptCode === section.schools[0].departments[0].deptCode
+        )
+        ?.courses.push(section.schools[0].departments[0].courses[0]);
+      continue;
+    }
+    if (
+      combined.schools.every((s) =>
+        s.departments.every((d) =>
+          d.courses.every(
+            (c) =>
+              c.sections.findIndex(
+                (e) =>
+                  e.sectionCode ===
+                  section.schools[0].departments[0].courses[0].sections[0]
+                    .sectionCode
+              ) === -1
+          )
+        )
+      )
+    ) {
+      combined.schools
+        .find((s) => s.schoolName === section.schools[0].schoolName)
+        ?.departments.find(
+          (d) => d.deptCode === section.schools[0].departments[0].deptCode
+        )
+        ?.courses.find(
+          (c) =>
+            c.courseNumber ===
+              section.schools[0].departments[0].courses[0].courseNumber &&
+            c.courseTitle ===
+              section.schools[0].departments[0].courses[0].courseTitle
+        )
+        ?.sections.push(
+          section.schools[0].departments[0].courses[0].sections[0]
+        );
+    }
+  }
+  combined.schools.forEach((s) => {
+    s.departments.forEach((d) => {
+      d.courses.forEach((c) =>
+        c.sections.sort(
+          (a, b) => parseInt(a.sectionCode) - parseInt(b.sectionCode)
+        )
+      );
+      d.courses.sort(
+        (a, b) =>
+          parseInt(a.courseNumber.replace(/\D/g, "")) -
+          parseInt(b.courseNumber.replace(/\D/g, ""))
+      );
+    });
+    s.departments.sort((a, b) =>
+      a.deptCode === b.deptCode ? 0 : a.deptCode > b.deptCode ? 1 : -1
+    );
+  });
+  combined.schools.sort((a, b) =>
+    a.schoolName === b.schoolName ? 0 : a.schoolName > b.schoolName ? 1 : -1
+  );
   return combined;
 };
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const rawHandler = async (
   request: IRequest
@@ -235,10 +333,11 @@ export const rawHandler = async (
         for (const [i, r] of Object.entries(res)) {
           if ("value" in r) {
             queries[parseInt(i)] = undefined as unknown as WebsocAPIOptions;
-            ret = combineResponses(ret, r.value);
+            ret = combineResponses(r.value, ret);
           }
-          queries = queries.filter((q) => q);
         }
+        queries = queries.filter((q) => q);
+        await sleep(1000);
       }
       return createOKResult(ret, requestId);
     }
