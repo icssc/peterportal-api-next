@@ -14,7 +14,14 @@
     "deploy": {
       "cache": false,
       "dependsOn": ["^build"],
-      "env": ["AWS_REGION"]
+      "env": [
+        "AWS_REGION",
+        "CERTIFICATE_ARN",
+        "DATABASE_URL",
+        "HOSTED_ZONE_ID",
+        "NODE_ENV",
+        "PR_NUM"
+      ]
     },
     "dev": {
       "cache": false,

@@ -31,5 +31,5 @@ yarn-error.log*
 # tsc output
 dist/
 
-# cdk
-cdk.out
+# cdk output
+cdk.out/
