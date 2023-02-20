@@ -21,7 +21,7 @@ type RequireAtLeastOne<T, R extends keyof T = keyof T> = Omit<T, R> &
 type RequiredOptions = RequireAtLeastOne<{
   ge?: GE;
   department?: string;
-  courseNumber?: string;
+  sectionCodes?: string;
 }>;
 
 type BuildingRoomOptions =
@@ -40,7 +40,7 @@ type BuildingRoomOptions =
 
 type OptionalOptions = {
   division?: Division;
-  sectionCodes?: string;
+  courseNumber?: string;
   instructorName?: string;
   courseTitle?: string;
   sectionType?: SectionType;

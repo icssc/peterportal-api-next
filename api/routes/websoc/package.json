@@ -8,7 +8,8 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "api-core": "*"
+    "api-core": "*",
+    "websoc-api-next": "*"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.109",
@@ -17,6 +18,7 @@
     "aws-lambda": "^1.0.7",
     "esbuild": "^0.17.8",
     "express": "^4.18.2",
+    "peterportal-api-next-types": "*",
     "typescript": "^4.9.4"
   }
 }
