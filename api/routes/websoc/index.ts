@@ -24,6 +24,7 @@ import type {
   WebsocDepartment,
   WebsocSchool,
   WebsocSection,
+  WebsocSectionMeeting,
 } from "peterportal-api-next-types";
 import {
   cancelledCoursesOptions,
@@ -201,11 +202,23 @@ const combineResponses = (
   }
   combined.schools.forEach((s) => {
     s.departments.forEach((d) => {
-      d.courses.forEach((c) =>
+      d.courses.forEach((c) => {
+        c.sections.forEach((e) => {
+          const meetingsHashSet: Record<string, WebsocSectionMeeting> = {};
+          for (const meeting of e.meetings) {
+            const meetingHash = hash([meeting.days, meeting.time]);
+            if (meetingHash in meetingsHashSet) {
+              meetingsHashSet[meetingHash].bldg.push(meeting.bldg[0]);
+            } else {
+              meetingsHashSet[meetingHash] = { ...meeting };
+            }
+            e.meetings = Object.values(meetingsHashSet);
+          }
+        });
         c.sections.sort(
           (a, b) => parseInt(a.sectionCode) - parseInt(b.sectionCode)
-        )
-      );
+        );
+      });
       d.courses.sort(
         (a, b) =>
           parseInt(a.courseNumber.replace(/\D/g, "")) -

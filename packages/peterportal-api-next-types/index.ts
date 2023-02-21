@@ -147,7 +147,7 @@ export type Instructor = {
 export type WebsocSectionMeeting = {
   days: string;
   time: string;
-  bldg: string;
+  bldg: string[];
 };
 
 export type WebsocSectionEnrollment = {

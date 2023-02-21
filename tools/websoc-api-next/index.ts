@@ -240,7 +240,7 @@ export const callWebSocAPI = async (
                             .map((v: any) => ({
                               days: v.sec_days,
                               time: v.sec_time,
-                              bldg: `${v.sec_bldg} ${v.sec_room}`,
+                              bldg: [`${v.sec_bldg} ${v.sec_room}`],
                             })),
                           finalExam: w.sec_final
                             ? w.sec_final.sec_final_date === "TBA"
