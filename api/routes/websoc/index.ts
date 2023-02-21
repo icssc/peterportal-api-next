@@ -394,32 +394,7 @@ export const rawHandler = async (
                   queries[parseInt(i)] = undefined;
                   ret = combineResponses(items.slice(-1)[0].data, ret);
                 } else {
-                  await dispatchCacheUpdater(lambdaClient, tableName, term, q);
-                }
-              } catch {
-                continue;
-              }
-              try {
-                if (!q.ge && !q.department) continue;
-                const tableName = "peterportal-api-next-websoc-secondary-cache";
-                const items = (
-                  await docClient.query(
-                    tableName,
-                    {
-                      name: "requestHash",
-                      value: hash([term, [q.ge, q.department]]),
-                    },
-                    { name: "invalidateBy", value: timestamp, cmp: "<=" }
-                  )
-                )?.Items;
-                if (items) {
-                  // TODO implement filtering by query on cache hit
-                } else {
-                  await dispatchCacheUpdater(lambdaClient, tableName, term, {
-                    ge: q.ge,
-                    department: q.department,
-                    sectionCodes: "",
-                  });
+                  // TODO figure out what to cache
                 }
               } catch {
                 // noop
