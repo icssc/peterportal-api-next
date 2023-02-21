@@ -5,8 +5,15 @@ import {
   GetCommandOutput,
   PutCommand,
   PutCommandOutput,
+  QueryCommand,
+  QueryCommandOutput,
   TranslateConfig,
 } from "@aws-sdk/lib-dynamodb";
+
+export type Key = {
+  name: string;
+  value: string | number | boolean;
+};
 
 export class DDBDocClient {
   private readonly client: DynamoDB;
@@ -49,6 +56,24 @@ export class DDBDocClient {
   ): Promise<PutCommandOutput> {
     return this.documentClient.send(
       new PutCommand({ TableName: tableName, Item: item })
+    );
+  }
+  public async query(
+    tableName: string,
+    partitionKey: Key,
+    sortKey?: Key & { cmp: "=" | "<" | "<=" | ">" | ">=" }
+  ): Promise<QueryCommandOutput> {
+    return this.documentClient.send(
+      new QueryCommand({
+        TableName: tableName,
+        ExpressionAttributeValues: {
+          ":pkv": partitionKey.value,
+          ":skv": sortKey?.value,
+        },
+        KeyConditionExpression: `${partitionKey.name} = :pkv${
+          sortKey ? ` AND ${sortKey.name} ${sortKey.cmp} :skv` : ""
+        }`,
+      })
     );
   }
 }
