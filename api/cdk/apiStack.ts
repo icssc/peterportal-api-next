@@ -56,6 +56,7 @@ export class ApiStack extends Stack {
       certificateArn: process.env.CERTIFICATE_ARN,
       databaseUrl: process.env.DATABASE_URL,
       hostedZoneId: process.env.HOSTED_ZONE_ID,
+      nodeEnv: process.env.NODE_ENV,
       stage,
     };
     super(scope, `${id}-${stage}`, props);
@@ -93,6 +94,7 @@ export class ApiStack extends Stack {
             handler: `index.lambdaHandler`,
             environment: {
               DATABASE_URL: this.env.databaseUrl,
+              NODE_ENV: this.env.nodeEnv,
             },
             timeout: Duration.seconds(15),
             memorySize: 512,

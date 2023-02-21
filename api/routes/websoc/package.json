@@ -9,6 +9,7 @@
     "build": "node build.mjs"
   },
   "dependencies": {
+    "@aws-sdk/client-lambda": "^3.276.0",
     "api-core": "*",
     "ddb": "*",
     "object-hash": "^3.0.0",

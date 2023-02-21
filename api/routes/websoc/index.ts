@@ -1,3 +1,8 @@
+import {
+  InvocationType,
+  InvokeCommand,
+  LambdaClient,
+} from "@aws-sdk/client-lambda";
 import type { IRequest } from "api-core";
 import {
   createErrorResult,
@@ -237,6 +242,26 @@ const combineResponses = (
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const dispatchCacheUpdater = async (
+  lambdaClient: LambdaClient,
+  tableName: string,
+  term: Term,
+  query: WebsocAPIOptions
+): Promise<void> => {
+  if (process.env.NODE_ENV === "development") return;
+  await lambdaClient.send(
+    new InvokeCommand({
+      FunctionName: "peterportal-api-next-websoc-cache-updater",
+      InvocationType: InvocationType.Event,
+      Payload: JSON.stringify({
+        tableName,
+        term,
+        query,
+      }) as unknown as Uint8Array,
+    })
+  );
+};
+
 export const rawHandler = async (
   request: IRequest
 ): Promise<APIGatewayProxyResult> => {
@@ -266,7 +291,7 @@ export const rawHandler = async (
           ) {
             return createErrorResult(
               400,
-              "You must provide at least one of ge, department, sectionCode, or instructorName",
+              "You must provide at least one of ge, department, sectionCode, and instructorName",
               requestId
             );
           }
@@ -293,7 +318,7 @@ export const rawHandler = async (
           if (!query.building && query.room) {
             return createErrorResult(
               400,
-              "You must specify a building code if you specify a room number",
+              "You must provide a building code if you provide a room number",
               requestId
             );
           }
@@ -350,13 +375,17 @@ export const rawHandler = async (
           let ret: WebsocAPIResponse = { schools: [] };
           if (!query.cache || query.cache !== "false") {
             const docClient = new DDBDocClient();
+            const lambdaClient = new LambdaClient({
+              region: process.env.AWS_REGION,
+            });
             const timestamp = Date.now();
             for (const [i, q] of Object.entries(queries)) {
               if (!q) continue;
               try {
+                const tableName = "peterportal-api-next-websoc-primary-cache";
                 const items = (
                   await docClient.query(
-                    "peterportal-api-next-websoc-requests-cache",
+                    tableName,
                     { name: "requestHash", value: hash([term, q]) },
                     { name: "invalidateBy", value: timestamp, cmp: "<=" }
                   )
@@ -364,11 +393,37 @@ export const rawHandler = async (
                 if (items) {
                   queries[parseInt(i)] = undefined;
                   ret = combineResponses(items.slice(-1)[0].data, ret);
+                } else {
+                  await dispatchCacheUpdater(lambdaClient, tableName, term, q);
                 }
               } catch {
                 continue;
               }
-              // TODO implement L2 cache
+              try {
+                if (!q.ge && !q.department) continue;
+                const tableName = "peterportal-api-next-websoc-secondary-cache";
+                const items = (
+                  await docClient.query(
+                    tableName,
+                    {
+                      name: "requestHash",
+                      value: hash([term, [q.ge, q.department]]),
+                    },
+                    { name: "invalidateBy", value: timestamp, cmp: "<=" }
+                  )
+                )?.Items;
+                if (items) {
+                  // TODO implement filtering by query on cache hit
+                } else {
+                  await dispatchCacheUpdater(lambdaClient, tableName, term, {
+                    ge: q.ge,
+                    department: q.department,
+                    sectionCodes: "",
+                  });
+                }
+              } catch {
+                // noop
+              }
             }
             queries = queries.filter((q) => q);
           }
