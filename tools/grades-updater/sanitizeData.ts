@@ -11,8 +11,7 @@ import type {
 } from "peterportal-api-next-types";
 import { fileURLToPath } from "url";
 import { callWebSocAPI } from "websoc-api-next";
-import type { Logger } from "winston";
-import winston from "winston";
+import winston, { type Logger } from "winston";
 import type Transport from "winston-transport";
 
 interface RawGrade {
