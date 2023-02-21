@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "api-core": "*",
+    "ddb": "*",
     "object-hash": "^3.0.0",
     "websoc-api-next": "*"
   },

@@ -9,6 +9,7 @@ import type {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
+import { DDBDocClient } from "ddb";
 import hash from "object-hash";
 import type {
   CancelledCourses,
@@ -76,9 +77,8 @@ const normalizeQuery = (
     fullCourses: query.fullCourses as FullCourses,
     cancelledCourses: query.cancelledCourses as CancelledCourses,
   };
-  const unitArray = normalizeVector(query.units);
   const sectionCodeArray = normalizeVector(query.sectionCodes);
-  return unitArray
+  return normalizeVector(query.units)
     .map((units) => ({ ...baseQuery, units }))
     .map((q) =>
       Array.from(Array(Math.ceil(sectionCodeArray.length / 5)).keys()).map(
@@ -104,7 +104,9 @@ const isolateSection = (
   return data;
 };
 
-const combineResponses = (...responses: WebsocAPIResponse[]) => {
+const combineResponses = (
+  ...responses: WebsocAPIResponse[]
+): WebsocAPIResponse => {
   const sectionsHashSet: Record<string, WebsocAPIResponse> = {};
   for (const res of responses) {
     for (const school of res.schools) {
@@ -316,23 +318,43 @@ export const rawHandler = async (
         }
       }
       /* endregion */
-
       const term: Term = {
         year: query.year,
         quarter: query.quarter as Quarter,
       };
-      let queries = normalizeQuery(query);
-      if (!query.cache || query.cache !== "false") {
-        // TODO implement cache
-      }
+      let queries: Array<WebsocAPIOptions | undefined> = normalizeQuery(query);
       let ret: WebsocAPIResponse = { schools: [] };
+      if (!query.cache || query.cache !== "false") {
+        const docClient = new DDBDocClient();
+        const timestamp = Date.now();
+        for (const [i, q] of Object.entries(queries)) {
+          if (!q) continue;
+          const items = (
+            await docClient.query(
+              "peterportal-api-next-websoc-requests-cache",
+              { name: "requestHash", value: hash([term, q]) },
+              { name: "invalidateBy", value: timestamp, cmp: "<=" }
+            )
+          )?.Items;
+          if (items) {
+            queries[parseInt(i)] = undefined;
+            ret = combineResponses(items.slice(-1)[0].data, ret);
+          }
+          // TODO implement L2 cache
+        }
+        queries = queries.filter((q) => q);
+      }
       while (queries.length) {
         const res = await Promise.allSettled(
-          queries.map((options) => callWebSocAPI(term, options))
+          queries.map((options) =>
+            options
+              ? callWebSocAPI(term, options)
+              : new Promise<WebsocAPIResponse>(() => ({ schools: [] }))
+          )
         );
         for (const [i, r] of Object.entries(res)) {
           if ("value" in r) {
-            queries[parseInt(i)] = undefined as unknown as WebsocAPIOptions;
+            queries[parseInt(i)] = undefined;
             ret = combineResponses(r.value, ret);
           }
         }
