@@ -253,7 +253,6 @@ export function parseHistoryPage(instructorHistoryPage: string, relatedDepartmen
                     });
                     // Get course code if dept is related
                     const deptValue = $(entry[fieldLabels['dept']]).text().trim()
-                    console.log(deptValue)
                     if (relatedDepartmentsSet.has(deptValue)) {
                         const courseId = `${deptValue} ${$(entry[fieldLabels['courseNo']]).text().trim()}`;
                         if (courseId in courseHistory) {
