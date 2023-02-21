@@ -243,139 +243,157 @@ export const rawHandler = async (
   const { method, path, query, requestId } = request.getParams();
   switch (method) {
     case "GET":
-    case "HEAD": {
-      /* region Validate required parameters. */
-      for (const param of ["year", "quarter"]) {
-        if (!query[param]) {
-          return createErrorResult(
-            400,
-            `Parameter ${param} not provided`,
-            requestId
-          );
-        }
-      }
-      if (
-        !(
-          query.ge ||
-          query.department ||
-          query.sectionCodes ||
-          query.instructorName
-        )
-      ) {
-        return createErrorResult(
-          400,
-          "You must provide at least one of ge, department, sectionCode, or instructorName",
-          requestId
-        );
-      }
-      if (
-        typeof query.year !== "string" ||
-        query.year.length !== 4 ||
-        isNaN(parseInt(query.year)) ||
-        parseInt(query.year).toString().length !== 4
-      ) {
-        return createErrorResult(400, "Invalid year provided", requestId);
-      }
-      if (
-        typeof query.quarter !== "string" ||
-        !quarters.includes(query.quarter as Quarter)
-      ) {
-        return createErrorResult(400, "Invalid quarter provided", requestId);
-      }
-      /* endregion */
-      /* region Validate building/room options. */
-      if (!query.building && query.room) {
-        return createErrorResult(
-          400,
-          "You must specify a building code if you specify a room number",
-          requestId
-        );
-      }
-      /* endregion */
-      /* region Validate optional parameters that have a set of valid values. */
-      for (const [param, validParams] of Object.entries({
-        division: Object.keys(divisions),
-        sectionType: sectionTypes,
-        fullCourses: fullCoursesOptions,
-        cancelledCourses: cancelledCoursesOptions,
-      })) {
-        if (
-          !validateOptionalParameters(query, param, validParams as unknown[])
-        ) {
-          return createErrorResult(
-            400,
-            `Invalid value for parameter ${param} provided`,
-            requestId
-          );
-        }
-      }
-      /* endregion */
-      /* region Validate all other parameters which must be scalars. */
-      for (const param of [
-        "ge",
-        "department",
-        "building",
-        "room",
-        "instructorName",
-        "courseTitle",
-        "startTime",
-        "endTime",
-        "maxCapacity",
-      ]) {
-        if (Array.isArray(query[param])) {
-          return createErrorResult(
-            400,
-            `Parameter ${param} cannot be provided more than once`,
-            requestId
-          );
-        }
-      }
-      /* endregion */
-      const term: Term = {
-        year: query.year,
-        quarter: query.quarter as Quarter,
-      };
-      let queries: Array<WebsocAPIOptions | undefined> = normalizeQuery(query);
-      let ret: WebsocAPIResponse = { schools: [] };
-      if (!query.cache || query.cache !== "false") {
-        const docClient = new DDBDocClient();
-        const timestamp = Date.now();
-        for (const [i, q] of Object.entries(queries)) {
-          if (!q) continue;
-          const items = (
-            await docClient.query(
-              "peterportal-api-next-websoc-requests-cache",
-              { name: "requestHash", value: hash([term, q]) },
-              { name: "invalidateBy", value: timestamp, cmp: "<=" }
+    case "HEAD":
+      try {
+        {
+          /* region Validate required parameters. */
+          for (const param of ["year", "quarter"]) {
+            if (!query[param]) {
+              return createErrorResult(
+                400,
+                `Parameter ${param} not provided`,
+                requestId
+              );
+            }
+          }
+          if (
+            !(
+              query.ge ||
+              query.department ||
+              query.sectionCodes ||
+              query.instructorName
             )
-          )?.Items;
-          if (items) {
-            queries[parseInt(i)] = undefined;
-            ret = combineResponses(items.slice(-1)[0].data, ret);
+          ) {
+            return createErrorResult(
+              400,
+              "You must provide at least one of ge, department, sectionCode, or instructorName",
+              requestId
+            );
           }
-          // TODO implement L2 cache
-        }
-        queries = queries.filter((q) => q);
-      }
-      while (queries.length) {
-        const res = await Promise.allSettled(
-          queries.map((options) =>
-            options
-              ? callWebSocAPI(term, options)
-              : new Promise<WebsocAPIResponse>(() => ({ schools: [] }))
-          )
-        );
-        for (const [i, r] of Object.entries(res)) {
-          if ("value" in r) {
-            queries[parseInt(i)] = undefined;
-            ret = combineResponses(r.value, ret);
+          if (
+            typeof query.year !== "string" ||
+            query.year.length !== 4 ||
+            isNaN(parseInt(query.year)) ||
+            parseInt(query.year).toString().length !== 4
+          ) {
+            return createErrorResult(400, "Invalid year provided", requestId);
           }
+          if (
+            typeof query.quarter !== "string" ||
+            !quarters.includes(query.quarter as Quarter)
+          ) {
+            return createErrorResult(
+              400,
+              "Invalid quarter provided",
+              requestId
+            );
+          }
+          /* endregion */
+          /* region Validate building/room options. */
+          if (!query.building && query.room) {
+            return createErrorResult(
+              400,
+              "You must specify a building code if you specify a room number",
+              requestId
+            );
+          }
+          /* endregion */
+          /* region Validate optional parameters that have a set of valid values. */
+          for (const [param, validParams] of Object.entries({
+            division: Object.keys(divisions),
+            sectionType: sectionTypes,
+            fullCourses: fullCoursesOptions,
+            cancelledCourses: cancelledCoursesOptions,
+          })) {
+            if (
+              !validateOptionalParameters(
+                query,
+                param,
+                validParams as unknown[]
+              )
+            ) {
+              return createErrorResult(
+                400,
+                `Invalid value for parameter ${param} provided`,
+                requestId
+              );
+            }
+          }
+          /* endregion */
+          /* region Validate all other parameters which must be scalars. */
+          for (const param of [
+            "ge",
+            "department",
+            "building",
+            "room",
+            "instructorName",
+            "courseTitle",
+            "startTime",
+            "endTime",
+            "maxCapacity",
+          ]) {
+            if (Array.isArray(query[param])) {
+              return createErrorResult(
+                400,
+                `Parameter ${param} cannot be provided more than once`,
+                requestId
+              );
+            }
+          }
+          /* endregion */
+          const term: Term = {
+            year: query.year,
+            quarter: query.quarter as Quarter,
+          };
+          let queries: Array<WebsocAPIOptions | undefined> =
+            normalizeQuery(query);
+          let ret: WebsocAPIResponse = { schools: [] };
+          if (!query.cache || query.cache !== "false") {
+            const docClient = new DDBDocClient();
+            const timestamp = Date.now();
+            for (const [i, q] of Object.entries(queries)) {
+              if (!q) continue;
+              try {
+                const items = (
+                  await docClient.query(
+                    "peterportal-api-next-websoc-requests-cache",
+                    { name: "requestHash", value: hash([term, q]) },
+                    { name: "invalidateBy", value: timestamp, cmp: "<=" }
+                  )
+                )?.Items;
+                if (items) {
+                  queries[parseInt(i)] = undefined;
+                  ret = combineResponses(items.slice(-1)[0].data, ret);
+                }
+              } catch {
+                continue;
+              }
+              // TODO implement L2 cache
+            }
+            queries = queries.filter((q) => q);
+          }
+          while (queries.length) {
+            const res = await Promise.allSettled(
+              queries.map((options) =>
+                options
+                  ? callWebSocAPI(term, options)
+                  : new Promise<WebsocAPIResponse>(() => ({ schools: [] }))
+              )
+            );
+            for (const [i, r] of Object.entries(res)) {
+              if ("value" in r) {
+                queries[parseInt(i)] = undefined;
+                ret = combineResponses(r.value, ret);
+              }
+            }
+            queries = queries.filter((q) => q);
+            await sleep(1000);
+          }
+          return createOKResult(ret, requestId);
         }
-        queries = queries.filter((q) => q);
-        await sleep(1000);
+      } catch (e) {
+        return createErrorResult(500, e, requestId);
       }
-      return createOKResult(ret, requestId);
-    }
     default:
       return createErrorResult(400, `Cannot ${method} ${path}`, requestId);
   }
