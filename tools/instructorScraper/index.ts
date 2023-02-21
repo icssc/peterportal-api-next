@@ -174,7 +174,6 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
  */
 export async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]: string }> {
     const data = {'uciKey': instructorName};
-    const info: { [key: string]: string } = {'name': '', 'ucinetid': '', 'title': '', 'email': ''}
     try {
 
         const response = await axios.post(URL_TO_DIRECTORY, data, {
@@ -199,8 +198,8 @@ export async function getDirectoryInfo(instructorName: string): Promise<{ [key: 
 
 async function getCourseHistory(instructorName: string) {
     const courseHistory = new Set();
-    const name = instructorName.split(' '); // ['Alexander Thorton']
-    const lastFirstName = `${name[name.length-1]}, ${name[0][0]}.`; // 'Thorton, A.'
+    const name = instructorName.split(' '); // ['Alexander Thornton']
+    const lastFirstName = `${name[name.length-1]}, ${name[0][0]}.`; // 'Thornton, A.'
     console.log(lastFirstName);
     const params = {
         'order': 'term',
@@ -208,7 +207,12 @@ async function getCourseHistory(instructorName: string) {
         'input_name': lastFirstName,
         'term_yyyyst': 'ANY',
         'start_row': '',}
-    const response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
+    try {
+        const response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
+    }
+    catch (error) {
+        console.log(error)
+    }
     //parseHistoryPage(response.data);    
 }
 
@@ -217,43 +221,55 @@ async function getCourseHistory(instructorName: string) {
  * or not we want to continue parsing as there may be more pages of entries.
  * 
  * @param {string} instructorHistoryPage - HTML string of an instructor history page
- * @param {string[]} relatedDepartments - a set of departments related to the instructor
- * @param {Set<string>} courseHistory - a set of courses that will be mutated with course numbers found in entries
- * @param {object} nameCounts - a dictionary of instructor names storing the number of name occurrences found in entries (used to determine the 'official' shortened name - bc older record names may differ from current) ex: Thornton A.W. = Thornton A.
+ * @param {string[]} relatedDepartments - a list of departments related to the instructor
+ * @param {object} courseHistory - a dictionary of courses where the values are a list of terms in which the course was taught
+ * @param {object} nameCounts - a dictionary of instructor names storing the number of name occurrences found in entries (used to determine the 'official' shortened name - bc older record names may differ from current) ex: Thornton A.W. = Thornton A. 
  * @returns {boolean} - true if entries are found, false if not
  */
-export function parseHistoryPage(instructorHistoryPage: string, relatedDepartments: Set<string>, courseHistory: Set<string>, nameCounts: { [key: string]: number }): boolean {
+export function parseHistoryPage(instructorHistoryPage: string, relatedDepartments: string[], courseHistory: { [key: string]: string[] }, nameCounts: { [key: string]: number }): boolean {
+    const relatedDepartmentsSet = new Set(relatedDepartments);
     // Map of table fields to index
     const fieldLabels = {'qtr':0,'empty':1,'instructor':2,'courseCode':3,'dept':4,'courseNo':5,'type':6,'title':7,'units':8,'maxCap':9,'enr':10,'req':11};
     const currentYear = new Date().getFullYear() % 100;
     let entryFound = false;
-    const $ = cheerio.load(instructorHistoryPage);
-    $('table tbody tr').each(function (this: cheerio.Element) {
-        const entry = $(this).find('td')
-        // Check if row entry is valid
-        if ($(entry).length == 12) {
-            const qtrValue = $(entry[fieldLabels['qtr']]).text().trim();
-            if (qtrValue.length < 4 && qtrValue != 'Qtr') {
-                entryFound = true;
-                const qtrYear = parseInt(qtrValue.replace(/\D/g, ''));
-                // Stop parsing if year is older than threshold
-                if (currentYear - qtrYear > YEAR_THRESHOLD) {
-                    entryFound = false;
-                    return false;
-                }
-                // Get name(s) in the instructor field
-                $(entry[fieldLabels['instructor']]).html()?.trim()?.split('<br>').forEach(name => {
-                    nameCounts[name] = nameCounts[name] ? nameCounts[name]+1 : 1; // Increment name in nameCounts
-                });
-                // Get course code if dept is related
-                const deptValue = $(entry[fieldLabels['dept']]).text().trim()
-                if (relatedDepartments.has(deptValue)) {
-                    courseHistory.add(`${deptValue} ${$(entry[fieldLabels['courseNo']]).text().trim()}`);
+    try {
+        const $ = cheerio.load(instructorHistoryPage);
+        $('table tbody tr').each(function (this: cheerio.Element) {
+            const entry = $(this).find('td')
+            // Check if row entry is valid
+            if ($(entry).length == 12) {
+                const qtrValue = $(entry[fieldLabels['qtr']]).text().trim();
+                if (qtrValue.length < 4 && qtrValue != 'Qtr') {
+                    entryFound = true;
+                    const qtrYear = parseInt(qtrValue.replace(/\D/g, ''));
+                    // Stop parsing if year is older than threshold
+                    if (currentYear - qtrYear > YEAR_THRESHOLD) {
+                        entryFound = false;
+                        return false;
+                    }
+                    // Get name(s) in the instructor field
+                    $(entry[fieldLabels['instructor']]).html()?.trim()?.split('<br>').forEach(name => {
+                        nameCounts[name] = nameCounts[name] ? nameCounts[name]+1 : 1; // Increment name in nameCounts
+                    });
+                    // Get course code if dept is related
+                    const deptValue = $(entry[fieldLabels['dept']]).text().trim()
+                    console.log(deptValue)
+                    if (relatedDepartmentsSet.has(deptValue)) {
+                        const courseId = `${deptValue} ${$(entry[fieldLabels['courseNo']]).text().trim()}`;
+                        if (courseId in courseHistory) {
+                            courseHistory[courseId].push(qtrValue);
+                        }
+                        else {
+                            courseHistory[courseId] = [qtrValue];
+                        }
+                    }
                 }
             }
-        }
-        return;
-    });
+            return true; // Continue looping
+        });
+    }
+    catch(error) {
+        console.log(error);
+    }
     return entryFound;
-    
 }

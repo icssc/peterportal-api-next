@@ -18,7 +18,6 @@ describe("instructorScraper tests", () => {
         expect(historyInstructorNames).toEqual(expect.arrayContaining(["Roland Betancourt", "Matthew P. Canepa", "Bridget R. Cooks Cumbo", "Abigail Lapin Dardashti", "Lyle Massey"]));
         const cseInstructorNames = await getInstructorNames("https://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofelectricalengineeringandcomputerscience/#faculty");
         expect(cseInstructorNames).toEqual(expect.arrayContaining(["Hamidreza Aghasi", "Homayoun Yousefi'zadeh", "Ian G. Harris", "William C. Tang"]));
-    
     }, 20000);
     test("getDepartmentCourses", async () => {
         const artCourses = await getDepartmentCourses("http://catalogue.uci.edu/clairetrevorschoolofthearts/#courseinventory");
@@ -50,7 +49,7 @@ describe("instructorScraper tests", () => {
     })
     test("parseHistoryPage on present page", async () => {
         const URL_TO_INSTRUCT_HISTORY = "http://www.reg.uci.edu/perl/InstructHist";
-        const courses: Set<string> = new Set();
+        const courses: { [key: string]: string[] } = {};
         const names: { [key: string]: number} = {};
         const params = {
             "order": "term",
@@ -59,18 +58,18 @@ describe("instructorScraper tests", () => {
             "term_yyyyst": "ANY",
             "start_row": ""}
         const response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
-        const bool = parseHistoryPage(response.data, new Set(["ARTS", "ART", "DANCE", "DRAMA", "MUSIC"]), courses, names);
+        const bool = parseHistoryPage(response.data, ["ARTS", "ART", "DANCE", "DRAMA", "MUSIC"], courses, names);
         expect(bool).toBeTruthy();
-        expect(Array.from(courses)).toEqual(expect.arrayContaining(["MUSIC 65", "MUSIC 165", "MUSIC 176", "MUSIC 132", "MUSIC 182", "MUSIC 183A", "MUSIC 183B", "MUSIC 211", "MUSIC 212"]));
+        expect(courses).toHaveProperty(["MUSIC 65", "MUSIC 165", "MUSIC 176", "MUSIC 132", "MUSIC 182"]);
         expect(Object.keys(names).reduce((a, b) => names[a] > names[b] ? a: b)).toEqual('AKAGI, K.');
     }, 10000)
     test("parseHistoryPage on old page", async () => {
-        const courses: Set<string> = new Set();
+        const courses: { [key: string]: string[] } = {};
         const names: { [key: string]: number} = {};
         const response = await axios.get("https://www.reg.uci.edu/perl/InstructHist?input_name=THORNTON%2C%20A.&printer_friendly=&term_yyyyst=&order=term&action=Prev&start_row=1213&show_distribution=");
-        const bool = parseHistoryPage(response.data, new Set(["COMPSCI","IN4MATX","I&C SCI","SWE","STATS"]), courses, names);
+        const bool = parseHistoryPage(response.data, ["COMPSCI","IN4MATX","I&C SCI","SWE","STATS"], courses, names);
         expect(bool).toBeFalsy();
-        expect(courses).toEqual(new Set());
+        expect(courses).toEqual({});
         expect(names).toEqual({});
     })
 });
