@@ -192,7 +192,10 @@ async function getInfo(
  * @param quarter Either "Summer", "Fall", "Winter", or "Spring."
  * @returns The academic year in the format of "XXXX."
  */
-function parseYear(year: string, quarter: string): string {
+function parseYear(
+  year: string,
+  quarter: "Fall" | "Winter" | "Spring" | "Summer"
+): string {
   return ["Summer", "Fall"].includes(quarter)
     ? year.substring(0, 4)
     : `${parseInt(year.substring(0, 4)) + 1}`;
