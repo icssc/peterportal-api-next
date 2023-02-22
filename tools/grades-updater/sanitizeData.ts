@@ -160,7 +160,7 @@ async function wait(min: number, max: number): Promise<void> {
 async function getInfo(
   year: string,
   quarters: Quarter[],
-  courseCode: string
+  courseCode: number
 ): Promise<WebsocAPIResponse[]> {
   const promises: Promise<WebsocAPIResponse>[] = [];
   for (const quarter of quarters) {
@@ -178,7 +178,7 @@ async function getInfo(
         },
         {
           department: "ANY",
-          sectionCodes: courseCode,
+          sectionCodes: `${courseCode}`,
         }
       )
     );
@@ -215,7 +215,7 @@ async function updateInformation(info: RawGrade): Promise<Grade | null> {
   const responses: WebsocAPIResponse[] = await getInfo(
     parseYear(info.year, info.quarter),
     info.quarter === "Summer" ? summerQuarters : [info.quarter],
-    `${info.courseCode}`
+    info.courseCode
   );
   for (let index = 0; index < responses.length; ++index) {
     if (
