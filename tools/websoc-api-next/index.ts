@@ -22,6 +22,7 @@ type RequiredOptions = RequireAtLeastOne<{
   ge?: GE;
   department?: string;
   sectionCodes?: string;
+  instructorName?: string;
 }>;
 
 type BuildingRoomOptions =
@@ -41,7 +42,6 @@ type BuildingRoomOptions =
 type OptionalOptions = {
   division?: Division;
   courseNumber?: string;
-  instructorName?: string;
   courseTitle?: string;
   sectionType?: SectionType;
   units?: string;
@@ -63,7 +63,8 @@ type OptionalOptions = {
  * If your editor supports intelligent code completion, the fully expanded
  * initial type will probably look horrifying. But it's really not that bad.
  *
- * It is an error to not provide any of {GE category, department, section code};
+ * It is an error to not provide any of
+ * {GE category, department, section code, instructor};
  * it is also an error to provide only the room number without a building code.
  * This type alias strictly enforces these invariants instead of checking during
  * runtime.

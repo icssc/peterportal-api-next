@@ -15,6 +15,8 @@ export type Key = {
   value: string | number | boolean;
 };
 
+export type SortKey = Key & { cmp: "=" | "<" | "<=" | ">" | ">=" };
+
 export class DDBDocClient {
   private readonly client: DynamoDB;
   private readonly documentClient: DynamoDBDocumentClient;
@@ -61,7 +63,7 @@ export class DDBDocClient {
   public async query(
     tableName: string,
     partitionKey: Key,
-    sortKey?: Key & { cmp: "=" | "<" | "<=" | ">" | ">=" }
+    sortKey?: SortKey
   ): Promise<QueryCommandOutput> {
     return this.documentClient.send(
       new QueryCommand({

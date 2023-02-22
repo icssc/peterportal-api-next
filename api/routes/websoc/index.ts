@@ -14,7 +14,7 @@ import type {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
-import { DDBDocClient } from "ddb";
+import { DDBDocClient, SortKey } from "ddb";
 import hash from "object-hash";
 import type {
   CancelledCourses,
@@ -205,7 +205,11 @@ const combineResponses = (
         );
     }
   }
-  combined.schools.forEach((s) => {
+  return combined;
+};
+
+const sortResponse = (res: WebsocAPIResponse): WebsocAPIResponse => {
+  res.schools.forEach((s) => {
     s.departments.forEach((d) => {
       d.courses.forEach((c) => {
         c.sections.forEach((e) => {
@@ -234,10 +238,10 @@ const combineResponses = (
       a.deptCode === b.deptCode ? 0 : a.deptCode > b.deptCode ? 1 : -1
     );
   });
-  combined.schools.sort((a, b) =>
+  res.schools.sort((a, b) =>
     a.schoolName === b.schoolName ? 0 : a.schoolName > b.schoolName ? 1 : -1
   );
-  return combined;
+  return res;
 };
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -378,7 +382,11 @@ export const rawHandler = async (
             const lambdaClient = new LambdaClient({
               region: process.env.AWS_REGION,
             });
-            const timestamp = Date.now();
+            const sortKey: SortKey = {
+              name: "invalidateBy",
+              value: Date.now(),
+              cmp: ">=",
+            };
             for (const [i, q] of Object.entries(queries)) {
               if (!q) continue;
               try {
@@ -387,7 +395,7 @@ export const rawHandler = async (
                   await docClient.query(
                     tableName,
                     { name: "requestHash", value: hash([term, q]) },
-                    { name: "invalidateBy", value: timestamp, cmp: "<=" }
+                    sortKey
                   )
                 )?.Items;
                 if (items) {
@@ -396,6 +404,37 @@ export const rawHandler = async (
                 } else {
                   // TODO figure out what to cache
                 }
+              } catch {
+                continue;
+              }
+              if (
+                Object.keys(q).some(
+                  (k) =>
+                    [
+                      "building",
+                      "room",
+                      "division",
+                      "courseTitle",
+                      "sectionType",
+                      "units",
+                      "days",
+                      "startTime",
+                      "endTime",
+                      "maxCapacity",
+                      "fullCourses",
+                      "cancelledCourses",
+                    ].includes(k) && (q as Record<string, unknown>)[k]
+                ) ||
+                Object.keys(q).filter((x) =>
+                  ["ge", "department", "sectionCodes", "instructor"].includes(x)
+                ).length > 1 ||
+                q.courseNumber?.includes("-") ||
+                q.courseNumber?.includes(",") ||
+                (q.courseNumber && !q.department)
+              )
+                continue;
+              try {
+                // TODO
               } catch {
                 // noop
               }
@@ -419,7 +458,7 @@ export const rawHandler = async (
             queries = queries.filter((q) => q);
             await sleep(1000);
           }
-          return createOKResult(ret, requestId);
+          return createOKResult(sortResponse(ret), requestId);
         }
       } catch (e) {
         return createErrorResult(500, e, requestId);
