@@ -225,16 +225,16 @@ export async function getDirectoryInfo(instructorName: string): Promise<{ [key: 
  * @param relatedDepartments - A list of departments related to the instructor
  * @returns {object} A dictionary containing the instructor's "shortened_name" and "course_history"
  */
-async function getCourseHistory(instructorName: string, relatedDepartments: string[])
+export async function getCourseHistory(instructorName: string, relatedDepartments: string[])
 : Promise< {
     shortened_name: string, 
     course_history: { 
-        [course_id: string]: string[] 
+        [course_id: string]: string[]
     }
 } > {
-    const courseHistory: { [key: string]: string[] } = {};
-    const nameCounts: { [key: string]: number} = {};
-    const name = instructorName.split(' '); // ['Alexander Thornton']
+    const courseHistory: { [key: string]: Set<string> } = {};
+    const nameCounts: { [key: string]: number } = {};
+    const name = instructorName.split(' '); // ['Alexander W. Thornton']
     let shortenedName = `${name[name.length-1]}, ${name[0][0]}.`; // 'Thornton, A.'
     const params = {
         'order': 'term',
@@ -248,7 +248,7 @@ async function getCourseHistory(instructorName: string, relatedDepartments: stri
         let continueParsing = parseHistoryPage(response.data, relatedDepartments, courseHistory, nameCounts);
         // Set up parameters to parse previous pages (older course pages)
         let row = 1;
-        params['action'] = 'PREV';
+        params['action'] = 'Prev';
         params['start_row'] = row.toString();
         while (continueParsing) {
             response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
@@ -264,9 +264,14 @@ async function getCourseHistory(instructorName: string, relatedDepartments: stri
     catch (error) {
         console.log(error)
     }
+    // Convert sets to lists
+    const courseHistoryListed: { [key: string]: string[] }= {};
+    for (const courseId in courseHistory) {
+        courseHistoryListed[courseId] = Array.from(courseHistory[courseId]);
+    }
     return {
         'shortened_name': shortenedName,
-        'course_history': courseHistory
+        'course_history': courseHistoryListed
     };
 }
 
@@ -283,7 +288,7 @@ async function getCourseHistory(instructorName: string, relatedDepartments: stri
 export function parseHistoryPage(
     instructorHistoryPage: string, 
     relatedDepartments: string[], 
-    courseHistory: { [key: string]: string[] }, 
+    courseHistory: { [key: string]: Set<string> }, 
     nameCounts: { [key: string]: number }
 ): boolean {
     const relatedDepartmentsSet = new Set(relatedDepartments);
@@ -315,10 +320,10 @@ export function parseHistoryPage(
                     if (relatedDepartmentsSet.has(deptValue)) {
                         const courseId = `${deptValue} ${$(entry[fieldLabels['courseNo']]).text().trim()}`;
                         if (courseId in courseHistory) {
-                            courseHistory[courseId].push(qtrValue);
+                            courseHistory[courseId].add(qtrValue);
                         }
                         else {
-                            courseHistory[courseId] = [qtrValue];
+                            courseHistory[courseId] = new Set([qtrValue]);
                         }
                     }
                 }

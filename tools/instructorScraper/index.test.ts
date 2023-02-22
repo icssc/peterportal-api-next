@@ -1,5 +1,5 @@
 import { describe, expect, test } from "@jest/globals";
-import { getDepartmentCourses, getDirectoryInfo, getFacultyLinks, getInstructorNames, parseHistoryPage } from "./index";
+import { getCourseHistory, getDepartmentCourses, getDirectoryInfo, getFacultyLinks, getInstructorNames, parseHistoryPage } from "./index";
 import axios from 'axios';
 
 
@@ -26,13 +26,13 @@ describe("instructorScraper tests", () => {
         expect(csCourses).toEqual(expect.arrayContaining(["COMPSCI","IN4MATX","I&C SCI","SWE","STATS"]));
         const busCourses = await getDepartmentCourses("http://catalogue.uci.edu/thepaulmerageschoolofbusiness/#courseinventory/#faculty");
         expect(busCourses).toEqual(expect.arrayContaining(["MGMT","MGMT EP","MGMT FE","MGMTMBA","MGMTPHD","MPAC","BANA"]));
-    }, 20000)
+    }, 20000);
     test("getDepartmentCourses for hardcoded courses", async () => {
         const lawCourses = await getDepartmentCourses("http://catalogue.uci.edu/schooloflaw/#faculty");
         expect(lawCourses).toEqual(["LAW"]);
         const medCourses = await getDepartmentCourses("http://catalogue.uci.edu/schoolofmedicine/");
         expect(medCourses).toEqual([]);
-    }, 10000)
+    }, 10000);
     test("getDirectoryInfo", async () => {
         const directory1 = await getDirectoryInfo("Kei Akagi");
         expect(directory1).toEqual({
@@ -46,10 +46,10 @@ describe("instructorScraper tests", () => {
             "ucinetid": "thornton", 
             "title": "Continuing Lecturer",
             "email": "thornton@uci.edu"});
-    })
+    });
     test("parseHistoryPage on present page", async () => {
         const URL_TO_INSTRUCT_HISTORY = "http://www.reg.uci.edu/perl/InstructHist";
-        const courses: { [key: string]: string[] } = {};
+        const courses: { [key: string]: Set<string> } = {};
         const names: { [key: string]: number} = {};
         const params = {
             "order": "term",
@@ -64,14 +64,21 @@ describe("instructorScraper tests", () => {
             expect(courses).toHaveProperty(course_id);
         }
         expect(Object.keys(names).reduce((a, b) => names[a] > names[b] ? a: b)).toEqual('AKAGI, K.');
-    }, 10000)
+    }, 10000);
     test("parseHistoryPage on old page", async () => {
-        const courses: { [key: string]: string[] } = {};
+        const courses: { [key: string]: Set<string> } = {};
         const names: { [key: string]: number} = {};
         const response = await axios.get("https://www.reg.uci.edu/perl/InstructHist?input_name=THORNTON%2C%20A.&printer_friendly=&term_yyyyst=&order=term&action=Prev&start_row=1213&show_distribution=");
         const bool = parseHistoryPage(response.data, ["COMPSCI","IN4MATX","I&C SCI","SWE","STATS"], courses, names);
         expect(bool).toBeFalsy();
         expect(courses).toEqual({});
         expect(names).toEqual({});
-    })
+    });
+    test("getCourseHistory", async () => {
+        const courseHistory = await getCourseHistory("Alexander W. Thornton", ["COMPSCI","IN4MATX","I&C SCI","SWE","STATS"]);
+        console.log(courseHistory)
+        expect(courseHistory).toHaveProperty("shortened_name", "THORNTON, A.");
+        expect(courseHistory).toHaveProperty("course_history");
+        expect(courseHistory['course_history']["I&C SCI 46"]).toEqual(expect.arrayContaining(["S22", "W22", "S21", "W21", "S20", "W20", "S18", "W18", "S17", "S16", "S15", "S14"]));
+    }, 50000);
 });
