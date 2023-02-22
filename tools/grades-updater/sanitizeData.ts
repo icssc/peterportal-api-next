@@ -95,7 +95,7 @@ const parseOptions: Options = {
       case "gpaAvg":
         return parseFloat(value || "0");
       default:
-        throw new Error(`Unknown entry: ${context.column}=${value}`);
+        throw new SyntaxError(`Unknown entry: ${context.column}=${value}`);
     }
   },
   columns: dataColumns,
@@ -133,12 +133,14 @@ function createLogger(): Logger {
 /**
  * Pause an executing async function for some time.
  * @param min An integer for the minimum millisecond to pause the execution.
+ * It must be less than or equal to max and greater than zero.
  * @param max An integer for the maximum millisecond to pause the execution.
+ * It must be greater than or equal to min and greater than zero.
  * @returns A promise calling setTimeout().
  */
 async function wait(min: number, max: number): Promise<void> {
   if (min < 0 || max < 0 || max < min) {
-    throw new Error("Please follow wait()'s function signature.");
+    throw new RangeError("Please follow wait()'s function signature.");
   }
   const time: number = Math.floor(Math.random() * (max - min + 1)) + min;
   return new Promise((resolve: (value: void) => void) =>
