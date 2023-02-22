@@ -131,18 +131,24 @@ function createLogger(): Logger {
 }
 
 /**
- * Pause an executing async function for about two to six seconds.
+ * Pause an executing async function for some time.
+ * @param min An integer for the minimum millisecond to pause the execution.
+ * @param max An integer for the maximum millisecond to pause the execution.
  * @returns A promise calling setTimeout().
  */
-async function wait(): Promise<void> {
-  const time: number = Math.floor(Math.random() * (6000 - 2000 + 1)) + 2000;
+async function wait(min: number, max: number): Promise<void> {
+  if (min < 0 || max < 0 || max < min) {
+    throw new Error("Please follow wait()'s function signature.");
+  }
+  const time: number = Math.floor(Math.random() * (max - min + 1)) + min;
   return new Promise((resolve: (value: void) => void) =>
     setTimeout(resolve, time)
   );
 }
 
 /**
- * Return a promise for the information on WebSOC about the course.
+ * Return course information on WebSOC. Waits two to six seconds before
+ * sending the request.
  * @param year The academic year for the course in the format "XXXX-XX."
  * @param quarters An array of strings. Takes ["Fall"], ["Winter"],
  * ["Spring"], or ["Summer1", "Summer10wk", "Summer2"].
@@ -156,7 +162,7 @@ async function getInfo(
 ): Promise<WebsocAPIResponse[]> {
   const promises: Promise<WebsocAPIResponse>[] = [];
   for (const quarter of quarters) {
-    await wait();
+    await wait(2000, 6000);
     promises.push(
       callWebSocAPI(
         {
