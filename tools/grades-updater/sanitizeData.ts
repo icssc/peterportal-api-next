@@ -50,7 +50,7 @@ interface Grade {
   gpaAvg: number;
 }
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
+const __dirname: string = dirname(fileURLToPath(import.meta.url));
 
 const dataColumns: string[] = [
   "year",
