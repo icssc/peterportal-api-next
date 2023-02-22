@@ -131,13 +131,13 @@ function createLogger(): Logger {
 }
 
 /**
- * Pause an executing async function for about two to three seconds.
+ * Pause an executing async function for about two to six seconds.
  * @returns A promise calling setTimeout().
  */
 async function wait(): Promise<void> {
-  const waitTime: number = Math.floor(Math.random() * (3000 - 2000 + 1)) + 2000;
+  const time: number = Math.floor(Math.random() * (6000 - 2000 + 1)) + 2000;
   return new Promise((resolve: (value: void) => void) =>
-    setTimeout(resolve, waitTime)
+    setTimeout(resolve, time)
   );
 }
 
