@@ -147,8 +147,8 @@ async function wait(min: number, max: number): Promise<void> {
 }
 
 /**
- * Return course information on WebSOC. Waits two to six seconds before
- * sending the request.
+ * Return course information on WebSOC. Before sending each request,
+ * it will wait two to six seconds.
  * @param year The academic year for the course in the format "XXXX-XX."
  * @param quarters An array of strings. Takes ["Fall"], ["Winter"],
  * ["Spring"], or ["Summer1", "Summer10wk", "Summer2"].
@@ -162,7 +162,12 @@ async function getInfo(
 ): Promise<WebsocAPIResponse[]> {
   const promises: Promise<WebsocAPIResponse>[] = [];
   for (const quarter of quarters) {
-    await wait(2000, 6000);
+    if (quarter.startsWith("Summer")) {
+      await wait(2500, 4500);
+    } else {
+      await wait(2000, 6000);
+    }
+
     promises.push(
       callWebSocAPI(
         {
