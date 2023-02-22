@@ -10,9 +10,9 @@ This folder contains scripts taking a preprocessed CSV file, sanitizing the data
 2. Take the spreadsheet from PRO, follow the format below, and save it as a CSV file to `inputData`
 
 | year    | quarter | department | courseNumber | courseCode | instructors | a   | b   | c   | d   | f   | p   | np  | w   | gpaAvg |
-| ------- | ------- | ---------- | ------------ | ---------- | ----------- | --- | --- | --- | --- | --- | --- | --- | --- | ------ | --- | --- | --- | --- | --- |
+| ------- | ------- | ---------- | ------------ | ---------- | ----------- | --- | --- | --- | --- | --- | --- | --- | --- | ------ |
 | 2023-24 | Summer  | ...        | ...          | 12334      | ...         | 0   | 0   | 0   | 0   | 0   | 123 | 23  | 4   | 0      |
-| ...     | ...     | ...        | ...          | ...        | ...         | ... | ... | ... | ... | ... | ... | ... | ... | ...    | ... | ... |     | ... | ... |
+| ...     | ...     | ...        | ...          | ...        | ...         | ... | ... | ... | ... | ... | ... | ... | ... | ...    |
 
 3. Run `npm i` on the project root directory
 4. Run `npm i` in this directory
