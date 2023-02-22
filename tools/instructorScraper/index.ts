@@ -10,16 +10,32 @@ const URL_TO_INSTRUCT_HISTORY = 'http://www.reg.uci.edu/perl/InstructHist';
 
 const YEAR_THRESHOLD = 20; // Number of years to look back when grabbing course history
 
+type Instructor = {
+    name: string;
+    ucinetid: string;
+    title: string;
+    department: string;
+    email: string;
+    schools: string[];
+    related_departments: string[];
+    shortened_name: string;
+    course_history: { [course_id: string]: string[]};
+};
+
+type InstructorsData = {
+  [ucinetid: string]: Instructor
+}
+
 /**
  * Returns the faculty links and their corresponding school name
  * 
- * @returns {Promise<object>}: A map of all faculty links to their corresponding school
+ * @returns {object} A map of all faculty links to their corresponding school
  * Example:
  *      {'http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty':'Claire Trevor School of the Arts',
  *      'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofbiomedicalengineering/#faculty':'The Henry Samueli School of Engineering', ...}
  */
-export async function getFacultyLinks(): Promise<{ [key: string]: string }> {
-    const result: { [key: string]: string } = {};
+export async function getFacultyLinks(): Promise<{ [faculty_link: string]: string }> {
+    const result: { [faculty_link: string]: string } = {};
     try {
         /**
          * Asynchronously traverse the school's department pages to retrieve its correpsonding faculty links.
@@ -40,7 +56,7 @@ export async function getFacultyLinks(): Promise<{ [key: string]: string }> {
                 return {[schoolName]: [schoolUrl]};
             }
             else {
-                const schoolURLs: { [key: string]: string[] } = {[schoolName]: []};
+                const schoolURLs: { [faculty_link: string]: string[] } = {[schoolName]: []};
                 // Only traverse when depth > 0
                 if (depth >= 1) {
                     const departmentLinks: string[][] = [];
@@ -89,9 +105,9 @@ export async function getFacultyLinks(): Promise<{ [key: string]: string }> {
  * Returns the names of instructors from a faculty page
  * 
  * @param facultyLink - link to faculty page
- * @returns {Promise<string[]>} - a list of instructor names
+ * @returns {string[]} a list of instructor names
  */
-export async function getInstructorNames(facultyLink: string): Promise< string[] > {
+export async function getInstructorNames(facultyLink: string): Promise<string[]> {
     const result: string[] = [];
     try {
         const response = await axios.get(facultyLink);
@@ -110,8 +126,8 @@ export async function getInstructorNames(facultyLink: string): Promise< string[]
 /**
  * Get courses related to a faculty page
  * 
- * @param {string} facultyLink - Link to faculty page
- * @returns {string[]} - A list of courses related to the department
+ * @param facultyLink - Link to faculty page
+ * @returns {string[]} A list of courses related to the department
  * Example:
  *      ["COMPSCI","IN4MATX","I&C SCI","SWE","STATS"] - http://catalogue.uci.edu/donaldbrenschoolofinformationandcomputersciences/#faculty
  */
@@ -145,11 +161,11 @@ export async function getDepartmentCourses(facultyLink: string): Promise<string[
  * Some faculty pages don't have a corresponding course inventory page, so we hardcode them
  * Go to https://www.reg.uci.edu/perl/InstructHist to find courses of faculty
  * 
- * @param {string} facultyLink - Link to faculty page
- * @returns {string[]} - A list of department courses related to the department
+ * @param facultyLink - Link to faculty page
+ * @returns {string[]} A list of department courses related to the department
  */
 function getHardcodedDepartmentCourses(facultyLink: string): string[] {
-    const lookup: { [key: string]: string[] } = {
+    const lookup: { [faculty_link: string]: string[] } = {
         'http://catalogue.uci.edu/schooloflaw/#faculty': ['LAW'],
         'http://catalogue.uci.edu/schoolofmedicine/#faculty': []
     }
@@ -170,12 +186,18 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
  * Gets the instructor's directory info
  * 
  * @param instructorName - Name of instructor
- * @returns {Promise<object>} - Dictionary of instructor's info (name, ucinetid, title, email)
+ * @returns {object} Dictionary of instructor's info
+ * Example:
+ *      {
+            "name": "Alexander W Thornton",
+            "ucinetid": "thornton", 
+            "title": "Continuing Lecturer",
+            "email": "thornton@uci.edu"
+        }
  */
 export async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]: string }> {
     const data = {'uciKey': instructorName};
     try {
-
         const response = await axios.post(URL_TO_DIRECTORY, data, {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded'
@@ -196,37 +218,74 @@ export async function getDirectoryInfo(instructorName: string): Promise<{ [key: 
 }
 
 
-async function getCourseHistory(instructorName: string) {
-    const courseHistory = new Set();
+/**
+ * Gets the professor's course history by searching them on websoc.
+ * 
+ * @param instructorName - Name of instructor
+ * @param relatedDepartments - A list of departments related to the instructor
+ * @returns {object} A dictionary containing the instructor's "shortened_name" and "course_history"
+ */
+async function getCourseHistory(instructorName: string, relatedDepartments: string[])
+: Promise< {
+    shortened_name: string, 
+    course_history: { 
+        [course_id: string]: string[] 
+    }
+} > {
+    const courseHistory: { [key: string]: string[] } = {};
+    const nameCounts: { [key: string]: number} = {};
     const name = instructorName.split(' '); // ['Alexander Thornton']
-    const lastFirstName = `${name[name.length-1]}, ${name[0][0]}.`; // 'Thornton, A.'
-    console.log(lastFirstName);
+    let shortenedName = `${name[name.length-1]}, ${name[0][0]}.`; // 'Thornton, A.'
     const params = {
         'order': 'term',
         'action': 'Submit',
-        'input_name': lastFirstName,
+        'input_name': shortenedName,
         'term_yyyyst': 'ANY',
-        'start_row': '',}
+        'start_row': ''}
     try {
-        const response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
+        // Parse first page
+        let response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
+        let continueParsing = parseHistoryPage(response.data, relatedDepartments, courseHistory, nameCounts);
+        // Set up parameters to parse previous pages (older course pages)
+        let row = 1;
+        params['action'] = 'PREV';
+        params['start_row'] = row.toString();
+        while (continueParsing) {
+            response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
+            continueParsing = parseHistoryPage(response.data, relatedDepartments, courseHistory, nameCounts);
+            row += 101
+            params['start_row'] = row.toString();
+        }
+        // Determine most common shortened name 
+        if (Object.keys(nameCounts).length > 0) {
+            shortenedName = Object.keys(nameCounts).reduce((a, b) => nameCounts[a] > nameCounts[b] ? a: b);  // Get name with greatest count
+        }
     }
     catch (error) {
         console.log(error)
     }
-    //parseHistoryPage(response.data);    
+    return {
+        'shortened_name': shortenedName,
+        'course_history': courseHistory
+    };
 }
 
 /**
  * Parses the instructor history page and returns true if entries are valid. This is used to determine whether
  * or not we want to continue parsing as there may be more pages of entries.
  * 
- * @param {string} instructorHistoryPage - HTML string of an instructor history page
- * @param {string[]} relatedDepartments - a list of departments related to the instructor
- * @param {object} courseHistory - a dictionary of courses where the values are a list of terms in which the course was taught
- * @param {object} nameCounts - a dictionary of instructor names storing the number of name occurrences found in entries (used to determine the 'official' shortened name - bc older record names may differ from current) ex: Thornton A.W. = Thornton A. 
+ * @param instructorHistoryPage - HTML string of an instructor history page
+ * @param relatedDepartments - a list of departments related to the instructor
+ * @param courseHistory - a dictionary of courses where the values are a list of terms in which the course was taught
+ * @param nameCounts - a dictionary of instructor names storing the number of name occurrences found in entries (used to determine the 'official' shortened name - bc older record names may differ from current) ex: Thornton A.W. = Thornton A. 
  * @returns {boolean} - true if entries are found, false if not
  */
-export function parseHistoryPage(instructorHistoryPage: string, relatedDepartments: string[], courseHistory: { [key: string]: string[] }, nameCounts: { [key: string]: number }): boolean {
+export function parseHistoryPage(
+    instructorHistoryPage: string, 
+    relatedDepartments: string[], 
+    courseHistory: { [key: string]: string[] }, 
+    nameCounts: { [key: string]: number }
+): boolean {
     const relatedDepartmentsSet = new Set(relatedDepartments);
     // Map of table fields to index
     const fieldLabels = {'qtr':0,'empty':1,'instructor':2,'courseCode':3,'dept':4,'courseNo':5,'type':6,'title':7,'units':8,'maxCap':9,'enr':10,'req':11};
@@ -251,7 +310,7 @@ export function parseHistoryPage(instructorHistoryPage: string, relatedDepartmen
                     $(entry[fieldLabels['instructor']]).html()?.trim()?.split('<br>').forEach(name => {
                         nameCounts[name] = nameCounts[name] ? nameCounts[name]+1 : 1; // Increment name in nameCounts
                     });
-                    // Get course code if dept is related
+                    // Get course id if dept is related
                     const deptValue = $(entry[fieldLabels['dept']]).text().trim()
                     if (relatedDepartmentsSet.has(deptValue)) {
                         const courseId = `${deptValue} ${$(entry[fieldLabels['courseNo']]).text().trim()}`;

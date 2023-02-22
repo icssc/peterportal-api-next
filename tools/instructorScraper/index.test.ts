@@ -60,7 +60,9 @@ describe("instructorScraper tests", () => {
         const response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
         const bool = parseHistoryPage(response.data, ["ARTS", "ART", "DANCE", "DRAMA", "MUSIC"], courses, names);
         expect(bool).toBeTruthy();
-        expect(courses).toHaveProperty(["MUSIC 65", "MUSIC 165", "MUSIC 176", "MUSIC 132", "MUSIC 182"]);
+        for (const course_id of ["MUSIC 65", "MUSIC 165", "MUSIC 176", "MUSIC 132", "MUSIC 182"]) {
+            expect(courses).toHaveProperty(course_id);
+        }
         expect(Object.keys(names).reduce((a, b) => names[a] > names[b] ? a: b)).toEqual('AKAGI, K.');
     }, 10000)
     test("parseHistoryPage on old page", async () => {
