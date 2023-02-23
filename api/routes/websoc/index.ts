@@ -37,7 +37,50 @@ import {
 import type { WebsocAPIOptions } from "websoc-api-next";
 import { callWebSocAPI } from "websoc-api-next";
 
-const validateOptionalParameters = (
+/**
+ * Given a string of comma-separated values or an array of such strings,
+ * return a sorted array containing all unique values.
+ * @param val The value to normalize.
+ */
+const normalizeValue = (val: string | string[] | undefined): string[] =>
+  Array.from(
+    new Set(
+      typeof val === "undefined"
+        ? [""]
+        : typeof val === "string"
+        ? val.split(",")
+        : val.map((x) => x.split(",")).flat()
+    )
+  ).sort();
+
+/**
+ * Given a nested section and all of its parent structures, returns a
+ * ``WebsocAPIResponse`` object that contains only that section.
+ * @param school The school that the department belongs to.
+ * @param department The department that the course belongs to.
+ * @param course The course that the section belongs to.
+ * @param section The section to isolate.
+ */
+const isolateSection = (
+  school: WebsocSchool,
+  department: WebsocDepartment,
+  course: WebsocCourse,
+  section: WebsocSection
+): WebsocAPIResponse => {
+  const data = { schools: [{ ...school }] };
+  data.schools[0].departments = [{ ...department }];
+  data.schools[0].departments[0].courses = [{ ...course }];
+  data.schools[0].departments[0].courses[0].sections = [{ ...section }];
+  return data;
+};
+
+/**
+ * Checks whether the given optional parameter is valid.
+ * @param query The parsed query string.
+ * @param param The parameter of the query string to validate.
+ * @param validParams The set of all valid values for ``query[param]``.
+ */
+const isValidOptionalParameter = (
   query: Record<string, string | string[] | undefined>,
   param: string,
   validParams: unknown[]
@@ -48,17 +91,18 @@ const validateOptionalParameters = (
       (!validParams.includes(query[param]) && query[param] !== "ANY"))
   );
 
-const normalizeVector = (vec: string | string[] | undefined): string[] =>
-  Array.from(
-    new Set(
-      typeof vec === "undefined"
-        ? [""]
-        : typeof vec === "string"
-        ? vec.split(",")
-        : vec.map((x) => x.split(",")).flat()
-    )
-  ).sort();
-
+/**
+ * Given a parsed query string, normalize the query and return it as an array of
+ * objects that can be passed directly to ``callWebSocAPI``.
+ *
+ * For each valid key, an entry is created in the normalized query iff its value
+ * is truthy and not equal to ``ANY``.
+ *
+ * Furthermore, to support batch queries for ``units`` and ``sectionCodes``,
+ * additional copies of the normalized query are created for every ``units``
+ * argument specified and for every 5 ``sectionCodes`` argument specified.
+ * @param query The parsed query string to normalize.
+ */
 const normalizeQuery = (
   query: Record<string, string | string[] | undefined>
 ): WebsocAPIOptions[] => {
@@ -84,11 +128,11 @@ const normalizeQuery = (
   }
   for (const key of ["courseNumber", "days"]) {
     if (query[key] && query[key] !== "ANY") {
-      baseQuery[key] = normalizeVector(query[key]).join(",");
+      baseQuery[key] = normalizeValue(query[key]).join(",");
     }
   }
-  const sectionCodeArray = normalizeVector(query.sectionCodes);
-  return normalizeVector(query.units)
+  const sectionCodeArray = normalizeValue(query.sectionCodes);
+  return normalizeValue(query.units)
     .map((units) => ({ ...baseQuery, units }))
     .map((q) =>
       Array.from(Array(Math.ceil(sectionCodeArray.length / 5)).keys()).map(
@@ -99,26 +143,25 @@ const normalizeQuery = (
       )
     )
     .flat()
-    .map((q: Partial<WebsocAPIOptions>): WebsocAPIOptions => {
+    .map((q: Partial<WebsocAPIOptions>) => {
       if (!q.units) delete q["units"];
       if (!q.sectionCodes) delete q["sectionCodes"];
       return q as WebsocAPIOptions;
     });
 };
 
-const isolateSection = (
-  school: WebsocSchool,
-  department: WebsocDepartment,
-  course: WebsocCourse,
-  section: WebsocSection
-): WebsocAPIResponse => {
-  const data = { schools: [{ ...school }] };
-  data.schools[0].departments = [{ ...department }];
-  data.schools[0].departments[0].courses = [{ ...course }];
-  data.schools[0].departments[0].courses[0].sections = [{ ...section }];
-  return data;
-};
+/**
+ * Returns the lexicographical ordering of two elements.
+ * @param a The left hand side of the comparison.
+ * @param b The right hand side of the comparison.
+ */
+const lexOrd = (a: string, b: string): number => (a === b ? 0 : a > b ? 1 : -1);
 
+/**
+ * Combines all given response objects into a single response object,
+ * eliminating duplicates and merging substructures.
+ * @param responses The responses to combine.
+ */
 const combineResponses = (
   ...responses: WebsocAPIResponse[]
 ): WebsocAPIResponse => {
@@ -214,13 +257,7 @@ const combineResponses = (
         );
     }
   }
-  return combined;
-};
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-const sortResponse = (res: WebsocAPIResponse): WebsocAPIResponse => {
-  res.schools.forEach((s) => {
+  combined.schools.forEach((s) => {
     s.departments.forEach((d) => {
       d.courses.forEach((c) => {
         c.sections.forEach((e) => {
@@ -235,33 +272,25 @@ const sortResponse = (res: WebsocAPIResponse): WebsocAPIResponse => {
             e.meetings = Object.values(meetingsHashSet);
           }
         });
-        c.sections.sort(
-          (a, b) => parseInt(a.sectionCode) - parseInt(b.sectionCode)
-        );
       });
-      d.courses.sort(
-        (a, b) =>
-          parseInt(a.courseNumber.replace(/\D/g, "")) -
-          parseInt(b.courseNumber.replace(/\D/g, ""))
-      );
     });
-    s.departments.sort((a, b) =>
-      a.deptCode === b.deptCode ? 0 : a.deptCode > b.deptCode ? 1 : -1
-    );
   });
-  res.schools.sort((a, b) =>
-    a.schoolName === b.schoolName ? 0 : a.schoolName > b.schoolName ? 1 : -1
-  );
-  return res;
+  return combined;
 };
 
+/**
+ * Dispatches the cache updater lambda.
+ * @param lambdaClient The Lambda Client to use for this operation.
+ * @param tableName The name of the table in which to store the result.
+ * @param term The term to cache.
+ * @param query The query to cache.
+ */
 const dispatchCacheUpdater = async (
   lambdaClient: LambdaClient,
   tableName: string,
   term: Term,
   query: WebsocAPIOptions
 ): Promise<void> => {
-  if (process.env.NODE_ENV === "development") return;
   await lambdaClient.send(
     new InvokeCommand({
       FunctionName: "peterportal-api-next-websoc-cache-updater",
@@ -275,10 +304,54 @@ const dispatchCacheUpdater = async (
   );
 };
 
-const isCacheable = (query: WebsocAPIOptions): boolean =>
-  !(
-    Object.keys(query).some((x) =>
-      [
+/**
+ * Sleep for the given number of milliseconds.
+ * @param ms How long to sleep for in ms.
+ */
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * Deeply sorts the provided response and returns the sorted response.
+ *
+ * Schools are sorted in lexicographical order of their name, departments are
+ * sorted in lexicographical order of their code, courses are sorted in
+ * numerical order of their number (with lexicographical tiebreaks),
+ * and sections are sorted in numerical order of their code.
+ * @param res The response to sort.
+ */
+const sortResponse = (res: WebsocAPIResponse): WebsocAPIResponse => {
+  res.schools.forEach((s) => {
+    s.departments.forEach((d) => {
+      d.courses.forEach((c) =>
+        c.sections.sort(
+          (a, b) => parseInt(a.sectionCode) - parseInt(b.sectionCode)
+        )
+      );
+      d.courses.sort((a, b) => {
+        const numOrd =
+          parseInt(a.courseNumber.replace(/\D/g, "")) -
+          parseInt(b.courseNumber.replace(/\D/g, ""));
+        return numOrd ? numOrd : lexOrd(a.courseNumber, b.courseNumber);
+      });
+    });
+    s.departments.sort((a, b) => lexOrd(a.deptCode, b.deptCode));
+  });
+  res.schools.sort((a, b) => lexOrd(a.schoolName, b.schoolName));
+  return res;
+};
+
+/**
+ * Determines whether a specified query is eligible to query the cache twice, if
+ * the first query resulted in a cache miss. This is only possible iff the query
+ * is of the form of one of the following:
+ * - The query has a `department` and a scalar value for `courseNumber`.
+ * - The query has a vector value for `sectionCodes`.
+ * @param query The query for which to check eligibility.
+ */
+const isTwiceCacheable = (query: WebsocAPIOptions): boolean =>
+  Object.keys(query).every(
+    (x) =>
+      ![
         "ge",
         "instructorName",
         "building",
@@ -294,10 +367,14 @@ const isCacheable = (query: WebsocAPIOptions): boolean =>
         "fullCourses",
         "cancelledCourses",
       ].includes(x)
-    ) ||
-    Object.keys(query).filter((x) => ["department", "sectionCodes"].includes(x))
-      .length !== 1 ||
-    (query.courseNumber && !query.department)
+  ) &&
+  Object.keys(query).filter((x) => ["department", "sectionCodes"].includes(x))
+    .length === 1 &&
+  !!(
+    (query.department &&
+      !query.courseNumber?.includes("-") &&
+      !query.courseNumber?.includes(",")) ||
+    query.sectionCodes?.includes(",")
   );
 
 export const rawHandler = async (
@@ -369,11 +446,7 @@ export const rawHandler = async (
             cancelledCourses: cancelledCoursesOptions,
           })) {
             if (
-              !validateOptionalParameters(
-                query,
-                param,
-                validParams as unknown[]
-              )
+              !isValidOptionalParameter(query, param, validParams as unknown[])
             ) {
               return createErrorResult(
                 400,
@@ -440,7 +513,7 @@ export const rawHandler = async (
               } catch {
                 continue;
               }
-              if (!isCacheable(q)) continue;
+              if (!isTwiceCacheable(q)) continue;
               if (q.department) {
                 try {
                   const items = (
