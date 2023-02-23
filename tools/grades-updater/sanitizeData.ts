@@ -1,20 +1,23 @@
-import type { CastingContext, Options, Parser } from "csv-parse";
-import { parse } from "csv-parse";
+import { type CastingContext, type Parser, parse } from "csv-parse";
 import { stringify } from "csv-stringify/sync";
 import fs from "fs";
 import { EOL } from "os";
-import { basename, dirname, resolve } from "path";
+import { basename, resolve } from "path";
 import type {
   Quarter,
   WebsocAPIResponse,
   WebsocSection,
 } from "peterportal-api-next-types";
-import { fileURLToPath } from "url";
 import { callWebSocAPI } from "websoc-api-next";
-import winston, { type Logger } from "winston";
-import type Transport from "winston-transport";
 
-interface RawGrade {
+import {
+  type Grade,
+  __dirname,
+  dataColumns,
+  logger,
+} from "./gradesUpdaterUtil";
+
+export interface RawGrade {
   year: string;
   quarter: "Fall" | "Winter" | "Spring" | "Summer";
   department: string;
@@ -32,103 +35,7 @@ interface RawGrade {
   gpaAvg: number;
 }
 
-interface Grade {
-  year: string;
-  quarter: Quarter;
-  department: string;
-  courseNumber: string;
-  courseCode: number;
-  instructors: string;
-  a: number;
-  b: number;
-  c: number;
-  d: number;
-  f: number;
-  p: number;
-  np: number;
-  w: number;
-  gpaAvg: number;
-}
-
-const __dirname: string = dirname(fileURLToPath(import.meta.url));
-
-const dataColumns: string[] = [
-  "year",
-  "quarter",
-  "department",
-  "courseNumber",
-  "courseCode",
-  "instructors",
-  "a",
-  "b",
-  "c",
-  "d",
-  "f",
-  "p",
-  "np",
-  "w",
-  "gpaAvg",
-];
-
-const logger: Logger = createLogger();
-
-const parseOptions: Options = {
-  cast: (value: string, context: CastingContext): any => {
-    switch (context.column) {
-      case "year":
-      case "quarter":
-      case "department":
-      case "courseNumber":
-        return value;
-      case "courseCode":
-      case "a":
-      case "b":
-      case "c":
-      case "d":
-      case "f":
-      case "p":
-      case "np":
-      case "w":
-        return parseInt(value || "0");
-      case "instructors":
-        return null;
-      case "gpaAvg":
-        return parseFloat(value || "0");
-      default:
-        throw new SyntaxError(`Unknown entry: ${context.column}=${value}`);
-    }
-  },
-  columns: dataColumns,
-  from_line: 2,
-  skip_empty_lines: true,
-  trim: true,
-};
-
 const summerQuarters: Quarter[] = ["Summer1", "Summer10wk", "Summer2"];
-
-/**
- * Create a logger object that will output information to the console
- * as well as a file under /logs.
- * @returns A logger that writes the current status of the program to
- * the console and a log file.
- */
-function createLogger(): Logger {
-  const transports: Transport[] = [
-    new winston.transports.Console(),
-    new winston.transports.File({
-      filename: `${__dirname}/logs/${Date.now()}.log`,
-    }),
-  ];
-  return winston.createLogger({
-    exceptionHandlers: transports,
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.prettyPrint()
-    ),
-    rejectionHandlers: transports,
-    transports,
-  });
-}
 
 /**
  * Pause an executing async function for some time.
@@ -246,21 +153,60 @@ async function updateInformation(info: RawGrade): Promise<Grade | null> {
 }
 
 /**
+ * Create a CSV parser to read the content from the file.
+ * @param filePath The absolute path to the input CSV file.
+ * @returns A parser to extract the information in the CSV file.
+ */
+function createParser(filePath: string): Parser {
+  return fs.createReadStream(filePath).pipe(
+    parse({
+      cast: (value: string, context: CastingContext): any => {
+        switch (context.column) {
+          case "year":
+          case "quarter":
+          case "department":
+          case "courseNumber":
+            return value;
+          case "courseCode":
+          case "a":
+          case "b":
+          case "c":
+          case "d":
+          case "f":
+          case "p":
+          case "np":
+          case "w":
+            return parseInt(value || "0");
+          case "instructors":
+            return null;
+          case "gpaAvg":
+            return parseFloat(value || "0");
+          default:
+            throw new SyntaxError(`Unknown entry: ${context.column}=${value}`);
+        }
+      },
+      columns: dataColumns,
+      from_line: 2,
+      skip_empty_lines: true,
+      trim: true,
+    })
+  );
+}
+
+/**
  * Take the CSV file under /inputData, extract the information as JSON
  * objects, and write the updated info to a file under /outputData.
  * @param filePath The absolute path to the input CSV file.
  */
 async function processFile(filePath: string): Promise<void> {
-  const courseParser: Parser = fs
-    .createReadStream(filePath)
-    .pipe(parse(parseOptions));
+  const courseParser: Parser = createParser(filePath);
   const outputFilePath: string = resolve(
     `${__dirname}/outputData/${basename(filePath, ".csv")}.output.csv`
   );
-
   const stream: fs.WriteStream = fs.createWriteStream(outputFilePath, {
     flags: "a",
   });
+
   stream.write(dataColumns.join(",") + EOL);
   for await (const rawInfo of courseParser) {
     logger.info("Start processing course", {
