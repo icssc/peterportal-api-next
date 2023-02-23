@@ -14,15 +14,11 @@ import type {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
-import { DDBDocClient, SortKey } from "ddb";
+import type { SortKey } from "ddb";
+import { DDBDocClient } from "ddb";
 import hash from "object-hash";
 import type {
-  CancelledCourses,
-  Division,
-  FullCourses,
-  GE,
   Quarter,
-  SectionType,
   Term,
   WebsocAPIResponse,
   WebsocCourse,
@@ -66,23 +62,31 @@ const normalizeVector = (vec: string | string[] | undefined): string[] =>
 const normalizeQuery = (
   query: Record<string, string | string[] | undefined>
 ): WebsocAPIOptions[] => {
-  const baseQuery = {
-    ge: query.ge as GE,
-    department: query.department as string,
-    building: query.building as string,
-    room: query.room as string,
-    division: query.division as Division,
-    courseNumber: normalizeVector(query.courseNumber).join(","),
-    instructorName: query.instructorName as string,
-    courseTitle: query.courseTitle as string,
-    sectionType: query.sectionType as SectionType,
-    days: normalizeVector(query.days).join(","),
-    startTime: query.startTime as string,
-    endTime: query.endTime as string,
-    maxCapacity: query.maxCapacity as string,
-    fullCourses: query.fullCourses as FullCourses,
-    cancelledCourses: query.cancelledCourses as CancelledCourses,
-  };
+  const baseQuery: Record<string, string | string[] | unknown> = {};
+  for (const key of [
+    "ge",
+    "department",
+    "building",
+    "room",
+    "division",
+    "instructorName",
+    "courseTitle",
+    "sectionType",
+    "startTime",
+    "endTime",
+    "maxCapacity",
+    "fullCourses",
+    "cancelledCourses",
+  ]) {
+    if (query[key] && query[key] !== "ANY") {
+      baseQuery[key] = query[key];
+    }
+  }
+  for (const key of ["courseNumber", "days"]) {
+    if (query[key] && query[key] !== "ANY") {
+      baseQuery[key] = normalizeVector(query[key]).join(",");
+    }
+  }
   const sectionCodeArray = normalizeVector(query.sectionCodes);
   return normalizeVector(query.units)
     .map((units) => ({ ...baseQuery, units }))
@@ -94,7 +98,12 @@ const normalizeQuery = (
         })
       )
     )
-    .flat();
+    .flat()
+    .map((q: Partial<WebsocAPIOptions>): WebsocAPIOptions => {
+      if (!q.units) delete q["units"];
+      if (!q.sectionCodes) delete q["sectionCodes"];
+      return q as WebsocAPIOptions;
+    });
 };
 
 const isolateSection = (
@@ -208,6 +217,8 @@ const combineResponses = (
   return combined;
 };
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const sortResponse = (res: WebsocAPIResponse): WebsocAPIResponse => {
   res.schools.forEach((s) => {
     s.departments.forEach((d) => {
@@ -244,8 +255,6 @@ const sortResponse = (res: WebsocAPIResponse): WebsocAPIResponse => {
   return res;
 };
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 const dispatchCacheUpdater = async (
   lambdaClient: LambdaClient,
   tableName: string,
@@ -265,6 +274,31 @@ const dispatchCacheUpdater = async (
     })
   );
 };
+
+const isCacheable = (query: WebsocAPIOptions): boolean =>
+  !(
+    Object.keys(query).some((x) =>
+      [
+        "ge",
+        "instructorName",
+        "building",
+        "room",
+        "division",
+        "courseTitle",
+        "sectionType",
+        "units",
+        "days",
+        "startTime",
+        "endTime",
+        "maxCapacity",
+        "fullCourses",
+        "cancelledCourses",
+      ].includes(x)
+    ) ||
+    Object.keys(query).filter((x) => ["department", "sectionCodes"].includes(x))
+      .length !== 1 ||
+    (query.courseNumber && !query.department)
+  );
 
 export const rawHandler = async (
   request: IRequest
@@ -379,18 +413,16 @@ export const rawHandler = async (
           let ret: WebsocAPIResponse = { schools: [] };
           if (!query.cache || query.cache !== "false") {
             const docClient = new DDBDocClient();
-            const lambdaClient = new LambdaClient({
-              region: process.env.AWS_REGION,
-            });
+            const tableName = "peterportal-api-next-websoc-cache";
             const sortKey: SortKey = {
               name: "invalidateBy",
               value: Date.now(),
               cmp: ">=",
             };
+            const lambdaClient = new LambdaClient({});
             for (const [i, q] of Object.entries(queries)) {
               if (!q) continue;
               try {
-                const tableName = "peterportal-api-next-websoc-primary-cache";
                 const items = (
                   await docClient.query(
                     tableName,
@@ -398,45 +430,91 @@ export const rawHandler = async (
                     sortKey
                   )
                 )?.Items;
-                if (items) {
+                if (items?.length) {
                   queries[parseInt(i)] = undefined;
                   ret = combineResponses(items.slice(-1)[0].data, ret);
+                  continue;
                 } else {
-                  // TODO figure out what to cache
+                  await dispatchCacheUpdater(lambdaClient, tableName, term, q);
                 }
               } catch {
                 continue;
               }
-              if (
-                Object.keys(q).some(
-                  (k) =>
-                    [
-                      "building",
-                      "room",
-                      "division",
-                      "courseTitle",
-                      "sectionType",
-                      "units",
-                      "days",
-                      "startTime",
-                      "endTime",
-                      "maxCapacity",
-                      "fullCourses",
-                      "cancelledCourses",
-                    ].includes(k) && (q as Record<string, unknown>)[k]
-                ) ||
-                Object.keys(q).filter((x) =>
-                  ["ge", "department", "sectionCodes", "instructor"].includes(x)
-                ).length > 1 ||
-                q.courseNumber?.includes("-") ||
-                q.courseNumber?.includes(",") ||
-                (q.courseNumber && !q.department)
-              )
-                continue;
-              try {
-                // TODO
-              } catch {
-                // noop
+              if (!isCacheable(q)) continue;
+              if (q.department) {
+                try {
+                  const items = (
+                    await docClient.query(
+                      tableName,
+                      {
+                        name: "requestHash",
+                        value: hash([
+                          term,
+                          { department: q.department } as WebsocAPIOptions,
+                        ]),
+                      },
+                      sortKey
+                    )
+                  )?.Items;
+                  if (items?.length) {
+                    queries[parseInt(i)] = undefined;
+                    const data: WebsocAPIResponse = items.slice(-1)[0].data;
+                    if (q.courseNumber) {
+                      data.schools[0].departments[0].courses =
+                        data.schools[0].departments[0].courses.filter(
+                          (x) => x.courseNumber === q.courseNumber
+                        );
+                    }
+                    ret = combineResponses(data, ret);
+                  } else {
+                    await dispatchCacheUpdater(lambdaClient, tableName, term, {
+                      department: q.department,
+                    });
+                  }
+                } catch {
+                  continue;
+                }
+              }
+              if (q.sectionCodes) {
+                const sectionCodes = q.sectionCodes.split(",");
+                try {
+                  const items = await Promise.all(
+                    sectionCodes.map((sectionCode) =>
+                      docClient
+                        .query(
+                          tableName,
+                          {
+                            name: "requestHash",
+                            value: hash([
+                              term,
+                              { sectionCodes: sectionCode } as WebsocAPIOptions,
+                            ]),
+                          },
+                          sortKey
+                        )
+                        .then((x) => x?.Items)
+                    )
+                  );
+                  if (items.every((x) => x?.length)) {
+                    queries[parseInt(i)] = undefined;
+                    ret = combineResponses(
+                      ...items.map(
+                        (x): WebsocAPIResponse => x?.slice(-1)[0].data
+                      ),
+                      ret
+                    );
+                  } else {
+                    await Promise.all(
+                      sectionCodes.map((sectionCode) =>
+                        dispatchCacheUpdater(lambdaClient, tableName, term, {
+                          sectionCodes: sectionCode,
+                        })
+                      )
+                    );
+                  }
+                } catch {
+                  // noop
+                }
               }
             }
             queries = queries.filter((q) => q);
