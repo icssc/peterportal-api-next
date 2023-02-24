@@ -2,6 +2,7 @@ import { type CastingContext, type Parser, parse } from "csv-parse";
 import { PrismaClient } from "db";
 import fs from "fs";
 import { resolve } from "path";
+import { Quarter } from "peterportal-api-next-types";
 
 import { __dirname, dataColumns, logger } from "./gradesUpdaterUtil";
 
@@ -53,13 +54,11 @@ function createParser(filePath: string): Parser {
 /**
  * Calculate the real academic year for the course.
  * @param year The academic year for the course in the format "XXXX-XX."
- * @param quarter Either "Summer", "Fall", "Winter", or "Spring."
+ * @param quarter Either "Summer1", "Summer10wk", "Summer2",
+ * "Fall", "Winter", or "Spring."
  * @returns The academic year in the format of "XXXX."
  */
-function parseYear(
-  year: string,
-  quarter: "Fall" | "Winter" | "Spring" | "Summer"
-): number {
+function parseYear(year: string, quarter: Quarter): number {
   return quarter.startsWith("Summer") || quarter === "Fall"
     ? parseInt(year.substring(0, 4))
     : parseInt(year.substring(0, 4)) + 1;
