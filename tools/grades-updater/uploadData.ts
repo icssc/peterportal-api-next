@@ -95,7 +95,7 @@ async function processData(filePath: string): Promise<[string, string]> {
 
 /**
  * Insert the content inside of a CSV file to a remote database
- * using raw SQL queries because ORMs suck.
+ * using raw SQL queries because I am too dumb to use ORMs.
  * @param filePath The absolute path to the CSV file.
  */
 async function processFile(filePath: string): Promise<void> {
