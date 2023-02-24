@@ -66,10 +66,11 @@ function parseYear(year: string, quarter: Quarter): number {
 
 /**
  * Take the CSV file under /outputData, extract the information as JSON
- * objects, and insert the content to a remote database.
+ * objects, and turn the data into a long string.
  * @param filePath The absolute path to the CSV file.
+ * @returns An array of strings to be concatenated to two SQL queries.
  */
-async function processFile(filePath: string): Promise<void> {
+async function processData(filePath: string): Promise<[string, string]> {
   const grades: string[] = [],
     instructors: string[] = [];
   const courseParser: Parser = createParser(filePath);
@@ -89,19 +90,29 @@ async function processFile(filePath: string): Promise<void> {
     }
   }
 
-  // Cannot use executeRaw() because it has some limitations
-  // on template variables.
+  return [grades.join(", "), instructors.join(", ")];
+}
+
+/**
+ * Insert the content inside of a CSV file to a remote database
+ * using raw SQL queries because ORMs suck.
+ * @param filePath The absolute path to the CSV file.
+ */
+async function processFile(filePath: string): Promise<void> {
+  const [grades, instructors]: [string, string] = await processData(filePath);
   await prisma.$transaction([
+    // Cannot use executeRaw() because it has some limitations
+    // on template variables.
+
     prisma.$executeRawUnsafe(`
       INSERT INTO grades (
         academic_year, academic_quarter, department, course_number,
         course_code, grade_a_count, grade_b_count, grade_c_count,
         grade_d_count, grade_f_count, grade_p_count, grade_np_count,
-        grade_w_count, average_gpa) VALUES ${grades.join(", ")};
+        grade_w_count, average_gpa) VALUES ${grades};
     `),
     prisma.$executeRawUnsafe(`
-      INSERT INTO grades_instructors_mappings VALUES
-        ${instructors.join(", ")};
+      INSERT INTO grades_instructors_mappings VALUES ${instructors};
     `),
   ]);
 }
