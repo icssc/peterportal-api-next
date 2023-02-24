@@ -23,7 +23,11 @@ This folder contains scripts taking a preprocessed CSV file, sanitizing the data
 
 ### Uploading the Data
 
-1. Please make sure all the entries under `outputData` meet your expectation
+1. Make sure all the entries under `outputData` meet your expectation
+2. Place the `.env` file given by the development team under the project root directory
+3. Run `npm i`, `npm run db:pull`, and `npm run db:generate` in `/db`
+4. Execute `npm run upload` to start the program
+   - All messages, warnings, and errors are listed in a log file located under `logs`
 
 ## Acknowledgments
 
