@@ -1,5 +1,5 @@
 import { type CastingContext, type Parser, parse } from "csv-parse";
-import { PrismaClient } from "db";
+import { Prisma, PrismaClient } from "db";
 import fs from "fs";
 import { resolve } from "path";
 
@@ -21,7 +21,6 @@ function createParser(filePath: string): Parser {
           case "quarter":
           case "department":
           case "courseNumber":
-          case "instructors":
             return value;
           case "courseCode":
           case "a":
@@ -33,6 +32,10 @@ function createParser(filePath: string): Parser {
           case "np":
           case "w":
             return parseInt(value || "0");
+          case "instructors":
+            return value
+              .split("; ")
+              .map((name: string) => ({ instructor: name }));
           case "gpaAvg":
             return parseFloat(value || "0");
           default:
@@ -53,35 +56,49 @@ function createParser(filePath: string): Parser {
  * @param filePath The absolute path to the CSV file.
  */
 async function processFile(filePath: string): Promise<void> {
-  const data: object[] = [];
+  // TODO: Should batch insert all records instead of creating one by one in a transaction.
+  // Otherwise, it will take forever to finish this.
+  const operations: Prisma.PrismaPromise<any>[] = [];
   const courseParser: Parser = createParser(filePath);
   for await (const course of courseParser) {
-    data.push({
-      academic_year:
-        course.quarter.startsWith("Summer") || course.quarter === "Fall"
-          ? parseInt(course.year.substring(0, 4))
-          : parseInt(course.year.substring(0, 4)) + 1,
-      academic_quarter: course.quarter,
-      department: course.department,
-      course_number: course.courseNumber,
-      course_code: course.courseCode,
-      grade_a_count: course.a,
-      grade_b_count: course.b,
-      grade_c_count: course.c,
-      grade_d_count: course.d,
-      grade_f_count: course.f,
-      grade_p_count: course.p,
-      grade_np_count: course.np,
-      grade_w_count: course.w,
-      average_gpa: course.gpaAvg,
-      grades_instructors_mappings: {
-        create: course.instructors
-          .split("; ")
-          .map((name: string) => ({ instructor: name })),
-      },
-    });
+    operations.push(
+      prisma.grades.create({
+        data: {
+          academic_year:
+            course.quarter.startsWith("Summer") || course.quarter === "Fall"
+              ? parseInt(course.year.substring(0, 4))
+              : parseInt(course.year.substring(0, 4)) + 1,
+          academic_quarter: course.quarter,
+          departments: {
+            connectOrCreate: {
+              create: {
+                department_id: course.department,
+                department_name: course.department,
+              },
+              where: { department_id: course.department },
+            },
+          },
+          course_number: course.courseNumber,
+          course_code: course.courseCode,
+          grade_a_count: course.a,
+          grade_b_count: course.b,
+          grade_c_count: course.c,
+          grade_d_count: course.d,
+          grade_f_count: course.f,
+          grade_p_count: course.p,
+          grade_np_count: course.np,
+          grade_w_count: course.w,
+          average_gpa: course.gpaAvg,
+          grades_instructors_mappings: {
+            createMany: {
+              data: course.instructors,
+            },
+          },
+        },
+      })
+    );
   }
-  await prisma.grades.createMany({ data });
+  await prisma.$transaction(operations);
 }
 
 /**
