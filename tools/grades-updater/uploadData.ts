@@ -34,9 +34,7 @@ function createParser(filePath: string): Parser {
           case "w":
             return parseInt(value || "0");
           case "instructors":
-            return value
-              .split("; ")
-              .map((name: string) => ({ instructor: name }));
+            return value.split("; ");
           case "gpaAvg":
             return parseFloat(value || "0");
           default:
@@ -54,8 +52,8 @@ function createParser(filePath: string): Parser {
 /**
  * Calculate the real academic year for the course.
  * @param year The academic year for the course in the format "XXXX-XX."
- * @param quarter Either "Summer1", "Summer10wk", "Summer2",
- * "Fall", "Winter", or "Spring."
+ * @param quarter "Summer1", "Summer10wk", "Summer2", "Fall",
+ * "Winter", or "Spring."
  * @returns The academic year in the format of "XXXX."
  */
 function parseYear(year: string, quarter: Quarter): number {
@@ -66,11 +64,11 @@ function parseYear(year: string, quarter: Quarter): number {
 
 /**
  * Take the CSV file under /outputData, extract the information as JSON
- * objects, and turn the data into a long string.
+ * objects, and turn the data into two long strings.
  * @param filePath The absolute path to the CSV file.
  * @returns An array of strings to be concatenated to two SQL queries.
  */
-async function processData(filePath: string): Promise<[string, string]> {
+async function processFile(filePath: string): Promise<[string, string]> {
   const grades: string[] = [],
     instructors: string[] = [];
   const courseParser: Parser = createParser(filePath);
@@ -94,16 +92,17 @@ async function processData(filePath: string): Promise<[string, string]> {
 }
 
 /**
- * Insert the content inside of a CSV file to a remote database
- * using raw SQL queries because I am too dumb to use ORMs.
- * @param filePath The absolute path to the CSV file.
+ * Upload the content inside two long strings to a remote database
+ * using raw SQL queries because ORMs are too difficult to work with.
+ * @param grades All the values that will be inserted into the
+ * grades table.
+ * @param instructors All the values that will be inserted into the
+ * grades_instructors_mappings table.
  */
-async function processFile(filePath: string): Promise<void> {
-  const [grades, instructors]: [string, string] = await processData(filePath);
+async function processData(grades: string, instructors: string): Promise<void> {
+  // executeRaw() has some limitations on template variables, preventing
+  // them from being used in the actual query.
   await prisma.$transaction([
-    // Cannot use executeRaw() because it has some limitations
-    // on template variables.
-
     prisma.$executeRawUnsafe(`
       INSERT INTO grades (
         academic_year, academic_quarter, department, course_number,
@@ -130,7 +129,8 @@ async function uploadData(): Promise<void> {
     .map((file: string) => resolve(`${__dirname}/outputData/${file}`));
   for (const path of paths) {
     logger.info(`Start processing ${path}`);
-    await processFile(path);
+    const [grades, instructors]: [string, string] = await processFile(path);
+    await processData(grades, instructors);
     logger.info(`Finish processing ${path}`);
   }
 }
@@ -141,8 +141,7 @@ uploadData().catch((error: any) =>
 
 /*  
   ORMs really hurt my brain :-(
-  P.S. It will make processFile() to run really slow because Prisma does
-  not implement batch insert well.
+  P.S. It will run really slow.
 
   let operations = [];
   operations.push(prisma.grades.create({
@@ -154,9 +153,8 @@ uploadData().catch((error: any) =>
           create: {
             department_id: course.department,
 
-            // This will create problems moving forward when
-            // a new department is created while the departments
-            // table does not list it?
+            // It will create problems moving forward when
+            // the departments table does not have the new department
             department_name: course.department
           },
           where: { department_id: course.department },
