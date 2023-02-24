@@ -6,6 +6,7 @@ import {
   RestApi,
 } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
+import { Role } from "aws-cdk-lib/aws-iam";
 import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
@@ -71,8 +72,9 @@ export class ApiStack extends Stack {
    * Adds an endpoint to the API.
    * @param path The absolute path of the endpoint.
    * @param name The short name of the module that handles the endpoint.
+   * @param role A custom role for the Lambda that handles the endpoint.
    */
-  public addRoute(path: string, name: string): void {
+  public addRoute(path: string, name: string, role?: Role): void {
     let resource = this.api.root;
     for (const pathPart of path.slice(1).split("/")) {
       resource =
@@ -97,6 +99,7 @@ export class ApiStack extends Stack {
               NODE_ENV: this.env.nodeEnv,
             },
             timeout: Duration.seconds(15),
+            role,
             memorySize: 512,
           })
         ))
