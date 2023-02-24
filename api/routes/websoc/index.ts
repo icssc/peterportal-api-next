@@ -506,7 +506,7 @@ export const rawHandler = async (
               } else {
                 await dispatchCacheUpdater(lambdaClient, tableName, term, q);
               }
-            } catch {
+            } catch (e) {
               continue;
             }
             if (!isTwiceCacheable(q)) continue;
@@ -538,7 +538,7 @@ export const rawHandler = async (
                     department: q.department,
                   });
                 }
-              } catch {
+              } catch (e) {
                 continue;
               }
             }
@@ -579,7 +579,7 @@ export const rawHandler = async (
                     )
                   );
                 }
-              } catch {
+              } catch (e) {
                 // noop
               }
             }

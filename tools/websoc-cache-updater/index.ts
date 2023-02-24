@@ -17,7 +17,7 @@ export const handler = async (event: {
   const docClient = new DDBDocClient();
   await docClient.put(tableName, {
     requestHash: hash([term, query]),
-    invalidateBy: Date.now() + CACHE_TTL,
+    invalidateBy: Math.floor(Date.now() / 1000) + CACHE_TTL,
     data: await callWebSocAPI(term, query),
   });
 };

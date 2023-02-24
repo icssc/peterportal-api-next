@@ -102,14 +102,18 @@ class LambdaRequest implements IRequest {
       multiValueQueryStringParameters: mqs,
       pathParameters: params,
       path,
-      queryStringParameters: qs,
     } = this.event;
     return {
       body: JSON.parse(body ?? "{}"),
       method,
       params,
       path,
-      query: { ...qs, ...mqs },
+      query: Object.fromEntries(
+        Object.entries(mqs ?? {}).map(([k, v]) => [
+          k,
+          v?.length === 1 ? v[0] : v,
+        ])
+      ),
       requestId: this.context.awsRequestId,
     } as HandlerParams;
   }

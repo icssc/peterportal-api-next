@@ -24,7 +24,7 @@ const api = new ApiStack(app, "peterportal-api-next");
 api.addRoute(
   "/v1/rest/websoc",
   "websoc",
-  new Role(api, "peterportal-api-next-websoc-cache-updater-role", {
+  new Role(api, "peterportal-api-next-websoc-route-role", {
     assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
     managedPolicies: [
       ManagedPolicy.fromAwsManagedPolicyName(
@@ -32,21 +32,25 @@ api.addRoute(
       ),
     ],
     inlinePolicies: {
-      ddbPutPolicy: new PolicyDocument({
+      ddbQueryPolicy: new PolicyDocument({
         statements: [
           new PolicyStatement({
             effect: Effect.ALLOW,
             resources: [
-              "arn:aws:lambda:::function:peterportal-api-next-websoc-cache-updater",
+              `arn:aws:dynamodb:${process.env.AWS_REGION}:${process.env.ACCOUNT_ID}:table/peterportal-api-next-websoc-cache`,
             ],
-            actions: ["lambda:InvokeFunction"],
+            actions: ["dynamodb:Query"],
           }),
+        ],
+      }),
+      lambdaInvokePolicy: new PolicyDocument({
+        statements: [
           new PolicyStatement({
             effect: Effect.ALLOW,
             resources: [
-              "arn:aws:dynamodb:::table/peterportal-api-next-websoc-cache",
+              `arn:aws:lambda:${process.env.AWS_REGION}:${process.env.ACCOUNT_ID}:function:peterportal-api-next-websoc-cache-updater`,
             ],
-            actions: ["dynamodb:PutItem"],
+            actions: ["lambda:InvokeFunction"],
           }),
         ],
       }),

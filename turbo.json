@@ -15,6 +15,7 @@
       "cache": false,
       "dependsOn": ["^build"],
       "env": [
+        "ACCOUNT_ID",
         "AWS_REGION",
         "CERTIFICATE_ARN",
         "DATABASE_URL",

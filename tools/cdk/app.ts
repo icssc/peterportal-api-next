@@ -12,6 +12,6 @@ const props: StackProps = {
 };
 new WebsocCacheUpdaterStack(
   app,
-  "peterportal-api-next-websoc-scraper-stack",
+  "peterportal-api-next-websoc-cache-updater-stack",
   props
 );

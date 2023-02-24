@@ -80,26 +80,27 @@ export class ApiStack extends Stack {
       resource =
         resource.getResource(pathPart) ?? resource.addResource(pathPart);
     }
-    const id = `peterportal-api-next-${this.env.stage}-${name}-handler`;
+    const functionName = `peterportal-api-next-${this.env.stage}-${name}-handler`;
     resource.addMethod(
       "ANY",
-      this.integrations[id] ??
-        (this.integrations[id] = new LambdaIntegration(
-          new Function(this, id, {
-            runtime: Runtime.NODEJS_16_X,
+      this.integrations[functionName] ??
+        (this.integrations[functionName] = new LambdaIntegration(
+          new Function(this, functionName, {
             code: Code.fromAsset(
               join(
                 dirname(fileURLToPath(import.meta.url)),
                 `../routes/${name}/dist`
               )
             ),
-            handler: `index.lambdaHandler`,
             environment: {
               DATABASE_URL: this.env.databaseUrl,
               NODE_ENV: this.env.nodeEnv,
             },
+            functionName,
+            handler: `index.lambdaHandler`,
             timeout: Duration.seconds(15),
             role,
+            runtime: Runtime.NODEJS_16_X,
             memorySize: 512,
           })
         ))
