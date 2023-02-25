@@ -14,10 +14,9 @@ This folder contains scripts taking a preprocessed CSV file, sanitizing the data
 | 2023-24 | Summer  | ...        | ...          | 12334      | ...         | 0   | 0   | 0   | 0   | 0   | 123 | 23  | 4   | 0      |
 | ...     | ...     | ...        | ...          | ...        | ...         | ... | ... | ... | ... | ... | ... | ... | ... | ...    |
 
-3. Run `npm i` on the project root directory
-4. Run `npm i` in this directory
-5. Execute `npm run sanitize` to start the program
-6. Find your data under the `outputData` folder
+3. Run `npm i` in the project root directory and this folder again
+4. Execute `npm run sanitize` to start the program
+5. Find your data under the `outputData` folder
    - If the program fails, then you may want to manually delete the entries that are already processed in the input file and merge the processed data and the rest together in a separate file once everything is done
    - All messages, warnings, and errors are listed in a log file located under `logs`
 
