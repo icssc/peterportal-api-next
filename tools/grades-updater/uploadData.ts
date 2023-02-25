@@ -2,7 +2,7 @@ import { type CastingContext, type Parser, parse } from "csv-parse";
 import { PrismaClient } from "db";
 import fs from "fs";
 import { resolve } from "path";
-import { Quarter } from "peterportal-api-next-types";
+import type { Quarter } from "peterportal-api-next-types";
 
 import { __dirname, dataColumns, logger } from "./gradesUpdaterUtil";
 
@@ -16,7 +16,7 @@ const prisma: PrismaClient = new PrismaClient();
 function createParser(filePath: string): Parser {
   return fs.createReadStream(filePath).pipe(
     parse({
-      cast: (value: string, context: CastingContext): any => {
+      cast: (value: string, context: CastingContext) => {
         switch (context.column) {
           case "year":
           case "quarter":

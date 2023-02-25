@@ -160,7 +160,7 @@ async function updateInformation(info: RawGrade): Promise<Grade | null> {
 function createParser(filePath: string): Parser {
   return fs.createReadStream(filePath).pipe(
     parse({
-      cast: (value: string, context: CastingContext): any => {
+      cast: (value: string, context: CastingContext) => {
         switch (context.column) {
           case "year":
           case "quarter":
