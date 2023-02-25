@@ -36,6 +36,7 @@ import {
 } from "peterportal-api-next-types";
 import type { WebsocAPIOptions } from "websoc-api-next";
 import { callWebSocAPI } from "websoc-api-next";
+import { createLogger, format, transports } from "winston";
 
 /**
  * Given a string of comma-separated values or an array of such strings,
@@ -285,23 +286,27 @@ const combineResponses = (
  * @param term The term to cache.
  * @param query The query to cache.
  */
-const dispatchCacheUpdater = async (
+const dispatchCacheUpdater = (
   lambdaClient: LambdaClient,
   tableName: string,
   term: Term,
   query: WebsocAPIOptions
-): Promise<void> => {
-  await lambdaClient.send(
-    new InvokeCommand({
-      FunctionName: "peterportal-api-next-websoc-cache-updater",
-      InvocationType: InvocationType.Event,
-      Payload: JSON.stringify({
-        tableName,
-        term,
-        query,
-      }) as unknown as Uint8Array,
-    })
-  );
+): void => {
+  lambdaClient
+    .send(
+      new InvokeCommand({
+        FunctionName: "peterportal-api-next-websoc-cache-updater",
+        InvocationType: InvocationType.Event,
+        Payload: JSON.stringify({
+          tableName,
+          term,
+          query,
+        }) as unknown as Uint8Array,
+      })
+    )
+    .then(() => {
+      // noop
+    });
 };
 
 /**
@@ -372,15 +377,31 @@ const isTwiceCacheable = (query: WebsocAPIOptions): boolean =>
     .length === 1 &&
   !!(
     (query.department &&
-      !query.courseNumber?.includes("-") &&
-      !query.courseNumber?.includes(",")) ||
+      query.courseNumber &&
+      !query.courseNumber.includes("-") &&
+      !query.courseNumber.includes(",")) ||
     query.sectionCodes?.includes(",")
   );
 
 export const rawHandler = async (
   request: IRequest
 ): Promise<APIGatewayProxyResult> => {
+  /* Initialize the logger. */
+
+  const devFormat = format.combine(
+    format.colorize({ all: true }),
+    format.timestamp(),
+    format.printf((info) => `${info.timestamp} [${info.level}] ${info.message}`)
+  );
+  const prodFormat = format.printf((info) => `[${info.level}] ${info.message}`);
+  const logger = createLogger({
+    level: "info",
+    format: process.env.NODE_ENV === "development" ? devFormat : prodFormat,
+    transports: [new transports.Console()],
+    exitOnError: false,
+  });
   const { method, path, query, requestId } = request.getParams();
+  logger.info(`${method} ${path} ${JSON.stringify(query)}`);
   switch (method) {
     case "GET":
     case "HEAD":
@@ -389,6 +410,7 @@ export const rawHandler = async (
         for (const param of ["year", "quarter"]) {
           if (!query[param]) {
             return createErrorResult(
+              logger,
               400,
               `Parameter ${param} not provided`,
               requestId
@@ -404,6 +426,7 @@ export const rawHandler = async (
           )
         ) {
           return createErrorResult(
+            logger,
             400,
             "You must provide at least one of ge, department, sectionCode, and instructorName",
             requestId
@@ -415,17 +438,28 @@ export const rawHandler = async (
           isNaN(parseInt(query.year)) ||
           parseInt(query.year).toString().length !== 4
         ) {
-          return createErrorResult(400, "Invalid year provided", requestId);
+          return createErrorResult(
+            logger,
+            400,
+            "Invalid year provided",
+            requestId
+          );
         }
         if (
           typeof query.quarter !== "string" ||
           !quarters.includes(query.quarter as Quarter)
         ) {
-          return createErrorResult(400, "Invalid quarter provided", requestId);
+          return createErrorResult(
+            logger,
+            400,
+            "Invalid quarter provided",
+            requestId
+          );
         }
         // Validate building/room parameters.
         if (!query.building && query.room) {
           return createErrorResult(
+            logger,
             400,
             "You must provide a building code if you provide a room number",
             requestId
@@ -442,6 +476,7 @@ export const rawHandler = async (
             !isValidOptionalParameter(query, param, validParams as unknown[])
           ) {
             return createErrorResult(
+              logger,
               400,
               `Invalid value for parameter ${param} provided`,
               requestId
@@ -462,6 +497,7 @@ export const rawHandler = async (
         ]) {
           if (Array.isArray(query[param])) {
             return createErrorResult(
+              logger,
               400,
               `Parameter ${param} cannot be provided more than once`,
               requestId
@@ -481,7 +517,7 @@ export const rawHandler = async (
           const tableName = "peterportal-api-next-websoc-cache";
           const sortKey: SortKey = {
             name: "invalidateBy",
-            value: Date.now(),
+            value: Math.floor(Date.now() / 1000),
             cmp: ">=",
           };
           const lambdaClient = new LambdaClient({});
@@ -491,41 +527,54 @@ export const rawHandler = async (
           // the next query. Otherwise, dispatch the cache updater.
           for (const [i, q] of Object.entries(queries)) {
             if (!q) continue;
+            const requestHash = hash([term, q]);
             try {
               const items = (
                 await docClient.query(
                   tableName,
-                  { name: "requestHash", value: hash([term, q]) },
+                  { name: "requestHash", value: requestHash },
                   sortKey
                 )
               )?.Items;
               if (items?.length) {
+                logger.info(`Cache hit (${requestHash}): ${JSON.stringify(q)}`);
                 queries[parseInt(i)] = undefined;
                 ret = combineResponses(items.slice(-1)[0].data, ret);
                 continue;
               } else {
-                await dispatchCacheUpdater(lambdaClient, tableName, term, q);
+                logger.info(
+                  `Cache miss (${requestHash}): ${JSON.stringify(q)}`
+                );
+                dispatchCacheUpdater(lambdaClient, tableName, term, q);
               }
             } catch (e) {
+              logger.warn(
+                `Error occurred while querying cache for ${JSON.stringify(
+                  q
+                )} with hash ${requestHash}`
+              );
+              logger.warn(`Stack trace: ${e}`);
               continue;
             }
             if (!isTwiceCacheable(q)) continue;
             if (q.department) {
               try {
+                const altQuery: WebsocAPIOptions = { department: q.department };
+                const requestHash = hash([term, altQuery]);
                 const items = (
                   await docClient.query(
                     tableName,
                     {
                       name: "requestHash",
-                      value: hash([
-                        term,
-                        { department: q.department } as WebsocAPIOptions,
-                      ]),
+                      value: requestHash,
                     },
                     sortKey
                   )
                 )?.Items;
                 if (items?.length) {
+                  logger.info(
+                    `Cache hit (${requestHash}): ${JSON.stringify(q)}`
+                  );
                   queries[parseInt(i)] = undefined;
                   const data: WebsocAPIResponse = items.slice(-1)[0].data;
                   data.schools[0].departments[0].courses =
@@ -534,11 +583,18 @@ export const rawHandler = async (
                     );
                   ret = combineResponses(data, ret);
                 } else {
-                  await dispatchCacheUpdater(lambdaClient, tableName, term, {
-                    department: q.department,
-                  });
+                  logger.info(
+                    `Cache miss (${requestHash}): ${JSON.stringify(q)}`
+                  );
+                  dispatchCacheUpdater(lambdaClient, tableName, term, altQuery);
                 }
               } catch (e) {
+                logger.warn(
+                  `Error occurred while querying cache for ${JSON.stringify(
+                    q
+                  )} with hash (${requestHash})`
+                );
+                logger.warn(`Stack trace: ${e}`);
                 continue;
               }
             }
@@ -563,6 +619,7 @@ export const rawHandler = async (
                   )
                 );
                 if (items.every((x) => x?.length)) {
+                  logger.info(`Cache hit: ${JSON.stringify(q)}`);
                   queries[parseInt(i)] = undefined;
                   ret = combineResponses(
                     ...items.map(
@@ -571,16 +628,18 @@ export const rawHandler = async (
                     ret
                   );
                 } else {
-                  await Promise.all(
-                    sectionCodes.map((sectionCode) =>
-                      dispatchCacheUpdater(lambdaClient, tableName, term, {
-                        sectionCodes: sectionCode,
-                      })
-                    )
+                  logger.info(`Cache miss: ${JSON.stringify(q)}`);
+                  sectionCodes.map((sectionCode) =>
+                    dispatchCacheUpdater(lambdaClient, tableName, term, {
+                      sectionCodes: sectionCode,
+                    })
                   );
                 }
               } catch (e) {
-                // noop
+                logger.warn(
+                  `Error occurred while querying cache for ${JSON.stringify(q)}`
+                );
+                logger.warn(`Stack trace: ${e}`);
               }
             }
           }
@@ -604,21 +663,38 @@ export const rawHandler = async (
           );
           for (const [i, r] of Object.entries(res)) {
             if ("value" in r) {
+              logger.info(
+                `WebSoc query for ${JSON.stringify(
+                  queries[parseInt(i)]
+                )} succeeded`
+              );
               queries[parseInt(i)] = undefined;
               ret = combineResponses(r.value, ret);
+            } else {
+              logger.info(
+                `WebSoc query for ${JSON.stringify(
+                  queries[parseInt(i)]
+                )} failed`
+              );
             }
           }
           queries = queries.filter((q) => q);
           if (!queries.length) break;
+          logger.info(``);
           await sleep(1000);
         }
         // Sort the response and return it.
-        return createOKResult(sortResponse(ret), requestId);
+        return createOKResult(logger, sortResponse(ret), requestId);
       } catch (e) {
-        return createErrorResult(500, e, requestId);
+        return createErrorResult(logger, 500, e, requestId);
       }
     default:
-      return createErrorResult(400, `Cannot ${method} ${path}`, requestId);
+      return createErrorResult(
+        logger,
+        400,
+        `Cannot ${method} ${path}`,
+        requestId
+      );
   }
 };
 

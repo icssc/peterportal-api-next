@@ -118,6 +118,7 @@ export class ApiStack extends Stack {
         allowHeaders: ["Content-Type"],
         allowMethods: ["GET", "HEAD", "POST"],
       },
+      disableExecuteApiEndpoint: true,
       domainName: {
         domainName: `${recordName}.${zoneName}`,
         certificate: Certificate.fromCertificateArn(

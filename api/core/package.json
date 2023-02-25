@@ -8,6 +8,7 @@
   "devDependencies": {
     "@types/aws-lambda": "^8.10.109",
     "aws-lambda": "^1.0.7",
-    "peterportal-api-next-types": "*"
+    "peterportal-api-next-types": "*",
+    "winston": "^3.8.2"
   }
 }

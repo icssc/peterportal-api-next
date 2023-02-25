@@ -1,10 +1,11 @@
-import {
+import type {
   APIGatewayProxyEvent,
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
-import { Request, RequestHandler } from "express";
-import { ErrorResponse, Response } from "peterportal-api-next-types";
+import type { Request, RequestHandler } from "express";
+import type { ErrorResponse, Response } from "peterportal-api-next-types";
+import type { Logger } from "winston";
 
 // You should not need to touch anything else in this file,
 // unless you know what you are doing.
@@ -174,11 +175,14 @@ interface HandlerParams {
 /* region Exported helper functions */
 
 /**
- * Helper function for creating the result associated with a 200 OK response.
+ * Helper function for logging "200 OK" and then creating the result associated
+ * with that response.
+ * @param logger
  * @param payload The payload to send in the response.
  * @param requestId The request ID associated with the request.
  */
 export const createOKResult = <T>(
+  logger: Logger,
   payload: T,
   requestId: string
 ): APIGatewayProxyResult => {
@@ -188,6 +192,7 @@ export const createOKResult = <T>(
     statusCode: 200,
     payload,
   };
+  logger.info("200 OK");
   return {
     statusCode: 200,
     body: JSON.stringify(body),
@@ -200,12 +205,17 @@ export const createOKResult = <T>(
 };
 
 /**
- * Helper function for creating the result associated with an erroneous response.
+ * Helper function for logging the error and then creating the result
+ * associated with that erroneous response.
+ * @param logger The logger to send the error message to.
  * @param statusCode The status code to send in the response.
- * @param error The error to send in the response. Note that this is of type ``unknown`` because caught ``Error``s in TypeScript are always typed as ``unknown``.
+ * @param error The error to send in the response.
+ * Note that this is of type ``unknown``,
+ * because caught ``Error``s in TypeScript are always typed as ``unknown``.
  * @param requestId The request ID associated with the request.
  */
 export const createErrorResult = (
+  logger: Logger,
   statusCode: number,
   error: unknown,
   requestId: string
@@ -222,6 +232,7 @@ export const createErrorResult = (
         ? error
         : "An unknown error has occurred. Please try again.",
   };
+  logger.info(`${body.statusCode} ${body.error}: ${body.message}`);
   return {
     statusCode,
     body: JSON.stringify(body),
