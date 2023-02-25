@@ -1,7 +1,6 @@
 import { transform } from "camaro";
 import { load } from "cheerio";
 import fetch from "cross-fetch";
-import { XMLParser } from "fast-xml-parser";
 import {
   CancelledCourses,
   Department,
