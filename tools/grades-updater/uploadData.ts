@@ -34,7 +34,7 @@ function createParser(filePath: string): Parser {
           case "w":
             return parseInt(value || "0");
           case "instructors":
-            return value.split("; ");
+            return new Set(value.split("; "));
           case "gpaAvg":
             return parseFloat(value || "0");
           default:
