@@ -1,5 +1,5 @@
 import { describe, expect, test } from "@jest/globals";
-import { getCourseHistory, getDepartmentCourses, getDirectoryInfo, getFacultyLinks, getInstructorNames, parseHistoryPage } from "./index";
+import { getCourseHistory, getDepartmentCourses, getDirectoryInfo, getFacultyLinks, getInstructorNames, parseHistoryPage, getInstructor } from "./index";
 import axios from 'axios';
 
 
@@ -76,9 +76,18 @@ describe("instructorScraper tests", () => {
     });
     test("getCourseHistory", async () => {
         const courseHistory = await getCourseHistory("Alexander W. Thornton", ["COMPSCI","IN4MATX","I&C SCI","SWE","STATS"]);
-        console.log(courseHistory)
         expect(courseHistory).toHaveProperty("shortened_name", "THORNTON, A.");
         expect(courseHistory).toHaveProperty("course_history");
-        expect(courseHistory['course_history']["I&C SCI 46"]).toEqual(expect.arrayContaining(["S22", "W22", "S21", "W21", "S20", "W20", "S18", "W18", "S17", "S16", "S15", "S14"]));
+        expect(courseHistory["course_history"]["I&C SCI 46"]).toEqual(expect.arrayContaining(["S22", "W22", "S21", "W21", "S20", "W20", "S18", "W18", "S17", "S16", "S15", "S14"]));
+    }, 50000);
+    test("getInstructor", async () => {
+        const instructor = await getInstructor("Alexander W. Thornton", ['ICS'], ["COMPSCI","IN4MATX","I&C SCI","SWE","STATS"]);
+        expect(instructor).toHaveProperty("shortened_name", "THORNTON, A.");
+        expect(instructor).toHaveProperty("name", "Alexander W Thornton");
+        expect(instructor).toHaveProperty("title", "Continuing Lecturer");
+        expect(instructor).toHaveProperty("email", "thornton@uci.edu");
+        expect(instructor).toHaveProperty("course_history");
+        expect(instructor["course_history"]["I&C SCI 46"]).toEqual(expect.arrayContaining(["S22", "W22", "S21", "W21", "S20", "W20", "S18", "W18", "S17", "S16", "S15", "S14"]));
+
     }, 50000);
 });

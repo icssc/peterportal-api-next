@@ -1,7 +1,10 @@
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import he from 'he';
+import pLimit from 'p-limit';
 
+
+const limit = pLimit(600000);   // Max number of concurrent calls
 
 const CATALOGUE_BASE_URL: string = 'http://catalogue.uci.edu';
 const URL_TO_ALL_SCHOOLS: string = 'http://catalogue.uci.edu/schoolsandprograms/';
@@ -25,6 +28,81 @@ type Instructor = {
 type InstructorsData = {
   [ucinetid: string]: Instructor
 }
+
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+export async function getAllInstructors() {
+    const facultyLinks = await getFacultyLinks();
+    console.log("Retrieved", Object.keys(facultyLinks).length, "faculty links");
+    const instructorNamePromises = Object.keys(facultyLinks).map(link => getInstructorNames(link));
+    await sleep(1000);  // Wait 1 second before scraping site again or catalogue.uci will throw a fit
+    const facultyCoursesPromises = Object.keys(facultyLinks).map(link => getDepartmentCourses(link));
+    const instructorNames = await Promise.all(instructorNamePromises);
+    const facultyCourses = await Promise.all(facultyCoursesPromises);
+    // Build dictionary containing instructor_name and their associated schools/courses
+    const instructorsDict: {[name: string]: {schools: string[], courses: Set<string>}} = {};
+    Object.keys(facultyLinks).forEach((link, i) => {
+        instructorNames[i].forEach(name => {
+            if (!instructorsDict[name]) {
+                instructorsDict[name] = {
+                    schools: [facultyLinks[link]], 
+                    courses: new Set(facultyCourses[i])
+                }
+            }
+            else {
+                instructorsDict[name].schools.push(facultyLinks[link]);
+                facultyCourses[i].forEach(instructorsDict[name].courses.add, instructorsDict[name].courses);
+            }
+        });
+    })
+    console.log("Retrieved", Object.keys(instructorsDict).length, "faculty members")
+    const instructorPromises = Object.keys(instructorsDict).map(name => limit(() =>  
+        getInstructor(name, instructorsDict[name].schools, Array.from(instructorsDict[name].courses))
+    ));
+    const instructors = await Promise.all(instructorPromises);
+    console.log(instructors.length);
+
+}
+
+
+export async function getInstructor(instructorName: string, schools: string[], relatedDepartments: string[]): Promise<Instructor> {
+    const instructorObject: Instructor = {
+        name: '', 
+        ucinetid: '', 
+        title: '', 
+        department: '', 
+        email: '', 
+        schools: schools, 
+        related_departments: relatedDepartments, 
+        shortened_name: '', 
+        course_history: {}
+    };
+    try {
+        //console.log('Getting', instructorName);
+        const [directoryInfo, courseHistory] = await Promise.all([
+            getDirectoryInfo(instructorName),
+            getCourseHistory(instructorName, relatedDepartments)
+        ]);
+        if (Object.keys(directoryInfo).length === 0) {
+            console.log(`WARNING! ${instructorName} cannot be found in Directory!`);
+            return instructorObject;
+        }
+        instructorObject['name'] = directoryInfo['name'];
+        instructorObject['ucinetid'] = directoryInfo['ucinetid'];
+        instructorObject['title'] = directoryInfo['title'];
+        instructorObject['department'] = directoryInfo['department'];
+        instructorObject['email'] = directoryInfo['email'];
+        instructorObject['shortened_name'] = courseHistory['shortened_name'];
+        instructorObject['course_history'] = courseHistory['course_history'];
+    }
+    catch (error) {
+        console.log(error);
+    }
+    return instructorObject;
+}
+
 
 /**
  * Returns the faculty links and their corresponding school name
@@ -83,7 +161,7 @@ export async function getFacultyLinks(): Promise<{ [faculty_link: string]: strin
             schoolLinks.push([CATALOGUE_BASE_URL + schoolURL + '#faculty', schoolName]);
         });
         // Asynchronously call getFaculty on each link
-        const schoolLinksPromises = schoolLinks.map(x => getFaculty(x[0], x[1], 1)); // If depth > 1, will loop infinitely
+        const schoolLinksPromises = schoolLinks.map(x =>  getFaculty(x[0], x[1], 1)); // If depth > 1, will loop infinitely
         const schoolLinksResults = await Promise.all(schoolLinksPromises);
         schoolLinksResults.forEach(schoolURLs => {
             for (let schoolName in schoolURLs) {
@@ -94,7 +172,7 @@ export async function getFacultyLinks(): Promise<{ [faculty_link: string]: strin
         })
         return result;
     }
-    catch (error) {
+    catch (error: unknown) {
         console.log(error);
     }
     return result;
@@ -177,15 +255,10 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
 }
 
 
-// async function getAllInstructors(departmentCodes: string, school:string): { [key: string] } {
-// pain    
-// }
-
-
 /**
  * Gets the instructor's directory info
  * 
- * @param instructorName - Name of instructor
+ * @param instructorName - Name of instructor (replace "." with " ")
  * @returns {object} Dictionary of instructor's info
  * Example:
  *      {
@@ -196,19 +269,42 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
         }
  */
 export async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]: string }> {
-    const data = {'uciKey': instructorName};
+    const headers = {
+        'Content-Type': 'application/x-www-form-urlencoded'
+    };
+    const name = instructorName.replace(/\./g,'');
+    const data = {'uciKey': name};
+    //console.log(data['uciKey']);
     try {
-        const response = await axios.post(URL_TO_DIRECTORY, data, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        });
-        const json = response.data[0][1];
-        return {
-            'name': he.decode(json.Name),
-            'ucinetid': json.UCInetID,
-            'title': he.decode(json.Title), // decode HTML encoded char
-            'email': Buffer.from(json.Email, 'base64').toString('utf8') // decode Base64 email
+        let response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+        // Result found using base name
+        if (response.data.length !== 0) {
+            const json = response.data[0][1];
+            return {
+                'name': he.decode(json.Name),
+                'ucinetid': json.UCInetID,
+                'title': he.decode(json.Title), // decode HTML encoded char
+                'department': he.decode(json.Department),
+                'email': Buffer.from(json.Email, 'base64').toString('utf8') // decode Base64 email
+            };
+        }
+        // Try again without middle initial
+        const nameSplit = name.split(' ');
+        data['uciKey'] = [nameSplit[0], nameSplit[nameSplit.length-1]].join(' ');
+        response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+        if (response.data.length !== 0) {
+            const json = response.data[0][1];
+            // Check if second initial matches
+            return {
+                'name': he.decode(json.Name),
+                'ucinetid': json.UCInetID,
+                'title': he.decode(json.Title), // decode HTML encoded char
+                'department': he.decode(json.Department),
+                'email': Buffer.from(json.Email, 'base64').toString('utf8') // decode Base64 email
+            };
+        }
+        if (response.data.length === 0) {
+            return {};
         }
     }
     catch (error) {
@@ -234,7 +330,7 @@ export async function getCourseHistory(instructorName: string, relatedDepartment
 } > {
     const courseHistory: { [key: string]: Set<string> } = {};
     const nameCounts: { [key: string]: number } = {};
-    const name = instructorName.split(' '); // ['Alexander W. Thornton']
+    const name = instructorName.replace(/\./g,'').split(' '); // ['Alexander W Thornton']
     let shortenedName = `${name[name.length-1]}, ${name[0][0]}.`; // 'Thornton, A.'
     const params = {
         'order': 'term',
@@ -330,6 +426,11 @@ export function parseHistoryPage(
             }
             return true; // Continue looping
         });
+        // Last page of course history
+        if ($('a:contains("Prev")').length === 0) {
+            entryFound = false;
+            return false;
+        }
     }
     catch(error) {
         console.log(error);
