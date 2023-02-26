@@ -18,9 +18,6 @@
       "files": ["**/*.ts", "**/*.tsx"],
       "env": { "es2020": true, "node": true },
       "parser": "@typescript-eslint/parser",
-      "parserOptions": {
-        "project": ["./tsconfig.json"]
-      },
       "plugins": ["import", "simple-import-sort", "@typescript-eslint"],
       "extends": [
         "eslint:recommended",

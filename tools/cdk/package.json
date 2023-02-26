@@ -1,5 +1,5 @@
 {
-  "name": "api-cdk",
+  "name": "tools-cdk",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -7,7 +7,7 @@
     "deploy": "cdk deploy --all --require-approval never"
   },
   "dependencies": {
-    "api-route-websoc": "*"
+    "tools-websoc-cache-updater": "*"
   },
   "devDependencies": {
     "@types/babel__traverse": "^7.18.3",
