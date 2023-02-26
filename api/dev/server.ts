@@ -1,4 +1,6 @@
+import { expressMiddleware } from "@apollo/server/express4";
 import { createErrorResult, zeroUUID } from "api-core";
+import { graphqlServer } from "api-route-graphql";
 import express from "express";
 import { createLogger, format, transports } from "winston";
 
@@ -20,6 +22,10 @@ const logger = createLogger({
 app.set("query parser", "simple");
 app.use(express.json());
 app.use(router);
+graphqlServer.start().catch(() => {
+  // noop
+});
+app.use("/v1/graphql", expressMiddleware(graphqlServer));
 
 app.all("*", (req, res) => {
   logger.info(
