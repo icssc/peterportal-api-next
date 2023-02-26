@@ -1,4 +1,5 @@
 import { ApolloServer } from "@apollo/server";
+import { expressMiddleware } from "@apollo/server/express4";
 import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault,
@@ -16,7 +17,7 @@ const cwd = import.meta.url
   ? dirname(fileURLToPath(import.meta.url))
   : __dirname;
 
-export const graphqlServer = new ApolloServer({
+const graphqlServer = new ApolloServer({
   typeDefs: mergeTypeDefs(loadFilesSync(join(cwd, "schema/*.graphql"))),
   resolvers: mergeResolvers(loadFilesSync(join(cwd, "resolver/*.{js,ts}"))),
   plugins: [
@@ -25,6 +26,12 @@ export const graphqlServer = new ApolloServer({
       : ApolloServerPluginLandingPageProductionDefault({ footer: false }),
   ],
 });
+
+export const expressHandlerFactory = () => {
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  graphqlServer.start().catch(() => {});
+  return expressMiddleware(graphqlServer);
+};
 
 export const lambdaHandler = startServerAndCreateLambdaHandler(
   graphqlServer,
