@@ -1,6 +1,7 @@
 import { build } from "esbuild";
 import { cp, mkdir, rm } from "fs/promises";
 import { dirname, join } from "path";
+import glob from "tiny-glob";
 import { fileURLToPath } from "url";
 
 (async () => {
@@ -8,7 +9,10 @@ import { fileURLToPath } from "url";
   /** @type {import("esbuild").BuildOptions} */
   const options = {
     bundle: true,
-    entryPoints: [join(cwd, "index.ts"), join(cwd, "resolver/websoc.ts")],
+    entryPoints: [
+      join(cwd, "index.ts"),
+      ...(await glob(join(cwd, "resolver/*.ts"))),
+    ],
     logLevel: "error",
     minify: true,
     outdir: join(cwd, "dist/"),
