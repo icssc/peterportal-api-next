@@ -6,6 +6,7 @@ import type {
 import type { Request, RequestHandler } from "express";
 import type { ErrorResponse, Response } from "peterportal-api-next-types";
 import type { Logger } from "winston";
+import { createLogger, format, transports } from "winston";
 
 // You should not need to touch anything else in this file,
 // unless you know what you are doing.
@@ -51,6 +52,23 @@ export const months = [
   "Nov",
   "Dec",
 ] as const;
+
+// The default logger used by all API routes.
+export const logger = createLogger({
+  level: "info",
+  format:
+    process.env.NODE_ENV === "development"
+      ? format.combine(
+          format.colorize({ all: true }),
+          format.timestamp(),
+          format.printf(
+            (info) => `${info.timestamp} [${info.level}] ${info.message}`
+          )
+        )
+      : format.printf((info) => `[${info.level}] ${info.message}`),
+  transports: [new transports.Console()],
+  exitOnError: false,
+});
 
 /* endregion */
 

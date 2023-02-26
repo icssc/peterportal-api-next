@@ -13,8 +13,7 @@
     "api-core": "*",
     "ddb": "*",
     "object-hash": "^3.0.0",
-    "websoc-api-next": "*",
-    "winston": "^3.8.2"
+    "websoc-api-next": "*"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.109",

@@ -8,6 +8,7 @@ import {
   createErrorResult,
   createLambdaHandler,
   createOKResult,
+  logger,
 } from "api-core";
 import type {
   APIGatewayProxyEvent,
@@ -36,7 +37,6 @@ import {
 } from "peterportal-api-next-types";
 import type { WebsocAPIOptions } from "websoc-api-next";
 import { callWebSocAPI } from "websoc-api-next";
-import { createLogger, format, transports } from "winston";
 
 /**
  * Given a string of comma-separated values or an array of such strings,
@@ -386,20 +386,6 @@ const isTwiceCacheable = (query: WebsocAPIOptions): boolean =>
 export const rawHandler = async (
   request: IRequest
 ): Promise<APIGatewayProxyResult> => {
-  /* Initialize the logger. */
-
-  const devFormat = format.combine(
-    format.colorize({ all: true }),
-    format.timestamp(),
-    format.printf((info) => `${info.timestamp} [${info.level}] ${info.message}`)
-  );
-  const prodFormat = format.printf((info) => `[${info.level}] ${info.message}`);
-  const logger = createLogger({
-    level: "info",
-    format: process.env.NODE_ENV === "development" ? devFormat : prodFormat,
-    transports: [new transports.Console()],
-    exitOnError: false,
-  });
   const { method, path, query, requestId } = request.getParams();
   logger.info(`${method} ${path} ${JSON.stringify(query)}`);
   switch (method) {
