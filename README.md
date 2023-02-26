@@ -8,9 +8,10 @@ The _Next_ version of the PeterPortal API is rewritten from the ground up, with 
 
 ## 🔨 Built with
 
-- [AWS CDK](https://aws.amazon.com/cdk/)
+- AWS [CDK](https://aws.amazon.com/cdk/) and [SDK](https://aws.amazon.com/sdk-for-javascript/)
 - [Docusaurus](https://docusaurus.io/)
-- [GraphQL](https://graphql.org/)
+- [esbuild](https://esbuild.github.io/)
+- [GraphQL](https://graphql.org/) with [Apollo Server](https://www.apollographql.com/docs/apollo-server/)
 - [Prisma](https://www.prisma.io/)
 - [Turborepo](https://turbo.build/repo/)
 - [TypeScript](https://www.typescriptlang.org/)
