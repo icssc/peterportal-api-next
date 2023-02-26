@@ -3,40 +3,21 @@ import {
   handlers,
   startServerAndCreateLambdaHandler,
 } from "@as-integrations/aws-lambda";
+import { loadFilesSync } from "@graphql-tools/load-files";
+import { mergeResolvers, mergeTypeDefs } from "@graphql-tools/merge";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
 
-const typeDefs = `#graphql
-type Book {
-  title: String
-  author: String
-}
-type Query {
-  books: [Book]
-}
-`;
-
-const books = [
-  {
-    title: "The Awakening",
-    author: "Kate Chopin",
-  },
-  {
-    title: "City of Glass",
-    author: "Paul Auster",
-  },
-];
-
-const resolvers = {
-  Query: {
-    books: () => books,
-  },
-};
+const cwd = import.meta.url
+  ? dirname(fileURLToPath(import.meta.url))
+  : __dirname;
 
 export const graphqlServer = new ApolloServer({
-  typeDefs,
-  resolvers,
+  typeDefs: mergeTypeDefs(loadFilesSync(join(cwd, "schema/*.graphql"))),
+  resolvers: mergeResolvers(loadFilesSync(join(cwd, "resolver/*.{js,ts}"))),
 });
 
 export const lambdaHandler = startServerAndCreateLambdaHandler(
   graphqlServer,
-  handlers.createAPIGatewayProxyEventV2RequestHandler()
+  handlers.createAPIGatewayProxyEventRequestHandler()
 );

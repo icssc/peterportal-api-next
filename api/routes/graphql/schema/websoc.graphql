@@ -1,0 +1,116 @@
+type WebsocSectionMeeting {
+  days: String!
+  time: String!
+  bldg: [String!]!
+}
+type WebsocSectionEnrollment {
+  totalEnrolled: String!
+  sectionEnrolled: String!
+}
+type WebsocSection {
+  sectionCode: String!
+  sectionType: String!
+  sectionNum: String!
+  units: String!
+  instructors: [String!]!
+  meetings: [WebsocSectionMeeting!]!
+  finalExam: String!
+  maxCapacity: String!
+  numCurrentlyEnrolled: WebsocSectionEnrollment!
+  numOnWaitlist: String!
+  numRequested: String!
+  numNewOnlyReserved: String!
+  restrictions: String!
+  status: String!
+  sectionComment: String!
+}
+type WebsocCourse {
+  deptCode: String!
+  courseNumber: String!
+  courseTitle: String!
+  courseComment: String!
+  prerequisiteLink: String!
+  sections: [WebsocSection!]!
+}
+type WebsocDepartment {
+  deptName: String!
+  deptCode: String!
+  deptComment: String!
+  courses: [WebsocCourse!]!
+  sectionCodeRangeComments: [String!]!
+  courseNumberRangeComments: [String!]!
+}
+type WebsocSchool {
+  schoolName: String!
+  schoolComment: String!
+  departments: [WebsocDepartment!]!
+}
+type WebsocAPIResponse {
+  schools: [WebsocSchool!]!
+}
+enum GE {
+  GE_1A
+  GE_1B
+  GE_2
+  GE_3
+  GE_4
+  GE_5A
+  GE_5B
+  GE_6
+  GE_7
+}
+enum Division {
+  ANY
+  LowerDiv
+  UpperDiv
+  Graduate
+}
+enum SectionType {
+  ANY
+  Act
+  Col
+  Dis
+  Fld
+  Lab
+  Lec
+  Qiz
+  Res
+  Sem
+  Stu
+  Tap
+  Tut
+}
+enum FullCourses {
+  ANY
+  SkipFullWaitlist
+  FullOnly
+  OverEnrolled
+}
+enum CancelledCourses {
+  Exclude
+  Include
+  Only
+}
+extend type Query {
+  websoc(
+    year: String!
+    quarter: String!
+    ge: GE
+    department: String
+    sectionCodes: String
+    instructorName: String
+    building: String
+    room: String
+    division: Division
+    courseNumber: String
+    courseTitle: String
+    sectionType: SectionType
+    units: String
+    days: String
+    startTime: String
+    endTime: String
+    maxCapacity: String
+    fullCourses: FullCourses
+    cancelledCourses: CancelledCourses
+  ): WebsocAPIResponse
+}

@@ -1,5 +1,5 @@
 import { build } from "esbuild";
-import { mkdir, rm } from "fs/promises";
+import { cp, mkdir, rm } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -8,10 +8,11 @@ import { fileURLToPath } from "url";
   /** @type {import("esbuild").BuildOptions} */
   const options = {
     bundle: true,
-    entryPoints: [join(cwd, "index.ts")],
-    logLevel: "info",
+    entryPoints: [join(cwd, "index.ts"), join(cwd, "resolver/websoc.ts")],
+    logLevel: "error",
     minify: true,
-    outfile: join(cwd, "dist/index.cjs"),
+    outdir: join(cwd, "dist/"),
+    outExtension: { ".js": ".cjs" },
     platform: "node",
     plugins: [
       {
@@ -20,6 +21,16 @@ import { fileURLToPath } from "url";
           build.onStart(async () => {
             await rm(join(cwd, "dist/"), { recursive: true, force: true });
             await mkdir(join(cwd, "dist/"));
+          });
+        },
+      },
+      {
+        name: "copy",
+        setup(build) {
+          build.onEnd(async () => {
+            await cp(join(cwd, "schema/"), join(cwd, "dist/schema/"), {
+              recursive: true,
+            });
           });
         },
       },
