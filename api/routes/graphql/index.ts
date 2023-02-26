@@ -1,5 +1,9 @@
 import { ApolloServer } from "@apollo/server";
 import {
+  ApolloServerPluginLandingPageLocalDefault,
+  ApolloServerPluginLandingPageProductionDefault,
+} from "@apollo/server/plugin/landingPage/default";
+import {
   handlers,
   startServerAndCreateLambdaHandler,
 } from "@as-integrations/aws-lambda";
@@ -15,6 +19,11 @@ const cwd = import.meta.url
 export const graphqlServer = new ApolloServer({
   typeDefs: mergeTypeDefs(loadFilesSync(join(cwd, "schema/*.graphql"))),
   resolvers: mergeResolvers(loadFilesSync(join(cwd, "resolver/*.{js,ts}"))),
+  plugins: [
+    process.env.NODE_ENV === "development"
+      ? ApolloServerPluginLandingPageLocalDefault()
+      : ApolloServerPluginLandingPageProductionDefault({ footer: false }),
+  ],
 });
 
 export const lambdaHandler = startServerAndCreateLambdaHandler(
