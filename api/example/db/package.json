@@ -9,7 +9,8 @@
   },
   "dependencies": {
     "api-core": "*",
-    "db": "*"
+    "db": "*",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.109",

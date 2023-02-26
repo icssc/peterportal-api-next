@@ -8,7 +8,9 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "api-core": "*"
+    "api-core": "*",
+    "api-route-example-db": "^0.0.0",
+    "winston": "^3.8.2"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.109",

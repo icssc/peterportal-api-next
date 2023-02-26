@@ -9,17 +9,35 @@ import {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
+import { createLogger, format, transports } from "winston";
 
 export const rawHandler = async (
   request: IRequest
 ): Promise<APIGatewayProxyResult> => {
+  const devFormat = format.combine(
+    format.colorize({ all: true }),
+    format.timestamp(),
+    format.printf((info) => `${info.timestamp} [${info.level}] ${info.message}`)
+  );
+  const prodFormat = format.printf((info) => `[${info.level}] ${info.message}`);
+  const logger = createLogger({
+    level: "info",
+    format: process.env.NODE_ENV === "development" ? devFormat : prodFormat,
+    transports: [new transports.Console()],
+    exitOnError: false,
+  });
   const { method, path, requestId } = request.getParams();
   switch (method) {
     case "GET":
     case "HEAD":
-      return createOKResult({}, requestId);
+      return createOKResult(logger, {}, requestId);
     default:
-      return createErrorResult(400, `Cannot ${method} ${path}`, requestId);
+      return createErrorResult(
+        logger,
+        400,
+        `Cannot ${method} ${path}`,
+        requestId
+      );
   }
 };
 
