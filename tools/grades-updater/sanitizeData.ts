@@ -14,6 +14,7 @@ import {
   type Grade,
   __dirname,
   dataColumns,
+  handleError,
   logger,
 } from "./gradesUpdaterUtil";
 
@@ -209,7 +210,7 @@ async function processFile(filePath: string): Promise<void> {
 
   stream.write(dataColumns.join(",") + EOL);
   for await (const rawInfo of courseParser) {
-    logger.info("Start processing course", {
+    logger.info("Started processing course", {
       year: rawInfo.year,
       quarter: rawInfo.quarter,
       courseCode: rawInfo.courseCode,
@@ -219,7 +220,7 @@ async function processFile(filePath: string): Promise<void> {
       if (stream.write(stringify([info])) === false) {
         stream.once("drain", () => ({}));
       }
-      logger.info("Finish processing course", info);
+      logger.info("Finished processing course", info);
     } else {
       logger.warn("No matching course found", {
         year: rawInfo.year,
@@ -250,6 +251,4 @@ async function sanitizeData(): Promise<void> {
   );
 }
 
-sanitizeData().catch((error: any) =>
-  logger.error("Error encountered", { trace: error.stack })
-);
+sanitizeData().catch(handleError);

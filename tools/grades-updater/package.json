@@ -5,8 +5,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "sanitize": "npx tsx sanitizeData.ts",
-    "upload": "npx tsx uploadData.ts"
+    "sanitize": "tsx sanitizeData.ts",
+    "upload": "tsx uploadData.ts"
   },
   "dependencies": {
     "csv-parse": "^5.3.5",

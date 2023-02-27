@@ -68,4 +68,16 @@ function createLogger(): Logger {
 
 const logger: Logger = createLogger();
 
-export { __dirname, dataColumns, logger };
+/**
+ * If an error is thrown, catch it by printing its information.
+ * @param error Anything after the throw statement.
+ */
+function handleError(error: unknown): void {
+  if (error instanceof Error) {
+    logger.error("Error encountered", { trace: error.stack });
+  } else {
+    logger.error(error);
+  }
+}
+
+export { __dirname, dataColumns, handleError, logger };

@@ -4,7 +4,12 @@ import fs from "fs";
 import { resolve } from "path";
 import type { Quarter } from "peterportal-api-next-types";
 
-import { __dirname, dataColumns, logger } from "./gradesUpdaterUtil";
+import {
+  __dirname,
+  dataColumns,
+  handleError,
+  logger,
+} from "./gradesUpdaterUtil";
 
 const prisma: PrismaClient = new PrismaClient();
 
@@ -103,16 +108,16 @@ async function processData(grades: string, instructors: string): Promise<void> {
   // executeRaw() has some limitations on template variables, preventing
   // them from being used in the actual query.
   await prisma.$transaction([
-    prisma.$executeRawUnsafe(`
-      INSERT INTO grades (
+    prisma.$executeRawUnsafe(
+      `INSERT INTO grades (
         academic_year, academic_quarter, department, course_number,
         course_code, grade_a_count, grade_b_count, grade_c_count,
         grade_d_count, grade_f_count, grade_p_count, grade_np_count,
-        grade_w_count, average_gpa) VALUES ${grades};
-    `),
-    prisma.$executeRawUnsafe(`
-      INSERT INTO grades_instructors_mappings VALUES ${instructors};
-    `),
+        grade_w_count, average_gpa) VALUES ${grades};`
+    ),
+    prisma.$executeRawUnsafe(
+      `INSERT INTO grades_instructors_mappings VALUES ${instructors};`
+    ),
   ]);
 }
 
@@ -128,13 +133,11 @@ async function uploadData(): Promise<void> {
     .readdirSync(resolve(`${__dirname}/outputData`))
     .map((file: string) => resolve(`${__dirname}/outputData/${file}`));
   for (const path of paths) {
-    logger.info(`Start processing ${path}`);
+    logger.info(`Started processing ${path}`);
     const [grades, instructors]: [string, string] = await processFile(path);
     await processData(grades, instructors);
-    logger.info(`Finish processing ${path}`);
+    logger.info(`Finished processing ${path}`);
   }
 }
 
-uploadData().catch((error: any) =>
-  logger.error("Error encountered", { trace: error.stack })
-);
+uploadData().catch(handleError);

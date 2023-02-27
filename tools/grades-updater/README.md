@@ -32,9 +32,3 @@ This folder contains scripts taking a preprocessed CSV file, sanitizing the data
 ## Acknowledgments
 
 This project is made possible by University of California, Irvine's Public Records Office (PRO) and ICS Student Council (ICSSC).
-
-## Contributors
-
-- Benson Jing
-- Yizhen Liu
-- Ethan Wong
