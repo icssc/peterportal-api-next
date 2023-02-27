@@ -8,8 +8,12 @@ import { encode } from "querystring";
 /**
  * Instantiates and returns a resolver that queries the specified REST endpoint.
  * @param path The path to the REST endpoint.
+ * @param transform A function that transforms the arguments passed to the resolver.
  */
-export const restResolverFactory = (path: string) => {
+export const restResolverFactory = (
+  path: string,
+  transform: (args: ParsedUrlQueryInput) => ParsedUrlQueryInput = (args) => args
+) => {
   return async (_: never, args: ParsedUrlQueryInput): Promise<unknown> => {
     const res: RawResponse<unknown> = await (
       await fetch(
@@ -17,7 +21,7 @@ export const restResolverFactory = (path: string) => {
           process.env.NODE_ENV === "development"
             ? `http://localhost:${process.env.PORT || 8080}`
             : "https://api-next.peterportal.org"
-        }${path}?${encode(args)}`
+        }${path}?${encode(transform(args))}`
       )
     ).json();
     if (isErrorResponse(res))
