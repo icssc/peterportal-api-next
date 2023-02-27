@@ -4,10 +4,11 @@ Contributors are listed below in alphabetical order of their GitHub username.
 
 ## Project Leads
 
-| Year      | Project Lead                                         |
-| --------- | ---------------------------------------------------- |
-| 2020–2022 | Raman Gupta ([@ramanxg](https://github.com/ramanxg)) |
-| 2022–     | Eddy Chen ([@ecxyzzy](https://github.com/ecxyzzy))   |
+| Year      | Project Lead                                                |
+| --------- | ----------------------------------------------------------- |
+| 2019–2020 | Mars ([@uci-mars](https://github.com/uci-mars)) \[founder\] |
+| 2020–2022 | Raman Gupta ([@ramanxg](https://github.com/ramanxg))        |
+| 2022–     | Eddy Chen ([@ecxyzzy](https://github.com/ecxyzzy))          |
 
 ## [Legacy API](https://github.com/icssc/peterportal-public-api) Contributors
 
@@ -18,6 +19,7 @@ API-Next contributors who have also contributed to the Legacy API are not listed
 - Alan Chang ([@alanchangxyz](https://github.com/alanchangxyz))
 - Brandon Vu ([@brandonvu12](https://github.com/brandonvu12))
 - Chase Carnaroli ([@ChaseC99](https://github.com/ChaseC99))
+- Aaron Chen ([@chenaaron3](https://github.com/chenaaron3))
 - Brady Wu ([@coffee-snake](https://github.com/coffee-snake))
 - Nathan Abebayehu ([@devsdevsdevs](https://github.com/devsdevsdevs))
 - Edward Wu ([@Edwu29](https://github.com/Edwu29))
@@ -28,7 +30,6 @@ API-Next contributors who have also contributed to the Legacy API are not listed
 - Pranav Reddy ([@pranavmreddy](https://github.com/pranavmreddy))
 - Nathaniel Louis Tisuela ([@tisuela](https://github.com/tisuela))
 - Tianjiao Huang ([@tjhu](https://github.com/tjhu))
-- Mars ([@uci-mars](https://github.com/uci-mars))
 - Ye Min Aung ([@ym-aung](https://github.com/ym-aung))
 
 ## API-Next Contributors
