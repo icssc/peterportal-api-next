@@ -95,6 +95,7 @@ extend type Query {
   websoc(
     year: String!
     quarter: String!
+    cache: Boolean
     ge: GE
     department: String
     sectionCodes: String
