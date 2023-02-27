@@ -13,9 +13,11 @@ import { mergeResolvers, mergeTypeDefs } from "@graphql-tools/merge";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
-const cwd = import.meta.url
-  ? dirname(fileURLToPath(import.meta.url))
-  : __dirname;
+let cwd = "";
+try {
+  cwd = import.meta.url ? dirname(fileURLToPath(import.meta.url)) : __dirname;
+  // eslint-disable-next-line no-empty
+} catch {}
 
 const graphqlServer = new ApolloServer({
   typeDefs: mergeTypeDefs(loadFilesSync(join(cwd, "schema/*.graphql"))),

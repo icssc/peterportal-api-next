@@ -13,7 +13,7 @@ import { fileURLToPath } from "url";
       join(cwd, "index.ts"),
       ...(await glob(join(cwd, "resolver/*.ts"))),
     ],
-    logLevel: "error",
+    logLevel: "info",
     minify: true,
     outdir: join(cwd, "dist/"),
     outExtension: { ".js": ".cjs" },
