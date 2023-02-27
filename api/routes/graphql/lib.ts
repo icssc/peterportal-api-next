@@ -6,9 +6,11 @@ import type { ParsedUrlQueryInput } from "querystring";
 import { encode } from "querystring";
 
 /**
- * Instantiates and returns a resolver that queries the specified REST endpoint.
+ * Instantiates and returns a resolver that, when called, queries the specified
+ * REST endpoint and returns the result.
  * @param path The path to the REST endpoint.
- * @param transform A function that transforms the arguments passed to the resolver.
+ * @param transform A function that transforms the arguments passed to the
+ * resolver. Defaults to the identity function, if no transformation is needed.
  */
 export const restResolverFactory = (
   path: string,
