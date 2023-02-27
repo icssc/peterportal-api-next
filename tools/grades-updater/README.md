@@ -1,34 +1,26 @@
-# Inserting Grade Distribution Data for PeterPortal
+# grades-updater
 
-This folder contains scripts taking a preprocessed CSV file, sanitizing the data, and inserting it into a remote AWS RDS instance. Please read this file thoroughly before processing the grade distribution data from UCI's Public Records Office (PRO).
+This directory contains the code for updating the grades cache for PeterPortal API _Next_.
 
-## Getting Started
+## Sanitizing the Data
 
-### Sanitizing the Data
-
-1. In this folder, create the `inputData` and `outputData` folders if not already
-2. Take the spreadsheet from PRO, follow the format below, and save it as a CSV file to `inputData`
+1. Make sure all dependencies are up-to-date by running `npm i` in the project root.
+2. Create the `inputData` and `outputData` directories if they do not already exist.
+3. Using a spreadsheet editor, edit the grades spreadsheet you obtained from the [UCI Public Records Office](https://pro.uci.edu/) so that it matches the following format, and then save it as a CSV in `inputData`.
 
 | year    | quarter | department | courseNumber | courseCode | instructors | a   | b   | c   | d   | f   | p   | np  | w   | gpaAvg |
 | ------- | ------- | ---------- | ------------ | ---------- | ----------- | --- | --- | --- | --- | --- | --- | --- | --- | ------ |
-| 2023-24 | Summer  | ...        | ...          | 12334      | ...         | 0   | 0   | 0   | 0   | 0   | 123 | 23  | 4   | 0      |
+| 2022-23 | Summer  | ...        | ...          | 12345      | ...         | 1   | 0   | 0   | 0   | 0   | 2   | 0   | 3   | 4.00   |
 | ...     | ...     | ...        | ...          | ...        | ...         | ... | ... | ... | ... | ... | ... | ... | ... | ...    |
 
-3. Run `npm i` in the project root directory and this folder again
-4. Execute `npm run sanitize` to start the program
-5. Find your data under the `outputData` folder
-   - If the program fails, then you may want to manually delete the entries that are already processed in the input file and merge the processed data and the rest together in a separate file once everything is done
-   - All messages, warnings, and errors are listed in a log file located under `logs`
+4. Run `npm run sanitize`.
+5. The data should be present in the `outputData` directory, and logs under `logs`.
+   - If for some reason the sanitization process failed, the processed data in the `outputData` directory may be incomplete. You may need to remove the processed entries from the input file, and manually merge the processed data.
 
-### Uploading the Data
+## Uploading the Data
 
-1. Make sure all the entries under `outputData` match your expectations
-2. Place the `.env` file given by the development team under the project root directory and run `npm i -g dotenv-cli`
-3. Run `npm i`, `npm run db:generate`, `dotenv -e env_file -- npm run db:pull`, and `npm run db:generate` in `/db`
-   - Replace `env_file` with the path to the `.env` file
-4. Execute `npm run upload` to start the program
-   - All messages, warnings, and errors are listed in a log file located under `logs`
-
-## Acknowledgments
-
-This project is made possible by University of California, Irvine's Public Records Office (PRO) and ICS Student Council (ICSSC).
+1. Make sure there are no major issues with the sanitized data in `outputData`.
+2. Add the `.env.grades` file to the project root. Note that this is only available to members of the ICSSC Projects Committee, since it grants write access to the production database.
+3. Run `npx dotenv -e ../.env.grades -- npm run db:pull` and `npm run db:generate` under the `db` workspace.
+4. Run `npx dotenv -e ../../.env.grades -- npm run upload` in this directory.
+5. The logs should be present under `/logs`.
