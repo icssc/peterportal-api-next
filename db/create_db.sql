@@ -131,7 +131,6 @@ CREATE TABLE
       course_code >= 0
       AND course_code <= 99999
     ),
-    FOREIGN KEY (department) REFERENCES departments (department_id),
     PRIMARY KEY (academic_year, academic_quarter, course_code)
   );
 
