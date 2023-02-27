@@ -70,7 +70,6 @@ model departments {
   courses_courses_departmentTodepartments      courses[]             @relation("courses_departmentTodepartments")
   courses_courses_department_nameTodepartments courses[]             @relation("courses_department_nameTodepartments")
   department_mappings                          department_mappings[]
-  grades                                       grades[]
 }
 
 model ge_categories {
@@ -107,7 +106,6 @@ model grades {
   grade_w_count               Int                           @db.UnsignedInt
   average_gpa                 Float
   pnp_only                    Boolean?
-  departments                 departments                   @relation(fields: [department], references: [department_id], onUpdate: Restrict, map: "grades_ibfk_1")
   grades_instructors_mappings grades_instructors_mappings[]
 
   @@id([academic_year, academic_quarter, course_code])
