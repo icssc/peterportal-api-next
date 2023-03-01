@@ -5,7 +5,7 @@ import express from "express";
 import router from "./router";
 
 const app = express();
-const port = process.env.PORT || 8080;
+const port = process.env.API_PORT || 8080;
 
 app.set("query parser", "simple");
 app.use(express.json());

@@ -21,8 +21,10 @@ export const restResolverFactory = (
       await fetch(
         `${
           process.env.NODE_ENV === "development"
-            ? `http://localhost:${process.env.PORT || 8080}`
-            : "https://api-next.peterportal.org"
+            ? `http://localhost:${process.env.API_PORT || 8080}`
+            : `https://${
+                process.env.STAGE === "prod" ? "" : `${process.env.STAGE}-`
+              }api-next.peterportal.org`
         }${path}?${encode(transform(args))}`
       )
     ).json();
