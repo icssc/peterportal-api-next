@@ -30,8 +30,7 @@ const graphqlServer = new ApolloServer({
 });
 
 export const expressHandlerFactory = () => {
-  // eslint-disable-next-line @typescript-eslint/no-empty-function
-  graphqlServer.start().catch(() => {});
+  graphqlServer.start().catch(() => []);
   return expressMiddleware(graphqlServer);
 };
 
