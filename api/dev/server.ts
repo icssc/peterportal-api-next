@@ -19,7 +19,6 @@ app.all("*", (req, res) => {
     )}`
   );
   const { statusCode, body, headers } = createErrorResult(
-    logger,
     404,
     "The requested resource could not be found.",
     zeroUUID

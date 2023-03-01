@@ -396,7 +396,6 @@ export const rawHandler = async (
         for (const param of ["year", "quarter"]) {
           if (!query[param]) {
             return createErrorResult(
-              logger,
               400,
               `Parameter ${param} not provided`,
               requestId
@@ -412,7 +411,6 @@ export const rawHandler = async (
           )
         ) {
           return createErrorResult(
-            logger,
             400,
             "You must provide at least one of ge, department, sectionCode, and instructorName",
             requestId
@@ -424,28 +422,17 @@ export const rawHandler = async (
           isNaN(parseInt(query.year)) ||
           parseInt(query.year).toString().length !== 4
         ) {
-          return createErrorResult(
-            logger,
-            400,
-            "Invalid year provided",
-            requestId
-          );
+          return createErrorResult(400, "Invalid year provided", requestId);
         }
         if (
           typeof query.quarter !== "string" ||
           !quarters.includes(query.quarter as Quarter)
         ) {
-          return createErrorResult(
-            logger,
-            400,
-            "Invalid quarter provided",
-            requestId
-          );
+          return createErrorResult(400, "Invalid quarter provided", requestId);
         }
         // Validate building/room parameters.
         if (!query.building && query.room) {
           return createErrorResult(
-            logger,
             400,
             "You must provide a building code if you provide a room number",
             requestId
@@ -462,7 +449,6 @@ export const rawHandler = async (
             !isValidOptionalParameter(query, param, validParams as unknown[])
           ) {
             return createErrorResult(
-              logger,
               400,
               `Invalid value for parameter ${param} provided`,
               requestId
@@ -483,7 +469,6 @@ export const rawHandler = async (
         ]) {
           if (Array.isArray(query[param])) {
             return createErrorResult(
-              logger,
               400,
               `Parameter ${param} cannot be provided more than once`,
               requestId
@@ -670,17 +655,12 @@ export const rawHandler = async (
           await sleep(1000);
         }
         // Sort the response and return it.
-        return createOKResult(logger, sortResponse(ret), requestId);
+        return createOKResult(sortResponse(ret), requestId);
       } catch (e) {
-        return createErrorResult(logger, 500, e, requestId);
+        return createErrorResult(500, e, requestId);
       }
     default:
-      return createErrorResult(
-        logger,
-        400,
-        `Cannot ${method} ${path}`,
-        requestId
-      );
+      return createErrorResult(400, `Cannot ${method} ${path}`, requestId);
   }
 };
 

@@ -20,14 +20,9 @@ export const rawHandler = async (
   switch (method) {
     case "GET":
     case "HEAD":
-      return createOKResult(logger, {}, requestId);
+      return createOKResult({}, requestId);
     default:
-      return createErrorResult(
-        logger,
-        400,
-        `Cannot ${method} ${path}`,
-        requestId
-      );
+      return createErrorResult(400, `Cannot ${method} ${path}`, requestId);
   }
 };
 
