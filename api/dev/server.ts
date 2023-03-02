@@ -1,25 +1,16 @@
-import { createErrorResult, zeroUUID } from "api-core";
+import { createErrorResult, logger, zeroUUID } from "api-core";
+import { expressHandlerFactory } from "api-route-graphql";
 import express from "express";
-import { createLogger, format, transports } from "winston";
 
 import router from "./router";
 
 const app = express();
-const port = process.env.PORT || 8080;
-const logger = createLogger({
-  level: "info",
-  format: format.combine(
-    format.colorize({ all: true }),
-    format.timestamp(),
-    format.printf((info) => `${info.timestamp} [${info.level}] ${info.message}`)
-  ),
-  transports: [new transports.Console()],
-  exitOnError: false,
-});
+const port = process.env.API_PORT || 8080;
 
 app.set("query parser", "simple");
 app.use(express.json());
 app.use(router);
+app.use("/v1/graphql", expressHandlerFactory());
 
 app.all("*", (req, res) => {
   logger.info(
@@ -28,7 +19,6 @@ app.all("*", (req, res) => {
     )}`
   );
   const { statusCode, body, headers } = createErrorResult(
-    logger,
     404,
     "The requested resource could not be found.",
     zeroUUID

@@ -94,6 +94,7 @@ export class ApiStack extends Stack {
             ),
             environment: {
               DATABASE_URL: this.env.databaseUrl,
+              STAGE: this.env.stage,
               NODE_ENV: this.env.nodeEnv,
             },
             functionName,

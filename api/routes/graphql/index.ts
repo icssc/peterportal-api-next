@@ -1,0 +1,40 @@
+import { ApolloServer } from "@apollo/server";
+import { expressMiddleware } from "@apollo/server/express4";
+import {
+  ApolloServerPluginLandingPageLocalDefault,
+  ApolloServerPluginLandingPageProductionDefault,
+} from "@apollo/server/plugin/landingPage/default";
+import {
+  handlers,
+  startServerAndCreateLambdaHandler,
+} from "@as-integrations/aws-lambda";
+import { loadFilesSync } from "@graphql-tools/load-files";
+import { mergeResolvers, mergeTypeDefs } from "@graphql-tools/merge";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+let cwd = "";
+try {
+  cwd = import.meta.url ? dirname(fileURLToPath(import.meta.url)) : __dirname;
+  // eslint-disable-next-line no-empty
+} catch {}
+
+const graphqlServer = new ApolloServer({
+  typeDefs: mergeTypeDefs(loadFilesSync(join(cwd, "schema/*.graphql"))),
+  resolvers: mergeResolvers(loadFilesSync(join(cwd, "resolver/*.{js,ts}"))),
+  plugins: [
+    process.env.NODE_ENV === "development"
+      ? ApolloServerPluginLandingPageLocalDefault()
+      : ApolloServerPluginLandingPageProductionDefault({ footer: false }),
+  ],
+});
+
+export const expressHandlerFactory = () => {
+  graphqlServer.start().catch(() => []);
+  return expressMiddleware(graphqlServer);
+};
+
+export const lambdaHandler = startServerAndCreateLambdaHandler(
+  graphqlServer,
+  handlers.createAPIGatewayProxyEventRequestHandler()
+);

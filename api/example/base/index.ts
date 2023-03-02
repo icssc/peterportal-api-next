@@ -1,10 +1,11 @@
+import type { IRequest } from "api-core";
 import {
   createErrorResult,
   createLambdaHandler,
   createOKResult,
-  IRequest,
+  logger,
 } from "api-core";
-import {
+import type {
   APIGatewayProxyEvent,
   APIGatewayProxyResult,
   Context,
