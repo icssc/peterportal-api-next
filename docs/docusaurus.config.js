@@ -23,6 +23,7 @@ const config = {
           sidebarPath: require.resolve("./sidebars.js"),
           editUrl:
             "https://github.com/icssc/peterportal-api-next/tree/documentation/docs/",
+          showLastUpdateTime: true,
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),
@@ -56,7 +57,12 @@ const config = {
         ],
       },
       footer: {
-        style: "light",
+        logo: {
+          src: "img/icssc.png",
+          alt: "ICS Student Council Logo",
+          href: "https://icssc.club",
+        },
+        style: "dark",
         links: [
           {
             title: "Learn",
@@ -73,6 +79,10 @@ const config = {
               {
                 label: "Discord",
                 href: "https://discord.gg/Zu8KZHERtJ",
+              },
+              {
+                label: "Fellowship",
+                href: "https://fellowship.icssc.club",
               },
             ],
           },
