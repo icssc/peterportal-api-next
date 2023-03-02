@@ -26,7 +26,7 @@
       "eslint --quiet --fix",
       "prettier --write"
     ],
-    "*.{graphql,json,md,prisma,sql,yaml,yml}": [
+    "*.{css,graphql,json,md,prisma,sql,yaml,yml}": [
       "prettier --write"
     ]
   },
