@@ -2,9 +2,10 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import he from 'he';
 import pLimit from 'p-limit';
+import stringSimilarity from 'string-similarity';
 
 
-const limit = pLimit(600000);   // Max number of concurrent calls
+const limit = pLimit(100);   // Max number of concurrent calls
 
 const CATALOGUE_BASE_URL: string = 'http://catalogue.uci.edu';
 const URL_TO_ALL_SCHOOLS: string = 'http://catalogue.uci.edu/schoolsandprograms/';
@@ -59,11 +60,18 @@ export async function getAllInstructors() {
     })
     console.log("Retrieved", Object.keys(instructorsDict).length, "faculty members")
     const instructorPromises = Object.keys(instructorsDict).map(name => limit(() =>  
-        getInstructor(name, instructorsDict[name].schools, Array.from(instructorsDict[name].courses))
+        //getInstructor(name, instructorsDict[name].schools, Array.from(instructorsDict[name].courses))
+        getDirectoryInfo(name)
     ));
     const instructors = await Promise.all(instructorPromises);
+    let n = 0
+    instructors.forEach(x => {
+        if (Object.keys(x).length == 0 ) {
+            n += 1;
+        }
+    })
     console.log(instructors.length);
-
+    console.log(n);
 }
 
 
@@ -81,10 +89,11 @@ export async function getInstructor(instructorName: string, schools: string[], r
     };
     try {
         //console.log('Getting', instructorName);
-        const [directoryInfo, courseHistory] = await Promise.all([
-            getDirectoryInfo(instructorName),
-            getCourseHistory(instructorName, relatedDepartments)
-        ]);
+        // const [directoryInfo, courseHistory] = await Promise.all([
+        //     getDirectoryInfo(instructorName),
+        //     getCourseHistory(instructorName, relatedDepartments)
+        // ]);
+        const directoryInfo = await getDirectoryInfo(instructorName);
         if (Object.keys(directoryInfo).length === 0) {
             console.log(`WARNING! ${instructorName} cannot be found in Directory!`);
             return instructorObject;
@@ -94,8 +103,8 @@ export async function getInstructor(instructorName: string, schools: string[], r
         instructorObject['title'] = directoryInfo['title'];
         instructorObject['department'] = directoryInfo['department'];
         instructorObject['email'] = directoryInfo['email'];
-        instructorObject['shortened_name'] = courseHistory['shortened_name'];
-        instructorObject['course_history'] = courseHistory['course_history'];
+        // instructorObject['shortened_name'] = courseHistory['shortened_name'];
+        // instructorObject['course_history'] = courseHistory['course_history'];
     }
     catch (error) {
         console.log(error);
@@ -191,7 +200,9 @@ export async function getInstructorNames(facultyLink: string): Promise<string[]>
         const response = await axios.get(facultyLink);
         const $ = cheerio.load(response.data);
         $('.faculty').each(function(this: cheerio.Element) {
-            result.push($(this).find('.name').text());
+            let name = $(this).find('.name').text();
+            name = name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');   // Remove Accents Diacritics
+            result.push(name);
         });
     }
     catch (error) {
@@ -274,7 +285,6 @@ export async function getDirectoryInfo(instructorName: string): Promise<{ [key: 
     };
     const name = instructorName.replace(/\./g,'');
     const data = {'uciKey': name};
-    //console.log(data['uciKey']);
     try {
         let response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
         // Result found using base name
@@ -303,12 +313,11 @@ export async function getDirectoryInfo(instructorName: string): Promise<{ [key: 
                 'email': Buffer.from(json.Email, 'base64').toString('utf8') // decode Base64 email
             };
         }
-        if (response.data.length === 0) {
-            return {};
-        }
+        console.log(instructorName, "NOT FOUND!");
     }
     catch (error) {
-        console.log(error);
+        console.log(instructorName, "FAILED!")
+        //console.log(error);
     }
     return {};
 }
@@ -437,3 +446,15 @@ export function parseHistoryPage(
     }
     return entryFound;
 }
+
+async function main() {
+    const s = await getAllInstructors();
+    // const w = await getFacultyLinks();
+    // console.log(w)
+    //const s = await getDirectoryInfo('Karin E. Reed);
+    //console.log(s)
+    // const name = "Linda T. Võ"
+    // console.log(name);
+    // console.log(name.normalize('NFKD').replace(/[\u0300-\u036f]/g, ''));
+}
+main();
