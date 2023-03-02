@@ -1,18 +1,17 @@
 {
   "pipeline": {
-    "db:pull": {
+    "pull": {
       "cache": false
     },
-    "db:generate": {
-      "dependsOn": ["db:pull"],
+    "generate": {
+      "dependsOn": ["pull"],
       "cache": false
     },
     "build": {
-      "dependsOn": ["^db:generate"],
+      "dependsOn": ["^generate"],
       "outputs": ["dist/**"]
     },
     "deploy": {
-      "cache": false,
       "dependsOn": ["^build"],
       "env": [
         "ACCOUNT_ID",
@@ -28,8 +27,8 @@
     },
     "dev": {
       "cache": false,
-      "dependsOn": ["^db:pull"],
-      "env": ["PORT"]
+      "dependsOn": ["^pull"],
+      "env": ["API_PORT"]
     },
     "test": {}
   }
