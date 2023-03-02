@@ -94,14 +94,9 @@ const config = {
                 label: "Fellowship",
                 href: "https://fellowship.icssc.club",
               },
-            ],
-          },
-          {
-            title: "More",
-            items: [
               {
                 label: "GitHub",
-                href: "https://github.com/icssc/peterportal-api-next",
+                href: "https://github.com/icssc",
               },
             ],
           },
