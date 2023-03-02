@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "sanitize": "tsx sanitizeData.ts",
-    "upload": "tsx uploadData.ts"
+    "upload": "npx dotenv -e ../../.env.grades -- tsx uploadData.ts"
   },
   "dependencies": {
     "csv-parse": "^5.3.5",
