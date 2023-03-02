@@ -32,6 +32,16 @@ const config = {
     ],
   ],
 
+  plugins: [
+    [
+      "docusaurus-plugin-dotenv",
+      {
+        systemvars: true,
+        silent: true,
+      },
+    ],
+  ],
+
   themeConfig:
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
