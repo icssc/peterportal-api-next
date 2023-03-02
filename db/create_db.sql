@@ -96,9 +96,8 @@ CREATE TABLE
 
 CREATE TABLE
   grades (
-    academic_year CHAR(7) NOT NULL,
-    academic_quarter VARCHAR(6) NOT NULL,
-    instructor VARCHAR(191) NOT NULL,
+    academic_year INT UNSIGNED NOT NULL,
+    academic_quarter VARCHAR(10) NOT NULL,
     department VARCHAR(7) NOT NULL,
     course_number VARCHAR(191) NOT NULL,
     course_code INT UNSIGNED NOT NULL,
@@ -119,14 +118,35 @@ CREATE TABLE
       AND grade_f_count = 0
     ) VIRTUAL,
     CHECK (
-      academic_quarter IN ('Fall', 'Winter', 'Spring', 'Summer')
+      academic_quarter IN (
+        'Fall',
+        'Winter',
+        'Spring',
+        'Summer1',
+        'Summer10wk',
+        'Summer2'
+      )
     ),
     CHECK (
       course_code >= 0
       AND course_code <= 99999
     ),
-    FOREIGN KEY (department) REFERENCES departments (department_id),
     PRIMARY KEY (academic_year, academic_quarter, course_code)
+  );
+
+CREATE TABLE
+  grades_instructors_mappings (
+    academic_year INT UNSIGNED NOT NULL,
+    academic_quarter VARCHAR(10) NOT NULL,
+    course_code INT UNSIGNED NOT NULL,
+    instructor VARCHAR(50) NOT NULL,
+    FOREIGN KEY (academic_year, academic_quarter, course_code) REFERENCES grades (academic_year, academic_quarter, course_code),
+    PRIMARY KEY (
+      academic_year,
+      academic_quarter,
+      course_code,
+      instructor
+    )
   );
 
 CREATE TABLE

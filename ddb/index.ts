@@ -41,6 +41,7 @@ export class DDBDocClient {
       translateConfig
     );
   }
+
   public async get(
     tableName: string,
     key?: Record<string, unknown>
