@@ -4,10 +4,10 @@
   "private": true,
   "workspaces": [
     "api/**/*",
-    "cdk",
     "db",
     "ddb",
     "docs",
+    "docs/cdk",
     "packages/*",
     "tools/*"
   ],
