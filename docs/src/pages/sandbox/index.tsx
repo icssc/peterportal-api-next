@@ -1,16 +1,16 @@
-import { ApolloSandbox as AS } from "@apollo/sandbox/react";
+import { ApolloSandbox } from "@apollo/sandbox/react";
 import BrowserOnly from "@docusaurus/BrowserOnly";
 import Layout from "@theme/Layout";
 import React from "react";
 
-import styles from "./apolloSandbox.module.css";
+import styles from "./styles.module.css";
 
-export default function ApolloSandbox() {
+export default function Sandbox() {
   return (
     <BrowserOnly fallback={<>"Loading..."</>}>
       {() => (
         <Layout title={"Sandbox"} noFooter>
-          <AS
+          <ApolloSandbox
             className={styles.apolloSandbox}
             initialEndpoint={`${
               process.env.NODE_ENV === "development"
