@@ -1,0 +1,27 @@
+.banner {
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+[data-theme="dark"] .banner {
+  background-color: #bec4da;
+}
+
+@media screen and (max-width: 996px) {
+  .banner {
+    padding: 2rem;
+  }
+}
+
+.buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gettingStartedButton {
+  background-color: #fcaec2;
+  border-color: #fcaec2;
+}

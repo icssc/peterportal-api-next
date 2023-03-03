@@ -6,6 +6,7 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: "PeterPortal API Docs",
+  tagline: "An API that provides easy access to public data from UC Irvine",
   favicon: "img/favicon.png",
   url: "https://docs.api-next.peterportal.org",
   baseUrl: "/",
@@ -57,6 +58,11 @@ const config = {
             docId: "getting-started",
             position: "left",
             label: "Docs",
+          },
+          {
+            position: "left",
+            label: "Sandbox",
+            href: "/sandbox",
           },
           {
             href: "https://github.com/icssc/peterportal-api-next",
