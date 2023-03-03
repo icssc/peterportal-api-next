@@ -81,30 +81,16 @@ const config = {
         style: "dark",
         links: [
           {
-            title: "Learn",
-            items: [
-              {
-                label: "Getting Started",
-                to: "/docs/getting-started",
-              },
-            ],
+            label: "Discord",
+            href: "https://discord.gg/Zu8KZHERtJ",
           },
           {
-            title: "Community",
-            items: [
-              {
-                label: "Discord",
-                href: "https://discord.gg/Zu8KZHERtJ",
-              },
-              {
-                label: "Fellowship",
-                href: "https://fellowship.icssc.club",
-              },
-              {
-                label: "GitHub",
-                href: "https://github.com/icssc",
-              },
-            ],
+            label: "Fellowship",
+            href: "https://fellowship.icssc.club",
+          },
+          {
+            label: "GitHub",
+            href: "https://github.com/icssc",
           },
         ],
         copyright: `Copyright © ${new Date().getFullYear()} ICSSC Projects. Built with Docusaurus.`,
