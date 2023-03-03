@@ -1,6 +1,6 @@
 import { load } from "cheerio";
 import fetch from "cross-fetch";
-import { quarters } from "peterportal-api-next-types";
+import { QuarterDates, quarters } from "peterportal-api-next-types";
 
 /* region Constants */
 
@@ -19,24 +19,13 @@ const months = [
   "Dec",
 ];
 
-/* region Type declarations */
-
-export type TermDateData = {
-  instructionStart: Date;
-  instructionEnd: Date;
-  finalsStart: Date;
-  finalsEnd: Date;
-};
-
-/* endregion */
-
 /* region Helper functions */
 
 const addSingleDateRow = (
   data: string[][],
   index: number,
   key: string,
-  record: Record<string, Partial<TermDateData & { [p: string]: Date }>>,
+  record: Record<string, Partial<QuarterDates & { [p: string]: Date }>>,
   year: string,
   offset = 0
 ): void => {
@@ -56,7 +45,7 @@ const addMultipleDateRow = (
   index: number,
   keyStart: string,
   keyEnd: string,
-  record: Record<string, Partial<TermDateData & { [p: string]: Date }>>,
+  record: Record<string, Partial<QuarterDates & { [p: string]: Date }>>,
   year: string,
   offset = 0
 ): void => {
@@ -91,7 +80,7 @@ const addMultipleDateRow = (
 // Returns relevant date data for each term in the given academic year.
 export const getTermDateData = async (
   year: string
-): Promise<Record<string, TermDateData>> => {
+): Promise<Record<string, QuarterDates>> => {
   if (year.length !== 4 || isNaN(parseInt(year)))
     throw new Error("Error: Invalid year provided.");
   const shortYear = year.slice(2);
@@ -137,7 +126,7 @@ export const getTermDateData = async (
     .reduce((p, c) => {
       p[c] = {};
       return p;
-    }, {} as Record<string, Partial<TermDateData>>);
+    }, {} as Record<string, Partial<QuarterDates>>);
   addSingleDateRow(quarterData, 2, "instructionStart", ret, year);
   addSingleDateRow(quarterData, 17, "instructionEnd", ret, year);
   addMultipleDateRow(quarterData, 18, "finalsStart", "finalsEnd", ret, year);
@@ -152,7 +141,7 @@ export const getTermDateData = async (
     year,
     3
   );
-  return ret as Record<string, TermDateData>;
+  return ret as Record<string, QuarterDates>;
 };
 
 /* endregion */
