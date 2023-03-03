@@ -6,7 +6,7 @@
 }
 
 [data-theme="dark"] .banner {
-  background-color: #bec4da;
+  background-color: #a0a6b1;
 }
 
 @media screen and (max-width: 996px) {
@@ -22,6 +22,6 @@
 }
 
 .gettingStartedButton {
-  background-color: #fcaec2;
-  border-color: #fcaec2;
+  background-color: #ff86b4;
+  border-color: #ff86b4;
 }
