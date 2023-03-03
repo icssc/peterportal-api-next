@@ -40,3 +40,4 @@ tools/grades-updater/logs
 
 # docusaurus
 .docusaurus
+build/
