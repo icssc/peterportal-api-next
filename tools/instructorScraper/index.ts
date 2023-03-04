@@ -52,7 +52,7 @@ function sleep(ms: number) {
 }
 
 export async function getAllInstructors() {
-    const facultyLinks = await getFacultyLinks();
+    const facultyLinks = await getFacultyLinks(3);
     console.log("Retrieved", Object.keys(facultyLinks).length, "faculty links");
     const instructorNamePromises = Object.keys(facultyLinks).map(link => getInstructorNames(link));
     await sleep(1000);  // Wait 1 second before scraping site again or catalogue.uci will throw a fit
@@ -135,49 +135,55 @@ export async function getInstructor(instructorName: string, schools: string[], r
 /**
  * Returns the faculty links and their corresponding school name
  * 
+ * @param attempts - Number of times the function will be called again if request fails
  * @returns {object} A map of all faculty links to their corresponding school
  * Example:
  *      {'http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty':'Claire Trevor School of the Arts',
  *      'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofbiomedicalengineering/#faculty':'The Henry Samueli School of Engineering', ...}
  */
-export async function getFacultyLinks(): Promise<{ [faculty_link: string]: string }> {
+export async function getFacultyLinks(attempts: number): Promise<{ [faculty_link: string]: string }> {
     const result: { [faculty_link: string]: string } = {};
     try {
         /**
          * Asynchronously traverse the school's department pages to retrieve its correpsonding faculty links.
          * 
-         * @param {string} schoolUrl - URL to scrape data from
-         * @param {string} schoolName - Name of the school
-         * @param {number} depth - Depth of search for faculty links (we only need to crawl once to get departments)
+         * @param schoolUrl - URL to scrape data from
+         * @param schoolName - Name of the school
+         * @param root - Boolean for if we are scraping main school page, determines if we should keep crawling
+         * @param attempts - Number of times the function will be called again if request fails
          * @returns {object}: A map of the schoolName to an array of faculty links
          * Example:
          *      {'The Henry Samueli School of Engineering': [ 'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofbiomedicalengineering/#faculty',
                 'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofchemicalandbiomolecularengineering/#faculty', ...]}
          */
-        async function getFaculty(schoolUrl: string, schoolName: string, depth: number): Promise<{ [key: string]: string[] }> {
-            const response = await axios.get(schoolUrl);
-            const $ = cheerio.load(response.data);
-            // Return url if faculty tab is found
-            if ($('#facultytab').length !== 0) {
-                return {[schoolName]: [schoolUrl]};
-            }
-            else {
-                const schoolURLs: { [faculty_link: string]: string[] } = {[schoolName]: []};
-                // Only traverse when depth > 0
-                if (depth >= 1) {
+        async function getFaculty(schoolUrl: string, schoolName: string, root: boolean, attempts: number): Promise<{ [key: string]: string[] }> {
+            const schoolURLs: { [faculty_link: string]: string[] } = {[schoolName]: []};
+            try {
+                const response = await axios.get(schoolUrl);
+                const $ = cheerio.load(response.data);
+                // Faculty tab found
+                if ($('#facultytab').length !== 0) {
+                   schoolURLs[schoolName].push(schoolUrl)
+                }
+                // No faculty tab, might have departments tab
+                else if (root) {
                     const departmentLinks: string[][] = [];
                     $('.levelone li a').each(function(this: cheerio.Element) {
                         const departmentURL = $(this).attr('href');
                         departmentLinks.push([CATALOGUE_BASE_URL + departmentURL + '#faculty', schoolName]);
                     });
-                    const departmentLinksPromises = departmentLinks.map(x => getFaculty(x[0], x[1], depth-1));
+                    const departmentLinksPromises = departmentLinks.map(x => getFaculty(x[0], x[1], false, attempts-1));
                     const departmentLinksResults = await Promise.all(departmentLinksPromises);
                     departmentLinksResults.forEach(res => {
                         schoolURLs[schoolName] = schoolURLs[schoolName].concat(res[schoolName]);
                     });
                 }
-                return schoolURLs;
             }
+            catch (error) {
+                await sleep(1000);
+                await getFaculty(schoolUrl, schoolName, false, attempts-1);
+            }
+            return schoolURLs;
         }
         // Get links to all schools and store them into an array
         const response = await axios.get(URL_TO_ALL_SCHOOLS);
@@ -189,7 +195,7 @@ export async function getFacultyLinks(): Promise<{ [faculty_link: string]: strin
             schoolLinks.push([CATALOGUE_BASE_URL + schoolURL + '#faculty', schoolName]);
         });
         // Asynchronously call getFaculty on each link
-        const schoolLinksPromises = schoolLinks.map(x =>  getFaculty(x[0], x[1], 1)); // If depth > 1, will loop infinitely
+        const schoolLinksPromises = schoolLinks.map(x =>  getFaculty(x[0], x[1], true, attempts));
         const schoolLinksResults = await Promise.all(schoolLinksPromises);
         schoolLinksResults.forEach(schoolURLs => {
             for (let schoolName in schoolURLs) {
@@ -198,10 +204,10 @@ export async function getFacultyLinks(): Promise<{ [faculty_link: string]: strin
                 })
             }
         })
-        return result;
     }
-    catch (error: unknown) {
-        console.log(error);
+    catch (error) {
+        await sleep(1000)
+        await getFacultyLinks(attempts-1)
     }
     return result;
 }
@@ -291,7 +297,7 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
  * Gets the instructor's directory info.
  * 
  * @param instructorName - Name of instructor (replace "." with " ")
- * @param attemtps - Number of times the function will be called again if request fails
+ * @param attempts - Number of times the function will be called again if request fails
  * @returns {object} Dictionary of instructor's info
  * Example:
  *      {
@@ -533,6 +539,8 @@ export function parseHistoryPage(
 }
 
 async function main() {
-    const w = await getAllInstructors();
+    //const w = await getAllInstructors();
+    const f = await getFacultyLinks(3);
+    console.log(Object.keys(f).length)
 }
 main();

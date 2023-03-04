@@ -2,10 +2,9 @@ import { describe, expect, test } from "@jest/globals";
 import { getCourseHistory, getDepartmentCourses, getDirectoryInfo, getFacultyLinks, getInstructorNames, parseHistoryPage, getInstructor } from "./index";
 import axios from 'axios';
 
-
 describe("instructorScraper tests", () => {
     test("getFacultyLinks", async () => {
-        const facultyLinks = await getFacultyLinks();
+        const facultyLinks = await getFacultyLinks(3);
         expect(facultyLinks).toHaveProperty(["http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty"], "Claire Trevor School of the Arts");
         expect(facultyLinks).toHaveProperty(["http://catalogue.uci.edu/schoolofsocialsciences/#faculty"], "School of Social Sciences");
         expect(facultyLinks).toHaveProperty(["http://catalogue.uci.edu/schoolofhumanities/departmentofarthistory/#faculty"], "School of Humanities");
@@ -34,13 +33,13 @@ describe("instructorScraper tests", () => {
         expect(medCourses).toEqual([]);
     }, 10000);
     test("getDirectoryInfo", async () => {
-        const directory1 = await getDirectoryInfo("Kei Akagi");
+        const directory1 = await getDirectoryInfo("Kei Akagi", 3);
         expect(directory1).toEqual({
             "name": "Kei Akagi",
             "ucinetid": "kakagi", 
             "title": "Chancellor's Professor",
             "email": "kakagi@uci.edu"});
-        const directory2 = await getDirectoryInfo("Alexander Thornton");
+        const directory2 = await getDirectoryInfo("Alexander Thornton", 3);
         expect(directory2).toEqual({
             "name": "Alexander W Thornton",
             "ucinetid": "thornton", 
