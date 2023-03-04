@@ -25,6 +25,9 @@
         "STAGE"
       ]
     },
+    "destroy": {
+      "cache": false
+    },
     "dev": {
       "cache": false,
       "dependsOn": ["^pull"],

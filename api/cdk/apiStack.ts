@@ -110,7 +110,7 @@ export class ApiStack extends Stack {
 
   private setupAPI(): void {
     const { certificateArn, hostedZoneId, stage } = this.env;
-    const recordName = `${stage === "prod" ? "" : `${stage}-`}api-next`;
+    const recordName = `${stage === "prod" ? "" : `${stage}.`}api-next`;
     const zoneName = "peterportal.org";
 
     const api = new RestApi(this, `peterportal-api-next-${stage}`, {
