@@ -1,19 +1,19 @@
+---
 name: Deploy PR to staging
-
 on:
   pull_request:
-    types: [opened, synchronize, unlabeled]
-
+    types:
+      - opened
+      - synchronize
+      - unlabeled
 permissions:
   id-token: write
   contents: read
   deployments: write
   pull-requests: write
-
 concurrency:
   group: ${{ github.head_ref }}
   cancel-in-progress: true
-
 jobs:
   deploy:
     if: (!contains(github.event.pull_request.labels.*.name, 'no deploy'))
@@ -32,21 +32,22 @@ jobs:
       TURBO_TEAM: team_peterportal_api_next
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
   steps:
-    - name: "Check out codebase"
+    - name: Check out codebase
       uses: actions/checkout@v3
-    - name: "Set up Node.js environment"
+    - name: Set up Node.js environment
       uses: actions/setup-node@v3
       with:
-        node-version: 16
-    - name: "Install dependencies"
+        node-version: "16"
+    - name: Install dependencies
       run: npm ci
-    - name: "Run tests"
+    - name: Run tests
       run: npm test
-    - name: "Deploy pull request"
+    - name: Deploy pull request
       run: npm run deploy
-    - name: "Comment staging URL"
+    - name: Comment staging URL
       uses: marocchino/sticky-pull-request-comment@v2
       with:
         header: stagingURL
         recreate: true
-        message: Deployed staging instance to https://staging-${{ github.event.pull_request.number }}.api-next.peterportal.org
+        message: Deployed staging instance to https://staging-${{
+          github.event.pull_request.number }}.api-next.peterportal.org

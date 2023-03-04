@@ -1,23 +1,24 @@
+---
 name: Clean up staging PR
-
 on:
   pull_request:
-    types: [closed, labeled]
-
+    types:
+      - closed
+      - labeled
 concurrency:
   group: ${{ github.head_ref }}
   cancel-in-progress: true
-
 permissions:
   id-token: write
   contents: read
   pull-requests: write
   deployments: write
   repository-projects: write
-
 jobs:
   clean-up:
-    if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
+    if:
+      (github.event.action == 'labeled' && github.event.label.name == 'no deploy')
+      || github.event.action == 'closed'
     runs-on: ubuntu-latest
     env:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
@@ -30,17 +31,17 @@ jobs:
       TURBO_TEAM: team_peterportal_api_next
       TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
     steps:
-      - name: "Check out codebase"
+      - name: Check out codebase
         uses: actions/checkout@v3
-      - name: "Set up Node.js environment"
+      - name: Set up Node.js environment
         uses: actions/setup-node@v3
         with:
           node-version: 16
-      - name: "Install dependencies"
+      - name: Install dependencies
         run: npm ci
-      - name: "Destroy deployed PR stack"
+      - name: Destroy deployed PR stack
         run: npm run destroy
-      - name: "Delete staging URL"
+      - name: Delete staging URL
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: stagingURL
