@@ -6,6 +6,7 @@ import {
   RestApi,
 } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
+import { Role } from "aws-cdk-lib/aws-iam";
 import { Code, Function, Runtime } from "aws-cdk-lib/aws-lambda";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
@@ -56,6 +57,7 @@ export class ApiStack extends Stack {
       certificateArn: process.env.CERTIFICATE_ARN,
       databaseUrl: process.env.DATABASE_URL,
       hostedZoneId: process.env.HOSTED_ZONE_ID,
+      nodeEnv: process.env.NODE_ENV,
       stage,
     };
     super(scope, `${id}-${stage}`, props);
@@ -70,31 +72,36 @@ export class ApiStack extends Stack {
    * Adds an endpoint to the API.
    * @param path The absolute path of the endpoint.
    * @param name The short name of the module that handles the endpoint.
+   * @param role A custom role for the Lambda that handles the endpoint.
    */
-  public addRoute(path: string, name: string): void {
+  public addRoute(path: string, name: string, role?: Role): void {
     let resource = this.api.root;
     for (const pathPart of path.slice(1).split("/")) {
       resource =
         resource.getResource(pathPart) ?? resource.addResource(pathPart);
     }
-    const id = `peterportal-api-next-${this.env.stage}-${name}-handler`;
+    const functionName = `peterportal-api-next-${this.env.stage}-${name}-handler`;
     resource.addMethod(
       "ANY",
-      this.integrations[id] ??
-        (this.integrations[id] = new LambdaIntegration(
-          new Function(this, id, {
-            runtime: Runtime.NODEJS_16_X,
+      this.integrations[functionName] ??
+        (this.integrations[functionName] = new LambdaIntegration(
+          new Function(this, functionName, {
             code: Code.fromAsset(
               join(
                 dirname(fileURLToPath(import.meta.url)),
                 `../routes/${name}/dist`
               )
             ),
-            handler: `index.lambdaHandler`,
             environment: {
               DATABASE_URL: this.env.databaseUrl,
+              STAGE: this.env.stage,
+              NODE_ENV: this.env.nodeEnv,
             },
+            functionName,
+            handler: `index.lambdaHandler`,
             timeout: Duration.seconds(15),
+            role,
+            runtime: Runtime.NODEJS_16_X,
             memorySize: 512,
           })
         ))
@@ -103,7 +110,7 @@ export class ApiStack extends Stack {
 
   private setupAPI(): void {
     const { certificateArn, hostedZoneId, stage } = this.env;
-    const recordName = `${stage === "prod" ? "" : `${stage}-`}api-next`;
+    const recordName = `${stage === "prod" ? "" : `${stage}.`}api-next`;
     const zoneName = "peterportal.org";
 
     const api = new RestApi(this, `peterportal-api-next-${stage}`, {
@@ -112,6 +119,7 @@ export class ApiStack extends Stack {
         allowHeaders: ["Content-Type"],
         allowMethods: ["GET", "HEAD", "POST"],
       },
+      disableExecuteApiEndpoint: true,
       domainName: {
         domainName: `${recordName}.${zoneName}`,
         certificate: Certificate.fromCertificateArn(

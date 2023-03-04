@@ -2,6 +2,6 @@
   "execMap": {
     "ts": "tsx"
   },
-  "ext": "ts",
+  "ext": "graphql,ts",
   "watch": ["../**/*"]
 }

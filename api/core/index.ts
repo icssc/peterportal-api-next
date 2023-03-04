@@ -1,10 +1,11 @@
-import {
+import type {
   APIGatewayProxyEvent,
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
-import { Request, RequestHandler } from "express";
-import { ErrorResponse, Response } from "peterportal-api-next-types";
+import type { Request, RequestHandler } from "express";
+import type { ErrorResponse, Response } from "peterportal-api-next-types";
+import { createLogger, format, transports } from "winston";
 
 // You should not need to touch anything else in this file,
 // unless you know what you are doing.
@@ -50,6 +51,23 @@ export const months = [
   "Nov",
   "Dec",
 ] as const;
+
+// The default logger used by all API routes.
+export const logger = createLogger({
+  level: "info",
+  format:
+    process.env.NODE_ENV === "development"
+      ? format.combine(
+          format.colorize({ all: true }),
+          format.timestamp(),
+          format.printf(
+            (info) => `${info.timestamp} [${info.level}] ${info.message}`
+          )
+        )
+      : format.printf((info) => `[${info.level}] ${info.message}`),
+  transports: [new transports.Console()],
+  exitOnError: false,
+});
 
 /* endregion */
 
@@ -102,14 +120,18 @@ class LambdaRequest implements IRequest {
       multiValueQueryStringParameters: mqs,
       pathParameters: params,
       path,
-      queryStringParameters: qs,
     } = this.event;
     return {
       body: JSON.parse(body ?? "{}"),
       method,
       params,
       path,
-      query: { ...qs, ...mqs },
+      query: Object.fromEntries(
+        Object.entries(mqs ?? {}).map(([k, v]) => [
+          k,
+          v?.length === 1 ? v[0] : v,
+        ])
+      ),
       requestId: this.context.awsRequestId,
     } as HandlerParams;
   }
@@ -170,7 +192,8 @@ interface HandlerParams {
 /* region Exported helper functions */
 
 /**
- * Helper function for creating the result associated with a 200 OK response.
+ * Helper function for logging "200 OK" and then creating the result associated
+ * with that response.
  * @param payload The payload to send in the response.
  * @param requestId The request ID associated with the request.
  */
@@ -184,6 +207,7 @@ export const createOKResult = <T>(
     statusCode: 200,
     payload,
   };
+  logger.info("200 OK");
   return {
     statusCode: 200,
     body: JSON.stringify(body),
@@ -196,9 +220,12 @@ export const createOKResult = <T>(
 };
 
 /**
- * Helper function for creating the result associated with an erroneous response.
+ * Helper function for logging the error and then creating the result
+ * associated with that erroneous response.
  * @param statusCode The status code to send in the response.
- * @param error The error to send in the response. Note that this is of type ``unknown`` because caught ``Error``s in TypeScript are always typed as ``unknown``.
+ * @param error The error to send in the response.
+ * Note that this is of type ``unknown``,
+ * because caught ``Error``s in TypeScript are always typed as ``unknown``.
  * @param requestId The request ID associated with the request.
  */
 export const createErrorResult = (
@@ -218,6 +245,7 @@ export const createErrorResult = (
         ? error
         : "An unknown error has occurred. Please try again.",
   };
+  logger.info(`${body.statusCode} ${body.error}: ${body.message}`);
   return {
     statusCode,
     body: JSON.stringify(body),

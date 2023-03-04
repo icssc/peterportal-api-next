@@ -21,6 +21,6 @@ This directory contains the code for updating the grades cache for PeterPortal A
 
 1. Make sure there are no major issues with the sanitized data in `outputData`.
 2. Add the `.env.grades` file to the project root. Note that this is only available to members of the ICSSC Projects Committee, since it grants write access to the production database.
-3. Run `npx dotenv -e ../.env.grades -- npm run db:pull` and `npm run db:generate` under the `db` workspace.
-4. Run `npx dotenv -e ../../.env.grades -- npm run upload` in this directory.
+3. Run `dotenv -c grades -- npm run generate` in the project root.
+4. Run `npm run upload` in this directory.
 5. The logs should be present under `/logs`.

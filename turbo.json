@@ -1,32 +1,37 @@
 {
   "pipeline": {
-    "db:pull": {
+    "pull": {
       "cache": false
     },
-    "db:generate": {
-      "dependsOn": ["db:pull"],
+    "generate": {
+      "dependsOn": ["pull"],
       "cache": false
     },
     "build": {
-      "dependsOn": ["^db:generate"],
+      "dependsOn": ["^generate"],
       "outputs": ["dist/**"]
     },
     "deploy": {
-      "cache": false,
       "dependsOn": ["^build"],
       "env": [
+        "ACCOUNT_ID",
+        "API_PORT",
         "AWS_REGION",
         "CERTIFICATE_ARN",
         "DATABASE_URL",
         "HOSTED_ZONE_ID",
         "NODE_ENV",
-        "PR_NUM"
+        "PR_NUM",
+        "STAGE"
       ]
+    },
+    "destroy": {
+      "cache": false
     },
     "dev": {
       "cache": false,
-      "dependsOn": ["^db:pull"],
-      "env": ["PORT"]
+      "dependsOn": ["^pull"],
+      "env": ["API_PORT"]
     },
     "test": {}
   }

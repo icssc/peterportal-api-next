@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "api-core": "*",
-    "db": "*"
+    "api-route-graphql": "*",
+    "api-route-websoc": "*"
   },
   "devDependencies": {
     "@types/express": "^4.17.14",
