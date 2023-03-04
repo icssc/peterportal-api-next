@@ -16,7 +16,7 @@
     "commit": "cz",
     "deploy": "turbo run deploy",
     "destroy": "turbo run destroy",
-    "dev": "dotenv -e development -- turbo run dev",
+    "dev": "dotenv -c development -- turbo run dev",
     "format": "prettier --write .",
     "generate": "turbo run generate",
     "postinstall": "husky install",
