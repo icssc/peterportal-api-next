@@ -51,7 +51,7 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
       - name: Destroy deployed API stack
-        run: npm run destroy -- --scope="api-cdk"
+        run: npm run destroy -- --filter="api-cdk"
       - name: Delete staging URL
         uses: marocchino/sticky-pull-request-comment@v2
         with:

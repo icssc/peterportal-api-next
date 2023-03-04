@@ -49,7 +49,7 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
       - name: Deploy API stack
-        run: npm run deploy -- --scope="api-cdk"
+        run: npm run deploy -- --filter="api-cdk"
       - name: Comment staging URL
         uses: marocchino/sticky-pull-request-comment@v2
         with:
