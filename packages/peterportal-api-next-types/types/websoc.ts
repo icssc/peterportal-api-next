@@ -209,9 +209,7 @@ export type WebsocAPIResponse = {
 };
 
 /**
- * The type of the payload returned on a successful response from querying
- * ``/v1/rest/websoc/departments``.
- * @alpha
+ * An object that contains information on a department.
  */
 export type Department = {
   /**
@@ -227,18 +225,30 @@ export type Department = {
 
 /**
  * The type of the payload returned on a successful response from querying
- * ``/v1/rest/websoc/terms``.
+ * ``/v1/rest/websoc/departments``.
  * @alpha
+ */
+export type DepartmentResponse = Department[];
+
+/**
+ * An object that contains information on a term.
  */
 export type TermData = {
   /**
    * The short name of the term.
-   * @example ``2023 Spring``
+   * @example ``2023 Summer1``
    */
   shortName: `${string} ${Quarter}`;
   /**
    * The full name of the term.
-   * @example ``2023 Spring Quarter``
+   * @example ``2023 Summer Session 1``
    */
   longName: string;
 };
+
+/**
+ * The type of the payload returned on a successful response from querying
+ * ``/v1/rest/websoc/terms``.
+ * @alpha
+ */
+export type TermResponse = TermData[];
