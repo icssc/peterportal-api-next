@@ -12,11 +12,13 @@
     "tools/*"
   ],
   "scripts": {
-    "build": "dotenv -c production -- turbo run build",
+    "build": "turbo run build",
     "commit": "cz",
-    "deploy": "dotenv -c production -- turbo run deploy",
-    "dev": "dotenv -c development -- turbo run dev",
+    "deploy": "turbo run deploy",
+    "destroy": "turbo run destroy",
+    "dev": "turbo run dev",
     "format": "prettier --write .",
+    "generate": "turbo run generate",
     "postinstall": "husky install",
     "lint": "eslint --fix .",
     "test": "turbo run test"

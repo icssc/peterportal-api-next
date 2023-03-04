@@ -7,8 +7,8 @@
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {
-    "db:generate": "prisma generate",
-    "db:pull": "prisma db pull"
+    "generate": "prisma generate",
+    "pull": "prisma db pull"
   },
   "dependencies": {
     "@prisma/client": "^4.9.0"
