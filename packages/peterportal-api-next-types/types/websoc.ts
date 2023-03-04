@@ -211,6 +211,7 @@ export type WebsocAPIResponse = {
 /**
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/websoc/departments``.
+ * @alpha
  */
 export type Department = {
   /**
@@ -226,7 +227,8 @@ export type Department = {
 
 /**
  * The type of the payload returned on a successful response from querying
- * ``/v1/rest/terms``.
+ * ``/v1/rest/websoc/terms``.
+ * @alpha
  */
 export type TermData = {
   /**
