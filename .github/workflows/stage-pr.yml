@@ -48,8 +48,14 @@ jobs:
           stack_name: peterportal-api-next-staging-${{ github.event.pull_request.number }}
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
+      - name: Wait for docs stack to stabilize
+        uses: ./.github/actions/stabilize-stack
+        with:
+          stack_name: peterportal-api-next-docs-staging-${{ github.event.pull_request.number }}
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
       - name: Deploy API stack
-        run: npm run deploy -- --filter="api-cdk"
+        run: npm run deploy -- --filter="api-cdk" --filter="docs-cdk"
       - name: Comment staging URL
         uses: marocchino/sticky-pull-request-comment@v2
         with:
