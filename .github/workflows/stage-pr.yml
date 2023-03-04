@@ -49,5 +49,7 @@ jobs:
         with:
           header: stagingURL
           recreate: true
-          message: Deployed staging instance to https://staging-${{
-            github.event.pull_request.number }}.api-next.peterportal.org
+          message: Deployed API staging instance to https://staging-${{
+            github.event.pull_request.number }}.api-next.peterportal.org and
+            documentation staging instance to https://staging-${{
+            github.event.pull_request.number }}-docs.api-next.peterportal.org
