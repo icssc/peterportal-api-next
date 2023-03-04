@@ -4,10 +4,10 @@
   "private": true,
   "workspaces": [
     "api/**/*",
-    "cdk",
     "db",
     "ddb",
     "docs",
+    "docs/cdk",
     "packages/*",
     "tools/*"
   ],
@@ -28,7 +28,7 @@
       "eslint --quiet --fix",
       "prettier --write"
     ],
-    "*.{graphql,json,md,prisma,sql,yaml,yml}": [
+    "*.{css,graphql,json,md,prisma,sql,yaml,yml}": [
       "prettier --write"
     ]
   },
