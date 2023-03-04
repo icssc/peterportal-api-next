@@ -8,6 +8,7 @@
     "destroy": "cdk destroy --all --force"
   },
   "dependencies": {
+    "api-route-graphql": "*",
     "api-route-websoc": "*"
   },
   "devDependencies": {
