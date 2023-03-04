@@ -5,7 +5,7 @@ import pLimit from 'p-limit';
 import stringSimilarity from 'string-similarity';
 
 
-const limit = pLimit(100);   // Max number of concurrent calls
+const limit = pLimit(60);   // Max number of concurrent calls
 
 const CATALOGUE_BASE_URL: string = 'http://catalogue.uci.edu';
 const URL_TO_ALL_SCHOOLS: string = 'http://catalogue.uci.edu/schoolsandprograms/';
@@ -27,7 +27,24 @@ type Instructor = {
 };
 
 type InstructorsData = {
+    results: InstructorsInfo,
+    log: InstructorsLog
+};
+
+type InstructorsInfo = {
   [ucinetid: string]: Instructor
+};
+
+type InstructorsLog = {
+    num_faculty_links: number,
+    faculty_links: string[],
+    num_instructors_listed: number,     // Instructors listed in faculty pages
+    instructors_listed: string[]
+    num_instructors_found: number,      // Instructors found in directory
+    num_instructors_not_found: number   // Instructors not found in directory
+    instructors_not_found: string[],
+    num_instructors_failed: number,     // Instructors that were not able to be requested (usually due to network error)
+    instructors_failed: string[],
 }
 
 function sleep(ms: number) {
@@ -52,19 +69,21 @@ export async function getAllInstructors() {
                     courses: new Set(facultyCourses[i])
                 }
             }
+            // Instructor referenced in multiple faculty pages
             else {
                 instructorsDict[name].schools.push(facultyLinks[link]);
                 facultyCourses[i].forEach(instructorsDict[name].courses.add, instructorsDict[name].courses);
             }
         });
     })
-    console.log("Retrieved", Object.keys(instructorsDict).length, "faculty members")
+    console.log("Retrieved", Object.keys(instructorsDict).length, "faculty names")
     const instructorPromises = Object.keys(instructorsDict).map(name => limit(() =>  
         //getInstructor(name, instructorsDict[name].schools, Array.from(instructorsDict[name].courses))
-        getDirectoryInfo(name)
+        getDirectoryInfo(name, 3)
     ));
     const instructors = await Promise.all(instructorPromises);
     let n = 0
+    console.log(instructors);
     instructors.forEach(x => {
         if (Object.keys(x).length == 0 ) {
             n += 1;
@@ -93,7 +112,7 @@ export async function getInstructor(instructorName: string, schools: string[], r
         //     getDirectoryInfo(instructorName),
         //     getCourseHistory(instructorName, relatedDepartments)
         // ]);
-        const directoryInfo = await getDirectoryInfo(instructorName);
+        const directoryInfo = await getDirectoryInfo(instructorName, 3);
         if (Object.keys(directoryInfo).length === 0) {
             console.log(`WARNING! ${instructorName} cannot be found in Directory!`);
             return instructorObject;
@@ -201,6 +220,8 @@ export async function getInstructorNames(facultyLink: string): Promise<string[]>
         const $ = cheerio.load(response.data);
         $('.faculty').each(function(this: cheerio.Element) {
             let name = $(this).find('.name').text();
+            name = name.split(',')[0];  // Remove suffixes that begin with ","  ex: ", Jr."
+            name = name.replace(/\s*\b(?:I{2,3}|IV|V|VI{0,3}|IX)\b$/, ""); // Remove roman numeral suffixes ex: "III"
             name = name.normalize('NFKD').replace(/[\u0300-\u036f]/g, '');   // Remove Accents Diacritics
             result.push(name);
         });
@@ -267,9 +288,10 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
 
 
 /**
- * Gets the instructor's directory info
+ * Gets the instructor's directory info.
  * 
  * @param instructorName - Name of instructor (replace "." with " ")
+ * @param attemtps - Number of times the function will be called again if request fails
  * @returns {object} Dictionary of instructor's info
  * Example:
  *      {
@@ -279,47 +301,110 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
             "email": "thornton@uci.edu"
         }
  */
-export async function getDirectoryInfo(instructorName: string): Promise<{ [key: string]: string }> {
+export async function getDirectoryInfo(instructorName: string, attempts: number): Promise<{ [key: string]: string }> {
+    if (attempts === 0) {
+        console.log(`Failed to be retrieve ${instructorName}!`);
+    }
     const headers = {
         'Content-Type': 'application/x-www-form-urlencoded'
     };
-    const name = instructorName.replace(/\./g,'');
-    const data = {'uciKey': name};
+    let name = instructorName.replace(/\./g,'');  // remove '.' from name
+    const data = {
+        'uciKey': name,
+        'filter': 'all' // "all" instead of "staff" bc some instructors are not "staff" (?)
+    };
     try {
-        let response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
-        // Result found using base name
-        if (response.data.length !== 0) {
-            const json = response.data[0][1];
-            return {
-                'name': he.decode(json.Name),
-                'ucinetid': json.UCInetID,
-                'title': he.decode(json.Title), // decode HTML encoded char
-                'department': he.decode(json.Department),
-                'email': Buffer.from(json.Email, 'base64').toString('utf8') // decode Base64 email
-            };
+        // Try multiple attempts to get results bc the directory is so inconsistent
+        let response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });  // Search with base name
+        // Try stripping '-' from name
+        if (response.data.length === 0 && name.includes('-')) {
+                data['uciKey'] = name.replace(/-/g, '');
+            response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers })
         }
-        // Try again without middle initial
+        // Try prepending all single characters to the next word "Alexander W Thornton" -> "Alexander WThornton"
+        if (response.data.length === 0 && /(\b\w{1})\s(\w+)/g.test(name)) {
+            data['uciKey'] = name.replace(/(\b\w{1})\s(\w+)/g, '$1$2');
+            response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers })
+        }
         const nameSplit = name.split(' ');
-        data['uciKey'] = [nameSplit[0], nameSplit[nameSplit.length-1]].join(' ');
-        response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
-        if (response.data.length !== 0) {
-            const json = response.data[0][1];
-            // Check if second initial matches
+        // Try parts surrounding middle initial
+        if (response.data.length === 0 && nameSplit.length > 2 && nameSplit[1].length === 1) {
+            data['uciKey'] = nameSplit[0] + ' ' + nameSplit[2];
+            response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+        }
+        // Try first and last part of name
+        if (response.data.length === 0) {
+            data['uciKey'] = nameSplit[0] + ' ' + nameSplit[nameSplit.length-1];
+            response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+        }
+        // Try first and last part of name but shorter first name
+        if (response.data.length === 0 && nameSplit[0].length > 7) {
+            data['uciKey'] = nameSplit[0].slice(0, 5) + ' ' + nameSplit[nameSplit.length-1];
+            response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+        }
+        // Try name without last part
+        if (response.data.length == 0 && nameSplit.length > 2 && nameSplit[1].length > 1) {
+            data['uciKey'] = nameSplit.slice(0, -1).join(' ');
+            response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+        }
+        let json;
+        // 1 result found, likely hit
+        //console.log(response.data)
+        if (response.data.length == 1) {
+            json = response.data[0][1];
+        }
+        // Multiple results, need to find best match
+        else if (response.data.length > 1) {
+            // Retrieve names with highest match score
+            const nameResults = [strToTitleCase(response.data[0][1]['Name'])];
+            for (let i=1; i<response.data.length; i++) {
+                if (response.data[i][0] == response.data[0][0]) {
+                    nameResults.push(strToTitleCase(response.data[i][1]['Name']));  
+                }
+            }
+            const nameScores = response.data.map((res: [number, { [key: string]: string }]) => [res[0], res[1]['Name']]);
+            const match = stringSimilarity.findBestMatch(name, nameResults);
+            nameResults.push(strToTitleCase('Joseph Wu'))
+            nameResults.push(strToTitleCase(he.decode(response.data[1][1]['Name'])))
+            if (match['bestMatch']['rating'] >= 0.5) {
+                json = response.data[match['bestMatchIndex']][1];
+            }
+            // Check if Nickname matches
+            else if (stringSimilarity.compareTwoStrings(name, response.data[match['bestMatchIndex']][1]['Nickname']) >= 0.5) {
+                json = response.data[match['bestMatchIndex']][1];
+            }
+        }
+        if (json) {
             return {
-                'name': he.decode(json.Name),
+                'name': strToTitleCase(json.Name),  // For some reason returned names can be capitalized like bruh ("MILENA MIHAIL")
                 'ucinetid': json.UCInetID,
                 'title': he.decode(json.Title), // decode HTML encoded char
                 'department': he.decode(json.Department),
                 'email': Buffer.from(json.Email, 'base64').toString('utf8') // decode Base64 email
-            };
+            }
         }
-        console.log(instructorName, "NOT FOUND!");
+
     }
     catch (error) {
-        console.log(instructorName, "FAILED!")
-        //console.log(error);
+        await sleep(1000);
+        return await getDirectoryInfo(name, attempts-1);
     }
+    // No match found
+    console.log(instructorName, 'not found in directory!');
     return {};
+}
+
+
+/**
+ * Converts string to title case.
+ * 
+ * @param str - String
+ * @returns {string} String in title case
+ */
+export function strToTitleCase(str: string): string {
+    const strArray = str.toLocaleLowerCase().split(' ');
+    const titleCaseStr = strArray.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+    return titleCaseStr;
 }
 
 
@@ -448,13 +533,6 @@ export function parseHistoryPage(
 }
 
 async function main() {
-    const s = await getAllInstructors();
-    // const w = await getFacultyLinks();
-    // console.log(w)
-    //const s = await getDirectoryInfo('Karin E. Reed);
-    //console.log(s)
-    // const name = "Linda T. Võ"
-    // console.log(name);
-    // console.log(name.normalize('NFKD').replace(/[\u0300-\u036f]/g, ''));
+    const w = await getAllInstructors();
 }
 main();
