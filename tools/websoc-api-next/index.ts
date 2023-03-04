@@ -62,6 +62,8 @@ const template = {
                   },
                   numOnWaitlist:
                     "sec_enrollment/sec_waitlist[text() != ../../course_code]",
+                  numWaitlistCap:
+                    "sec_enrollment/sec_wait_cap[text() != ../../course_code]",
                   numRequested: "sec_enrollment/sec_enroll_requests",
                   numNewOnlyReserved:
                     "sec_enrollment/sec_new_only_reserved[text() != ../../course_code]",

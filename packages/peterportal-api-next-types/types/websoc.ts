@@ -28,7 +28,8 @@ export type WebsocSectionEnrollment = {
   totalEnrolled: string;
   /**
    * The number of students enrolled in the section referred to by this section
-   * code, if the section is cross-listed.
+   * code, if the section is cross-listed. If the section is not cross-listed,
+   * this field is the empty string.
    */
   sectionEnrolled: string;
 };
@@ -78,6 +79,10 @@ export type WebsocSection = {
    * The number of students currently on the waitlist for this section.
    */
   numOnWaitlist: string;
+  /**
+   * The maximum number of students that can be on the waitlist for this section.
+   */
+  numWaitlistCap: string;
   /**
    * The number of students who have requested to be enrolled in this section.
    */
