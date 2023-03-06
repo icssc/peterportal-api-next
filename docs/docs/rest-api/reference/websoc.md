@@ -157,6 +157,7 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                     "sectionEnrolled": "166"
                   },
                   "numOnWaitlist": "0",
+                  "numWaitlistCap": "38",
                   "numRequested": "191",
                   "numNewOnlyReserved": "0",
                   "restrictions": "J",
