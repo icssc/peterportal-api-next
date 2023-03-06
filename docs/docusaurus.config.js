@@ -25,6 +25,9 @@ const config = {
           editUrl:
             "https://github.com/icssc/peterportal-api-next/tree/documentation/docs/",
           showLastUpdateTime: true,
+          remarkPlugins: [
+            [require("@docusaurus/remark-plugin-npm2yarn"), { sync: true }],
+          ],
         },
         theme: {
           customCss: require.resolve("./src/css/custom.css"),

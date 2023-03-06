@@ -3,16 +3,22 @@
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
   docsSidebar: [
-    { type: "doc", id: "getting-started", label: "Getting Started" },
-    { type: "doc", id: "fair-use-policy", label: "Fair Use Policy" },
+    "getting-started",
+    "fair-use-policy",
     {
       type: "category",
       label: "REST API",
       items: [
+        "rest-api/overview",
         {
-          type: "doc",
-          id: "rest-api/getting-started",
-          label: "Getting Started",
+          type: "category",
+          label: "Guides",
+          items: ["rest-api/guides/typescript-integration"],
+        },
+        {
+          type: "category",
+          label: "Reference",
+          items: ["rest-api/reference/websoc"],
         },
       ],
     },

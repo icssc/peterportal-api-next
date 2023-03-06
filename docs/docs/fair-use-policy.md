@@ -1,3 +1,8 @@
+---
+pagination_prev: null
+pagination_next: null
+---
+
 # Fair Use Policy
 
 Thank you for considering PeterPortal API for your next project! We're glad to be able to help you in your endeavors.
