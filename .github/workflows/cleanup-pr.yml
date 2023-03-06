@@ -56,9 +56,9 @@ jobs:
           stack_name: peterportal-api-next-docs-staging-${{ github.event.pull_request.number }}
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
-      - name: Destroy deployed API stack
+      - name: Destroy deployed stacks
         run: npm run destroy -- --filter="api-cdk" --filter="docs-cdk"
-      - name: Delete staging URL
+      - name: Delete staging URLs
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: stagingURL
