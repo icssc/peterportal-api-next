@@ -5,7 +5,7 @@ import pLimit from 'p-limit';
 import stringSimilarity from 'string-similarity';
 
 
-const limit = pLimit(60);   // Max number of concurrent calls
+const limit = pLimit(800);   // Max number of concurrent calls
 
 const CATALOGUE_BASE_URL: string = 'http://catalogue.uci.edu';
 const URL_TO_ALL_SCHOOLS: string = 'http://catalogue.uci.edu/schoolsandprograms/';
@@ -36,23 +36,32 @@ type InstructorsInfo = {
 };
 
 type InstructorsLog = {
-    num_faculty_links: number,
-    faculty_links: string[],
-    num_instructors_listed: number,     // Instructors listed in faculty pages
-    instructors_listed: string[]
-    num_instructors_found: number,      // Instructors found in directory
-    num_instructors_not_found: number   // Instructors not found in directory
-    instructors_not_found: string[],
-    num_instructors_failed: number,     // Instructors that were not able to be requested (usually due to network error)
-    instructors_failed: string[],
-}
+    faculty_links: [number, { [faculty_link: string]: string }],      // Mapping of faculty links to departments
+    faculty_links_failed: [number, string[]],       // Faculty links that failed to be requested
+    instructors_found: [number, string[]],               // Instructors listed in faculty pages
+    instructors_dir_found: [number, string[]]         // Instructors found in directory
+    instructors_dir_not_found: [number, string[]],    // Instructors not found in directory
+    instructors_dir_failed: [number, string[]],       // Instructors that failed to be requested (usually due to network error)
+    instructors_course_history_failed: [number, string[]],   // Instructors whose course history that failed to be requested 
+};
 
 function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-export async function getAllInstructors() {
-    const facultyLinks = await getFacultyLinks(3);
+export async function getAllInstructors(attempts: number): Promise<InstructorsData> {
+    const startTime = new Date().getTime();
+    const instructorsLog: InstructorsLog = {
+        faculty_links: [0, {}],
+        faculty_links_failed: [0, []],
+        instructors_found: [0, []],
+        instructors_dir_found: [0, []],
+        instructors_dir_not_found: [0, []],
+        instructors_dir_failed: [0, []],
+        instructors_course_history_failed: [0, []]
+    }
+    const facultyLinks = await getFacultyLinks(attempts);
+    instructorsLog['faculty_links'] = [Object.keys(facultyLinks).length, facultyLinks];
     console.log("Retrieved", Object.keys(facultyLinks).length, "faculty links");
     const instructorNamePromises = Object.keys(facultyLinks).map(link => getInstructorNames(link));
     await sleep(1000);  // Wait 1 second before scraping site again or catalogue.uci will throw a fit
@@ -63,11 +72,13 @@ export async function getAllInstructors() {
     const instructorsDict: {[name: string]: {schools: string[], courses: Set<string>}} = {};
     Object.keys(facultyLinks).forEach((link, i) => {
         instructorNames[i].forEach(name => {
-            if (!instructorsDict[name]) {
+            if (!(name in instructorsDict)) {
                 instructorsDict[name] = {
                     schools: [facultyLinks[link]], 
                     courses: new Set(facultyCourses[i])
                 }
+                instructorsLog['instructors_found'][0] += 1
+                instructorsLog['instructors_found'][1].push(name);
             }
             // Instructor referenced in multiple faculty pages
             else {
@@ -78,25 +89,49 @@ export async function getAllInstructors() {
     })
     console.log("Retrieved", Object.keys(instructorsDict).length, "faculty names")
     const instructorPromises = Object.keys(instructorsDict).map(name => limit(() =>  
-        //getInstructor(name, instructorsDict[name].schools, Array.from(instructorsDict[name].courses))
-        getDirectoryInfo(name, 3)
+        getInstructor(name, instructorsDict[name].schools, Array.from(instructorsDict[name].courses), attempts)
     ));
     const instructors = await Promise.all(instructorPromises);
-    let n = 0
-    console.log(instructors);
-    instructors.forEach(x => {
-        if (Object.keys(x).length == 0 ) {
-            n += 1;
+    const instructorsInfo: InstructorsInfo = {};
+    instructors.forEach(instructorResult => {
+        const name = instructorResult[1]['name'];
+        const ucinetid = instructorResult[1]['ucinetid'];
+        switch (instructorResult[0]) {
+            case 'FOUND':
+                instructorsLog['instructors_dir_found'][0] += 1
+                instructorsLog['instructors_dir_found'][1].push(name);
+                instructorsInfo[ucinetid] = instructorResult[1]; 
+                break;
+            case 'NOT_FOUND':
+                instructorsLog['instructors_dir_not_found'][0] += 1
+                instructorsLog['instructors_dir_not_found'][1].push(name);
+                break;
+            case 'FAILED':
+                instructorsLog['instructors_dir_failed'][0] += 1
+                instructorsLog['instructors_dir_failed'][1].push(name);
+                break;
+            case 'HISTORY_FAILED':
+                instructorsLog['instructors_course_history_failed'][0] += 1
+                instructorsLog['instructors_course_history_failed'][1].push(name);
+                instructorsInfo[ucinetid] = instructorResult[1]; 
+                break;
         }
-    })
-    console.log(instructors.length);
-    console.log(n);
+    });
+    const endTime = new Date().getTime();
+    const timeDiff = endTime - startTime;
+    const seconds = timeDiff / 1000;
+    const minutes = seconds / 60;
+    console.log('Finished scraping instructors (', minutes, 'min )');
+    return {
+        results: instructorsInfo,
+        log: instructorsLog
+    }
 }
 
 
-export async function getInstructor(instructorName: string, schools: string[], relatedDepartments: string[]): Promise<Instructor> {
+export async function getInstructor(instructorName: string, schools: string[], relatedDepartments: string[], attempts: number): Promise<[string, Instructor]> {
     const instructorObject: Instructor = {
-        name: '', 
+        name: instructorName, 
         ucinetid: '', 
         title: '', 
         department: '', 
@@ -107,28 +142,34 @@ export async function getInstructor(instructorName: string, schools: string[], r
         course_history: {}
     };
     try {
-        //console.log('Getting', instructorName);
-        // const [directoryInfo, courseHistory] = await Promise.all([
-        //     getDirectoryInfo(instructorName),
-        //     getCourseHistory(instructorName, relatedDepartments)
-        // ]);
-        const directoryInfo = await getDirectoryInfo(instructorName, 3);
-        if (Object.keys(directoryInfo).length === 0) {
-            console.log(`WARNING! ${instructorName} cannot be found in Directory!`);
-            return instructorObject;
+        const directoryInfo = await getDirectoryInfo(instructorName, attempts);
+        if ('NOT_FOUND' in directoryInfo) {
+            return ['NOT_FOUND', instructorObject];
+        }
+        if ('FAILED' in directoryInfo) {
+            return ['FAILED', instructorObject];
         }
         instructorObject['name'] = directoryInfo['name'];
         instructorObject['ucinetid'] = directoryInfo['ucinetid'];
         instructorObject['title'] = directoryInfo['title'];
         instructorObject['department'] = directoryInfo['department'];
         instructorObject['email'] = directoryInfo['email'];
-        // instructorObject['shortened_name'] = courseHistory['shortened_name'];
-        // instructorObject['course_history'] = courseHistory['course_history'];
+
+        const courseHistory = await getCourseHistory(instructorObject['name'], relatedDepartments, attempts);
+        instructorObject['shortened_name'] = courseHistory[1]['shortened_name'];
+        instructorObject['course_history'] = courseHistory[1]['course_history'];
+        if (courseHistory[0] === 'FAILED') {
+            return ['HISTORY_FAILED', instructorObject];
+        }
     }
     catch (error) {
-        console.log(error);
+        if (attempts === 1) {
+            return ['FAILED', instructorObject];
+        }
+        sleep(1000)
+        await getInstructor(instructorName, schools, relatedDepartments, attempts-1);
     }
-    return instructorObject;
+    return ['FOUND', instructorObject];
 }
 
 
@@ -309,7 +350,7 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
  */
 export async function getDirectoryInfo(instructorName: string, attempts: number): Promise<{ [key: string]: string }> {
     if (attempts === 0) {
-        console.log(`Failed to be retrieve ${instructorName}!`);
+        return {'FAILED': instructorName};
     }
     const headers = {
         'Content-Type': 'application/x-www-form-urlencoded'
@@ -396,8 +437,7 @@ export async function getDirectoryInfo(instructorName: string, attempts: number)
         return await getDirectoryInfo(name, attempts-1);
     }
     // No match found
-    console.log(instructorName, 'not found in directory!');
-    return {};
+    return {'NOT_FOUND': instructorName};
 }
 
 
@@ -419,17 +459,24 @@ export function strToTitleCase(str: string): string {
  * 
  * @param instructorName - Name of instructor
  * @param relatedDepartments - A list of departments related to the instructor
+ * @param attempts - Number of times a page will be requested if fail
  * @returns {object} A dictionary containing the instructor's "shortened_name" and "course_history"
  */
-export async function getCourseHistory(instructorName: string, relatedDepartments: string[])
-: Promise< {
-    shortened_name: string, 
-    course_history: { 
-        [course_id: string]: string[]
+export async function getCourseHistory(instructorName: string, relatedDepartments: string[], attempts: number)
+: Promise<[
+    string,
+    {
+        shortened_name: string, 
+        course_history: { 
+            [course_id: string]: string[]
+        }
     }
-} > {
+]> {
     const courseHistory: { [key: string]: Set<string> } = {};
     const nameCounts: { [key: string]: number } = {};
+    let page: string;
+    let continueParsing: boolean;
+    let status;
     const name = instructorName.replace(/\./g,'').split(' '); // ['Alexander W Thornton']
     let shortenedName = `${name[name.length-1]}, ${name[0][0]}.`; // 'Thornton, A.'
     const params = {
@@ -440,35 +487,60 @@ export async function getCourseHistory(instructorName: string, relatedDepartment
         'start_row': ''}
     try {
         // Parse first page
-        let response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
-        let continueParsing = parseHistoryPage(response.data, relatedDepartments, courseHistory, nameCounts);
+        page = await fetchHistoryPage(params, attempts);
+        if (page === '') {
+            throw new Error('Failed to retrieve history page');
+        }
+        continueParsing = parseHistoryPage(page, relatedDepartments, courseHistory, nameCounts);
         // Set up parameters to parse previous pages (older course pages)
         let row = 1;
         params['action'] = 'Prev';
         params['start_row'] = row.toString();
         while (continueParsing) {
-            response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
-            continueParsing = parseHistoryPage(response.data, relatedDepartments, courseHistory, nameCounts);
+            page = await fetchHistoryPage(params, attempts);
+            if (page === '') {
+                throw new Error('Failed to retrieve history page');
+            }
+            continueParsing = parseHistoryPage(page, relatedDepartments, courseHistory, nameCounts);
             row += 101
             params['start_row'] = row.toString();
         }
+        status = 'FOUND';
         // Determine most common shortened name 
         if (Object.keys(nameCounts).length > 0) {
             shortenedName = Object.keys(nameCounts).reduce((a, b) => nameCounts[a] > nameCounts[b] ? a: b);  // Get name with greatest count
         }
     }
     catch (error) {
-        console.log(error)
+        status = 'FAILED';
     }
     // Convert sets to lists
     const courseHistoryListed: { [key: string]: string[] }= {};
     for (const courseId in courseHistory) {
         courseHistoryListed[courseId] = Array.from(courseHistory[courseId]);
     }
-    return {
-        'shortened_name': shortenedName,
-        'course_history': courseHistoryListed
-    };
+    return [
+        status, {
+            'shortened_name': shortenedName,
+            'course_history': courseHistoryListed
+        }
+    ];
+}
+
+
+export async function fetchHistoryPage(params: { [key: string]: string }, attempts: number): Promise<string> {
+    try {
+        const response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
+        return response.data;
+    }
+    catch (error) {
+        if (attempts > 0) {
+            await sleep(1000);
+            return await fetchHistoryPage(params, attempts-1);
+        }
+    }
+    console.log("RIP")
+    return '';
 }
 
 /**
@@ -539,8 +611,10 @@ export function parseHistoryPage(
 }
 
 async function main() {
-    //const w = await getAllInstructors();
-    const f = await getFacultyLinks(3);
-    console.log(Object.keys(f).length)
+    //console.log(await getAllInstructors(3));
+    const s = await getAllInstructors(3)
+    console.log([0, s['log']])
+    //const f = await getFacultyLinks(3);
+    //console.log(Object.keys(f).length)
 }
 main();
