@@ -96,6 +96,13 @@ export class DocsStack extends Stack {
         allowedMethods: AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
+      errorResponses: [
+        {
+          httpStatus: 403,
+          responseHttpStatus: 200,
+          responsePagePath: "/index.html",
+        },
+      ],
     });
 
     new ARecord(this, `peterportal-api-next-docs-a-record-${stage}`, {
