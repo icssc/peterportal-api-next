@@ -80,12 +80,12 @@ export type GradeDistribution = {
 export type GradesRaw = (GradeSection & GradeDistribution)[];
 
 /**
- * An object that represents calculated grades statistics for a given query.
+ * An object that represents aggregate grades statistics for a given query.
  * The type of the payload returned on a successful response from querying
- * ``/v1/rest/grades/calculated``.
+ * ``/v1/rest/grades/aggregate``.
  * @alpha
  */
-export type GradesCalculated = {
+export type GradesAggregate = {
   /**
    * The list of sections in the query.
    */

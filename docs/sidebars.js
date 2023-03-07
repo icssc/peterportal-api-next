@@ -18,7 +18,7 @@ const sidebars = {
         {
           type: "category",
           label: "Reference",
-          items: ["rest-api/reference/websoc"],
+          items: ["rest-api/reference/grades", "rest-api/reference/websoc"],
         },
       ],
     },

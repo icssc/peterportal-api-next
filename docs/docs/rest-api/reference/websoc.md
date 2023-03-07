@@ -25,6 +25,10 @@ The year to query.
 
 The quarter to query. Case-sensitive.
 
+#### `cache` boolean
+
+To improve response times, by default this endpoint will return data from our cache, if possible. The cache is updated approximately every five minutes. If you would like to disable this behavior, pass `false` to this parameter.
+
 #### `ge`**\*** GE-1A | GE-1B | GE-2 | GE-3 | GE-4 | GE-5A | GE-5B | GE-6 | GE-7 | GE-8
 
 The GE category code. Case-sensitive.
