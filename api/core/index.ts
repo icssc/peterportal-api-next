@@ -250,7 +250,7 @@ export const createErrorResult = (
     statusCode,
     body: JSON.stringify(body),
     headers: {
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     },

@@ -20,13 +20,14 @@ try {
 } catch {}
 
 const graphqlServer = new ApolloServer({
-  typeDefs: mergeTypeDefs(loadFilesSync(join(cwd, "schema/*.graphql"))),
-  resolvers: mergeResolvers(loadFilesSync(join(cwd, "resolver/*.{js,ts}"))),
+  introspection: true,
   plugins: [
     process.env.NODE_ENV === "development"
       ? ApolloServerPluginLandingPageLocalDefault()
       : ApolloServerPluginLandingPageProductionDefault({ footer: false }),
   ],
+  resolvers: mergeResolvers(loadFilesSync(join(cwd, "resolver/*.{js,ts}"))),
+  typeDefs: mergeTypeDefs(loadFilesSync(join(cwd, "schema/*.graphql"))),
 });
 
 export const expressHandlerFactory = () => {
@@ -36,5 +37,20 @@ export const expressHandlerFactory = () => {
 
 export const lambdaHandler = startServerAndCreateLambdaHandler(
   graphqlServer,
-  handlers.createAPIGatewayProxyEventRequestHandler()
+  handlers.createAPIGatewayProxyEventRequestHandler(),
+  {
+    middleware: [
+      async (_) => {
+        return async (res) => {
+          res.headers = {
+            ...res.headers,
+            "Access-Control-Allow-Headers":
+              "Apollo-Require-Preflight, Content-Type",
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+          };
+        };
+      },
+    ],
+  }
 );
