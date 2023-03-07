@@ -17,6 +17,7 @@
         "ACCOUNT_ID",
         "API_PORT",
         "AWS_REGION",
+        "BASE_URL",
         "CERTIFICATE_ARN",
         "DATABASE_URL",
         "HOSTED_ZONE_ID",
