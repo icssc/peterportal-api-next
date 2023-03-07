@@ -27,15 +27,7 @@ export const restResolverFactory =
   ) =>
   async (_: never, args: ParsedUrlQueryInput): Promise<unknown> => {
     const res: RawResponse<unknown> = await (
-      await fetch(
-        `${
-          process.env.NODE_ENV === "development"
-            ? `http://localhost:${process.env.API_PORT || 8080}`
-            : `https://${
-                process.env.STAGE === "prod" ? "" : `${process.env.STAGE}-`
-              }api-next.peterportal.org`
-        }${path}?${encode(transform(args))}`
-      )
+      await fetch(`${process.env.BASE_URL}${path}?${encode(transform(args))}`)
     ).json();
     if (isErrorResponse(res))
       throw new GraphQLError(res.message, {

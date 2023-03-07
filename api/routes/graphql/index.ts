@@ -9,9 +9,11 @@ import {
   startServerAndCreateLambdaHandler,
 } from "@as-integrations/aws-lambda";
 import { loadFilesSync } from "@graphql-tools/load-files";
-import { mergeResolvers, mergeTypeDefs } from "@graphql-tools/merge";
+import { mergeTypeDefs } from "@graphql-tools/merge";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+
+import resolvers from "./resolvers";
 
 let cwd = "";
 try {
@@ -26,7 +28,7 @@ const graphqlServer = new ApolloServer({
       ? ApolloServerPluginLandingPageLocalDefault()
       : ApolloServerPluginLandingPageProductionDefault({ footer: false }),
   ],
-  resolvers: mergeResolvers(loadFilesSync(join(cwd, "resolver/*.{js,ts}"))),
+  resolvers,
   typeDefs: mergeTypeDefs(loadFilesSync(join(cwd, "schema/*.graphql"))),
 });
 

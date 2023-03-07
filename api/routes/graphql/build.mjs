@@ -1,22 +1,42 @@
 import { build } from "esbuild";
 import { cp, mkdir, rm } from "fs/promises";
 import { dirname, join } from "path";
-import glob from "tiny-glob";
 import { fileURLToPath } from "url";
+
+const define = {};
+
+for (const k in process.env) {
+  define[`process.env.${k}`] = JSON.stringify(process.env[k]);
+}
+
+switch (process.env.NODE_ENV) {
+  case "development":
+    define["process.env.BASE_URL"] = `http://localhost:${
+      process.env.API_PORT || 8080
+    }`;
+    break;
+  case "staging":
+    define[
+      "process.env.BASE_URL"
+    ] = `https://${process.env.STAGE}.api-next.peterportal.org`;
+    break;
+  case "production":
+    define["process.env.BASE_URL"] = "https://api-next.peterportal.org";
+    break;
+}
+
+define["process.env.BASE_URL"] = JSON.stringify(define["process.env.BASE_URL"]);
 
 (async () => {
   const cwd = dirname(fileURLToPath(import.meta.url));
   /** @type {import("esbuild").BuildOptions} */
   const options = {
     bundle: true,
-    entryPoints: [
-      join(cwd, "index.ts"),
-      ...(await glob(join(cwd, "resolver/*.ts"))),
-    ],
+    define,
+    entryPoints: [join(cwd, "index.ts")],
     logLevel: "info",
     minify: true,
-    outdir: join(cwd, "dist/"),
-    outExtension: { ".js": ".cjs" },
+    outfile: join(cwd, "dist/index.cjs"),
     platform: "node",
     plugins: [
       {

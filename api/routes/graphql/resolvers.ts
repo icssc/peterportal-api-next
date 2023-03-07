@@ -1,4 +1,4 @@
-import { restResolverFactory } from "../lib";
+import { restResolverFactory } from "./lib";
 
 export default {
   Query: {

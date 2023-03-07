@@ -5,14 +5,4 @@ This directory contains the logic for the GraphQL endpoint of the API. It is sli
 To add GraphQL support for a REST route:
 
 1. Create a schema under `schema/`. It should include all necessary types, and extend the `Query` type with the appropriate field.
-2. Create a resolver under `resolver/` with the same name as the schema. Its default export should have the following shape:
-
-```ts
-{
-  Query: {
-    resolverName: Function;
-  }
-}
-```
-
-In most cases, you can just have `resolverName` be a call to `lib.restResolverFactory` with the appropriate parameters. However, if you know what you are doing, you can also write your own resolver.
+2. Add a new field under the `Query` object of the default export of `resolver.ts`, with a key of the same name as the schema name. In most cases, you can just have the value be a call to `lib.restResolverFactory` with the appropriate parameters. However, if you know what you are doing, you can also write your own resolver.
