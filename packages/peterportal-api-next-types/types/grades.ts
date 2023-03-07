@@ -5,21 +5,29 @@ import { Quarter } from "./constants";
  */
 export type GradeSection = {
   /**
-   * What year the section was offered.
+   * The year the section was offered.
    */
   year: string;
   /**
-   * What quarter the section was offered.
+   * The quarter the section was offered.
    */
   quarter: Quarter;
   /**
-   * The shortened name of the instructor who taught the section.
+   * The department code.
    */
-  instructor: string;
+  department: string;
   /**
-   * The type (e.g. ``LEC``) of the section.
+   * The course number the section belongs to.
    */
-  type: string;
+  courseNumber: string;
+  /**
+   * The section code of the section.
+   */
+  sectionCode: string;
+  /**
+   * The shortened name(s) of the instructor(s) who taught the section.
+   */
+  instructors: string[];
 };
 
 /**

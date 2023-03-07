@@ -116,7 +116,7 @@ export class ApiStack extends Stack {
     const api = new RestApi(this, `peterportal-api-next-${stage}`, {
       defaultCorsPreflightOptions: {
         allowOrigins: ["*"],
-        allowHeaders: ["Content-Type"],
+        allowHeaders: ["Apollo-Require-Preflight", "Content-Type"],
         allowMethods: ["GET", "HEAD", "POST"],
       },
       disableExecuteApiEndpoint: true,

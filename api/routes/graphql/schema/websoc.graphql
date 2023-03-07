@@ -18,6 +18,7 @@ type WebsocSection {
   maxCapacity: String!
   numCurrentlyEnrolled: WebsocSectionEnrollment!
   numOnWaitlist: String!
+  numWaitlistCap: String!
   numRequested: String!
   numNewOnlyReserved: String!
   restrictions: String!
