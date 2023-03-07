@@ -6,19 +6,26 @@ import React from "react";
 import styles from "./styles.module.css";
 
 export default function Sandbox() {
+  let initialEndpoint;
+  switch (process.env.NODE_ENV) {
+    case "development":
+      initialEndpoint = `http://localhost:${process.env.API_PORT || 8080}`;
+      break;
+    case "staging":
+      initialEndpoint = `https://${process.env.STAGE}.api-next.peterportal.org`;
+      break;
+    case "production":
+      initialEndpoint = "https://api-next.peterportal.org";
+      break;
+  }
+  initialEndpoint += "/v1/graphql";
   return (
     <BrowserOnly fallback={<>"Loading..."</>}>
       {() => (
         <Layout title={"Sandbox"} noFooter>
           <ApolloSandbox
             className={styles.apolloSandbox}
-            initialEndpoint={`${
-              process.env.NODE_ENV === "development"
-                ? `http://localhost:${process.env.API_PORT || 8080}`
-                : `https://${
-                    process.env.STAGE === "prod" ? "" : `${process.env.STAGE}-`
-                  }api-next.peterportal.org`
-            }/v1/graphql`}
+            initialEndpoint={initialEndpoint}
           />
         </Layout>
       )}
