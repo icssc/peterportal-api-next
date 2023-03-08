@@ -7,9 +7,25 @@ export default defineConfig({
   },
   plugins: [
     ...VitePluginNode({
+      /**
+       * using NestJS
+       */
       adapter: "nest",
+
+      /**
+       * path to server entrypoint/start script
+       */
       appPath: "./index.ts",
+
+      /**
+       * named export of the app in the appPath file
+       */
       exportName: "viteNodeApp",
+
+      /**
+       * esbuild doesn't work??
+       */
+      tsCompiler: "swc",
     }),
   ],
   optimizeDeps: {

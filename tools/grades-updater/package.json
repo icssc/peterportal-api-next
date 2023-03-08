@@ -16,6 +16,6 @@
   },
   "devDependencies": {
     "@types/node": "^18.14.0",
-    "peterportal-api-next-types": "*"
+    "peterportal-api-next-types": "latest"
   }
 }

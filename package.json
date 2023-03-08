@@ -17,6 +17,7 @@
     "generate": "turbo run generate",
     "postinstall": "husky install",
     "lint": "eslint --fix .",
+    "prepare": "prisma generate",
     "test": "turbo run test"
   },
   "config": {

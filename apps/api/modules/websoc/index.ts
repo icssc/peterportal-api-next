@@ -1,3 +1,7 @@
+/**
+ * file to start up this module as a standalone application
+ */
+
 import "dotenv/config";
 
 import { patchNestjsSwagger } from "@anatine/zod-nestjs";
@@ -5,10 +9,13 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
 
-import { HelloModule } from "./hello.module";
+/**
+ * import the correct module!
+ */
+import { AdvancedModule } from "./advanced.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(HelloModule);
+  const app = await NestFactory.create(AdvancedModule);
   const port = 3000;
 
   /**
@@ -49,4 +56,5 @@ async function bootstrap() {
     console.log(`🚀 Server ready at http://localhost:${port}`);
   });
 }
+
 bootstrap();

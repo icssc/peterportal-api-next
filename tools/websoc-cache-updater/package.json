@@ -19,7 +19,7 @@
     "@types/object-hash": "^3.0.2",
     "aws-lambda": "^1.0.7",
     "esbuild": "^0.17.8",
-    "peterportal-api-next-types": "*",
+    "peterportal-api-next-types": "latest",
     "typescript": "^4.9.5"
   }
 }

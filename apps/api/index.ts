@@ -6,13 +6,25 @@ import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
 
+//-----------------------------------------------------------------------------------
+// START: module setup
+//-----------------------------------------------------------------------------------
 import { HelloModule } from "./modules/hello/hello.module";
+import { AdvancedModule } from "./template/advanced/advanced.module";
+import { SimpleModule } from "./template/simple/simple.module";
 
 @Module({
-  imports: [HelloModule],
+  imports: [HelloModule, SimpleModule, AdvancedModule],
 })
 class AppModule {}
 
+//-----------------------------------------------------------------------------------
+// END: module setup
+//-----------------------------------------------------------------------------------
+
+/**
+ * starts the NestJS server with the main module
+ */
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const port = 3000;
@@ -55,4 +67,8 @@ async function bootstrap() {
     console.log(`🚀 Server ready at http://localhost:${port}`);
   });
 }
+
+/**
+ * entry point for vite-plugin-node
+ */
 export const viteNodeApp = bootstrap();

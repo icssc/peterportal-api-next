@@ -17,7 +17,7 @@
   "devDependencies": {
     "@jest/globals": "^29.4.1",
     "jest": "^29.4.1",
-    "peterportal-api-next-types": "*",
+    "peterportal-api-next-types": "latest",
     "ts-jest": "^29.0.5"
   }
 }
