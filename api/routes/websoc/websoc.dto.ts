@@ -1,12 +1,31 @@
 import {
   cancelledCoursesOptions,
-  divisionKeys,
   fullCoursesOptions,
-  geKeys,
   quarters,
   sectionTypes,
 } from "peterportal-api-next-types";
 import { z } from "zod";
+
+/**
+ * TODO: move this into peterportal-api-next-types?
+ */
+const divisionKeys = ["LowerDiv", "UpperDiv", "Graduate"] as const;
+
+/**
+ * TODO: move this into peterportal-api-next-types?
+ */
+const geKeys = [
+  "GE-1A",
+  "GE-1B",
+  "GE-2",
+  "GE-3",
+  "GE-4",
+  "GE-5A",
+  "GE-5B",
+  "GE-6",
+  "GE-7",
+  "GE-8",
+] as const;
 
 /**
  * Given a string of comma-separated values or an array of such strings,
@@ -74,4 +93,4 @@ export const QuerySchema = z
     message: 'If "building" is provided, "room" must also be provided',
   });
 
-export type Query = z.TypeOf<typeof querySchema>;
+export type Query = z.TypeOf<typeof QuerySchema>;

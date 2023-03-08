@@ -38,6 +38,8 @@ import {
 import type { WebsocAPIOptions } from "websoc-api-next";
 import { callWebSocAPI } from "websoc-api-next";
 
+import { QuerySchema } from "./websoc.dto";
+
 /**
  * Given a string of comma-separated values or an array of such strings,
  * return a sorted array containing all unique values.
@@ -386,95 +388,17 @@ const isTwiceCacheable = (query: WebsocAPIOptions): boolean =>
 export const rawHandler = async (
   request: IRequest
 ): Promise<APIGatewayProxyResult> => {
-  const { method, path, query, requestId } = request.getParams();
-  logger.info(`${method} ${path} ${JSON.stringify(query)}`);
+  const { method, path, query: unparsedQuery, requestId } = request.getParams();
+  logger.info(`${method} ${path} ${JSON.stringify(unparsedQuery)}`);
   switch (method) {
     case "GET":
     case "HEAD":
       try {
-        // Validate the required parameters.
-        for (const param of ["year", "quarter"]) {
-          if (!query[param]) {
-            return createErrorResult(
-              400,
-              `Parameter ${param} not provided`,
-              requestId
-            );
-          }
-        }
-        if (
-          !(
-            query.ge ||
-            query.department ||
-            query.sectionCodes ||
-            query.instructorName
-          )
-        ) {
-          return createErrorResult(
-            400,
-            "You must provide at least one of ge, department, sectionCode, and instructorName",
-            requestId
-          );
-        }
-        if (
-          typeof query.year !== "string" ||
-          query.year.length !== 4 ||
-          isNaN(parseInt(query.year)) ||
-          parseInt(query.year).toString().length !== 4
-        ) {
-          return createErrorResult(400, "Invalid year provided", requestId);
-        }
-        if (
-          typeof query.quarter !== "string" ||
-          !quarters.includes(query.quarter as Quarter)
-        ) {
-          return createErrorResult(400, "Invalid quarter provided", requestId);
-        }
-        // Validate building/room parameters.
-        if (!query.building && query.room) {
-          return createErrorResult(
-            400,
-            "You must provide a building code if you provide a room number",
-            requestId
-          );
-        }
-        // Validate optional parameters.
-        for (const [param, validParams] of Object.entries({
-          division: Object.keys(divisions),
-          sectionType: sectionTypes,
-          fullCourses: fullCoursesOptions,
-          cancelledCourses: cancelledCoursesOptions,
-        })) {
-          if (
-            !isValidOptionalParameter(query, param, validParams as unknown[])
-          ) {
-            return createErrorResult(
-              400,
-              `Invalid value for parameter ${param} provided`,
-              requestId
-            );
-          }
-        }
-        // Validate all other scalar parameters.
-        for (const param of [
-          "ge",
-          "department",
-          "building",
-          "room",
-          "instructorName",
-          "courseTitle",
-          "startTime",
-          "endTime",
-          "maxCapacity",
-        ]) {
-          if (Array.isArray(query[param])) {
-            return createErrorResult(
-              400,
-              `Parameter ${param} cannot be provided more than once`,
-              requestId
-            );
-          }
-        }
+        /**
+         * throws a ZodParseError if invalid query
+         */
+        const query = QuerySchema.parse(unparsedQuery);
+
         const term: Term = {
           year: query.year,
           quarter: query.quarter as Quarter,
