@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 import { patchNestjsSwagger } from "@anatine/zod-nestjs";
 import { Module } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
@@ -9,12 +7,11 @@ import cookieParser from "cookie-parser";
 //-----------------------------------------------------------------------------------
 // START: module setup
 //-----------------------------------------------------------------------------------
-import { HelloModule } from "./modules/hello/hello.module";
 import { AdvancedModule } from "./template/advanced/advanced.module";
 import { SimpleModule } from "./template/simple/simple.module";
 
 @Module({
-  imports: [HelloModule, SimpleModule, AdvancedModule],
+  imports: [SimpleModule, AdvancedModule],
 })
 class AppModule {}
 

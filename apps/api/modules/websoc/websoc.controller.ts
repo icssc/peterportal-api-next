@@ -1,14 +1,14 @@
 import { Controller, Get } from "@nestjs/common";
 import { ApiCreatedResponse } from "@nestjs/swagger";
 
-import { byeDTO, helloDTO } from "./advanced.dto";
-import { AdvancedService } from "./advanced.service";
+import { byeDTO, helloDTO } from "./websoc.dto";
+import { AdvancedService } from "./websoc.service";
 
 /**
  * all routes begin at /advanced
  */
 @Controller("/advanced")
-export class AdvancedController {
+export class WebsocController {
   /**
    * describe all services/providers this controller needs (i.e. classes that can handle data)
    */

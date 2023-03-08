@@ -1,14 +1,14 @@
 import { Module } from "@nestjs/common";
 import { PrismaService } from "db";
 
-import { AdvancedController } from "./advanced.controller";
-import { AdvancedService } from "./advanced.service";
+import { WebsocController } from "./websoc.controller";
+import { AdvancedService } from "./websoc.service";
 
 /**
  * make sure all controllers and services are imported here
  */
 @Module({
-  controllers: [AdvancedController],
+  controllers: [WebsocController],
   providers: [AdvancedService, PrismaService],
 })
-export class AdvancedModule {}
+export class WebsocModule {}

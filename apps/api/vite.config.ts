@@ -13,14 +13,14 @@ export default defineConfig({
       adapter: "nest",
 
       /**
-       * path to server entrypoint/start script
+       * path to lambda server entrypoint
        */
-      appPath: "./index.ts",
+      appPath: "./lambda.ts",
 
       /**
        * named export of the app in the appPath file
        */
-      exportName: "viteNodeApp",
+      exportName: "handler",
 
       /**
        * esbuild doesn't work??
