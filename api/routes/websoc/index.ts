@@ -28,15 +28,11 @@ import type {
   WebsocSection,
   WebsocSectionMeeting,
 } from "peterportal-api-next-types";
-import {
-  cancelledCoursesOptions,
-  divisions,
-  fullCoursesOptions,
-  quarters,
-  sectionTypes,
-} from "peterportal-api-next-types";
 import type { WebsocAPIOptions } from "websoc-api-next";
 import { callWebSocAPI } from "websoc-api-next";
+import type { ZodError } from "zod";
+
+import { QuerySchema } from "./websoc.dto";
 
 /**
  * Given a string of comma-separated values or an array of such strings,
@@ -74,23 +70,6 @@ const isolateSection = (
   data.schools[0].departments[0].courses[0].sections = [{ ...section }];
   return data;
 };
-
-/**
- * Checks whether the given optional parameter is valid.
- * @param query The parsed query string.
- * @param param The parameter of the query string to validate.
- * @param validParams The set of all valid values for ``query[param]``.
- */
-const isValidOptionalParameter = (
-  query: Record<string, string | string[] | undefined>,
-  param: string,
-  validParams: unknown[]
-): boolean =>
-  !(
-    query[param] &&
-    (typeof query[param] !== "string" ||
-      (!validParams.includes(query[param]) && query[param] !== "ANY"))
-  );
 
 /**
  * Given a parsed query string, normalize the query and return it as an array of
@@ -386,95 +365,13 @@ const isTwiceCacheable = (query: WebsocAPIOptions): boolean =>
 export const rawHandler = async (
   request: IRequest
 ): Promise<APIGatewayProxyResult> => {
-  const { method, path, query, requestId } = request.getParams();
-  logger.info(`${method} ${path} ${JSON.stringify(query)}`);
+  const { method, path, query: unparsedQuery, requestId } = request.getParams();
+  logger.info(`${method} ${path} ${JSON.stringify(unparsedQuery)}`);
   switch (method) {
     case "GET":
     case "HEAD":
       try {
-        // Validate the required parameters.
-        for (const param of ["year", "quarter"]) {
-          if (!query[param]) {
-            return createErrorResult(
-              400,
-              `Parameter ${param} not provided`,
-              requestId
-            );
-          }
-        }
-        if (
-          !(
-            query.ge ||
-            query.department ||
-            query.sectionCodes ||
-            query.instructorName
-          )
-        ) {
-          return createErrorResult(
-            400,
-            "You must provide at least one of ge, department, sectionCode, and instructorName",
-            requestId
-          );
-        }
-        if (
-          typeof query.year !== "string" ||
-          query.year.length !== 4 ||
-          isNaN(parseInt(query.year)) ||
-          parseInt(query.year).toString().length !== 4
-        ) {
-          return createErrorResult(400, "Invalid year provided", requestId);
-        }
-        if (
-          typeof query.quarter !== "string" ||
-          !quarters.includes(query.quarter as Quarter)
-        ) {
-          return createErrorResult(400, "Invalid quarter provided", requestId);
-        }
-        // Validate building/room parameters.
-        if (!query.building && query.room) {
-          return createErrorResult(
-            400,
-            "You must provide a building code if you provide a room number",
-            requestId
-          );
-        }
-        // Validate optional parameters.
-        for (const [param, validParams] of Object.entries({
-          division: Object.keys(divisions),
-          sectionType: sectionTypes,
-          fullCourses: fullCoursesOptions,
-          cancelledCourses: cancelledCoursesOptions,
-        })) {
-          if (
-            !isValidOptionalParameter(query, param, validParams as unknown[])
-          ) {
-            return createErrorResult(
-              400,
-              `Invalid value for parameter ${param} provided`,
-              requestId
-            );
-          }
-        }
-        // Validate all other scalar parameters.
-        for (const param of [
-          "ge",
-          "department",
-          "building",
-          "room",
-          "instructorName",
-          "courseTitle",
-          "startTime",
-          "endTime",
-          "maxCapacity",
-        ]) {
-          if (Array.isArray(query[param])) {
-            return createErrorResult(
-              400,
-              `Parameter ${param} cannot be provided more than once`,
-              requestId
-            );
-          }
-        }
+        const query = QuerySchema.parse(unparsedQuery);
         const term: Term = {
           year: query.year,
           quarter: query.quarter as Quarter,
@@ -657,7 +554,11 @@ export const rawHandler = async (
         // Sort the response and return it.
         return createOKResult(sortResponse(ret), requestId);
       } catch (e) {
-        return createErrorResult(500, e, requestId);
+        return createErrorResult(
+          400,
+          (e as ZodError).issues.map((i) => i.message).join("; "),
+          requestId
+        );
       }
     default:
       return createErrorResult(400, `Cannot ${method} ${path}`, requestId);
