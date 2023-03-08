@@ -28,15 +28,9 @@ import type {
   WebsocSection,
   WebsocSectionMeeting,
 } from "peterportal-api-next-types";
-import {
-  cancelledCoursesOptions,
-  divisions,
-  fullCoursesOptions,
-  quarters,
-  sectionTypes,
-} from "peterportal-api-next-types";
 import type { WebsocAPIOptions } from "websoc-api-next";
 import { callWebSocAPI } from "websoc-api-next";
+import type { ZodError } from "zod";
 
 import { QuerySchema } from "./websoc.dto";
 
@@ -76,23 +70,6 @@ const isolateSection = (
   data.schools[0].departments[0].courses[0].sections = [{ ...section }];
   return data;
 };
-
-/**
- * Checks whether the given optional parameter is valid.
- * @param query The parsed query string.
- * @param param The parameter of the query string to validate.
- * @param validParams The set of all valid values for ``query[param]``.
- */
-const isValidOptionalParameter = (
-  query: Record<string, string | string[] | undefined>,
-  param: string,
-  validParams: unknown[]
-): boolean =>
-  !(
-    query[param] &&
-    (typeof query[param] !== "string" ||
-      (!validParams.includes(query[param]) && query[param] !== "ANY"))
-  );
 
 /**
  * Given a parsed query string, normalize the query and return it as an array of
@@ -394,11 +371,7 @@ export const rawHandler = async (
     case "GET":
     case "HEAD":
       try {
-        /**
-         * throws a ZodParseError if invalid query
-         */
         const query = QuerySchema.parse(unparsedQuery);
-
         const term: Term = {
           year: query.year,
           quarter: query.quarter as Quarter,
@@ -581,7 +554,11 @@ export const rawHandler = async (
         // Sort the response and return it.
         return createOKResult(sortResponse(ret), requestId);
       } catch (e) {
-        return createErrorResult(500, e, requestId);
+        return createErrorResult(
+          400,
+          (e as ZodError).issues.map((i) => i.message).join("; "),
+          requestId
+        );
       }
     default:
       return createErrorResult(400, `Cannot ${method} ${path}`, requestId);

@@ -1,31 +1,13 @@
 import {
+  anyArray,
   cancelledCoursesOptions,
+  divisionCodes,
   fullCoursesOptions,
+  geCodes,
   quarters,
   sectionTypes,
 } from "peterportal-api-next-types";
 import { z } from "zod";
-
-/**
- * TODO: move this into peterportal-api-next-types?
- */
-const divisionKeys = ["LowerDiv", "UpperDiv", "Graduate"] as const;
-
-/**
- * TODO: move this into peterportal-api-next-types?
- */
-const geKeys = [
-  "GE-1A",
-  "GE-1B",
-  "GE-2",
-  "GE-3",
-  "GE-4",
-  "GE-5A",
-  "GE-5B",
-  "GE-6",
-  "GE-7",
-  "GE-8",
-] as const;
 
 /**
  * Given a string of comma-separated values or an array of such strings,
@@ -52,7 +34,7 @@ export const QuerySchema = z
       required_error: 'Parameter "quarter" not provided',
       invalid_type_error: "Invalid quarter provided",
     }),
-    ge: z.enum(geKeys).optional(),
+    ge: z.enum(anyArray).or(z.enum(geCodes)).optional(),
     department: z.string().optional(),
     courseNumber: z
       .string()
@@ -73,9 +55,9 @@ export const QuerySchema = z
       .transform((x) => x.join(",")),
     building: z.string().optional(),
     room: z.string().optional(),
-    division: z.enum(divisionKeys).optional(),
-    sectionType: z.enum(sectionTypes).optional(),
-    fullCourses: z.enum(fullCoursesOptions).optional(),
+    division: z.enum(anyArray).or(z.enum(divisionCodes)).optional(),
+    sectionType: z.enum(anyArray).or(z.enum(sectionTypes)).optional(),
+    fullCourses: z.enum(anyArray).or(z.enum(fullCoursesOptions)).optional(),
     cancelledCourses: z.enum(cancelledCoursesOptions).optional(),
     units: z
       .string()
@@ -85,11 +67,14 @@ export const QuerySchema = z
       .transform(normalizeValue),
     cache: z.string().array().or(z.string()).optional(),
   })
-  .refine((x) => x.ge || x.department || x.sectionCodes || x.instructorName, {
-    message:
-      'At least one of "ge", "department", "sectionCodes", or "instructorName" must be provided',
-  })
-  .refine((x) => !(!x.building || x.room), {
+  .refine(
+    (x) => x.ge || x.department || x.sectionCodes[0].length || x.instructorName,
+    {
+      message:
+        'At least one of "ge", "department", "sectionCodes", or "instructorName" must be provided',
+    }
+  )
+  .refine((x) => x.building || !x.room, {
     message: 'If "building" is provided, "room" must also be provided',
   });
 
