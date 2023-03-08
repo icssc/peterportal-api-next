@@ -18,9 +18,7 @@ export class AdvancedController {
    * hello route
    */
   @Get("hello")
-  @ApiCreatedResponse({
-    type: helloDTO,
-  })
+  @ApiCreatedResponse({ type: helloDTO })
   hello(): Promise<string> {
     return this.advancedService.hello();
   }
@@ -29,9 +27,7 @@ export class AdvancedController {
    * bye route
    */
   @Get("bye")
-  @ApiCreatedResponse({
-    type: byeDTO,
-  })
+  @ApiCreatedResponse({ type: byeDTO })
   bye(): Promise<byeDTO> {
     return this.advancedService.bye();
   }

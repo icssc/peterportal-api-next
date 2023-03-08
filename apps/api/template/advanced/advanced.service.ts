@@ -16,7 +16,7 @@ import { byeDTO } from "./advanced.dto";
 @Injectable()
 export class AdvancedService {
   /**
-   * the prisma service will be injected
+   * the prisma service will be injected into this service
    */
   constructor(private readonly prisma: PrismaService) {}
 

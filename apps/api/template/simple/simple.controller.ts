@@ -18,9 +18,7 @@ export class SimpleController {
    * hello route
    */
   @Get("hello")
-  @ApiCreatedResponse({
-    type: helloDTO,
-  })
+  @ApiCreatedResponse({ type: helloDTO })
   hello(): string {
     return this.simpleService.hello();
   }
@@ -29,9 +27,7 @@ export class SimpleController {
    * bye route
    */
   @Get("bye")
-  @ApiCreatedResponse({
-    type: byeDTO,
-  })
+  @ApiCreatedResponse({ type: byeDTO })
   bye(): byeDTO {
     return this.simpleService.bye();
   }
