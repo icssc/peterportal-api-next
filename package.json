@@ -3,11 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "workspaces": [
-    "api/**/*",
-    "cdk",
-    "db",
-    "ddb",
-    "docs",
+    "apps/**/*",
     "packages/*",
     "tools/*"
   ],
@@ -22,15 +18,6 @@
     "postinstall": "husky install",
     "lint": "eslint --fix .",
     "test": "turbo run test"
-  },
-  "lint-staged": {
-    "*.?(c|m){js,ts}?(x)": [
-      "eslint --quiet --fix",
-      "prettier --write"
-    ],
-    "*.{graphql,json,md,prisma,sql,yaml,yml}": [
-      "prettier --write"
-    ]
   },
   "config": {
     "commitizen": {
