@@ -3,18 +3,7 @@ import {
   InvokeCommand,
   LambdaClient,
 } from "@aws-sdk/client-lambda";
-import type { IRequest } from "api-core";
-import {
-  createErrorResult,
-  createLambdaHandler,
-  createOKResult,
-  logger,
-} from "api-core";
-import type {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Context,
-} from "aws-lambda";
+import { Injectable } from "@nestjs/common";
 import type { SortKey } from "ddb";
 import { DDBDocClient } from "ddb";
 import hash from "object-hash";
@@ -30,13 +19,15 @@ import type {
 } from "peterportal-api-next-types";
 import {
   cancelledCoursesOptions,
-  divisions,
+  divisionKeys,
   fullCoursesOptions,
+  geKeys,
   quarters,
   sectionTypes,
 } from "peterportal-api-next-types";
 import type { WebsocAPIOptions } from "websoc-api-next";
 import { callWebSocAPI } from "websoc-api-next";
+import { z } from "zod";
 
 /**
  * Given a string of comma-separated values or an array of such strings,
@@ -46,7 +37,7 @@ import { callWebSocAPI } from "websoc-api-next";
 const normalizeValue = (val: string | string[] | undefined): string[] =>
   Array.from(
     new Set(
-      typeof val === "undefined"
+      !val
         ? [""]
         : typeof val === "string"
         ? val.split(",")
@@ -383,283 +374,232 @@ const isTwiceCacheable = (query: WebsocAPIOptions): boolean =>
     query.sectionCodes?.includes(",")
   );
 
-export const rawHandler = async (
-  request: IRequest
-): Promise<APIGatewayProxyResult> => {
-  const { method, path, query, requestId } = request.getParams();
-  logger.info(`${method} ${path} ${JSON.stringify(query)}`);
-  switch (method) {
-    case "GET":
-    case "HEAD":
-      try {
-        // Validate the required parameters.
-        for (const param of ["year", "quarter"]) {
-          if (!query[param]) {
-            return createErrorResult(
-              400,
-              `Parameter ${param} not provided`,
-              requestId
-            );
-          }
+const querySchema = z
+  .object({
+    year: z
+      .string({ required_error: 'Parameter "year" not provided' })
+      .length(4, { message: "Invalid year provided" }),
+    quarter: z.enum(quarters, {
+      required_error: 'Parameter "quarter" not provided',
+      invalid_type_error: "Invalid quarter provided",
+    }),
+    ge: z.enum(geKeys).optional(),
+    department: z.string().optional(),
+    courseNumber: z
+      .string()
+      .optional()
+      .transform(normalizeValue)
+      .transform((x) => x.join(",")),
+    sectionCodes: z
+      .string()
+      .array()
+      .or(z.string())
+      .optional()
+      .transform(normalizeValue),
+    instructorName: z.string().optional(),
+    days: z
+      .string()
+      .optional()
+      .transform(normalizeValue)
+      .transform((x) => x.join(",")),
+    building: z.string().optional(),
+    room: z.string().optional(),
+    division: z.enum(divisionKeys),
+    sectionType: z.enum(sectionTypes),
+    fullCourses: z.enum(fullCoursesOptions),
+    cancelledCourses: z.enum(cancelledCoursesOptions),
+    units: z
+      .string()
+      .array()
+      .or(z.string())
+      .optional()
+      .transform(normalizeValue),
+    cache: z.string().array().or(z.string()).optional(),
+  })
+  .refine((x) => x.ge || x.department || x.sectionCodes || x.instructorName, {
+    message:
+      'At least one of "ge", "department", "sectionCodes", or "instructorName" must be provided',
+  })
+  .refine((x) => !(!x.building || x.room), {
+    message: 'If "building" is provided, "room" must also be provided',
+  });
+
+type Query = z.TypeOf<typeof querySchema>;
+
+@Injectable()
+export class WebsocService {
+  async head(query: Query) {
+    const term: Term = {
+      year: query.year,
+      quarter: query.quarter,
+    };
+    let queries: Array<WebsocAPIOptions | undefined> = normalizeQuery(query);
+    let ret: WebsocAPIResponse = { schools: [] };
+
+    // Determine whether to enable caching for this request.
+    if (!query.cache || query.cache !== "false") {
+      const docClient = new DDBDocClient();
+      const tableName = "peterportal-api-next-websoc-cache";
+      const sortKey: SortKey = {
+        name: "invalidateBy",
+        value: Math.floor(Date.now() / 1000),
+        cmp: ">=",
+      };
+      const lambdaClient = new LambdaClient({});
+      // For each normalized query:
+      // Check the cache for that query. If hit, merge the result with the
+      // result to be returned, set that query to ``undefined``, and go to
+      // the next query. Otherwise, dispatch the cache updater.
+      for (const [i, q] of Object.entries(queries)) {
+        if (!q) continue;
+        const requestHash = hash([term, q]);
+        try {
+          const items = (
+            await docClient.query(
+              tableName,
+              { name: "requestHash", value: requestHash },
+              sortKey
+            )
+          )?.Items;
+          // if (items?.length) {
+          //   logger.info(`Cache hit (${requestHash}): ${JSON.stringify(q)}`);
+          //   queries[parseInt(i)] = undefined;
+          //   ret = combineResponses(items.slice(-1)[0].data, ret);
+          //   continue;
+          // } else {
+          //   logger.info(`Cache miss (${requestHash}): ${JSON.stringify(q)}`);
+          //   dispatchCacheUpdater(lambdaClient, tableName, term, q);
+          // }
+        } catch (e) {
+          console.warn(e);
+          // logger.warn(
+          //   `Error occurred while querying cache for ${JSON.stringify(
+          //     q
+          //   )} with hash ${requestHash}`
+          // );
+          // logger.warn(`Stack trace: ${e}`);
+          continue;
         }
-        if (
-          !(
-            query.ge ||
-            query.department ||
-            query.sectionCodes ||
-            query.instructorName
-          )
-        ) {
-          return createErrorResult(
-            400,
-            "You must provide at least one of ge, department, sectionCode, and instructorName",
-            requestId
-          );
-        }
-        if (
-          typeof query.year !== "string" ||
-          query.year.length !== 4 ||
-          isNaN(parseInt(query.year)) ||
-          parseInt(query.year).toString().length !== 4
-        ) {
-          return createErrorResult(400, "Invalid year provided", requestId);
-        }
-        if (
-          typeof query.quarter !== "string" ||
-          !quarters.includes(query.quarter as Quarter)
-        ) {
-          return createErrorResult(400, "Invalid quarter provided", requestId);
-        }
-        // Validate building/room parameters.
-        if (!query.building && query.room) {
-          return createErrorResult(
-            400,
-            "You must provide a building code if you provide a room number",
-            requestId
-          );
-        }
-        // Validate optional parameters.
-        for (const [param, validParams] of Object.entries({
-          division: Object.keys(divisions),
-          sectionType: sectionTypes,
-          fullCourses: fullCoursesOptions,
-          cancelledCourses: cancelledCoursesOptions,
-        })) {
-          if (
-            !isValidOptionalParameter(query, param, validParams as unknown[])
-          ) {
-            return createErrorResult(
-              400,
-              `Invalid value for parameter ${param} provided`,
-              requestId
-            );
-          }
-        }
-        // Validate all other scalar parameters.
-        for (const param of [
-          "ge",
-          "department",
-          "building",
-          "room",
-          "instructorName",
-          "courseTitle",
-          "startTime",
-          "endTime",
-          "maxCapacity",
-        ]) {
-          if (Array.isArray(query[param])) {
-            return createErrorResult(
-              400,
-              `Parameter ${param} cannot be provided more than once`,
-              requestId
-            );
-          }
-        }
-        const term: Term = {
-          year: query.year,
-          quarter: query.quarter as Quarter,
-        };
-        let queries: Array<WebsocAPIOptions | undefined> =
-          normalizeQuery(query);
-        let ret: WebsocAPIResponse = { schools: [] };
-        // Determine whether to enable caching for this request.
-        if (!query.cache || query.cache !== "false") {
-          const docClient = new DDBDocClient();
-          const tableName = "peterportal-api-next-websoc-cache";
-          const sortKey: SortKey = {
-            name: "invalidateBy",
-            value: Math.floor(Date.now() / 1000),
-            cmp: ">=",
-          };
-          const lambdaClient = new LambdaClient({});
-          // For each normalized query:
-          // Check the cache for that query. If hit, merge the result with the
-          // result to be returned, set that query to ``undefined``, and go to
-          // the next query. Otherwise, dispatch the cache updater.
-          for (const [i, q] of Object.entries(queries)) {
-            if (!q) continue;
-            const requestHash = hash([term, q]);
-            try {
-              const items = (
-                await docClient.query(
-                  tableName,
-                  { name: "requestHash", value: requestHash },
-                  sortKey
-                )
-              )?.Items;
-              if (items?.length) {
-                logger.info(`Cache hit (${requestHash}): ${JSON.stringify(q)}`);
-                queries[parseInt(i)] = undefined;
-                ret = combineResponses(items.slice(-1)[0].data, ret);
-                continue;
-              } else {
-                logger.info(
-                  `Cache miss (${requestHash}): ${JSON.stringify(q)}`
+        if (!isTwiceCacheable(q)) continue;
+        if (q.department) {
+          try {
+            const altQuery: WebsocAPIOptions = { department: q.department };
+            const requestHash = hash([term, altQuery]);
+            const items = (
+              await docClient.query(
+                tableName,
+                {
+                  name: "requestHash",
+                  value: requestHash,
+                },
+                sortKey
+              )
+            )?.Items;
+            if (items?.length) {
+              // logger.info(`Cache hit (${requestHash}): ${JSON.stringify(q)}`);
+              queries[parseInt(i)] = undefined;
+              const data: WebsocAPIResponse = items.slice(-1)[0].data;
+              data.schools[0].departments[0].courses =
+                data.schools[0].departments[0].courses.filter(
+                  (x) => x.courseNumber === q.courseNumber
                 );
-                dispatchCacheUpdater(lambdaClient, tableName, term, q);
-              }
-            } catch (e) {
-              logger.warn(
-                `Error occurred while querying cache for ${JSON.stringify(
-                  q
-                )} with hash ${requestHash}`
-              );
-              logger.warn(`Stack trace: ${e}`);
-              continue;
+              ret = combineResponses(data, ret);
+            } else {
+              // logger.info(`Cache miss (${requestHash}): ${JSON.stringify(q)}`);
+              dispatchCacheUpdater(lambdaClient, tableName, term, altQuery);
             }
-            if (!isTwiceCacheable(q)) continue;
-            if (q.department) {
-              try {
-                const altQuery: WebsocAPIOptions = { department: q.department };
-                const requestHash = hash([term, altQuery]);
-                const items = (
-                  await docClient.query(
+          } catch (e) {
+            // logger.warn(
+            //   `Error occurred while querying cache for ${JSON.stringify(
+            //     q
+            //   )} with hash (${requestHash})`
+            // );
+            // logger.warn(`Stack trace: ${e}`);
+            continue;
+          }
+        }
+        if (q.sectionCodes) {
+          const sectionCodes = q.sectionCodes.split(",");
+          try {
+            const items = await Promise.all(
+              sectionCodes.map((sectionCode) =>
+                docClient
+                  .query(
                     tableName,
                     {
                       name: "requestHash",
-                      value: requestHash,
+                      value: hash([
+                        term,
+                        { sectionCodes: sectionCode } as WebsocAPIOptions,
+                      ]),
                     },
                     sortKey
                   )
-                )?.Items;
-                if (items?.length) {
-                  logger.info(
-                    `Cache hit (${requestHash}): ${JSON.stringify(q)}`
-                  );
-                  queries[parseInt(i)] = undefined;
-                  const data: WebsocAPIResponse = items.slice(-1)[0].data;
-                  data.schools[0].departments[0].courses =
-                    data.schools[0].departments[0].courses.filter(
-                      (x) => x.courseNumber === q.courseNumber
-                    );
-                  ret = combineResponses(data, ret);
-                } else {
-                  logger.info(
-                    `Cache miss (${requestHash}): ${JSON.stringify(q)}`
-                  );
-                  dispatchCacheUpdater(lambdaClient, tableName, term, altQuery);
-                }
-              } catch (e) {
-                logger.warn(
-                  `Error occurred while querying cache for ${JSON.stringify(
-                    q
-                  )} with hash (${requestHash})`
-                );
-                logger.warn(`Stack trace: ${e}`);
-                continue;
-              }
-            }
-            if (q.sectionCodes) {
-              const sectionCodes = q.sectionCodes.split(",");
-              try {
-                const items = await Promise.all(
-                  sectionCodes.map((sectionCode) =>
-                    docClient
-                      .query(
-                        tableName,
-                        {
-                          name: "requestHash",
-                          value: hash([
-                            term,
-                            { sectionCodes: sectionCode } as WebsocAPIOptions,
-                          ]),
-                        },
-                        sortKey
-                      )
-                      .then((x) => x?.Items)
-                  )
-                );
-                if (items.every((x) => x?.length)) {
-                  logger.info(`Cache hit: ${JSON.stringify(q)}`);
-                  queries[parseInt(i)] = undefined;
-                  ret = combineResponses(
-                    ...items.map(
-                      (x): WebsocAPIResponse => x?.slice(-1)[0].data
-                    ),
-                    ret
-                  );
-                } else {
-                  logger.info(`Cache miss: ${JSON.stringify(q)}`);
-                  sectionCodes.map((sectionCode) =>
-                    dispatchCacheUpdater(lambdaClient, tableName, term, {
-                      sectionCodes: sectionCode,
-                    })
-                  );
-                }
-              } catch (e) {
-                logger.warn(
-                  `Error occurred while querying cache for ${JSON.stringify(q)}`
-                );
-                logger.warn(`Stack trace: ${e}`);
-              }
-            }
-          }
-          // Filter out the queries that have been set to ``undefined``,
-          // i.e. the ones we have fulfilled through the cache already.
-          queries = queries.filter((q) => q);
-        }
-        // For each remaining query:
-        // Collect them into an iterable of ``Promises`` and fire them in parallel.
-        // Check if each result fulfilled or rejected; merge the data of each
-        // fulfilled response into the final response and remove it from the
-        // array of queries. If there are still responses remaining, wait for 1
-        // second and repeat the process.
-        for (;;) {
-          const res = await Promise.allSettled(
-            queries.map((options) =>
-              options
-                ? callWebSocAPI(term, options)
-                : new Promise<WebsocAPIResponse>(() => ({ schools: [] }))
-            )
-          );
-          for (const [i, r] of Object.entries(res)) {
-            if ("value" in r) {
-              logger.info(
-                `WebSoc query for ${JSON.stringify(
-                  queries[parseInt(i)]
-                )} succeeded`
-              );
+                  .then((x) => x?.Items)
+              )
+            );
+            if (items.every((x) => x?.length)) {
+              // logger.info(`Cache hit: ${JSON.stringify(q)}`);
               queries[parseInt(i)] = undefined;
-              ret = combineResponses(r.value, ret);
+              ret = combineResponses(
+                ...items.map((x): WebsocAPIResponse => x?.slice(-1)[0].data),
+                ret
+              );
             } else {
-              logger.info(
-                `WebSoc query for ${JSON.stringify(
-                  queries[parseInt(i)]
-                )} failed`
+              // logger.info(`Cache miss: ${JSON.stringify(q)}`);
+              sectionCodes.map((sectionCode) =>
+                dispatchCacheUpdater(lambdaClient, tableName, term, {
+                  sectionCodes: sectionCode,
+                })
               );
             }
+          } catch (e) {
+            console.warn(e);
+            // logger.warn(
+            //   `Error occurred while querying cache for ${JSON.stringify(q)}`
+            // );
+            // logger.warn(`Stack trace: ${e}`);
           }
-          queries = queries.filter((q) => q);
-          if (!queries.length) break;
-          logger.info(``);
-          await sleep(1000);
         }
-        // Sort the response and return it.
-        return createOKResult(sortResponse(ret), requestId);
-      } catch (e) {
-        return createErrorResult(500, e, requestId);
       }
-    default:
-      return createErrorResult(400, `Cannot ${method} ${path}`, requestId);
+      // Filter out the queries that have been set to ``undefined``,
+      // i.e. the ones we have fulfilled through the cache already.
+      queries = queries.filter((q) => q);
+    }
+
+    // For each remaining query:
+    // Collect them into an iterable of ``Promises`` and fire them in parallel.
+    // Check if each result fulfilled or rejected; merge the data of each
+    // fulfilled response into the final response and remove it from the
+    // array of queries. If there are still responses remaining, wait for 1
+    // second and repeat the process.
+    for (;;) {
+      const res = await Promise.allSettled(
+        queries.map((options) =>
+          options
+            ? callWebSocAPI(term, options)
+            : new Promise<WebsocAPIResponse>(() => ({ schools: [] }))
+        )
+      );
+      for (const [i, r] of Object.entries(res)) {
+        if ("value" in r) {
+          // logger.info(
+          //   `WebSoc query for ${JSON.stringify(queries[parseInt(i)])} succeeded`
+          // );
+          queries[parseInt(i)] = undefined;
+          ret = combineResponses(r.value, ret);
+        } else {
+          // logger.info(
+          //   `WebSoc query for ${JSON.stringify(queries[parseInt(i)])} failed`
+          // );
+        }
+      }
+      queries = queries.filter((q) => q);
+      if (!queries.length) break;
+      // logger.info(``);
+      await sleep(1000);
+    }
+    // Sort the response and return it.
+    return sortResponse(ret);
   }
-};
+}

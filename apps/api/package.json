@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
-    "dev": "nodemon --watch './**/*.ts' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm'",
+    "dev": "node .",
     "start": "node dist",
     "start:offline": "serverless offline start"
   },
