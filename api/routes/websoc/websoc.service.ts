@@ -1,4 +1,3 @@
-import hash from "object-hash";
 import type {
   WebsocAPIResponse,
   WebsocCourse,
@@ -27,7 +26,7 @@ export const combineResponses = (
   responses: WebsocAPIResponse[]
 ): WebsocAPIResponse => {
   /**
-   * all sections are enhanced with contextual info from parent structures
+   * sections are enhanced with context of parent structures and unique meetings
    */
   const allSections: EnhancedSection[] = responses
     .map((response) =>
@@ -38,12 +37,29 @@ export const combineResponses = (
               department.courses
                 .map((course) =>
                   course.sections
-                    .map((section) => ({
-                      school,
-                      department,
-                      course,
-                      section,
-                    }))
+                    .map((section) => {
+                      const meetings = section.meetings.reduce(
+                        (acc, meeting) => {
+                          if (
+                            !acc.find(
+                              (m) =>
+                                m.days === meeting.days &&
+                                m.time === meeting.time
+                            )
+                          ) {
+                            acc.push(meeting);
+                          }
+                          return acc;
+                        },
+                        [] as WebsocSectionMeeting[]
+                      );
+                      return {
+                        school,
+                        department,
+                        course,
+                        section: { ...section, meetings },
+                      };
+                    })
                     .flat()
                 )
                 .flat()
@@ -96,30 +112,6 @@ export const combineResponses = (
 
     return acc;
   }, [] as WebsocSchool[]);
-
-  /**
-   * all sections have been located properly in the combined structure,
-   * calculate the meetings for each section
-   * TODO: maybe this can be simplified too?
-   */
-  schools.forEach((s) => {
-    s.departments.forEach((d) => {
-      d.courses.forEach((c) => {
-        c.sections.forEach((e) => {
-          const meetingsHashSet: Record<string, WebsocSectionMeeting> = {};
-          for (const meeting of e.meetings) {
-            const meetingHash = hash([meeting.days, meeting.time]);
-            if (meetingHash in meetingsHashSet) {
-              meetingsHashSet[meetingHash].bldg.push(meeting.bldg[0]);
-            } else {
-              meetingsHashSet[meetingHash] = { ...meeting };
-            }
-            e.meetings = Object.values(meetingsHashSet);
-          }
-        });
-      });
-    });
-  });
 
   return { schools };
 };
