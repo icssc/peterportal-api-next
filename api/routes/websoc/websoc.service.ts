@@ -18,6 +18,41 @@ interface EnhancedSection {
 }
 
 /**
+ * ensure there's only one object in each nested array that's relevant for the section
+ * @returns ``EnhancedSection`` object that dedupes all circular references,
+ */
+const isolateSection = (data: EnhancedSection): EnhancedSection => {
+  const uniqueMeetings = data.section.meetings.reduce((acc, meeting) => {
+    if (!acc.find((m) => m.days === meeting.days && m.time === meeting.time)) {
+      acc.push(meeting);
+    }
+    return acc;
+  }, [] as WebsocSectionMeeting[]);
+
+  const section = {
+    ...data.section,
+    meetings: uniqueMeetings,
+  };
+
+  const course = {
+    ...data.course,
+    sections: [section],
+  };
+
+  const department = {
+    ...data.department,
+    courses: [course],
+  };
+
+  const school = {
+    ...data.school,
+    departments: [department],
+  };
+
+  return { school, department, course, section };
+};
+
+/**
  * Combines all given response objects into a single response object,
  * eliminating duplicates and merging substructures.
  * @param responses The responses to combine.
@@ -37,47 +72,9 @@ export const combineResponses = (
               department.courses
                 .map((course) =>
                   course.sections
-                    .map((section) => {
-                      const dedupedMeetings = section.meetings.reduce(
-                        (acc, meeting) => {
-                          if (
-                            !acc.find(
-                              (m) =>
-                                m.days === meeting.days &&
-                                m.time === meeting.time
-                            )
-                          ) {
-                            acc.push(meeting);
-                          }
-                          return acc;
-                        },
-                        [] as WebsocSectionMeeting[]
-                      );
-
-                      const dedupedSection = {
-                        ...section,
-                        meetings: dedupedMeetings,
-                      };
-                      const dedupedCourse = {
-                        ...course,
-                        sections: [dedupedSection],
-                      };
-                      const dedupedDepartment = {
-                        ...department,
-                        courses: [dedupedCourse],
-                      };
-                      const dedupedSchool = {
-                        ...school,
-                        departments: [dedupedDepartment],
-                      };
-
-                      return {
-                        school: dedupedSchool,
-                        department: dedupedDepartment,
-                        course: dedupedCourse,
-                        section: dedupedSection,
-                      };
-                    })
+                    .map((section) =>
+                      isolateSection({ school, department, course, section })
+                    )
                     .flat()
                 )
                 .flat()
