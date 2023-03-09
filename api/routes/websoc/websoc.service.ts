@@ -58,7 +58,7 @@ const isolateSection = (data: EnhancedSection): EnhancedSection => {
  * @param responses The responses to combine.
  */
 export const combineResponses = (
-  responses: WebsocAPIResponse[]
+  ...responses: WebsocAPIResponse[]
 ): WebsocAPIResponse => {
   /**
    * sections are enhanced with context of parent structures and unique meetings

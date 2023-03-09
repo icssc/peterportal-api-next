@@ -22,17 +22,13 @@ import type {
   Quarter,
   Term,
   WebsocAPIResponse,
-  WebsocCourse,
-  WebsocDepartment,
-  WebsocSchool,
-  WebsocSection,
-  WebsocSectionMeeting,
 } from "peterportal-api-next-types";
 import type { WebsocAPIOptions } from "websoc-api-next";
 import { callWebSocAPI } from "websoc-api-next";
 import type { ZodError } from "zod";
 
 import { QuerySchema } from "./websoc.dto";
+import { combineResponses } from "./websoc.service";
 
 /**
  * Given a string of comma-separated values or an array of such strings,
@@ -49,27 +45,6 @@ const normalizeValue = (val: string | string[] | undefined): string[] =>
         : val.map((x) => x.split(",")).flat()
     )
   ).sort();
-
-/**
- * Given a nested section and all of its parent structures, returns a
- * ``WebsocAPIResponse`` object that contains only that section.
- * @param school The school that the department belongs to.
- * @param department The department that the course belongs to.
- * @param course The course that the section belongs to.
- * @param section The section to isolate.
- */
-const isolateSection = (
-  school: WebsocSchool,
-  department: WebsocDepartment,
-  course: WebsocCourse,
-  section: WebsocSection
-): WebsocAPIResponse => {
-  const data = { schools: [{ ...school }] };
-  data.schools[0].departments = [{ ...department }];
-  data.schools[0].departments[0].courses = [{ ...course }];
-  data.schools[0].departments[0].courses[0].sections = [{ ...section }];
-  return data;
-};
 
 /**
  * Given a parsed query string, normalize the query and return it as an array of
@@ -136,127 +111,6 @@ const normalizeQuery = (
  * @param b The right hand side of the comparison.
  */
 const lexOrd = (a: string, b: string): number => (a === b ? 0 : a > b ? 1 : -1);
-
-/**
- * Combines all given response objects into a single response object,
- * eliminating duplicates and merging substructures.
- * @param responses The responses to combine.
- */
-const combineResponses = (
-  ...responses: WebsocAPIResponse[]
-): WebsocAPIResponse => {
-  const sectionsHashSet: Record<string, WebsocAPIResponse> = {};
-  for (const res of responses) {
-    for (const school of res.schools) {
-      for (const department of school.departments) {
-        for (const course of department.courses) {
-          for (const section of course.sections) {
-            const s = isolateSection(school, department, course, section);
-            sectionsHashSet[hash(s)] = s;
-          }
-        }
-      }
-    }
-  }
-  const sections = Object.values(sectionsHashSet);
-  const combined = sections.shift();
-  if (!combined) return { schools: [] };
-  for (const section of sections) {
-    if (
-      combined.schools.findIndex(
-        (s) => s.schoolName === section.schools[0].schoolName
-      ) === -1
-    ) {
-      combined.schools.push(section.schools[0]);
-      continue;
-    }
-    if (
-      combined.schools.every(
-        (s) =>
-          s.departments.findIndex(
-            (d) => d.deptCode === section.schools[0].departments[0].deptCode
-          ) === -1
-      )
-    ) {
-      combined.schools
-        .find((s) => s.schoolName === section.schools[0].schoolName)
-        ?.departments.push(section.schools[0].departments[0]);
-      continue;
-    }
-    if (
-      combined.schools.every((s) =>
-        s.departments.every(
-          (d) =>
-            d.courses.findIndex(
-              (c) =>
-                c.courseNumber ===
-                  section.schools[0].departments[0].courses[0].courseNumber &&
-                c.courseTitle ===
-                  section.schools[0].departments[0].courses[0].courseTitle
-            ) === -1
-        )
-      )
-    ) {
-      combined.schools
-        .find((s) => s.schoolName === section.schools[0].schoolName)
-        ?.departments.find(
-          (d) => d.deptCode === section.schools[0].departments[0].deptCode
-        )
-        ?.courses.push(section.schools[0].departments[0].courses[0]);
-      continue;
-    }
-    if (
-      combined.schools.every((s) =>
-        s.departments.every((d) =>
-          d.courses.every(
-            (c) =>
-              c.sections.findIndex(
-                (e) =>
-                  e.sectionCode ===
-                  section.schools[0].departments[0].courses[0].sections[0]
-                    .sectionCode
-              ) === -1
-          )
-        )
-      )
-    ) {
-      combined.schools
-        .find((s) => s.schoolName === section.schools[0].schoolName)
-        ?.departments.find(
-          (d) => d.deptCode === section.schools[0].departments[0].deptCode
-        )
-        ?.courses.find(
-          (c) =>
-            c.courseNumber ===
-              section.schools[0].departments[0].courses[0].courseNumber &&
-            c.courseTitle ===
-              section.schools[0].departments[0].courses[0].courseTitle
-        )
-        ?.sections.push(
-          section.schools[0].departments[0].courses[0].sections[0]
-        );
-    }
-  }
-  combined.schools.forEach((s) => {
-    s.departments.forEach((d) => {
-      d.courses.forEach((c) => {
-        c.sections.forEach((e) => {
-          const meetingsHashSet: Record<string, WebsocSectionMeeting> = {};
-          for (const meeting of e.meetings) {
-            const meetingHash = hash([meeting.days, meeting.time]);
-            if (meetingHash in meetingsHashSet) {
-              meetingsHashSet[meetingHash].bldg.push(meeting.bldg[0]);
-            } else {
-              meetingsHashSet[meetingHash] = { ...meeting };
-            }
-            e.meetings = Object.values(meetingsHashSet);
-          }
-        });
-      });
-    });
-  });
-  return combined;
-};
 
 /**
  * Dispatches the cache updater lambda.
