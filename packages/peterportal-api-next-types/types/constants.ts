@@ -40,33 +40,53 @@ export const fullCoursesOptions = [
  */
 export const cancelledCoursesOptions = ["Exclude", "Include", "Only"] as const;
 /**
- * The mapping of GE category codes to their full names.
+ * The list of GE category codes.
  */
-export const geCategories = {
-  "GE-1A": "GE Ia: Lower Division Writing",
-  "GE-1B": "GE Ib: Upper Division Writing",
-  "GE-2": "GE II: Science and Technology",
-  "GE-3": "GE III: Social & Behavioral Sciences",
-  "GE-4": "GE IV: Arts and Humanities",
-  "GE-5A": "GE Va: Quantitative Literacy",
-  "GE-5B": "GE Vb: Formal Reasoning",
-  "GE-6": "GE VI: Language Other Than English",
-  "GE-7": "GE VII: Multicultural Studies",
-  "GE-8": "GE VIII: International/Global Issues",
-} as const;
+export const geCodes = [
+  "GE-1A",
+  "GE-1B",
+  "GE-2",
+  "GE-3",
+  "GE-4",
+  "GE-5A",
+  "GE-5B",
+  "GE-6",
+  "GE-7",
+  "GE-8",
+] as const;
 /**
- * The mapping of division codes to their full names.
+ * The list of GE category names.
  */
-export const divisions = {
-  LowerDiv: "Lower Division (1-99)",
-  UpperDiv: "Upper Division (100-199)",
-  Graduate: "Graduate/Professional Only (200+)",
-} as const;
+export const geCategories = [
+  "GE Ia: Lower Division Writing",
+  "GE Ib: Upper Division Writing",
+  "GE II: Science and Technology",
+  "GE III: Social & Behavioral Sciences",
+  "GE IV: Arts and Humanities",
+  "GE Va: Quantitative Literacy",
+  "GE Vb: Formal Reasoning",
+  "GE VI: Language Other Than English",
+  "GE VII: Multicultural Studies",
+  "GE VIII: International/Global Issues",
+] as const;
+/**
+ * The list of division codes.
+ */
+export const divisionCodes = ["LowerDiv", "UpperDiv", "Graduate"] as const;
+/**
+ * The list of course level (division) names.
+ */
+export const courseLevels = [
+  "Lower Division (1-99)",
+  "Upper Division (100-199)",
+  "Graduate/Professional Only (200+)",
+] as const;
 
 /**
  * Represents the absence of a particular value to filter for.
  */
-export type Any = "ANY";
+export const anyArray = ["ANY"] as const;
+export type Any = (typeof anyArray)[number];
 /**
  * The quarter in an academic year.
  */
@@ -86,16 +106,16 @@ export type CancelledCourses = (typeof cancelledCoursesOptions)[number];
 /**
  * The GE category code.
  */
-export type GE = Any | keyof typeof geCategories;
+export type GE = Any | (typeof geCodes)[number];
 /**
  * The GE category name.
  */
-export type GECategory = (typeof geCategories)[keyof typeof geCategories];
+export type GECategory = (typeof geCategories)[number];
 /**
  * The division code.
  */
-export type Division = Any | keyof typeof divisions;
+export type Division = Any | (typeof divisionCodes)[number];
 /**
  * The course level name.
  */
-export type CourseLevel = (typeof divisions)[keyof typeof divisions];
+export type CourseLevel = (typeof courseLevels)[number];

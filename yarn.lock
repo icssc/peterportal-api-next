@@ -8481,6 +8481,11 @@ pend@~1.2.0:
   resolved "https://registry.yarnpkg.com/pend/-/pend-1.2.0.tgz#7a57eb550a6783f9115331fcf4663d5c8e007a50"
   integrity sha512-F3asv42UuXchdzt+xXqfW1OGlVBe+mxa2mqI0pg5yAHZPvFmY3Y6drSf/GQ1A86WgWEN9Kzh/WrgKa6iGcHXLg==
 
+peterportal-api-next-types@1.0.0-alpha.4:
+  version "1.0.0-alpha.4"
+  resolved "https://registry.yarnpkg.com/peterportal-api-next-types/-/peterportal-api-next-types-1.0.0-alpha.4.tgz#047e96e637c6ee49e8f4bf72b164922b2988c9d6"
+  integrity sha512-ALpzMVtiOa6c8QHi0cZ/BQfRSNijAHx985kwvNXEKwdxfXRDZKZ8ih+BbjQktOv92c9o7nhzuiLQ+aY67fgRQA==
+
 peterportal-api-next-types@latest:
   version "1.0.0-alpha.3"
   resolved "https://registry.yarnpkg.com/peterportal-api-next-types/-/peterportal-api-next-types-1.0.0-alpha.3.tgz#298a407f1e42758f3f58289cd02e3fd5970fb427"
