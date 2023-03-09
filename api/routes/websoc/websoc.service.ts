@@ -38,7 +38,7 @@ export const combineResponses = (
                 .map((course) =>
                   course.sections
                     .map((section) => {
-                      const meetings = section.meetings.reduce(
+                      const dedupedMeetings = section.meetings.reduce(
                         (acc, meeting) => {
                           if (
                             !acc.find(
@@ -53,11 +53,29 @@ export const combineResponses = (
                         },
                         [] as WebsocSectionMeeting[]
                       );
+
+                      const dedupedSection = {
+                        ...section,
+                        meetings: dedupedMeetings,
+                      };
+                      const dedupedCourse = {
+                        ...course,
+                        sections: [dedupedSection],
+                      };
+                      const dedupedDepartment = {
+                        ...department,
+                        courses: [dedupedCourse],
+                      };
+                      const dedupedSchool = {
+                        ...school,
+                        departments: [dedupedDepartment],
+                      };
+
                       return {
-                        school,
-                        department,
-                        course,
-                        section: { ...section, meetings },
+                        school: dedupedSchool,
+                        department: dedupedDepartment,
+                        course: dedupedCourse,
+                        section: dedupedSection,
                       };
                     })
                     .flat()
