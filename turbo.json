@@ -1,12 +1,6 @@
 {
   "pipeline": {
-    "pull": {
-      "cache": false
-    },
-    "generate": {
-      "dependsOn": ["pull"],
-      "cache": false
-    },
+    "generate": {},
     "build": {
       "dependsOn": ["^generate"],
       "outputs": ["dist/**"]
@@ -31,7 +25,7 @@
     },
     "dev": {
       "cache": false,
-      "dependsOn": ["^pull"],
+      "dependsOn": ["^generate"],
       "env": ["API_PORT"]
     },
     "test": {}

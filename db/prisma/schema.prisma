@@ -4,165 +4,33 @@ generator client {
 }
 
 datasource db {
-  provider = "mysql"
-  url      = env("DATABASE_URL")
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
 }
 
-model grades {
-  academic_year               Int                           @db.UnsignedInt
-  academic_quarter            String                        @db.VarChar(10)
-  department                  String                        @db.VarChar(7)
-  course_number               String
-  course_code                 Int                           @db.UnsignedInt
-  grade_a_count               Int                           @db.UnsignedInt
-  grade_b_count               Int                           @db.UnsignedInt
-  grade_c_count               Int                           @db.UnsignedInt
-  grade_d_count               Int                           @db.UnsignedInt
-  grade_f_count               Int                           @db.UnsignedInt
-  grade_p_count               Int                           @db.UnsignedInt
-  grade_np_count              Int                           @db.UnsignedInt
-  grade_w_count               Int                           @db.UnsignedInt
-  average_gpa                 Float
-  pnp_only                    Boolean?
-  grades_instructors_mappings grades_instructors_mappings[]
+// Do not modify anything above this line unless you know what you are doing.
 
-  @@id([academic_year, academic_quarter, course_code])
+model GradesInstructor {
+  name     String          @id
+  sections GradesSection[]
 }
 
-model course_history {
-  course_id           String
-  instructor_ucinetid String      @db.VarChar(8)
-  term_name           String      @db.VarChar(15)
-  courses             courses     @relation(fields: [course_id], references: [course_id], onUpdate: Restrict, map: "course_history_ibfk_1")
-  instructors         instructors @relation(fields: [instructor_ucinetid], references: [ucinetid], onUpdate: Restrict, map: "course_history_ibfk_2")
-  terms               terms       @relation(fields: [term_name], references: [term_name], onUpdate: Restrict, map: "course_history_ibfk_3")
-
-  @@id([course_id, instructor_ucinetid, term_name])
-  @@index([instructor_ucinetid], map: "instructor_ucinetid")
-  @@index([term_name], map: "term_name")
-}
-
-model courses {
-  course_id                                                      String                  @id
-  department                                                     String                  @db.VarChar(7)
-  course_number                                                  String
-  school                                                         String
-  title                                                          String
-  course_level                                                   String                  @db.VarChar(33)
-  minimum_units                                                  String                  @db.VarChar(5)
-  maximum_units                                                  String                  @db.VarChar(5)
-  course_description                                             String                  @db.Text
-  department_name                                                String
-  prerequisite_tree                                              String                  @db.LongText
-  prerequisite_text                                              String                  @db.Text
-  repeatability                                                  String
-  grading_option                                                 String
-  concurrent_with                                                String
-  same_as                                                        String
-  restriction                                                    String
-  overlap                                                        String
-  corequisite                                                    String
-  ge_text                                                        String                  @db.Text
-  course_history                                                 course_history[]
-  departments_courses_departmentTodepartments                    departments             @relation("courses_departmentTodepartments", fields: [department], references: [department_id], onUpdate: Restrict, map: "courses_ibfk_1")
-  schools                                                        schools                 @relation(fields: [school], references: [school_name], onUpdate: Restrict, map: "courses_ibfk_2")
-  departments_courses_department_nameTodepartments               departments             @relation("courses_department_nameTodepartments", fields: [department_name], references: [department_name], onUpdate: Restrict, map: "courses_ibfk_3")
-  prerequisite_mappings_prerequisite_mappings_course_idTocourses prerequisite_mappings[] @relation("prerequisite_mappings_course_idTocourses")
-  prerequisite_mappings_prerequisite_mappings_for_idTocourses    prerequisite_mappings[] @relation("prerequisite_mappings_for_idTocourses")
-
-  @@index([department], map: "department")
-  @@index([department_name], map: "department_name")
-  @@index([school], map: "school")
-}
-
-model department_mappings {
-  instructor_ucinetid String      @db.VarChar(8)
-  department_id       String      @db.VarChar(7)
-  instructors         instructors @relation(fields: [instructor_ucinetid], references: [ucinetid], onUpdate: Restrict, map: "department_mappings_ibfk_1")
-  departments         departments @relation(fields: [department_id], references: [department_id], onUpdate: Restrict, map: "department_mappings_ibfk_2")
-
-  @@id([instructor_ucinetid, department_id])
-  @@index([department_id], map: "department_id")
-}
-
-model departments {
-  department_id                                String                @id @db.VarChar(7)
-  department_name                              String                @unique(map: "department_name")
-  courses_courses_departmentTodepartments      courses[]             @relation("courses_departmentTodepartments")
-  courses_courses_department_nameTodepartments courses[]             @relation("courses_department_nameTodepartments")
-  department_mappings                          department_mappings[]
-}
-
-model ge_categories {
-  ge_full_name String?       @db.VarChar(36)
-  ge_id        String        @unique(map: "ge_id") @db.VarChar(4)
-  ge_name      String        @unique(map: "ge_name") @db.VarChar(28)
-  ge_mappings  ge_mappings[]
-
-  @@id([ge_id, ge_name])
-}
-
-model ge_mappings {
-  course_id     String
-  ge_id         String        @db.VarChar(4)
-  ge_categories ge_categories @relation(fields: [ge_id], references: [ge_id], onUpdate: Restrict, map: "ge_mappings_ibfk_1")
-
-  @@id([course_id, ge_id])
-  @@index([ge_id], map: "ge_id")
-}
-
-model grades_instructors_mappings {
-  academic_year    Int    @db.UnsignedInt
-  academic_quarter String @db.VarChar(10)
-  course_code      Int    @db.UnsignedInt
-  instructor       String @db.VarChar(50)
-  grades           grades @relation(fields: [academic_year, academic_quarter, course_code], references: [academic_year, academic_quarter, course_code], onUpdate: Restrict, map: "grades_instructors_mappings_ibfk_1")
-
-  @@id([academic_year, academic_quarter, course_code, instructor])
-}
-
-model instructors {
-  ucinetid            String                @id @db.VarChar(8)
-  instructor_name     String                @unique(map: "instructor_name")
-  shortened_name      String                @unique(map: "shortened_name")
-  title               String                @unique(map: "title")
-  department          String                @unique(map: "department")
-  course_history      course_history[]
-  department_mappings department_mappings[]
-  school_mappings     school_mappings[]
-}
-
-model prerequisite_mappings {
-  course_id                                        String
-  for_id                                           String
-  courses_prerequisite_mappings_course_idTocourses courses @relation("prerequisite_mappings_course_idTocourses", fields: [course_id], references: [course_id], onUpdate: Restrict, map: "prerequisite_mappings_ibfk_1")
-  courses_prerequisite_mappings_for_idTocourses    courses @relation("prerequisite_mappings_for_idTocourses", fields: [for_id], references: [course_id], onUpdate: Restrict, map: "prerequisite_mappings_ibfk_2")
-
-  @@id([course_id, for_id])
-  @@index([for_id], map: "for_id")
-}
-
-model school_mappings {
-  instructor_ucinetid String      @db.VarChar(8)
-  school_name         String
-  instructors         instructors @relation(fields: [instructor_ucinetid], references: [ucinetid], onUpdate: Restrict, map: "school_mappings_ibfk_1")
-  schools             schools     @relation(fields: [school_name], references: [school_name], onUpdate: Restrict, map: "school_mappings_ibfk_2")
-
-  @@id([instructor_ucinetid, school_name])
-  @@index([school_name], map: "school_name")
-}
-
-model schools {
-  school_name     String            @id
-  courses         courses[]
-  school_mappings school_mappings[]
-}
-
-model terms {
-  term_name      String?          @unique(map: "term_name") @db.VarChar(15)
-  term_year      String           @db.VarChar(4)
-  term_quarter   String           @db.VarChar(10)
-  course_history course_history[]
-
-  @@id([term_year, term_quarter])
+model GradesSection {
+  id           Int                @id @default(autoincrement())
+  year         Int
+  quarter      String
+  instructors  GradesInstructor[]
+  department   String
+  courseNumber String
+  sectionCode  Int
+  gradeACount  Int
+  gradeBCount  Int
+  gradeCCount  Int
+  gradeDCount  Int
+  gradeFCount  Int
+  gradePCount  Int
+  gradeNPCount Int
+  gradeWCount  Int
+  averageGPA   Float
 }
