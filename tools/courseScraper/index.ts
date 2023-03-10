@@ -212,7 +212,7 @@ export async function getAllCourses(courseURL: string, json_data: { [key: string
             const courseName: string = courseInfo[1];
             const courseUnits: string = courseInfo[2];
             // get course body (0:Course Description, 1:Prerequisite)
-            const courseBody = $(courseBlock).find('div > p');
+            const courseBody = $(courseBlock).find('div').find('p');
             const courseDescription: string = normalizeString($(courseBody[0]).text());
             // parse units
             let unit_range: string[];
@@ -255,7 +255,7 @@ export async function getAllCourses(courseURL: string, json_data: { [key: string
 
             // try to parse prerequisite
             if (courseBody.length > 1){
-                // IMPLIMENT const node = parsePrerequisite(courseBody[1], classInforamtion);
+                parsePrerequisite(courseBody[1], response, classInforamtion);
                 // maps the course to its requirement Node
                 // json_data[courseID]["node"] = node Why is this commented out?
             }
@@ -378,8 +378,27 @@ export async function parseCourseBody(courseBody: object, response:any, classInf
     })
 }
 
-
-//function parseCourseBody(courseBody, dic: dict):
+/**
+ * 
+ * @param {any} tag: the second p tag in the course block
+ * @param {object} response: response object from axios request on courseURL
+ * @param {dict} classInfo: a map to store parsed information
+ * @returns {any}: a requirement Node if successfully parsed, None otherwise
+ */
+export function parsePrerequisite(tag: any, response:any, classInfo: { [key: string]: any }){
+    const $ = cheerio.load(response.data);
+    // sometimes prerequisites are in the same ptag as corequisites
+    const prereqRegex: RegExp = /((?<fullcoreqs>Corequisite:(?<coreqs>[^\n]*))\n)?(?<fullreqs>Prerequisite[^:]*:(?<reqs>.*))/;
+    const possibleReq: RegExpMatchArray | null = normalizeString($(tag).text().trim()).match(prereqRegex);
+    if (possibleReq){
+        classInfo["corequisite"] = possibleReq.groups?.coreqs || "";
+        classInfo["prerequisite_text"] = possibleReq.groups?.reqs || "";
+        // only get the first sentence (following sentences are grade requirements like "at least C or better")
+        if (possibleReq.groups?.reqs){
+            const rawReqs: string = normalizeString(possibleReq.groups.reqs.split(".")[0].trim());
+        }
+    }
+}
 
 // getDepartmentToSchoolMapping().then((response) => {
 //     console.log(response);
