@@ -1,7 +1,6 @@
 import { transform } from "camaro";
 import { load } from "cheerio";
 import fetch from "cross-fetch";
-import hash from "object-hash";
 import {
   CancelledCourses,
   Department,
@@ -237,27 +236,26 @@ export const callWebSocAPI = async (
     await response.text(),
     template
   );
-  json.schools.forEach((s) =>
-    s.departments.forEach((d) =>
-      d.courses.forEach((c) =>
-        c.sections.forEach((e) => {
-          e.meetings.forEach((m) => (m.bldg = [m.bldg].flat()));
-          const meetingsHashSet: Record<string, WebsocSectionMeeting> = {};
-          for (const meeting of e.meetings) {
-            const meetingHash = hash([meeting.days, meeting.time]);
-            if (meetingHash in meetingsHashSet) {
-              meetingsHashSet[meetingHash].bldg.push(meeting.bldg[0]);
-            } else {
-              meetingsHashSet[meetingHash] = { ...meeting };
-            }
-            e.meetings = Object.values(meetingsHashSet);
-          }
-        })
+  json.schools.forEach((school) =>
+    school.departments.forEach((department) =>
+      department.courses.forEach((course) =>
+        course.sections.forEach(
+          (section) => (section.meetings = getUniqueMeetings(section.meetings))
+        )
       )
     )
   );
   return json;
 };
+
+function getUniqueMeetings(meetings: WebsocSectionMeeting[]) {
+  return meetings.reduce((acc, meeting) => {
+    if (!acc.find((m) => m.days === meeting.days && m.time === meeting.time)) {
+      acc.push(meeting);
+    }
+    return acc;
+  }, [] as WebsocSectionMeeting[]);
+}
 
 // Returns all currently visible undergraduate and graduate terms.
 export const getTerms = async (): Promise<TermData[]> => {
