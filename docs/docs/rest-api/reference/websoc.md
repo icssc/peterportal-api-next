@@ -27,9 +27,11 @@ The quarter to query. Case-sensitive.
 
 #### `cache` boolean
 
-To improve response times, by default this endpoint will return data from our cache, if possible. The cache is updated approximately every five minutes. If you would like to disable this behavior, pass `false` to this parameter.
+To improve response times, this endpoint will return data from our cache by default. The cache is updated approximately every five minutes.
 
-#### `ge`**\*** GE-1A | GE-1B | GE-2 | GE-3 | GE-4 | GE-5A | GE-5B | GE-6 | GE-7 | GE-8
+If you would like to disable this behavior, pass `false` to this parameter. Note that disabling the cache for large queries may result in a timeout.
+
+#### `ge`**\*** ANY | GE-1A | GE-1B | GE-2 | GE-3 | GE-4 | GE-5A | GE-5B | GE-6 | GE-7 | GE-8
 
 The GE category code. Case-sensitive.
 
@@ -46,7 +48,7 @@ The five-digit section code(s).
 Any substring of the desired instructor's last name. To search an exact last
 name, append a comma to the parameter.
 
-At least one of the parameters marked with **\*** must be provided.
+At least one of the parameters marked with **\*** must be provided and must not be ANY.
 
 #### `building` string
 
@@ -62,9 +64,9 @@ If the room number is provided, the building code must be provided.
 
 The course level/division code. Case-sensitive.
 
-#### `courseNumber` string
+#### `courseNumber` string | string[]
 
-The course number. (Ex.: 161)
+The course number(s) and/or range(s). (Ex.: 122A, 160-169)
 
 #### `courseTitle` string
 
@@ -76,7 +78,7 @@ The section type code. Case-sensitive.
 
 #### `units` string | string[]
 
-The number of units approved for the section, or the string `VAR` for any
+The number(s) of units approved for the section and/or the string `VAR` for any
 section with variable units.
 
 #### `days` string | string[]
