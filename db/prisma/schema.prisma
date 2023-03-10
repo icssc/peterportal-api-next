@@ -64,8 +64,8 @@ model WebsocSectionInstructor {
   year        String
   quarter     Quarter
   sectionCode Int
-  section     WebsocSection @relation(fields: [year, quarter, sectionCode], references: [year, quarter, sectionCode])
   timestamp   DateTime
+  section     WebsocSection @relation(fields: [year, quarter, sectionCode, timestamp], references: [year, quarter, sectionCode, timestamp])
   name        String
 }
 
@@ -74,8 +74,8 @@ model WebsocSectionMeeting {
   year        String
   quarter     Quarter
   sectionCode Int
-  section     WebsocSection @relation(fields: [year, quarter, sectionCode], references: [year, quarter, sectionCode])
   timestamp   DateTime
+  section     WebsocSection @relation(fields: [year, quarter, sectionCode, timestamp], references: [year, quarter, sectionCode, timestamp])
   days        Json
   startTime   Int
   endTime     Int
@@ -100,5 +100,5 @@ model WebsocSection {
   maxCapacity   Int
   data          Json
 
-  @@unique(fields: [year, quarter, sectionCode], name: "idx")
+  @@unique(fields: [year, quarter, sectionCode, timestamp], name: "idx")
 }
