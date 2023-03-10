@@ -1,5 +1,5 @@
-import type { IRequest } from "api-core";
 import {
+  type IRequest,
   createErrorResult,
   createLambdaHandler,
   createOKResult,
@@ -10,7 +10,7 @@ import type {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
-import { PrismaClient } from "db";
+import { Prisma, PrismaClient } from "db";
 import hash from "object-hash";
 import type {
   Term,
@@ -20,11 +20,10 @@ import type {
   WebsocSchool,
   WebsocSection,
 } from "peterportal-api-next-types";
-import type { WebsocAPIOptions } from "websoc-api-next";
-import { callWebSocAPI } from "websoc-api-next";
+import { type WebsocAPIOptions, callWebSocAPI } from "websoc-api-next";
 import type { ZodError } from "zod";
 
-import { QuerySchema } from "./websoc.dto";
+import { type Query, QuerySchema } from "./websoc.dto";
 
 /**
  * Given a string of comma-separated values or an array of such strings,
@@ -268,194 +267,218 @@ const sortResponse = (res: WebsocAPIResponse): WebsocAPIResponse => {
   return res;
 };
 
+/**
+ * Parses a 12-hour time string, returning the number of minutes since midnight.
+ * @param time The time string to parse.
+ */
+const minutesSinceMidnight = (time: string): number => {
+  const [hour, minute] = time.split(":");
+  return (
+    parseInt(hour) * 60 + parseInt(minute) + (minute.includes("pm") ? 720 : 0)
+  );
+};
+
+/**
+ * Constructs a Prisma query for the given filter parameters.
+ * @param parsedQuery The query object parsed by Zod.
+ */
+const constructPrismaQuery = (
+  parsedQuery: Query
+): Prisma.WebsocSectionWhereInput => {
+  const AND: Prisma.WebsocSectionWhereInput[] = [
+    { year: parsedQuery.year },
+    { quarter: parsedQuery.quarter },
+  ];
+  const OR: Prisma.WebsocSectionWhereInput[] = [];
+  if (parsedQuery.ge && parsedQuery.ge !== "ANY") {
+    AND.push({
+      geCategories: {
+        array_contains: parsedQuery.ge,
+      },
+    });
+  }
+  if (parsedQuery.department) {
+    AND.push({
+      department: parsedQuery.department,
+    });
+  }
+  if (parsedQuery.courseNumber) {
+    OR.push(
+      ...parsedQuery.courseNumber.map((n) =>
+        n.includes("-")
+          ? {
+              courseNumeric: {
+                gte: parseInt(n.split("-")[0].replace(/\D/g, "")),
+                lte: parseInt(n.split("-")[1].replace(/\D/g, "")),
+              },
+            }
+          : {
+              courseNumber: n,
+            }
+      )
+    );
+  }
+  if (parsedQuery.instructorName) {
+    AND.push({
+      instructors: {
+        every: {
+          name: {
+            contains: parsedQuery.instructorName,
+          },
+        },
+      },
+    });
+  }
+  if (parsedQuery.courseTitle) {
+    AND.push({
+      courseTitle: {
+        contains: parsedQuery.courseTitle,
+      },
+    });
+  }
+  if (parsedQuery.sectionType && parsedQuery.sectionType !== "ANY") {
+    AND.push({
+      sectionType: parsedQuery.sectionType,
+    });
+  }
+  if (parsedQuery.startTime) {
+    AND.push({
+      meetings: {
+        every: {
+          startTime: {
+            gte: minutesSinceMidnight(parsedQuery.startTime),
+          },
+        },
+      },
+    });
+  }
+  if (parsedQuery.endTime) {
+    AND.push({
+      meetings: {
+        every: {
+          endTime: {
+            lte: minutesSinceMidnight(parsedQuery.endTime),
+          },
+        },
+      },
+    });
+  }
+  if (parsedQuery.division && parsedQuery.division !== "ANY") {
+    switch (parsedQuery.division) {
+      case "Graduate":
+        AND.push({
+          courseNumeric: {
+            gte: 200,
+          },
+        });
+        break;
+      case "UpperDiv":
+        AND.push({
+          courseNumeric: {
+            gte: 100,
+            lte: 199,
+          },
+        });
+        break;
+      case "LowerDiv":
+        AND.push({
+          courseNumeric: {
+            gte: 0,
+            lte: 99,
+          },
+        });
+    }
+  }
+  if (parsedQuery.days) {
+    AND.push(
+      ...["Su", "M", "Tu", "W", "Th", "F", "Sa"]
+        .filter((x) => parsedQuery.days?.includes(x))
+        .map((x) => ({
+          meetings: {
+            every: {
+              days: {
+                array_contains: x,
+              },
+            },
+          },
+        }))
+    );
+  }
+  if (parsedQuery.sectionCodes) {
+    OR.push(
+      ...parsedQuery.sectionCodes.map((code) => ({
+        sectionCode: code.includes("-")
+          ? {
+              gte: parseInt(code.split("-")[0]),
+              lte: parseInt(code.split("-")[1]),
+            }
+          : parseInt(code),
+      }))
+    );
+  }
+  if (parsedQuery.units) {
+    OR.push(
+      ...parsedQuery.units.map((u) => ({
+        units:
+          u === "VAR"
+            ? {
+                contains: "-",
+              }
+            : {
+                startsWith: parseFloat(u).toString(),
+              },
+      }))
+    );
+  }
+  return {
+    AND,
+    // The OR array must be explicitly set to undefined if its length is zero,
+    // because an empty array would cause no results to be returned.
+    OR: OR.length ? OR : undefined,
+  };
+};
+
 export const rawHandler = async (
   request: IRequest
 ): Promise<APIGatewayProxyResult> => {
-  const { method, path, query: unparsedQuery, requestId } = request.getParams();
-  logger.info(`${method} ${path} ${JSON.stringify(unparsedQuery)}`);
+  const { method, path, query, requestId } = request.getParams();
+  logger.info(`${method} ${path} ${JSON.stringify(query)}`);
   switch (method) {
     case "GET":
     case "HEAD":
       try {
-        const query = QuerySchema.parse(unparsedQuery);
+        const parsedQuery = QuerySchema.parse(query);
         let ret: WebsocAPIResponse = { schools: [] };
         // Determine whether to enable caching for this request.
-        if (!query.cache || query.cache !== "false") {
-          const prisma = new PrismaClient();
-          const orConditions = [
-            ...(query.sectionCodes?.map((code) => ({
-              sectionCode: code.includes("-")
-                ? {
-                    gte: parseInt(code.split("-")[0]),
-                    lte: parseInt(code.split("-")[1]),
-                  }
-                : { equals: parseInt(code) },
-            })) ?? []),
-            ...(query.courseNumber
-              ? query.courseNumber.includes(",")
-                ? query.courseNumber.split(",").map((num) =>
-                    num.includes("-")
-                      ? {
-                          courseNumeric: {
-                            gte: parseInt(num.split("-")[0].replace(/\D/g, "")),
-                            lte: parseInt(num.split("-")[1].replace(/\D/g, "")),
-                          },
-                        }
-                      : {
-                          courseNumber: num,
-                        }
-                  )
-                : []
-              : []),
-            ...(query.units
-              ? query.units.map((u) => ({
-                  units:
-                    u === "VAR"
-                      ? {
-                          contains: "-",
-                        }
-                      : {
-                          startsWith: parseFloat(u).toString(),
-                        },
-                }))
-              : []),
-            ...["Su", "M", "Tu", "W", "Th", "F", "Sa"]
-              .filter((x) => query.days?.includes(x))
-              .map((x) => ({
-                meetings: {
-                  every: {
-                    days: {
-                      array_contains: x,
-                    },
-                  },
-                },
-              })),
-          ];
+        const prisma = new PrismaClient();
+        if (
+          (!parsedQuery.cache || parsedQuery.cache !== "false") &&
+          (await prisma.websocSection.count({
+            where: {
+              year: parsedQuery.year,
+              quarter: parsedQuery.quarter,
+            },
+          }))
+        ) {
           ret = combineResponses(
             ...(
               await prisma.websocSection.findMany({
-                where: {
-                  AND: [
-                    {
-                      year: query.year,
-                      quarter: query.quarter,
-                      ...(query.ge
-                        ? {
-                            geCategories: {
-                              array_contains: query.ge,
-                            },
-                          }
-                        : {}),
-                      department: query?.department,
-                      // TODO refactor zod schema because I forgot that course numbers could also be vectors
-                      ...(query.courseNumber?.includes(",")
-                        ? {}
-                        : query.courseNumber?.includes("-")
-                        ? {
-                            courseNumeric: {
-                              gte: parseInt(
-                                query?.courseNumber
-                                  .split("-")[0]
-                                  .replace(/\D/g, "")
-                              ),
-                              lte: parseInt(
-                                query?.courseNumber
-                                  .split("-")[1]
-                                  .replace(/\D/g, "")
-                              ),
-                            },
-                          }
-                        : {
-                            courseNumber: query?.courseNumber,
-                          }),
-                      ...(query.instructorName
-                        ? {
-                            instructors: {
-                              every: {
-                                name: {
-                                  contains: query.instructorName,
-                                },
-                              },
-                            },
-                          }
-                        : {}),
-                      ...(query.courseTitle
-                        ? {
-                            courseTitle: {
-                              contains: query.courseTitle,
-                            },
-                          }
-                        : {}),
-                      sectionType:
-                        query?.sectionType === "ANY"
-                          ? undefined
-                          : query.sectionType,
-                      meetings: {
-                        every: {
-                          startTime: {
-                            gte: (() => {
-                              if (!query.startTime) return -9999;
-                              const [hour, minute] = query.startTime.split(":");
-                              return (
-                                parseInt(hour) * 60 +
-                                parseInt(minute) +
-                                (minute.includes("pm") ? 720 : 0)
-                              );
-                            })(),
-                          },
-                          endTime: {
-                            lte: (() => {
-                              if (!query.endTime) return 9999;
-                              const [hour, minute] = query.endTime.split(":");
-                              return (
-                                parseInt(hour) * 60 +
-                                parseInt(minute) +
-                                (minute.includes("pm") ? 720 : 0)
-                              );
-                            })(),
-                          },
-                        },
-                      },
-                    },
-                    ...(query.division
-                      ? [
-                          query.division === "ANY"
-                            ? {}
-                            : query.division === "LowerDiv"
-                            ? {
-                                courseNumeric: {
-                                  gte: 0,
-                                  lte: 99,
-                                },
-                              }
-                            : query.division === "UpperDiv"
-                            ? {
-                                courseNumeric: { gte: 100, lte: 199 },
-                              }
-                            : query.division === "Graduate"
-                            ? {
-                                courseNumeric: { gte: 200 },
-                              }
-                            : {},
-                        ]
-                      : []),
-                  ],
-                  ...(orConditions.length ? { OR: orConditions } : {}),
-                },
+                where: constructPrismaQuery(parsedQuery),
                 select: {
                   data: true,
                 },
+                distinct: ["year", "quarter", "sectionCode"],
               })
             ).map((x) => x.data as WebsocAPIResponse),
             ret
           );
         } else {
           const term: Term = {
-            year: query.year,
-            quarter: query.quarter,
+            year: parsedQuery.year,
+            quarter: parsedQuery.quarter,
           };
           let queries: Array<WebsocAPIOptions | undefined> =
-            normalizeQuery(query);
+            normalizeQuery(parsedQuery);
           for (;;) {
             const res = await Promise.allSettled(
               queries.map((options) =>
