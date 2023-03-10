@@ -22,6 +22,12 @@ let GE_DICTIONARY: { [key:string] : string} = {
     "VIII": "GE VIII: International/Global Issues"
 }
 
+// allow non-digit prerequisite tokens if they contain one of these words
+// Example: Allow CHEM 1A to have "CHEM 1P or SAT Mathematics"
+const SPECIAL_PREREQUISITE_WHITE_LIST = ["SAT ", "ACT ", "AP "]
+// tokenize these separately because they contain 'and' or 'or'
+const PRETOKENIZE = ["AP Physics C: Electricity and Magnetism"]
+
 
 /**
  * @param ms milliseconds to sleep for
@@ -395,7 +401,25 @@ export function parsePrerequisite(tag: any, response:any, classInfo: { [key: str
         classInfo["prerequisite_text"] = possibleReq.groups?.reqs || "";
         // only get the first sentence (following sentences are grade requirements like "at least C or better")
         if (possibleReq.groups?.reqs){
-            const rawReqs: string = normalizeString(possibleReq.groups.reqs.split(".")[0].trim());
+            let rawReqs: string = normalizeString(possibleReq.groups.reqs.split(".")[0].trim());
+            for (const pretoken of PRETOKENIZE) {
+                if (rawReqs.includes(pretoken)) {
+                    rawReqs = rawReqs.replace(pretoken, pretoken.replace(" and ", "/").replace(" or ", "/"));
+                }
+            }
+            // get all courses
+            const extractedReqs = rawReqs.replace(/\(|\)/g, "").split(/ and | or /);
+            // tokenized version: replace each class by an integer
+            let tokenizedReqs = rawReqs;
+            let special = false;
+            // if doesnt have a link to another course, probably a special requirement
+            if (!$(tag).find("a").text().length) {
+                // if (debug) {
+                //     console.log("\t\tSPECIAL REQ NO LINK:", rawReqs);
+                // }
+                specialRequirements.add(rawReqs);
+                return;
+            }
         }
     }
 }
@@ -405,6 +429,7 @@ export function parsePrerequisite(tag: any, response:any, classInfo: { [key: str
 // });
 
 const noSchoolDepartment = new Set<string>();
+const specialRequirements = new Set<string>();
 
 //console.log(determineCourseLevel("I&C Sci 33"));
 
