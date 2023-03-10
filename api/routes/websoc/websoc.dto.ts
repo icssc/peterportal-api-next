@@ -36,23 +36,27 @@ export const QuerySchema = z
     }),
     ge: z.enum(anyArray).or(z.enum(geCodes)).optional(),
     department: z.string().optional(),
+    courseTitle: z.string().optional(),
     courseNumber: z
       .string()
       .optional()
       .transform(normalizeValue)
-      .transform((x) => x.join(",")),
+      .transform((x) => x.join(","))
+      .optional(),
     sectionCodes: z
       .string()
       .array()
       .or(z.string())
       .optional()
-      .transform(normalizeValue),
+      .transform(normalizeValue)
+      .optional(),
     instructorName: z.string().optional(),
     days: z
       .string()
       .optional()
       .transform(normalizeValue)
-      .transform((x) => x.join(",")),
+      .transform((x) => x.join(","))
+      .optional(),
     building: z.string().optional(),
     room: z.string().optional(),
     division: z.enum(anyArray).or(z.enum(divisionCodes)).optional(),
@@ -63,12 +67,24 @@ export const QuerySchema = z
       .string()
       .array()
       .or(z.string())
-      .optional()
-      .transform(normalizeValue),
-    cache: z.string().array().or(z.string()).optional(),
+      .transform(normalizeValue)
+      .optional(),
+    cache: z.string().optional(),
+    startTime: z
+      .string()
+      .regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/)
+      .optional(),
+    endTime: z
+      .string()
+      .regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/)
+      .optional(),
   })
   .refine(
-    (x) => x.ge || x.department || x.sectionCodes[0].length || x.instructorName,
+    (x) =>
+      x.ge ||
+      x.department ||
+      (x.sectionCodes ?? [""])[0].length ||
+      x.instructorName,
     {
       message:
         'At least one of "ge", "department", "sectionCodes", or "instructorName" must be provided',

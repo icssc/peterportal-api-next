@@ -1,5 +1,5 @@
 import { build } from "esbuild";
-import { cp, mkdir, rm } from "fs/promises";
+import { chmod, copyFile, cp, mkdir, rm } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -29,6 +29,7 @@ import { fileURLToPath } from "url";
         name: "copy",
         setup(build) {
           build.onEnd(async () => {
+            // camaro
             await Promise.all(
               [
                 "@assemblyscript/loader",
@@ -49,6 +50,22 @@ import { fileURLToPath } from "url";
                   { recursive: true }
                 )
               )
+            );
+            // prisma
+            await copyFile(
+              join(
+                cwd,
+                "../../../node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node"
+              ),
+              join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node")
+            );
+            await copyFile(
+              join(cwd, "../../../node_modules/.prisma/client/schema.prisma"),
+              join(cwd, "dist/schema.prisma")
+            );
+            await chmod(
+              join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node"),
+              0o755
             );
           });
         },

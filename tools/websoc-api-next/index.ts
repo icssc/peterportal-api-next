@@ -1,6 +1,7 @@
 import { transform } from "camaro";
 import { load } from "cheerio";
 import fetch from "cross-fetch";
+import hash from "object-hash";
 import {
   CancelledCourses,
   Department,
@@ -11,6 +12,7 @@ import {
   Term,
   TermData,
   WebsocAPIResponse,
+  WebsocSectionMeeting,
 } from "peterportal-api-next-types";
 
 /* region Constants */
@@ -228,6 +230,7 @@ export const callWebSocAPI = async (
   const response = await fetch("https://www.reg.uci.edu/perl/WebSoc", {
     method: "POST",
     body: data,
+    redirect: "error",
   });
 
   const json: WebsocAPIResponse = await transform(
@@ -237,9 +240,19 @@ export const callWebSocAPI = async (
   json.schools.forEach((s) =>
     s.departments.forEach((d) =>
       d.courses.forEach((c) =>
-        c.sections.forEach((e) =>
-          e.meetings.forEach((m) => (m.bldg = [m.bldg] as unknown as string[]))
-        )
+        c.sections.forEach((e) => {
+          e.meetings.forEach((m) => (m.bldg = [m.bldg].flat()));
+          const meetingsHashSet: Record<string, WebsocSectionMeeting> = {};
+          for (const meeting of e.meetings) {
+            const meetingHash = hash([meeting.days, meeting.time]);
+            if (meetingHash in meetingsHashSet) {
+              meetingsHashSet[meetingHash].bldg.push(meeting.bldg[0]);
+            } else {
+              meetingsHashSet[meetingHash] = { ...meeting };
+            }
+            e.meetings = Object.values(meetingsHashSet);
+          }
+        })
       )
     )
   );
