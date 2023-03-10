@@ -39,24 +39,18 @@ export const QuerySchema = z
     courseTitle: z.string().optional(),
     courseNumber: z
       .string()
-      .optional()
+      .array()
+      .or(z.string())
       .transform(normalizeValue)
-      .transform((x) => x.join(","))
       .optional(),
     sectionCodes: z
       .string()
       .array()
       .or(z.string())
-      .optional()
       .transform(normalizeValue)
       .optional(),
     instructorName: z.string().optional(),
-    days: z
-      .string()
-      .optional()
-      .transform(normalizeValue)
-      .transform((x) => x.join(","))
-      .optional(),
+    days: z.string().transform(normalizeValue).optional(),
     building: z.string().optional(),
     room: z.string().optional(),
     division: z.enum(anyArray).or(z.enum(divisionCodes)).optional(),
