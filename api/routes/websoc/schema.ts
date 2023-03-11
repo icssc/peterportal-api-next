@@ -10,41 +10,42 @@ import {
 import { z } from "zod";
 
 /**
- * Given a string of comma-separated values or an array of such strings,
- * return a sorted array containing all unique values.
- * @param val The value to normalize.
+ * Input to a normalizer function.
  */
-const normalizeValue = (val: string | string[] | undefined): string[] =>
-  Array.from(
-    new Set(
-      typeof val === "undefined"
-        ? [""]
-        : typeof val === "string"
-        ? val.split(",")
-        : val.flatMap((x) => x.split(","))
-    )
-  ).sort();
+type NormalizeInput = string | string[] | undefined;
 
 /**
- * Given a string or combined days of the week (e.g. ``MWF``)
- * or an array of such strings, return an array containing all unique values.
- * @param val The value to normalize.
+ * Get unique, sorted array of strings.
+ * @param value String of comma-separated values or array of such strings.
  */
-const normalizeDays = (
-  val: string | string[] | undefined
-): string[] | undefined => {
-  if (!val) return undefined;
-  const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
-
-  return Array.from(
-    new Set(
-      typeof val === "string"
-        ? days.filter((x) => val.includes(x))
-        : val.flatMap((x) => days.filter((y) => y.includes(x)))
-    )
+function normalizeValue(value: NormalizeInput): string[] {
+  const unique = new Set(
+    Array.isArray(value)
+      ? value.flatMap((x) => x.split(","))
+      : value?.split(",")
   );
-};
+  return [...unique].sort();
+}
 
+const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
+
+/**
+ * Get unique, sorted array of day strings from input.
+ * @param value String of combined days of the week (e.g. ``MWF``) or array of such strings.
+ */
+function normalizeDays(value: NormalizeInput): string[] | undefined {
+  if (!value) return undefined;
+  const unique = new Set(
+    Array.isArray(value)
+      ? value.flatMap((x) => days.filter((y) => y.includes(x)))
+      : days.filter((x) => value.includes(x))
+  );
+  return [...unique].sort();
+}
+
+/**
+ * Parse an unknown query to the websoc endpoint.
+ */
 export const QuerySchema = z
   .object({
     year: z
@@ -108,4 +109,7 @@ export const QuerySchema = z
     message: 'If "building" is provided, "room" must also be provided',
   });
 
+/**
+ * Type of the parsed query: useful for passing the query as input to other functions.
+ */
 export type Query = z.TypeOf<typeof QuerySchema>;
