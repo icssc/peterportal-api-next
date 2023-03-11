@@ -395,10 +395,10 @@ export const normalizeQuery = (parsedQuery: Query): WebsocAPIOptions[] => {
       .map((units) => ({ ...baseQuery, units }))
       .map((q) =>
         Array.from(
-          Array(Math.ceil(parsedQuery.sectionCodes.length / 5)).keys()
+          Array(Math.ceil((parsedQuery.sectionCodes ?? []).length / 5)).keys()
         ).map((x) => ({
           ...q,
-          sectionCodes: parsedQuery.sectionCodes
+          sectionCodes: (parsedQuery.sectionCodes ?? [])
             .slice(x * 5, (x + 1) * 5)
             .join(","),
         }))
