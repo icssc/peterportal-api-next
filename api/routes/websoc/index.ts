@@ -1,15 +1,10 @@
+import type { LambdaHandler, RawHandler } from "api-core";
 import {
-  type IRequest,
   createErrorResult,
   createLambdaHandler,
   createOKResult,
   logger,
 } from "api-core";
-import type {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Context,
-} from "aws-lambda";
 import { PrismaClient } from "db";
 import type { WebsocAPIResponse } from "peterportal-api-next-types";
 import { callWebSocAPI } from "websoc-api-next";
@@ -33,9 +28,7 @@ const fulfilled = <T>(
 
 const prisma = new PrismaClient();
 
-export const rawHandler = async (
-  request: IRequest
-): Promise<APIGatewayProxyResult> => {
+export const rawHandler: RawHandler = async (request) => {
   const { method, path, query, requestId } = request.getParams();
   logger.info(`${method} ${path} ${JSON.stringify(query)}`);
   switch (method) {
@@ -88,11 +81,6 @@ export const rawHandler = async (
       return createErrorResult(400, `Cannot ${method} ${path}`, requestId);
   }
 };
-
-type LambdaHandler = (
-  event: APIGatewayProxyEvent,
-  context: Context
-) => Promise<APIGatewayProxyResult>;
 
 export const lambdaHandler: LambdaHandler = async (event, context) =>
   createLambdaHandler(rawHandler)(event, context);
