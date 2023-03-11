@@ -84,16 +84,15 @@ export const getTermDateData = async (
   if (year.length !== 4 || isNaN(parseInt(year)))
     throw new Error("Error: Invalid year provided.");
   const shortYear = year.slice(2);
-  const response = await (
-    await fetch(
-      `https://www.reg.uci.edu/calendars/quarterly/${year}-${
-        parseInt(year) + 1
-      }/quarterly${shortYear}-${parseInt(shortYear) + 1}.html`
-    )
-  ).text();
+  const response = await fetch(
+    `https://www.reg.uci.edu/calendars/quarterly/${year}-${
+      parseInt(year) + 1
+    }/quarterly${shortYear}-${parseInt(shortYear) + 1}.html`
+  );
+  if (response.status === 404) return {};
   const quarterData: string[][] = [];
   const summerSessionData: string[][] = [];
-  const $ = load(response);
+  const $ = load(await response.text());
   const $table = $("table.calendartable");
   $table
     .eq(2)
