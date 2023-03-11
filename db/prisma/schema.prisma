@@ -98,6 +98,10 @@ model WebsocSection {
   units         String
   meetings      WebsocSectionMeeting[]
   maxCapacity   Int
+  sectionFull   Boolean
+  waitlistFull  Boolean
+  overEnrolled  Boolean
+  cancelled     Boolean
   data          Json
 
   @@unique(fields: [year, quarter, sectionCode, timestamp], name: "idx")

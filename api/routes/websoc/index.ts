@@ -404,6 +404,44 @@ const constructPrismaQuery = (
         }))
     );
   }
+  if (parsedQuery.fullCourses && parsedQuery.fullCourses !== "ANY") {
+    switch (parsedQuery.fullCourses) {
+      case "FullOnly":
+        AND.push({
+          sectionFull: true,
+          waitlistFull: true,
+        });
+        break;
+      case "OverEnrolled":
+        AND.push({
+          overEnrolled: true,
+        });
+        break;
+      case "SkipFull":
+        AND.push({
+          sectionFull: true,
+          waitlistFull: false,
+        });
+        break;
+      case "SkipFullWaitlist":
+        AND.push({
+          sectionFull: false,
+          waitlistFull: false,
+        });
+    }
+  }
+  switch (parsedQuery.cancelledCourses) {
+    case undefined:
+    case "Exclude":
+      AND.push({
+        cancelled: false,
+      });
+      break;
+    case "Include":
+      AND.push({
+        cancelled: true,
+      });
+  }
   if (parsedQuery.sectionCodes) {
     OR.push(
       ...parsedQuery.sectionCodes.map((code) => ({
