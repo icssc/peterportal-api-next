@@ -98,7 +98,8 @@ curl "https://api-next.peterportal.org/v1/rest/grades/raw?year=2022&quarter=Fall
 <TabItem value="ts" label="Payload schema">
 
 ```typescript
-type payload = {
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
+type GradesRaw = {
   year: string;
   quarter: string;
   department: string;
@@ -185,7 +186,8 @@ WIP
 <TabItem value="ts" label="Payload schema">
 
 ```typescript
-type payload = {
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
+type GradesAggregate = {
   sectionList: {
     year: string;
     quarter: string;

@@ -33,7 +33,7 @@ If you would like to disable this behavior, pass `false` to this parameter. Note
 
 #### `ge`**\*** ANY | GE-1A | GE-1B | GE-2 | GE-3 | GE-4 | GE-5A | GE-5B | GE-6 | GE-7 | GE-8
 
-The GE category code. Case-sensitive.
+The GE category code. Case-sensitive. Defaults to ANY.
 
 #### `department`**\*** string
 
@@ -60,9 +60,9 @@ The room number.
 
 If the room number is provided, the building code must be provided.
 
-#### `division` LowerDiv | UpperDiv | Graduate
+#### `division` ANY | LowerDiv | UpperDiv | Graduate
 
-The course level/division code. Case-sensitive.
+The course level/division code. Case-sensitive. Defaults to ANY.
 
 #### `courseNumber` string | string[]
 
@@ -72,9 +72,9 @@ The course number(s) and/or range(s). (Ex.: 122A, 160-169)
 
 Any substring of the course title.
 
-#### `sectionType` Act | Col | Dis | Fld | Lab | Lec | Qiz | Res | Sem | Stu | Tap | Tut
+#### `sectionType` ANY | Act | Col | Dis | Fld | Lab | Lec | Qiz | Res | Sem | Stu | Tap | Tut
 
-The section type code. Case-sensitive.
+The section type code. Case-sensitive. Defaults to ANY.
 
 #### `units` string | string[]
 
@@ -97,13 +97,13 @@ The time by which a section ends.
 
 The maximum capacity of a section. (Ex.: `>200`, `<21`, `=69`)
 
-#### `fullCourses` SkipFull | SkipFullWaitlist | FullOnly | OverEnrolled
+#### `fullCourses` ANY | SkipFull | SkipFullWaitlist | FullOnly | OverEnrolled
 
-Which sections to exclude based on their enrollment status. Case-sensitive.
+Which sections to exclude based on their enrollment status. Case-sensitive. Defaults to ANY.
 
 #### `cancelledCourses` Exclude | Include | Only
 
-Which sections to exclude based on their cancellation status. Case-sensitive.
+Which sections to exclude based on their cancellation status. Case-sensitive. Defaults to Exclude.
 
 ### Code sample
 
@@ -184,7 +184,8 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
 <TabItem value="ts" label="Payload schema">
 
 ```typescript
-type payload = {
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/websoc.ts
+type WebsocAPIResponse = {
   schools: {
     schoolName: string;
     schoolComment: string;
@@ -282,7 +283,8 @@ curl "https://api-next.peterportal.org/v1/rest/websoc/departments"
 <TabItem value="ts" label="Payload schema">
 
 ```typescript
-type payload = { deptLabel: string; deptValue: string }[];
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/websoc.ts
+type DepartmentResponse = { deptLabel: string; deptValue: string }[];
 ```
 
 </TabItem>
@@ -336,7 +338,8 @@ curl "https://api-next.peterportal.org/v1/rest/websoc/terms"
 <TabItem value="ts" label="Payload schema">
 
 ```typescript
-type payload = { shortName: string; longName: string }[];
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/websoc.ts
+type TermResponse = { shortName: string; longName: string }[];
 ```
 
 </TabItem>
