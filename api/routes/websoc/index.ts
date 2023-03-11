@@ -59,11 +59,9 @@ export const rawHandler = async (
         }
 
         const queries = normalizeQuery(parsedQuery);
-
         const responses = await Promise.allSettled(
           queries.map((options) => callWebSocAPI(parsedQuery, options))
         );
-
         responses.forEach((response, i) => {
           const queryString = JSON.stringify(queries[i]);
           if (response.status === "fulfilled") {
@@ -74,12 +72,10 @@ export const rawHandler = async (
         });
 
         const successes = responses.filter(fulfilled);
-
         const websocResponseData = successes.reduce(
           (acc, curr) => combineResponses(acc, curr.value),
           { schools: [] } as WebsocAPIResponse
         );
-
         return createOKResult(sortResponse(websocResponseData), requestId);
       } catch (e) {
         if (e instanceof ZodError) {
@@ -93,8 +89,10 @@ export const rawHandler = async (
   }
 };
 
-export const lambdaHandler = async (
+type LambdaHandler = (
   event: APIGatewayProxyEvent,
   context: Context
-): Promise<APIGatewayProxyResult> =>
+) => Promise<APIGatewayProxyResult>;
+
+export const lambdaHandler: LambdaHandler = async (event, context) =>
   createLambdaHandler(rawHandler)(event, context);
