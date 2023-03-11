@@ -5,8 +5,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "vite build",
-    "dev": "node .",
+    "build": "node esbuild.js",
+    "dev": "nodemon --watch './**/*.ts' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' src/index.ts",
     "format": "prettier --write .",
     "start": "node dist",
     "start:offline": "serverless offline start"

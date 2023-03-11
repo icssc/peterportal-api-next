@@ -86,7 +86,7 @@ export const WebsocQuerySchema = z
       .or(z.string())
       .optional()
       .transform(normalizeValue),
-    cache: z.coerce.boolean().optional(),
+    cache: z.string().transform((x) => !x || x !== "false"),
     startTime: z
       .string()
       .regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/)

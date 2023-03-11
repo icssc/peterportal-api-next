@@ -1,5 +1,5 @@
-.serverless/
-.build/
-node_modules/
-dist/
-.turbo/
+/.serverless/
+/.build/
+/node_modules/
+/dist/
+/.turbo/

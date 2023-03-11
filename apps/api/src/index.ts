@@ -1,22 +1,25 @@
-/**
- * file to start up this module as a standalone application
- */
-
-import "dotenv/config";
-
 import { patchNestjsSwagger } from "@anatine/zod-nestjs";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
 
-/**
- * import the correct module!
- */
-import { AdvancedModule } from "./advanced.module";
+import { AppModule } from "./app.module";
 
+//-----------------------------------------------------------------------------------
+// START server settings
+//-----------------------------------------------------------------------------------
+const port = 3000;
+const swaggerUrl = "/api/swagger";
+
+//-----------------------------------------------------------------------------------
+// END server settings
+//-----------------------------------------------------------------------------------
+
+/**
+ * start the NestJS/Express dev server locally
+ */
 async function bootstrap() {
-  const app = await NestFactory.create(AdvancedModule);
-  const port = 3000;
+  const app = await NestFactory.create(AppModule);
 
   /**
    * enable app to read cookies
@@ -37,20 +40,21 @@ async function bootstrap() {
    * configure Swagger
    */
   const config = new DocumentBuilder()
-    .setTitle("UCI Machine Learning Repoistory REST API")
-    .setDescription("REST API documentation with Swagger")
+    .setTitle("PeterPortal API NexstJS")
+    .setDescription("PeterPortal API documentation with Swagger")
     .build();
 
   /**
-   * Swagger document
+   * create Swagger document
    */
   const document = SwaggerModule.createDocument(app, config);
 
   /**
    * mount Swagger document
    */
-  SwaggerModule.setup("api/swagger", app, document);
+  SwaggerModule.setup(swaggerUrl, app, document);
 
+  await app.init();
   await app.listen(port, () => {
     // eslint-disable-next-line no-console
     console.log(`🚀 Server ready at http://localhost:${port}`);

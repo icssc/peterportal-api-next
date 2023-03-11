@@ -12,14 +12,14 @@ import {
 } from "./websoc.lib";
 
 /**
- * type guard to assert that the returned value is defined
+ * Type guard to assert that the value is defined.
  */
 function notNull<T>(value: T): value is NonNullable<T> {
   return value != null;
 }
 
 /**
- * type guard to assert that the settled promise was fulfilled
+ * Type guard to assert that the settled promise was fulfilled.
  */
 function fulfilled<T>(
   value: PromiseSettledResult<T>

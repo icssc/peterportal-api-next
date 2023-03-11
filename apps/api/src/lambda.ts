@@ -1,40 +1,35 @@
+/**
+ * @see {@link https://docs.nestjs.com/faq/serverless#example-integration}
+ */
+
 import { patchNestjsSwagger } from "@anatine/zod-nestjs";
-import { Module } from "@nestjs/common";
 import { NestFactory } from "@nestjs/core";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
-import cookieParser from "cookie-parser";
+import serverlessExpress from "@vendia/serverless-express";
+import type { Handler } from "aws-lambda";
+
+import { AppModule } from "./app.module";
 
 //-----------------------------------------------------------------------------------
-// START: module setup
+// START server settings
 //-----------------------------------------------------------------------------------
-import { AdvancedModule } from "./template/advanced/advanced.module";
-import { SimpleModule } from "./template/simple/simple.module";
-
-@Module({
-  imports: [SimpleModule, AdvancedModule],
-})
-class AppModule {}
+const swaggerUrl = "/api";
 
 //-----------------------------------------------------------------------------------
-// END: module setup
+// END server settings
 //-----------------------------------------------------------------------------------
 
 /**
- * starts the NestJS server with the main module
+ * initialized server
+ */
+let server: Handler;
+
+/**
+ * initialize the server if it hasn't been initialized yet, i.e. cold-start
  */
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const port = 3000;
-
-  /**
-   * enable app to read cookies
-   */
-  app.use(cookieParser());
-
-  /**
-   * enable CORS requests
-   */
-  app.enableCors({ origin: true, credentials: true });
+  const expressApp = app.getHttpAdapter().getInstance();
 
   /**
    * enable Zod schemas to generate Swagger documentation
@@ -50,22 +45,26 @@ async function bootstrap() {
     .build();
 
   /**
-   * Swagger document
+   * create Swagger document
    */
   const document = SwaggerModule.createDocument(app, config);
 
   /**
    * mount Swagger document
    */
-  SwaggerModule.setup("api/swagger", app, document);
+  SwaggerModule.setup(swaggerUrl, app, document);
 
-  await app.listen(port, () => {
-    // eslint-disable-next-line no-console
-    console.log(`🚀 Server ready at http://localhost:${port}`);
-  });
+  await app.init();
+  return serverlessExpress({ app: expressApp });
 }
 
-/**
- * entry point for vite-plugin-node
- */
-export const viteNodeApp = bootstrap();
+export const handler: Handler = async (event, context, callback) => {
+  /**
+   * @see {@link `https://github.com/nestjs/swagger/issues/199#issue-417253224}
+   */
+  if (event.path === swaggerUrl) {
+    event.path = `${swaggerUrl}/`;
+  }
+  server = server ?? (await bootstrap());
+  return server(event, context, callback);
+};

@@ -15,7 +15,7 @@ export default defineConfig({
       /**
        * path to lambda server entrypoint
        */
-      appPath: "./lambda.ts",
+      appPath: "src/lambda.ts",
 
       /**
        * named export of the app in the appPath file
