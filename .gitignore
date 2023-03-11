@@ -37,3 +37,7 @@ tools/grades-updater/outputData
 
 # grades-updater logs
 tools/grades-updater/logs
+
+# docusaurus
+.docusaurus
+build/
