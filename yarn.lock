@@ -2226,7 +2226,7 @@
     tiny-glob "^0.2.9"
     tslib "^2.4.0"
 
-"@prisma/client@^4.9.0":
+"@prisma/client@^4.11.0":
   version "4.11.0"
   resolved "https://registry.yarnpkg.com/@prisma/client/-/client-4.11.0.tgz#41d5664dea4172c954190a432f70b86d3e2e629b"
   integrity sha512-0INHYkQIqgAjrt7NzhYpeDQi8x3Nvylc2uDngKyFDDj1tTRQ4uV1HnVmd1sQEraeVAN63SOK0dgCKQHlvjL0KA==
@@ -8481,11 +8481,6 @@ pend@~1.2.0:
   resolved "https://registry.yarnpkg.com/pend/-/pend-1.2.0.tgz#7a57eb550a6783f9115331fcf4663d5c8e007a50"
   integrity sha512-F3asv42UuXchdzt+xXqfW1OGlVBe+mxa2mqI0pg5yAHZPvFmY3Y6drSf/GQ1A86WgWEN9Kzh/WrgKa6iGcHXLg==
 
-peterportal-api-next-types@1.0.0-alpha.4:
-  version "1.0.0-alpha.4"
-  resolved "https://registry.yarnpkg.com/peterportal-api-next-types/-/peterportal-api-next-types-1.0.0-alpha.4.tgz#047e96e637c6ee49e8f4bf72b164922b2988c9d6"
-  integrity sha512-ALpzMVtiOa6c8QHi0cZ/BQfRSNijAHx985kwvNXEKwdxfXRDZKZ8ih+BbjQktOv92c9o7nhzuiLQ+aY67fgRQA==
-
 peterportal-api-next-types@latest:
   version "1.0.0-alpha.3"
   resolved "https://registry.yarnpkg.com/peterportal-api-next-types/-/peterportal-api-next-types-1.0.0-alpha.3.tgz#298a407f1e42758f3f58289cd02e3fd5970fb427"
@@ -8603,7 +8598,7 @@ pretty-format@^29.5.0:
     ansi-styles "^5.0.0"
     react-is "^18.0.0"
 
-prisma@^4.9.0:
+prisma@^4.11.0:
   version "4.11.0"
   resolved "https://registry.yarnpkg.com/prisma/-/prisma-4.11.0.tgz#9695ba4129a43eab3e76b5f7a033c6c020377725"
   integrity sha512-4zZmBXssPUEiX+GeL0MUq/Yyie4ltiKmGu7jCJFnYMamNrrulTBc+D+QwAQSJ01tyzeGHlD13kOnqPwRipnlNw==
@@ -10136,7 +10131,7 @@ turbo-windows-arm64@1.8.3:
   resolved "https://registry.yarnpkg.com/turbo-windows-arm64/-/turbo-windows-arm64-1.8.3.tgz#db5739fe1d6907d07874779f6d5fac87b3f3ca6a"
   integrity sha512-ulIiItNm2w/zYJdD5/oAzjzNns1IjbpweRzpsE8tLXaWwo6+fnXXkyloUug0IUhcd2k6fJXfoiDZfygqpOVuXg==
 
-turbo@^1.7.0:
+turbo@^1.8.3:
   version "1.8.3"
   resolved "https://registry.yarnpkg.com/turbo/-/turbo-1.8.3.tgz#6fe1ce749a38b54f15f0fcb24ee45baefa98e948"
   integrity sha512-zGrkU1EuNFmkq6iky6LcMqD4h0OLE8XysVFxQWRIZbcTNnf0XAycbsbeEyiJpiWeqb7qtg2bVuY9EYcNoNhVuQ==

@@ -11,7 +11,25 @@ import {
   logger,
 } from "./gradesUpdaterUtil";
 
-const prisma: PrismaClient = new PrismaClient();
+type Section = {
+  year: number;
+  quarter: string;
+  instructors: string[];
+  department: string;
+  courseNumber: string;
+  sectionCode: number;
+  gradeACount: number;
+  gradeBCount: number;
+  gradeCCount: number;
+  gradeDCount: number;
+  gradeFCount: number;
+  gradePCount: number;
+  gradeNPCount: number;
+  gradeWCount: number;
+  averageGPA: number;
+};
+
+const prisma = new PrismaClient();
 
 /**
  * Create a parser to read the CSV file's content.
@@ -73,69 +91,78 @@ function parseYear(year: string, quarter: Quarter): number {
  * @param filePath The absolute path to the CSV file.
  * @returns An array of strings to be concatenated to two SQL queries.
  */
-async function processFile(filePath: string): Promise<[string, string]> {
-  const grades: string[] = [],
-    instructors: string[] = [];
-  const courseParser: Parser = createParser(filePath);
+async function processFile(filePath: string): Promise<Section[]> {
+  const sections: Section[] = [];
+  const courseParser = createParser(filePath);
 
   for await (const course of courseParser) {
-    grades.push(
-      `(${parseYear(course.year, course.quarter)}, "${course.quarter}",
-        "${course.department}", "${course.courseNumber}", ${course.courseCode},
-        ${course.a}, ${course.b}, ${course.c}, ${course.d}, ${course.f},
-        ${course.p}, ${course.np}, ${course.w}, ${course.gpaAvg})`
-    );
-    for (const instructor of course.instructors) {
-      instructors.push(
-        `(${parseYear(course.year, course.quarter)}, "${course.quarter}",
-          ${course.courseCode}, "${instructor}")`
-      );
-    }
+    sections.push({
+      year: parseYear(course.year, course.quarter),
+      quarter: course.quarter,
+      instructors: Array.from(course.instructors),
+      department: course.department,
+      courseNumber: course.courseNumber,
+      sectionCode: course.courseCode,
+      gradeACount: course.a,
+      gradeBCount: course.b,
+      gradeCCount: course.c,
+      gradeDCount: course.d,
+      gradeFCount: course.f,
+      gradePCount: course.p,
+      gradeNPCount: course.np,
+      gradeWCount: course.w,
+      averageGPA: course.gpaAvg,
+    });
   }
 
-  return [grades.join(", "), instructors.join(", ")];
+  return sections;
 }
 
 /**
- * Upload the content inside two long strings to a remote database
- * using raw SQL queries because ORMs are too difficult to work with.
- * @param grades All the values that will be inserted into the
- * grades table.
- * @param instructors All the values that will be inserted into the
- * grades_instructors_mappings table.
+ * Upload the section to the remote database.
+ * @param sections The sections to upload.
  */
-async function processData(grades: string, instructors: string): Promise<void> {
-  // executeRaw() has some limitations on template variables, preventing
-  // them from being used in the actual query.
-  await prisma.$transaction([
-    prisma.$executeRawUnsafe(
-      `INSERT INTO grades (
-        academic_year, academic_quarter, department, course_number,
-        course_code, grade_a_count, grade_b_count, grade_c_count,
-        grade_d_count, grade_f_count, grade_p_count, grade_np_count,
-        grade_w_count, average_gpa) VALUES ${grades};`
-    ),
-    prisma.$executeRawUnsafe(
-      `INSERT INTO grades_instructors_mappings VALUES ${instructors};`
-    ),
-  ]);
+async function processData(sections: Section[]): Promise<void> {
+  await Promise.all(
+    Array.from(new Set(sections.map((s) => s.instructors).flat())).map((i) =>
+      prisma.gradesInstructor.upsert({
+        where: { name: i },
+        update: {},
+        create: { name: i },
+      })
+    )
+  );
+  await Promise.all(
+    sections.map((s) =>
+      prisma.gradesSection.create({
+        data: {
+          ...s,
+          instructors: {
+            connect: s.instructors.map((i) => ({
+              name: i,
+            })),
+          },
+        },
+      })
+    )
+  );
 }
 
 /**
  * The entry point of this program.
  */
 async function uploadData(): Promise<void> {
-  if (fs.existsSync(`${__dirname}/outputData`) === false) {
+  if (!fs.existsSync(`${__dirname}/outputData`)) {
     throw new Error("Please create /outputData first");
   }
 
-  const paths: string[] = fs
+  const paths = fs
     .readdirSync(resolve(`${__dirname}/outputData`))
     .map((file: string) => resolve(`${__dirname}/outputData/${file}`));
   for (const path of paths) {
     logger.info(`Started processing ${path}`);
-    const [grades, instructors]: [string, string] = await processFile(path);
-    await processData(grades, instructors);
+    const sections = await processFile(path);
+    await processData(sections);
     logger.info(`Finished processing ${path}`);
   }
 }

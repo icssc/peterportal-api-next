@@ -2,7 +2,7 @@
 
 Don't mind me.
 
-![PeterPortal API logo banner](public/img/banner.png)
+![PeterPortal API logo banner](docs/static/img/banner.png)
 
 ## ℹ️ About
 

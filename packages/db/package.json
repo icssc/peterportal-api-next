@@ -7,14 +7,16 @@
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {
+    "db:push": "prisma db push",
     "generate": "prisma generate",
-    "pull": "prisma db pull"
+    "migrate:dev": "dotenv -e ../.env.development -- prisma migrate dev",
+    "migrate:reset": "dotenv -e ../.env.development -- prisma migrate reset"
   },
   "dependencies": {
     "@nestjs/common": "^9.3.9",
-    "@prisma/client": "^4.9.0"
+    "@prisma/client": "^4.11.0"
   },
   "devDependencies": {
-    "prisma": "^4.9.0"
+    "prisma": "^4.11.0"
   }
 }
