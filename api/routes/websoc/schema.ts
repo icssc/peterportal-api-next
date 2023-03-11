@@ -25,6 +25,26 @@ const normalizeValue = (val: string | string[] | undefined): string[] =>
     )
   ).sort();
 
+/**
+ * Given a string or combined days of the week (e.g. ``MWF``)
+ * or an array of such strings, return an array containing all unique values.
+ * @param val The value to normalize.
+ */
+const normalizeDays = (
+  val: string | string[] | undefined
+): string[] | undefined => {
+  if (!val) return undefined;
+  const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
+
+  return Array.from(
+    new Set(
+      typeof val === "string"
+        ? days.filter((x) => val.includes(x))
+        : val.map((x) => days.filter((y) => y.includes(x))).flat()
+    )
+  );
+};
+
 export const QuerySchema = z
   .object({
     year: z
@@ -50,7 +70,7 @@ export const QuerySchema = z
       .transform(normalizeValue)
       .optional(),
     instructorName: z.string().optional(),
-    days: z.string().transform(normalizeValue).optional(),
+    days: z.string().array().or(z.string()).transform(normalizeDays).optional(),
     building: z.string().optional(),
     room: z.string().optional(),
     division: z.enum(anyArray).or(z.enum(divisionCodes)).optional(),
