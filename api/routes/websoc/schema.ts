@@ -21,7 +21,7 @@ const normalizeValue = (val: string | string[] | undefined): string[] =>
         ? [""]
         : typeof val === "string"
         ? val.split(",")
-        : val.map((x) => x.split(",")).flat()
+        : val.flatMap((x) => x.split(","))
     )
   ).sort();
 
@@ -40,7 +40,7 @@ const normalizeDays = (
     new Set(
       typeof val === "string"
         ? days.filter((x) => val.includes(x))
-        : val.map((x) => days.filter((y) => y.includes(x))).flat()
+        : val.flatMap((x) => days.filter((y) => y.includes(x)))
     )
   );
 };
