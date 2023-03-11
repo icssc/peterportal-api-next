@@ -171,9 +171,7 @@ export function constructPrismaQuery(
   }
 
   if (parsedQuery.department) {
-    AND.push({
-      department: parsedQuery.department,
-    });
+    AND.push({ department: parsedQuery.department });
   }
 
   if (parsedQuery.courseNumber) {
@@ -186,9 +184,7 @@ export function constructPrismaQuery(
                 lte: parseInt(n.split("-")[1].replace(/\D/g, "")),
               },
             }
-          : {
-              courseNumber: n,
-            }
+          : { courseNumber: n }
       )
     );
   }
@@ -214,9 +210,7 @@ export function constructPrismaQuery(
   }
 
   if (parsedQuery.sectionType && parsedQuery.sectionType !== "ANY") {
-    AND.push({
-      sectionType: parsedQuery.sectionType,
-    });
+    AND.push({ sectionType: parsedQuery.sectionType });
   }
 
   if (parsedQuery.startTime) {
@@ -246,19 +240,13 @@ export function constructPrismaQuery(
   if (parsedQuery.division && parsedQuery.division !== "ANY") {
     switch (parsedQuery.division) {
       case "Graduate":
-        AND.push({
-          courseNumeric: { gte: 200 },
-        });
+        AND.push({ courseNumeric: { gte: 200 } });
         break;
       case "UpperDiv":
-        AND.push({
-          courseNumeric: { gte: 100, lte: 199 },
-        });
+        AND.push({ courseNumeric: { gte: 100, lte: 199 } });
         break;
       case "LowerDiv":
-        AND.push({
-          courseNumeric: { gte: 0, lte: 99 },
-        });
+        AND.push({ courseNumeric: { gte: 0, lte: 99 } });
     }
   }
 
@@ -281,27 +269,16 @@ export function constructPrismaQuery(
   if (parsedQuery.fullCourses && parsedQuery.fullCourses !== "ANY") {
     switch (parsedQuery.fullCourses) {
       case "FullOnly":
-        AND.push({
-          sectionFull: true,
-          waitlistFull: true,
-        });
+        AND.push({ sectionFull: true, waitlistFull: true });
         break;
       case "OverEnrolled":
-        AND.push({
-          overEnrolled: true,
-        });
+        AND.push({ overEnrolled: true });
         break;
       case "SkipFull":
-        AND.push({
-          sectionFull: true,
-          waitlistFull: false,
-        });
+        AND.push({ sectionFull: true, waitlistFull: false });
         break;
       case "SkipFullWaitlist":
-        AND.push({
-          sectionFull: false,
-          waitlistFull: false,
-        });
+        AND.push({ sectionFull: false, waitlistFull: false });
     }
   }
 
@@ -349,47 +326,55 @@ export function constructPrismaQuery(
 }
 
 /**
+ * type guard that asserts input is defined
+ */
+export function notNull<T>(x: T): x is NonNullable<T> {
+  return x != null;
+}
+
+/**
  * Normalize a parsed query into array of objects that can be passed to ``callWebSocAPI``.
  *
  * To support batch queries for ``units`` and ``sectionCodes``,
  * copies of the normalized query are created for every ``units``
  * argument specified and for every 5 ``sectionCodes`` argument specified.
- * @param parsedQuery Zod-parsed query object.
+ * @param query Zod-parsed query object.
  */
-export function normalizeQuery(parsedQuery: Query): WebsocAPIOptions[] {
+export function normalizeQuery(query: Query): WebsocAPIOptions[] {
   const {
     units: _units,
     sectionCodes: _sectionCodes,
     ...baseQuery
   } = {
-    ...parsedQuery,
-    instructorName: parsedQuery.instructorName ?? "",
-    sectionCodes: parsedQuery.sectionCodes?.join(","),
-    building: parsedQuery.building ?? "",
-    room: parsedQuery.room ?? "",
-    courseNumber: parsedQuery.courseNumber?.join(","),
-    days: parsedQuery.days?.join(""),
+    ...query,
+    instructorName: query.instructorName ?? "",
+    sectionCodes: query.sectionCodes?.join(","),
+    building: query.building ?? "",
+    room: query.room ?? "",
+    courseNumber: query.courseNumber?.join(","),
+    days: query.days?.join(""),
   };
-  if (parsedQuery.units && parsedQuery.sectionCodes) {
-    if (parsedQuery.units.length === 1 && parsedQuery.sectionCodes.length < 6) {
+  if (query.units && query.sectionCodes) {
+    if (query.units.length === 1 && query.sectionCodes.length < 6) {
       return [
         {
           ...baseQuery,
-          units: parsedQuery.units[0],
-          sectionCodes: parsedQuery.sectionCodes.join(","),
+          units: query.units[0],
+          sectionCodes: query.sectionCodes.join(","),
         },
       ];
     }
-    return parsedQuery.units
+
+    const keys = query.sectionCodes
+      .map((_, i) => (i % 5 === 0 ? i : null))
+      .filter(notNull);
+
+    return query.units
       .map((units) => ({ ...baseQuery, units }))
-      .flatMap((q) =>
-        Array.from(
-          Array(Math.ceil((parsedQuery.sectionCodes ?? []).length / 5)).keys()
-        ).map((x) => ({
-          ...q,
-          sectionCodes: (parsedQuery.sectionCodes ?? [])
-            .slice(x * 5, (x + 1) * 5)
-            .join(","),
+      .flatMap((copiedQuery) =>
+        keys.map((k) => ({
+          ...copiedQuery,
+          sectionCodes: query.sectionCodes.slice(k * 5, (k + 1) * 5).join(","),
         }))
       );
   } else {

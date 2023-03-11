@@ -84,7 +84,10 @@ export const QuerySchema = z
       .or(z.string())
       .optional()
       .transform(normalizeValue),
-    cache: z.string().optional(),
+    cache: z
+      .string()
+      .optional()
+      .transform((x) => !x || x !== "false"),
     startTime: z
       .string()
       .regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/)

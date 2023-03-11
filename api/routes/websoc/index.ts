@@ -11,18 +11,25 @@ import type {
   Context,
 } from "aws-lambda";
 import { PrismaClient } from "db";
-import type { Term, WebsocAPIResponse } from "peterportal-api-next-types";
-import { type WebsocAPIOptions, callWebSocAPI } from "websoc-api-next";
-import type { ZodError } from "zod";
+import type { WebsocAPIResponse } from "peterportal-api-next-types";
+import { callWebSocAPI } from "websoc-api-next";
+import { ZodError } from "zod";
 
 import {
   combineResponses,
   constructPrismaQuery,
   normalizeQuery,
-  sleep,
+  notNull,
   sortResponse,
 } from "./lib";
 import { QuerySchema } from "./schema";
+
+/**
+ * type guard that asserts that the settled promise was fulfilled
+ */
+const fulfilled = <T>(
+  value: PromiseSettledResult<T>
+): value is PromiseFulfilledResult<T> => value.status === "fulfilled";
 
 const prisma = new PrismaClient();
 
@@ -32,79 +39,54 @@ export const rawHandler = async (
   const { method, path, query, requestId } = request.getParams();
   logger.info(`${method} ${path} ${JSON.stringify(query)}`);
   switch (method) {
-    case "GET":
     case "HEAD":
       try {
         const parsedQuery = QuerySchema.parse(query);
-        let ret: WebsocAPIResponse = { schools: [] };
-        // Determine whether to enable caching for this request.
-        if (
-          !parsedQuery.cache ||
-          parsedQuery.cache !== "false" ||
-          !(await prisma.websocSection.count({
-            where: {
-              year: parsedQuery.year,
-              quarter: parsedQuery.quarter,
-            },
-          }))
-        ) {
-          ret = combineResponses(
-            ...(
-              await prisma.websocSection.findMany({
-                where: constructPrismaQuery(parsedQuery),
-                select: {
-                  data: true,
-                },
-                distinct: ["year", "quarter", "sectionCode"],
-              })
-            ).map((x) => x.data as WebsocAPIResponse),
-            ret
-          );
-        } else {
-          const term: Term = {
-            year: parsedQuery.year,
-            quarter: parsedQuery.quarter,
-          };
-          let queries: Array<WebsocAPIOptions | undefined> =
-            normalizeQuery(parsedQuery);
-          for (;;) {
-            const res = await Promise.allSettled(
-              queries.map((options) =>
-                options
-                  ? callWebSocAPI(term, options)
-                  : new Promise<WebsocAPIResponse>(() => ({ schools: [] }))
-              )
-            );
-            for (const [i, r] of Object.entries(res)) {
-              if ("value" in r) {
-                logger.info(
-                  `WebSoc query for ${JSON.stringify(
-                    queries[parseInt(i)]
-                  )} succeeded`
-                );
-                queries[parseInt(i)] = undefined;
-                ret = combineResponses(r.value, ret);
-              } else {
-                logger.info(
-                  `WebSoc query for ${JSON.stringify(
-                    queries[parseInt(i)]
-                  )} failed`
-                );
-              }
-            }
-            queries = queries.filter((q) => q);
-            if (!queries.length) break;
-            await sleep(1000);
+        if (!parsedQuery.cache) {
+          const websocSections = await prisma.websocSection.findMany({
+            where: constructPrismaQuery(parsedQuery),
+            select: { data: true },
+            distinct: ["year", "quarter", "sectionCode"],
+          });
+
+          if (websocSections.length) {
+            const websocApiResponses = websocSections
+              .map((x) => x.data)
+              .filter(notNull) as WebsocAPIResponse[];
+            const combinedRespones = combineResponses(...websocApiResponses);
+            return createOKResult(sortResponse(combinedRespones), requestId);
           }
         }
-        // Sort the response and return it.
-        return createOKResult(sortResponse(ret), requestId);
-      } catch (e) {
-        return createErrorResult(
-          400,
-          (e as ZodError).issues.map((i) => i.message).join("; "),
-          requestId
+
+        const queries = normalizeQuery(parsedQuery);
+
+        const responses = await Promise.allSettled(
+          queries.map((options) => callWebSocAPI(parsedQuery, options))
         );
+
+        responses.forEach((response, i) => {
+          const queryString = JSON.stringify(queries[i]);
+          if (response.status === "fulfilled") {
+            logger.info(`WebSoc query for ${queryString} succeeded`);
+          } else {
+            logger.info(`WebSoc query for ${queryString} failed`);
+          }
+        });
+
+        const successes = responses.filter(fulfilled);
+
+        const websocResponseData = successes.reduce(
+          (acc, curr) => combineResponses(acc, curr.value),
+          { schools: [] } as WebsocAPIResponse
+        );
+
+        return createOKResult(sortResponse(websocResponseData), requestId);
+      } catch (e) {
+        if (e instanceof ZodError) {
+          const messages = e.issues.map((issue) => issue.message);
+          return createErrorResult(400, messages, requestId);
+        }
+        return createErrorResult(400, e, requestId);
       }
     default:
       return createErrorResult(400, `Cannot ${method} ${path}`, requestId);
