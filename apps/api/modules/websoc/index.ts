@@ -12,10 +12,10 @@ import cookieParser from "cookie-parser";
 /**
  * import the correct module!
  */
-import { AdvancedModule } from "./advanced.module";
+import { WebsocModule } from "./websoc.module";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AdvancedModule);
+  const app = await NestFactory.create(WebsocModule);
   const port = 3000;
 
   /**

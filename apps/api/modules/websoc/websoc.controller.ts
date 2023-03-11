@@ -1,38 +1,25 @@
-import { Controller, Get } from "@nestjs/common";
+import { ZodValidationPipe } from "@anatine/zod-nestjs";
+import { Body, Controller, Get, UsePipes } from "@nestjs/common";
 import { ApiCreatedResponse } from "@nestjs/swagger";
 
-import { byeDTO, helloDTO } from "./websoc.dto";
-import { AdvancedService } from "./websoc.service";
+import { WebsocQueryDto } from "./websoc.dto";
+import { WebsocService } from "./websoc.service";
 
 /**
- * all routes begin at /advanced
+ * all routes begin at /websoc
  */
-@Controller("/advanced")
+@Controller("/websoc")
+@UsePipes(ZodValidationPipe)
 export class WebsocController {
-  /**
-   * describe all services/providers this controller needs (i.e. classes that can handle data)
-   */
-  constructor(private readonly advancedService: AdvancedService) {}
+  constructor(private readonly websoc: WebsocService) {}
 
   /**
-   * hello route
+   * default route: query the websoc API
    */
-  @Get("hello")
-  @ApiCreatedResponse({
-    type: helloDTO,
-  })
-  hello(): Promise<string> {
-    return this.advancedService.hello();
-  }
-
-  /**
-   * bye route
-   */
-  @Get("bye")
-  @ApiCreatedResponse({
-    type: byeDTO,
-  })
-  bye(): Promise<byeDTO> {
-    return this.advancedService.bye();
+  @Get("")
+  @ApiCreatedResponse({ type: WebsocQueryDto })
+  async query(@Body() query: WebsocQueryDto) {
+    const response = await this.websoc.query(query);
+    return response;
   }
 }

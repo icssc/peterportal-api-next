@@ -1,58 +1,63 @@
-// import {
-//   InvocationType,
-//   InvokeCommand,
-//   LambdaClient,
-// } from "@aws-sdk/client-lambda";
-// import type {
-//   APIGatewayProxyEvent,
-//   APIGatewayProxyResult,
-//   Context,
-// } from "aws-lambda";
-// import type { SortKey } from "ddb";
-// import { DDBDocClient } from "ddb";
-import type {
-  Quarter,
-  Term,
-  WebsocAPIResponse,
-  WebsocCourse,
-  WebsocDepartment,
-  WebsocSchool,
-  WebsocSection,
-  WebsocSectionMeeting,
-} from "peterportal-api-next-types";
-// import type { WebsocAPIOptions } from "websoc-api-next";
-// import { callWebSocAPI } from "websoc-api-next";
-// import type { ZodError } from "zod";
-// import { QuerySchema } from "./websoc.dto";
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "db";
+import type { WebsocAPIResponse } from "peterportal-api-next-types";
+import { callWebSocAPI } from "websoc-api-next";
+
+import { WebsocQueryDto } from "./websoc.dto";
+import {
+  combineResponses,
+  constructPrismaQuery,
+  normalizeQuery,
+  sortResponse,
+} from "./websoc.lib";
 
 /**
- * Given a nested section and all of its parent structures, returns a
- * ``WebsocAPIResponse`` object that contains only that section.
- * @param school The school that the department belongs to.
- * @param department The department that the course belongs to.
- * @param course The course that the section belongs to.
- * @param section The section to isolate.
+ * type guard to assert that the returned value is defined
  */
-const isolateSection = (
-  school: WebsocSchool,
-  department: WebsocDepartment,
-  course: WebsocCourse,
-  section: WebsocSection
-): WebsocAPIResponse => ({
-  schools: [
-    {
-      ...school,
-      departments: [
-        {
-          ...department,
-          courses: [
-            {
-              ...course,
-              sections: [section],
-            },
-          ],
-        },
-      ],
-    },
-  ],
-});
+function notNull<T>(value: T): value is NonNullable<T> {
+  return value != null;
+}
+
+/**
+ * type guard to assert that the settled promise was fulfilled
+ */
+function fulfilled<T>(
+  value: PromiseSettledResult<T>
+): value is PromiseFulfilledResult<T> {
+  return value.status === "fulfilled";
+}
+
+@Injectable()
+export class WebsocService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async query(query: WebsocQueryDto) {
+    if (!query.cache) {
+      const websocSections = await this.prisma.websocSection.findMany({
+        where: constructPrismaQuery(query),
+        select: { data: true },
+        distinct: ["year", "quarter", "sectionCode"],
+      });
+
+      if (websocSections.length) {
+        const websocApiResponses = websocSections.map(
+          (x) => x.data
+        ) as WebsocAPIResponse[];
+        return sortResponse(combineResponses(...websocApiResponses));
+      }
+    }
+
+    const queries = normalizeQuery(query);
+    const responses = await Promise.allSettled(
+      queries
+        .filter(notNull)
+        .map((options) => callWebSocAPI({ ...query }, options))
+    );
+    const successes = responses.filter(fulfilled);
+    const result = successes.reduce(
+      (acc, curr) => combineResponses(acc, curr.value),
+      { schools: [] } as WebsocAPIResponse
+    );
+    return sortResponse(result);
+  }
+}

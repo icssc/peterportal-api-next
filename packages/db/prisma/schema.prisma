@@ -34,3 +34,75 @@ model GradesSection {
   gradeWCount  Int
   averageGPA   Float
 }
+
+enum Quarter {
+  Fall
+  Winter
+  Spring
+  Summer1
+  Summer10wk
+  Summer2
+}
+
+enum WebsocSectionType {
+  Act
+  Col
+  Dis
+  Fld
+  Lab
+  Lec
+  Qiz
+  Res
+  Sem
+  Stu
+  Tap
+  Tut
+}
+
+model WebsocSectionInstructor {
+  id          Int           @id @default(autoincrement())
+  year        String
+  quarter     Quarter
+  sectionCode Int
+  timestamp   DateTime
+  section     WebsocSection @relation(fields: [year, quarter, sectionCode, timestamp], references: [year, quarter, sectionCode, timestamp])
+  name        String
+}
+
+model WebsocSectionMeeting {
+  id          Int           @id @default(autoincrement())
+  year        String
+  quarter     Quarter
+  sectionCode Int
+  timestamp   DateTime
+  section     WebsocSection @relation(fields: [year, quarter, sectionCode, timestamp], references: [year, quarter, sectionCode, timestamp])
+  days        Json
+  startTime   Int
+  endTime     Int
+  buildings   Json
+}
+
+model WebsocSection {
+  id            Int                       @id @default(autoincrement())
+  year          String
+  quarter       Quarter
+  sectionCode   Int
+  timestamp     DateTime
+  geCategories  Json
+  department    String
+  courseNumber  String
+  courseNumeric Int
+  instructors   WebsocSectionInstructor[]
+  courseTitle   String
+  sectionType   WebsocSectionType
+  units         String
+  meetings      WebsocSectionMeeting[]
+  maxCapacity   Int
+  sectionFull   Boolean
+  waitlistFull  Boolean
+  overEnrolled  Boolean
+  cancelled     Boolean
+  data          Json
+
+  @@unique(fields: [year, quarter, sectionCode, timestamp], name: "idx")
+}
