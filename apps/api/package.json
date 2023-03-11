@@ -5,7 +5,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "build": "node esbuild.js",
+    "build": "vite build",
     "dev": "nodemon --watch './**/*.ts' --exec 'node --experimental-specifier-resolution=node --loader ts-node/esm' src/index.ts",
     "format": "prettier --write .",
     "start": "node dist",
@@ -25,6 +25,7 @@
     "db": "*",
     "ddb": "*",
     "dotenv": "^16.0.3",
+    "encoding": "^0.1.13",
     "express": "^4.18.2",
     "openapi3-ts": "^3.2.0",
     "reflect-metadata": "^0.1.13",
@@ -37,17 +38,22 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "@swc/core": "^1.3.38",
+    "@anatine/esbuild-decorators": "^0.2.19",
+    "@rspack/cli": "^0.1.0",
+    "@swc/cli": "^0.1.62",
+    "@swc/core": "^1.3.39",
     "@types/aws-serverless-express": "^3.3.5",
     "@types/cookie-parser": "^1.4.3",
     "@types/express": "^4.17.17",
     "@types/node": "^18.14.6",
+    "esbuild": "^0.17.11",
     "nodemon": "^2.0.21",
     "peterportal-api-next-types": "1.0.0-alpha.4",
     "serverless-plugin-typescript": "^2.1.4",
     "tsx": "^3.12.3",
     "typescript": "^4.9.5",
     "vite": "^4.1.4",
-    "vite-plugin-node": "^3.0.2"
+    "vite-plugin-node": "^3.0.2",
+    "vite-plugin-singlefile": "^0.13.3"
   }
 }

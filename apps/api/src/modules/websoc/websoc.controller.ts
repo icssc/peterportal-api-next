@@ -1,5 +1,5 @@
 import { ZodValidationPipe } from "@anatine/zod-nestjs";
-import { Body, Controller, Get, UsePipes } from "@nestjs/common";
+import { Controller, Get, Query, UsePipes } from "@nestjs/common";
 import { ApiCreatedResponse } from "@nestjs/swagger";
 
 import { WebsocQueryDto } from "./websoc.dto";
@@ -18,7 +18,7 @@ export class WebsocController {
    */
   @Get("")
   @ApiCreatedResponse({ type: WebsocQueryDto })
-  async query(@Body() query: WebsocQueryDto) {
+  async query(@Query() query: WebsocQueryDto) {
     const response = await this.websoc.query(query);
     return response;
   }

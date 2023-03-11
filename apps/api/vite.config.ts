@@ -1,3 +1,4 @@
+import { bundle } from "@swc/core";
 import { defineConfig } from "vite";
 import { VitePluginNode } from "vite-plugin-node";
 
@@ -27,15 +28,27 @@ export default defineConfig({
        */
       tsCompiler: "swc",
     }),
+    // {
+    //   name: "swc",
+    //   async closeBundle() {
+    //     await bundle({
+    //       target: 'node',
+    //       externalModules: [
+    //         '@nestjs/microservices',
+    //         '@nestjs/websockets',
+    //         'cache-manager',
+    //         'class-transformer',
+    //         'class-validator',
+    //         'fastify-swagger',
+    //       ],
+    //       entry: "dist/lambda.js",
+    //       output: {
+    //         name: "handler",
+    //         path: "dist",
+    //       },
+    //       module: {}
+    //     })
+    //   }
+    // }
   ],
-  optimizeDeps: {
-    exclude: [
-      "@nestjs/microservices",
-      "@nestjs/websockets",
-      "cache-manager",
-      "class-transformer",
-      "class-validator",
-      "fastify-swagger",
-    ],
-  },
 });

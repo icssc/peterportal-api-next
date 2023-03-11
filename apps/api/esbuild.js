@@ -1,11 +1,12 @@
-import esbuild from "esbuild";
+import { bundle } from "@swc/core";
+import { build } from "esbuild";
 
-async function build() {
-  await esbuild.build({
-    entryPoints: ["src/lambda.ts"],
+async function aponia() {
+  await build({
     bundle: true,
     platform: "node",
-    outfile: "dist/lambda.js",
+    outfile: "out.js",
+    entryPoints: ["dist/lambda.js"],
     external: [
       "@nestjs/microservices",
       "@nestjs/websockets",
@@ -15,6 +16,23 @@ async function build() {
       "fastify-swagger",
     ],
   });
+  await bundle({
+    target: "node",
+    externalModules: [
+      "@nestjs/microservices",
+      "@nestjs/websockets",
+      "cache-manager",
+      "class-transformer",
+      "class-validator",
+      "fastify-swagger",
+    ],
+    entry: "dist/lambda.cjs",
+    output: {
+      name: "handler",
+      path: "dist",
+    },
+    module: {},
+  });
 }
 
-build();
+aponia();
