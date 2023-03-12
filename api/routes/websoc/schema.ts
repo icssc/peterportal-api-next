@@ -62,16 +62,24 @@ export const QuerySchema = z
       .string()
       .array()
       .or(z.string())
+      .optional()
       .transform(normalizeValue)
       .optional(),
     sectionCodes: z
       .string()
       .array()
       .or(z.string())
+      .optional()
       .transform(normalizeValue)
       .optional(),
     instructorName: z.string().optional(),
-    days: z.string().array().or(z.string()).transform(normalizeDays).optional(),
+    days: z
+      .string()
+      .array()
+      .or(z.string())
+      .optional()
+      .transform(normalizeDays)
+      .optional(),
     building: z.string().optional(),
     room: z.string().optional(),
     division: z.enum(anyArray).or(z.enum(divisionCodes)).optional(),
@@ -82,9 +90,14 @@ export const QuerySchema = z
       .string()
       .array()
       .or(z.string())
+      .optional()
       .transform(normalizeValue)
       .optional(),
-    cache: z.string().optional(),
+    cache: z
+      .string()
+      .optional()
+      .transform((x) => !(x === "false"))
+      .optional(),
     startTime: z
       .string()
       .regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/)
