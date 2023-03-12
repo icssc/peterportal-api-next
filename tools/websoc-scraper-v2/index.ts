@@ -228,20 +228,20 @@ async function scrape(
         for (const department of school.departments) {
           for (const course of department.courses) {
             for (const section of course.sections) {
-              const [year, q] = term.split(" ");
+              const [year, quarter] = term.split(" ") as [string, Quarter];
               const sectionCode = parseInt(section.sectionCode);
               res[`${term} ${section.sectionCode}`] = {
                 meta: {
                   instructors: section.instructors.map((name) => ({
                     year,
-                    quarter: q as Quarter,
+                    quarter,
                     sectionCode,
                     timestamp,
                     name,
                   })),
                   meetings: section.meetings.map((m) => ({
                     year,
-                    quarter: q as Quarter,
+                    quarter,
                     sectionCode,
                     timestamp,
                     days: ["Su", "M", "Tu", "W", "Th", "F", "Sa"].filter((x) =>
@@ -276,7 +276,7 @@ async function scrape(
                 },
                 data: {
                   year,
-                  quarter: q as Quarter,
+                  quarter,
                   sectionCode: parseInt(section.sectionCode),
                   timestamp,
                   geCategories: [],
