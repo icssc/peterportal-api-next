@@ -1,4 +1,9 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 . "$(dirname -- "$0")/_/husky.sh"
 
-npx lint-staged
+echo "Checking for TypeScript errors..."
+npx --no -- tsc -p . --noEmit
+npx --no -- tsc -p docs --noEmit
+npx --no -- tsc -p docs/cdk --noEmit
+echo "...none found."
+npx --no -- lint-staged
