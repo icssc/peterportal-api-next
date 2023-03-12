@@ -38,7 +38,15 @@ export const rawHandler: RawHandler = async (request) => {
     case "GET":
       try {
         const parsedQuery = QuerySchema.parse(query);
-        if (!parsedQuery.cache) {
+        const termExists = /* await prisma.websocTerm.findUnique({
+          where: {
+            idx: {
+              year: parsedQuery.year,
+              quarter: parsedQuery.quarter,
+            },
+          },
+        }); */ true;
+        if (!parsedQuery.cache && termExists) {
           const websocSections = await prisma.websocSection.findMany({
             where: constructPrismaQuery(parsedQuery),
             select: { data: true },
