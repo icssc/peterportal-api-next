@@ -1,11 +1,66 @@
 import { Prisma } from "db";
 import type {
   WebsocAPIResponse,
+  WebsocCourse,
+  WebsocDepartment,
   WebsocSchool,
+  WebsocSection,
+  WebsocSectionMeeting,
 } from "peterportal-api-next-types";
 import type { WebsocAPIOptions } from "websoc-api-next";
 
 import type { Query } from "./schema";
+
+/**
+ * Section that also contains all relevant Websoc metadata.
+ */
+type EnhancedSection = {
+  school: WebsocSchool;
+  department: WebsocDepartment;
+  course: WebsocCourse;
+  section: WebsocSection;
+};
+
+/**
+ * Get unique array of meetings.
+ */
+function getUniqueMeetings(meetings: WebsocSectionMeeting[]) {
+  const uniqueMeetings = meetings.reduce((acc, meeting) => {
+    if (!acc.find((m) => m.days === meeting.days && m.time === meeting.time)) {
+      acc.push(meeting);
+    }
+    return acc;
+  }, [] as WebsocSectionMeeting[]);
+  return uniqueMeetings;
+}
+
+/**
+ * Given all parent data about a section, isolate relevant data.
+ * @returns ``EnhancedSection`` with all deduped, relevant metadata.
+ */
+function isolateSection(data: EnhancedSection) {
+  const section = {
+    ...data.section,
+    meetings: getUniqueMeetings(data.section.meetings),
+  };
+
+  const course = {
+    ...data.course,
+    sections: [section],
+  };
+
+  const department = {
+    ...data.department,
+    courses: [course],
+  };
+
+  const school = {
+    ...data.school,
+    departments: [department],
+  };
+
+  return { school, department, course, section };
+}
 
 /**
  * Combines all given response objects into a single response object,
@@ -19,12 +74,9 @@ export function combineResponses(
     response.schools.flatMap((school) =>
       school.departments.flatMap((department) =>
         department.courses.flatMap((course) =>
-          course.sections.map((section) => ({
-            school,
-            department,
-            course,
-            section,
-          }))
+          course.sections.map((section) =>
+            isolateSection({ school, department, course, section })
+          )
         )
       )
     )

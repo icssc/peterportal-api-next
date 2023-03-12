@@ -14,6 +14,7 @@ import {
   combineResponses,
   constructPrismaQuery,
   normalizeQuery,
+  notNull,
   sleep,
   sortResponse,
 } from "./lib";
@@ -35,61 +36,66 @@ export const rawHandler: RawHandler = async (request) => {
     case "HEAD":
       try {
         const parsedQuery = QuerySchema.parse(query);
-        if (!parsedQuery.cache || parsedQuery.cache !== "false") {
+        if (!parsedQuery.cache) {
           const websocSections = await prisma.websocSection.findMany({
             where: constructPrismaQuery(parsedQuery),
             select: { data: true },
             distinct: ["year", "quarter", "sectionCode"],
           });
 
-          // WebSoc throws an error if a query returns more than 900 sections,
-          // so we probably want to maintain this invariant as well.
-          // (Also to prevent abuse of the endpoint.)
+          /**
+           * WebSoc throws an error if a query returns more than 900 sections,
+           * so we probably want to maintain this invariant as well.
+           * (Also to prevent abuse of the endpoint.)
+           */
+          if (websocSections.length > 900) {
+            return createErrorResult(
+              400,
+              "More than 900 sections matched your query. Please refine your search.",
+              requestId
+            );
+          }
+
           if (websocSections.length) {
-            if (websocSections.length > 900) {
-              return createErrorResult(
-                400,
-                "More than 900 sections matched your query. Please refine your search.",
-                requestId
-              );
-            }
-            const websocApiResponses = websocSections.map(
-              (x) => x.data
-            ) as WebsocAPIResponse[];
-            const combinedResponses = combineResponses(...websocApiResponses);
-            return createOKResult(sortResponse(combinedResponses), requestId);
+            const websocApiResponses = websocSections
+              .map((x) => x.data)
+              .filter(notNull) as WebsocAPIResponse[];
+            const combinedRespones = combineResponses(...websocApiResponses);
+            return createOKResult(sortResponse(combinedRespones), requestId);
           }
         }
-        let queries: (WebsocAPIOptions | undefined)[] =
-          normalizeQuery(parsedQuery);
-        let response: WebsocAPIResponse = { schools: [] };
+
+        let queries = normalizeQuery(parsedQuery);
+        let websocResponseData: WebsocAPIResponse = { schools: [] };
         let retries = 0;
-        for (;;) {
+
+        while (queries.length || retries < 69) {
           const responses = await Promise.allSettled(
-            queries.map((options) =>
-              options
-                ? callWebSocAPI(parsedQuery, options)
-                : new Promise<WebsocAPIResponse>(() => ({ schools: [] }))
-            )
+            queries.map((options) => callWebSocAPI(parsedQuery, options))
           );
+
+          const failed: WebsocAPIOptions[] = [];
+
           responses.forEach((response, i) => {
             const queryString = JSON.stringify(queries[i]);
             if (response.status === "fulfilled") {
               logger.info(`WebSoc query for ${queryString} succeeded`);
-              queries[i] = undefined;
             } else {
               logger.info(`WebSoc query for ${queryString} failed`);
+              failed.push(queries[i]);
             }
           });
-          response = combineResponses(
-            response,
-            ...responses.filter(fulfilled).map((s) => s.value)
+
+          const successes = responses.filter(fulfilled);
+          websocResponseData = successes.reduce(
+            (acc, curr) => combineResponses(acc, curr.value),
+            websocResponseData
           );
-          queries = queries.filter((x) => x);
-          if (!queries.length) break;
+
+          queries = failed;
           await sleep(1000 * 2 ** retries++);
         }
-        return createOKResult(sortResponse(response), requestId);
+        return createOKResult(sortResponse(websocResponseData), requestId);
       } catch (e) {
         if (e instanceof ZodError) {
           const messages = e.issues.map((issue) => issue.message);
