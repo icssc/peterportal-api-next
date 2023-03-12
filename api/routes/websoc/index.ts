@@ -35,6 +35,7 @@ export const rawHandler: RawHandler = async (request) => {
   logger.info(`${method} ${path} ${JSON.stringify(query)}`);
   switch (method) {
     case "HEAD":
+    case "GET":
       try {
         const parsedQuery = QuerySchema.parse(query);
         if (!parsedQuery.cache) {
