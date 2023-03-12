@@ -7,7 +7,8 @@ import {
 } from "api-core";
 import { PrismaClient } from "db";
 import type { WebsocAPIResponse } from "peterportal-api-next-types";
-import { callWebSocAPI, WebsocAPIOptions } from "websoc-api-next";
+import type { WebsocAPIOptions } from "websoc-api-next";
+import { callWebSocAPI } from "websoc-api-next";
 import { ZodError } from "zod";
 
 import {
@@ -60,8 +61,8 @@ export const rawHandler: RawHandler = async (request) => {
             const websocApiResponses = websocSections
               .map((x) => x.data)
               .filter(notNull) as WebsocAPIResponse[];
-            const combinedRespones = combineResponses(...websocApiResponses);
-            return createOKResult(sortResponse(combinedRespones), requestId);
+            const combinedResponses = combineResponses(...websocApiResponses);
+            return createOKResult(sortResponse(combinedResponses), requestId);
           }
         }
 
@@ -69,7 +70,7 @@ export const rawHandler: RawHandler = async (request) => {
         let websocResponseData: WebsocAPIResponse = { schools: [] };
         let retries = 0;
 
-        while (queries.length || retries < 69) {
+        for (;;) {
           const responses = await Promise.allSettled(
             queries.map((options) => callWebSocAPI(parsedQuery, options))
           );
@@ -93,6 +94,14 @@ export const rawHandler: RawHandler = async (request) => {
           );
 
           queries = failed;
+          if (!queries.length) break;
+          // 3 attempts + (1 + 2 + 4) seconds ~= Lambda timeout (15 seconds)
+          if (retries >= 2)
+            return createErrorResult(
+              500,
+              "WebSoc failed to respond too many times. Please try again later.",
+              requestId
+            );
           await sleep(1000 * 2 ** retries++);
         }
         return createOKResult(sortResponse(websocResponseData), requestId);
