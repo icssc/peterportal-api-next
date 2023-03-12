@@ -171,25 +171,26 @@ function isolateSection(data: EnhancedSection): WebsocAPIResponse {
 
 async function scrape(
   quarterDates: Record<string, QuarterDates>,
-  termsToScrape: Term[]
+  termToScrape: Term,
+  timestamp: Date
 ) {
   const deptCodes = (await getDepts())
     .map((dept) => dept.deptValue)
     .filter((deptValue) => deptValue !== "ALL");
-  const results: Record<string, ScrapedTerm> = Object.fromEntries(
-    termsToScrape.map((term) => [
-      `${term.year} ${term.quarter}`,
-      { department: {}, ge: {} },
-    ])
-  );
-  let inputs: [Term, WebsocAPIOptions][] = termsToScrape.flatMap((term) => [
+  const results: Record<string, ScrapedTerm> = {
+    [`${termToScrape.year} ${termToScrape.quarter}`]: {
+      department: {},
+      ge: {},
+    },
+  };
+  let inputs: [Term, WebsocAPIOptions][] = [
     ...deptCodes.map(
-      (department) => [term, { department }] as [Term, WebsocAPIOptions]
+      (department) => [termToScrape, { department }] as [Term, WebsocAPIOptions]
     ),
     ...(Object.keys(geCategories) as GE[]).map(
-      (ge) => [term, { ge }] as [Term, WebsocAPIOptions]
+      (ge) => [termToScrape, { ge }] as [Term, WebsocAPIOptions]
     ),
-  ]);
+  ];
   for (;;) {
     logger.info(`Making ${inputs.length} concurrent calls to WebSoc`);
     const settledResults = await Promise.allSettled(
@@ -220,7 +221,6 @@ async function scrape(
     await sleep(60 * 1000);
   }
   const res: Record<string, ProcessedSection> = {};
-  const timestamp = new Date();
   logger.info("Processing all sections");
   for (const [term, data] of Object.entries(results)) {
     for (const response of Object.values(data.department)) {
@@ -337,6 +337,9 @@ async function scrape(
     data: Object.values(res).flatMap((d) => d.meta.meetings),
   });
   logger.info(`Inserted ${meetingsCreated.count} meetings`);
+}
+
+async function deleteOldEntries(timestamp: Date) {
   const instructorsDeleted = await prisma.websocSectionInstructor.deleteMany({
     where: { timestamp: { lt: timestamp } },
   });
@@ -373,15 +376,13 @@ async function scrape(
         termsToScrape = await getTermsToScrape(curr, quarterDates);
       }
       now = curr;
-      logger.info(
-        `Scraping WebSoc for ${termsToScrape
-          .map((term) => Object.values(term).join(" "))
-          .join(", ")}`
-      );
-      await scrape(quarterDates, termsToScrape);
-      // break;
-      logger.info("Sleeping for 15 minutes");
-      await sleep(15 * 60 * 1000);
+      for (const term of termsToScrape) {
+        logger.info(`Scraping term ${Object.values(term).join(" ")}`);
+        await scrape(quarterDates, term, now);
+        logger.info("Sleeping for 5 minutes");
+        await sleep(5 * 60 * 1000);
+      }
+      await deleteOldEntries(now);
     }
   } catch (e) {
     if (e instanceof Error) {
