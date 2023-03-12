@@ -29,9 +29,27 @@ export type WeekData = {
  */
 export type QuarterDates = {
   /**
+   * When the Schedule of Classes is available for the given quarter.
+   */
+  scheduleAvailable: Date;
+  /**
+   * When enrollment begins for the given quarter.
+   */
+  enrollmentStart: Date;
+  /**
    * When instruction begins for the given quarter.
    */
   instructionStart: Date;
+  /**
+   * When unrestricted enrollment ends for the given quarter.
+   * After this date, adding/changing/dropping courses require deans' approval.
+   */
+  unrestrictedEnrollmentEnd: Date;
+  /**
+   * When ALL enrollment ends for the given quarter.
+   * After this date, no enrollment changes can be made at all.
+   */
+  enrollmentEnd: Date;
   /**
    * When instruction ends for the given quarter.
    */
