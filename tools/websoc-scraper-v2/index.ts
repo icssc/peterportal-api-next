@@ -1,20 +1,16 @@
 import { PrismaClient } from "db";
 import type {
   GE,
-  QuarterDates,
+  Quarter,
   Term,
   WebsocAPIResponse,
   WebsocCourse,
   WebsocDepartment,
   WebsocSchool,
   WebsocSection,
-} from "peterportal-api-next-types";
-import {
-  geCategories,
-  Quarter,
-  sectionTypes,
   WebsocSectionMeeting,
 } from "peterportal-api-next-types";
+import { geCategories, sectionTypes } from "peterportal-api-next-types";
 import { getTermDateData } from "registrar-api";
 import {
   type WebsocAPIOptions,
@@ -84,6 +80,8 @@ type ProcessedSection = {
   };
 };
 
+const FIVE_MINUTES_MS = 5 * 60 * 1000;
+
 const prisma = new PrismaClient();
 
 const logger = createLogger({
@@ -99,10 +97,12 @@ const logger = createLogger({
   exitOnError: false,
 });
 
-async function getQuarterDates(
-  date: Date
-): Promise<Record<string, QuarterDates>> {
-  return Object.assign(
+/**
+ * Get all terms that are to be scraped on a daily basis.
+ * @param date The current date.
+ */
+async function getTermsToScrape(date: Date) {
+  const quarterDates = Object.assign(
     {},
     ...(await Promise.all(
       Array.from(Array(3).keys()).map((x) =>
@@ -110,22 +110,25 @@ async function getQuarterDates(
       )
     ))
   );
+  return Object.fromEntries(
+    (await getTerms())
+      .map((term) => term.shortName)
+      .filter((term) => Object.keys(quarterDates).includes(term))
+      .filter((term) => date <= quarterDates[term].finalsStart)
+      .map(
+        (term) =>
+          [term, { year: term.split(" ")[0], quarter: term.split(" ")[1] }] as [
+            string,
+            Term
+          ]
+      )
+  );
 }
 
-async function getTermsToScrape(
-  date: Date,
-  quarterDates: Record<string, QuarterDates>
-) {
-  return (await getTerms())
-    .map((term) => term.shortName)
-    .filter((term) => Object.keys(quarterDates).includes(term))
-    .filter((term) => date <= quarterDates[term].finalsStart)
-    .map(
-      (term) =>
-        ({ year: term.split(" ")[0], quarter: term.split(" ")[1] } as Term)
-    );
-}
-
+/**
+ * Sleep for the given number of milliseconds.
+ * @param duration Duration in ms.
+ */
 const sleep = async (duration: number) =>
   new Promise((resolve) => setTimeout(resolve, duration));
 
@@ -169,26 +172,24 @@ function isolateSection(data: EnhancedSection): WebsocAPIResponse {
   return { schools: [school] };
 }
 
-async function scrape(
-  quarterDates: Record<string, QuarterDates>,
-  termToScrape: Term,
-  timestamp: Date
-) {
+async function scrape(name: string, term: Term) {
+  logger.info(`Scraping term ${name}`);
+  const timestamp = new Date();
   const deptCodes = (await getDepts())
     .map((dept) => dept.deptValue)
     .filter((deptValue) => deptValue !== "ALL");
   const results: Record<string, ScrapedTerm> = {
-    [`${termToScrape.year} ${termToScrape.quarter}`]: {
+    [`${term.year} ${term.quarter}`]: {
       department: {},
       ge: {},
     },
   };
   let inputs: [Term, WebsocAPIOptions][] = [
     ...deptCodes.map(
-      (department) => [termToScrape, { department }] as [Term, WebsocAPIOptions]
+      (department) => [term, { department }] as [Term, WebsocAPIOptions]
     ),
     ...(Object.keys(geCategories) as GE[]).map(
-      (ge) => [termToScrape, { ge }] as [Term, WebsocAPIOptions]
+      (ge) => [term, { ge }] as [Term, WebsocAPIOptions]
     ),
   ];
   for (;;) {
@@ -337,21 +338,32 @@ async function scrape(
     data: Object.values(res).flatMap((d) => d.meta.meetings),
   });
   logger.info(`Inserted ${meetingsCreated.count} meetings`);
-}
-
-async function deleteOldEntries(timestamp: Date) {
   const instructorsDeleted = await prisma.websocSectionInstructor.deleteMany({
-    where: { timestamp: { lt: timestamp } },
+    where: {
+      year: term.year,
+      quarter: term.quarter,
+      timestamp: { lt: timestamp },
+    },
   });
   logger.info(`Removed ${instructorsDeleted.count} instructors`);
   const meetingsDeleted = await prisma.websocSectionMeeting.deleteMany({
-    where: { timestamp: { lt: timestamp } },
+    where: {
+      year: term.year,
+      quarter: term.quarter,
+      timestamp: { lt: timestamp },
+    },
   });
   logger.info(`Removed ${meetingsDeleted.count} meetings`);
   const sectionsDeleted = await prisma.websocSection.deleteMany({
-    where: { timestamp: { lt: timestamp } },
+    where: {
+      year: term.year,
+      quarter: term.quarter,
+      timestamp: { lt: timestamp },
+    },
   });
   logger.info(`Removed ${sectionsDeleted.count} sections`);
+  logger.info("Sleeping for 5 minutes");
+  await sleep(FIVE_MINUTES_MS);
 }
 
 /**
@@ -361,28 +373,38 @@ async function deleteOldEntries(timestamp: Date) {
   try {
     logger.info("websoc-scraper-v2 daemon starting");
     let now = new Date();
-    // Get quarter date data for the current calendar year and the years
-    // immediately before and after it.
-    let quarterDates = await getQuarterDates(now);
-    let termsToScrape = await getTermsToScrape(now, quarterDates);
+    let termsInScope = await getTermsToScrape(now);
     for (;;) {
       const curr = new Date();
-      // Fetch the quarter dates again when the calendar year changes.
-      if (curr.getFullYear() > now.getFullYear()) {
-        quarterDates = await getQuarterDates(curr);
-      }
-      // Check the available terms every day.
-      if (curr.getDate() > now.getDate() || curr.getDate() === 1) {
-        termsToScrape = await getTermsToScrape(curr, quarterDates);
+      // Check the available terms every day and scrape all of them once.
+      if (curr.getDate() !== now.getDate()) {
+        termsInScope = await getTermsToScrape(curr);
+        for (const [name, term] of Object.entries(termsInScope))
+          await scrape(name, term);
       }
       now = curr;
-      for (const term of termsToScrape) {
-        logger.info(`Scraping term ${Object.values(term).join(" ")}`);
-        await scrape(quarterDates, term, now);
-        logger.info("Sleeping for 5 minutes");
-        await sleep(5 * 60 * 1000);
+      // Check the database for terms to scrape on demand.
+      const termsOnDemand = Object.fromEntries(
+        (
+          await prisma.websocTerm.findMany({
+            where: { timestamp: { gte: now } },
+            select: { year: true, quarter: true },
+          })
+        ).map((x) => [`${x.year} ${x.quarter}`, x])
+      );
+      let scraped = false;
+      for (const [name, term] of Object.entries(termsOnDemand)) {
+        if (!(name in termsInScope)) {
+          logger.info(`Term ${name} requested but not in scope, skipping`);
+          continue;
+        }
+        scraped = true;
+        await scrape(name, term);
       }
-      await deleteOldEntries(now);
+      if (!scraped || !Object.keys(termsOnDemand).length) {
+        logger.info("No terms to scrape on demand, sleeping for 5 minutes");
+        await sleep(FIVE_MINUTES_MS);
+      }
     }
   } catch (e) {
     if (e instanceof Error) {
