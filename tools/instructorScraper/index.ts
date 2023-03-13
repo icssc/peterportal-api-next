@@ -40,6 +40,7 @@ type InstructorsLog = {
     | string[]
     | { [key: string]: string }
     | { [key: string]: { [key: string]: string[] } }
+    | string;
   faculty_links: { [faculty_link: string]: string }; // Mapping of faculty links to departments
   instructors_found: {
     [key: string]: { schools: string[]; related_departments: string[] };
@@ -62,7 +63,7 @@ function sleep(ms: number) {
 /**
  * Get information of all instructors listed in the UCI catalogue page.
  *
- * The speed of this scraper largely depends on concurrency_limit and year_threshold. UCI websites run on boomer servers and will
+ * The speed of this scraper largely depends on concurrency_limit and year_threshold. UCI websites run on boomer serversand will
  * die with too many concurrent calls so we bottleneck. If a request fails we retry up to the number of attempts.
  *
  * Recommended arguments: concurrency_limt = 100, attempts = 5
