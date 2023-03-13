@@ -22,17 +22,41 @@ type EnhancedSection = {
 };
 
 /**
+ * Returns the lexicographical ordering of two elements.
+ * @param a The left hand side of the comparison.
+ * @param b The right hand side of the comparison.
+ */
+const lexOrd = (a: string, b: string): number => (a === b ? 0 : a > b ? 1 : -1);
+
+/**
  * Get unique array of meetings.
  */
-function getUniqueMeetings(meetings: WebsocSectionMeeting[]) {
-  const uniqueMeetings = meetings.reduce((acc, meeting) => {
+const getUniqueMeetings = (meetings: WebsocSectionMeeting[]) =>
+  meetings.reduce((acc, meeting) => {
     if (!acc.find((m) => m.days === meeting.days && m.time === meeting.time)) {
       acc.push(meeting);
     }
     return acc;
   }, [] as WebsocSectionMeeting[]);
-  return uniqueMeetings;
-}
+
+/**
+ * type guard that asserts that the settled promise was fulfilled
+ */
+export const fulfilled = <T>(
+  value: PromiseSettledResult<T>
+): value is PromiseFulfilledResult<T> => value.status === "fulfilled";
+
+/**
+ * type guard that asserts input is defined
+ */
+export const notNull = <T>(x: T): x is NonNullable<T> => x != null;
+
+/**
+ * Sleep for the given number of milliseconds.
+ * @param duration Duration in ms.
+ */
+export const sleep = async (duration: number) =>
+  new Promise((resolve) => setTimeout(resolve, duration));
 
 /**
  * Given all parent data about a section, isolate relevant data.
@@ -127,13 +151,6 @@ export function combineResponses(
 
   return { schools };
 }
-
-/**
- * Sleep for the given number of milliseconds.
- * @param duration Duration in ms.
- */
-export const sleep = async (duration: number) =>
-  new Promise((resolve) => setTimeout(resolve, duration));
 
 /**
  * Converts a 12-hour time string into number of minutes since midnight.
@@ -326,13 +343,6 @@ export function constructPrismaQuery(
 }
 
 /**
- * type guard that asserts input is defined
- */
-export function notNull<T>(x: T): x is NonNullable<T> {
-  return x != null;
-}
-
-/**
  * Normalize a parsed query into array of objects that can be passed to ``callWebSocAPI``.
  *
  * To support batch queries for ``units`` and ``sectionCodes``,
@@ -383,13 +393,6 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
     return [baseQuery];
   }
 }
-
-/**
- * Returns the lexicographical ordering of two elements.
- * @param a The left hand side of the comparison.
- * @param b The right hand side of the comparison.
- */
-const lexOrd = (a: string, b: string): number => (a === b ? 0 : a > b ? 1 : -1);
 
 /**
  * Deeply sorts the provided response and returns the sorted response.

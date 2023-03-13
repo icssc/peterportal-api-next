@@ -14,19 +14,13 @@ import { ZodError } from "zod";
 import {
   combineResponses,
   constructPrismaQuery,
+  fulfilled,
   normalizeQuery,
   notNull,
   sleep,
   sortResponse,
 } from "./lib";
 import { QuerySchema } from "./schema";
-
-/**
- * type guard that asserts that the settled promise was fulfilled
- */
-const fulfilled = <T>(
-  value: PromiseSettledResult<T>
-): value is PromiseFulfilledResult<T> => value.status === "fulfilled";
 
 const prisma = new PrismaClient();
 
@@ -38,15 +32,48 @@ export const rawHandler: RawHandler = async (request) => {
     case "GET":
       try {
         const parsedQuery = QuerySchema.parse(query);
-        const termExists = /* await prisma.websocTerm.findUnique({
+
+        /**
+         * Check whether an entry with the specified term exists in the sections
+         * table. If not, then we're probably not scraping that term, so just
+         * proxy WebSoc in that case.
+         */
+        const termExists = await prisma.websocSection.findFirst({
           where: {
-            idx: {
-              year: parsedQuery.year,
-              quarter: parsedQuery.quarter,
-            },
+            year: parsedQuery.year,
+            quarter: parsedQuery.quarter,
           },
-        }); */ true;
+        });
+
         if (!parsedQuery.cache && termExists) {
+          // The TTL for the scraper request.
+          const timestamp = new Date();
+          timestamp.setDate(timestamp.getDate() + 1);
+
+          /**
+           * This needs to be wrapped in a try-catch since it is possible for
+           * race conditions to happen. In this case it's fine if the query
+           * doesn't execute, because the entry will have already been created.
+           */
+          try {
+            await prisma.websocTerm.upsert({
+              where: {
+                idx: {
+                  year: parsedQuery.year,
+                  quarter: parsedQuery.quarter,
+                },
+              },
+              create: {
+                year: parsedQuery.year,
+                quarter: parsedQuery.quarter,
+                timestamp,
+              },
+              update: { timestamp },
+            });
+          } catch {
+            // noop
+          }
+
           const websocSections = await prisma.websocSection.findMany({
             where: constructPrismaQuery(parsedQuery),
             select: { data: true },

@@ -83,15 +83,15 @@ model WebsocSectionMeeting {
 }
 
 model WebsocTerm {
-  year    String
-  quarter Quarter
+  year      String
+  quarter   Quarter
+  timestamp DateTime
 
   @@id([year, quarter])
   @@unique([year, quarter], name: "idx")
 }
 
 model WebsocSection {
-  id            Int                       @id @default(autoincrement())
   year          String
   quarter       Quarter
   sectionCode   Int
@@ -112,5 +112,6 @@ model WebsocSection {
   cancelled     Boolean
   data          Json
 
+  @@id([year, quarter, sectionCode, timestamp])
   @@unique([year, quarter, sectionCode, timestamp], name: "idx")
 }
