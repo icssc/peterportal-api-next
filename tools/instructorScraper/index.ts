@@ -40,7 +40,6 @@ type InstructorsLog = {
     | string[]
     | { [key: string]: string }
     | { [key: string]: { [key: string]: string[] } }
-    | string;
   faculty_links: { [faculty_link: string]: string }; // Mapping of faculty links to departments
   instructors_found: {
     [key: string]: { schools: string[]; related_departments: string[] };
@@ -63,7 +62,7 @@ function sleep(ms: number) {
 /**
  * Get information of all instructors listed in the UCI catalogue page.
  *
- * The speed of this scraper largely depends on concurrency_limit and year_threshold. UCI websites run on boomer serversand will
+ * The speed of this scraper largely depends on concurrency_limit and year_threshold. UCI websites run on boomer servers and will
  * die with too many concurrent calls so we bottleneck. If a request fails we retry up to the number of attempts.
  *
  * Recommended arguments: concurrency_limt = 100, attempts = 5
@@ -208,7 +207,7 @@ export async function getAllInstructors(
 }
 
 /**
- * Prints the number of items inside the fields of the InstructorsLog
+ * Print the number of items inside the fields of the InstructorsLog
  *
  * @param instructorsLog - instructorsLog object
  */
@@ -232,7 +231,7 @@ function printInstructorsLog(instructorsLog: InstructorsLog) {
 }
 
 /**
- * Retrieves information about an Instructor
+ * Retrieve information about an Instructor
  *
  * @param instructorName - Name of instructor
  * @param schools - Schools related to the instrcutor
@@ -284,7 +283,7 @@ export async function getInstructor(
 }
 
 /**
- * Returns the faculty links and their corresponding school name
+ * Return the faculty links and their corresponding school name
  *
  * @param attempts - Number of times the function will be called again if request fails
  * @returns {object} A map of all faculty links to their corresponding school
@@ -389,7 +388,7 @@ export async function getFacultyLinks(
 }
 
 /**
- * Returns the names of instructors from a faculty page
+ * Return the names of instructors from a faculty page
  *
  * @param facultyLink - Link to faculty page
  * @param attempts - Number of times the function will be called again if request fails
@@ -487,7 +486,7 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
 }
 
 /**
- * Gets the instructor's directory info.
+ * Get the instructor's directory info.
  * 
  * @param instructorName - Name of instructor (replace "." with " ")
  * @param attempts - Number of times the function will be called again if request fails
@@ -616,7 +615,7 @@ export async function getDirectoryInfo(
 }
 
 /**
- * Converts string to title case.
+ * Convert string to title case.
  *
  * @param str - String
  * @returns {string} String in title case
@@ -630,7 +629,7 @@ export function strToTitleCase(str: string): string {
 }
 
 /**
- * Gets the professor's course history by searching them on websoc.
+ * Get the professor's course history by searching them on websoc.
  *
  * @param instructorName - Name of instructor
  * @param relatedDepartments - A list of departments related to the instructor
@@ -769,7 +768,7 @@ export async function fetchHistoryPage(
 }
 
 /**
- * Parses the instructor history page and returns true if entries are valid. This is used to determine whether
+ * Parse the instructor history page and returns true if entries are valid. This is used to determine whether
  * or not we want to continue parsing as there may be more pages of entries.
  *
  * @param instructorHistoryPage - HTML string of an instructor history page
