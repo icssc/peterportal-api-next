@@ -304,7 +304,7 @@ export function constructPrismaQuery(
     case "Exclude":
       AND.push({ cancelled: false });
       break;
-    case "Include":
+    case "Only":
       AND.push({ cancelled: true });
   }
 
