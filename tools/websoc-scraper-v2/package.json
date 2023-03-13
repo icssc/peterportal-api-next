@@ -3,13 +3,19 @@
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
-  "type": "module",
   "main": "index.ts",
+  "scripts": {
+    "build": "node build.mjs"
+  },
   "dependencies": {
     "db": "*",
+    "peterportal-api-next-types": "*",
     "registrar-api": "*",
-    "tsx": "^3.12.3",
     "websoc-api-next": "*",
     "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "@types/tar": "^6.1.4",
+    "tar": "^6.1.13"
   }
 }
