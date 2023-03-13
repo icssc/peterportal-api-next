@@ -36,9 +36,9 @@ type InstructorsInfo = {
 };
 
 type InstructorsLog = {
-    [key: string]: string[] | { [key: string]: string } | string,
+    [key: string]: string[] | { [key: string]: string } | { [key: string]: {[key:string]: string[]} } | string,
     faculty_links: { [faculty_link: string]: string },    // Mapping of faculty links to departments
-    instructors_found: string[],                          // Instructors listed in faculty pages
+    instructors_found: { [key: string]: {schools: string[], related_departments: string[]} },    // Mapping of instructors to related schools and departments
     instructors_dir_found: string[],                      // Instructors found in directory
     instructors_dir_not_found: string[],                  // Instructors not found in directory
     instructors_dir_failed: string[],                     // Instructors that failed request
@@ -57,21 +57,27 @@ function sleep(ms: number) {
 
 
 /**
- * Get infrormation of all instructors listed in the UCI catalogue page
+ * Get information of all instructors listed in the UCI catalogue page.
  * 
- * @param concurrent_limtit - Number of concurrent calls at a time
+ * The speed of this scraper largely depends on concurrency_limit and year_threshold. UCI websites run on boomer serversand will 
+ * die with too many concurrent calls so we bottleneck. If a request fails we retry up to the number of attempts.
+ * 
+ * Recommended arguments: concurrency_limt = 100, attempts = 5
+ * 
+ * @param concurrency_limit - Number of concurrent calls at a time
  * @param attempts - Number of attempts to make a request if fail
  * @param year_threshold - Number of years to look back when scraping instructor's course history
  * @returns {InstructorsData} Object containing instructors info and stats regarding retrieval
  */
-export async function getAllInstructors(concurrent_limit: number, attempts: number, year_threshold: number = YEAR_THRESHOLD): Promise<InstructorsData> {
+export async function getAllInstructors(concurrency_limit: number, attempts: number, year_threshold: number = YEAR_THRESHOLD): Promise<InstructorsData> {
     const currentYear = new Date().getFullYear();
     console.log("Scraping instructor data from",  currentYear-year_threshold, "to", currentYear);
-    const limit = pLimit(concurrent_limit);
+    const limit = pLimit(concurrency_limit);
     const startTime = new Date().getTime();
+    const instructorsInfo: InstructorsInfo = {};
     const instructorsLog: InstructorsLog = {
         faculty_links: {},
-        instructors_found: [],
+        instructors_found: {},
         instructors_dir_found: [],
         instructors_dir_not_found: [],
         instructors_dir_failed: [],
@@ -96,7 +102,6 @@ export async function getAllInstructors(concurrent_limit: number, attempts: numb
                     schools: [facultyLinks[link]], 
                     courses: new Set(facultyCourses[i])
                 }
-                instructorsLog['instructors_found'].push(name);
             }
             // Instructor referenced in multiple faculty pages
             else {
@@ -105,13 +110,19 @@ export async function getAllInstructors(concurrent_limit: number, attempts: numb
             }
         });
     })
+    const instructorPromises: Promise<[string, Instructor]>[] = [];
+    Object.keys(instructorsDict).forEach(name => {
+        const schools = instructorsDict[name].schools;
+        const related_departments = Array.from(instructorsDict[name].courses)
+        // Append promise for each instructor - the number of promises that run at the same is determined by concurrency_limit
+        instructorPromises.push(limit(() =>  
+            getInstructor(name, instructorsDict[name].schools, Array.from(instructorsDict[name].courses), attempts, year_threshold))
+        );
+        instructorsLog['instructors_found'][name] = {schools: schools, related_departments: []};
+    })
     console.log("Retrieved", Object.keys(instructorsDict).length, "instructor names")
-    // Begin scraping data for each instructor
-    const instructorPromises = Object.keys(instructorsDict).map(name => limit(() =>  
-        getInstructor(name, instructorsDict[name].schools, Array.from(instructorsDict[name].courses), attempts, year_threshold)
-    ));
     const instructors = await Promise.all(instructorPromises);
-    const instructorsInfo: InstructorsInfo = {};
+    // Store results and log
     instructors.forEach(instructorResult => {
         const name = instructorResult[1]['name'];
         const ucinetid = instructorResult[1]['ucinetid'];
@@ -129,15 +140,16 @@ export async function getAllInstructors(concurrent_limit: number, attempts: numb
                 break;
             case 'HISTORY_NOT_FOUND':   // Instructor not found in course history
                 instructorsLog['instructors_dir_found'].push(name);
+                instructorsLog['instructors_course_history_not_found'].push(name);
                 instructorsInfo[ucinetid] = instructorResult[1];
                 break; 
             case 'HISTORY_FAILED':  // Instructor cannot be requested from server
                 instructorsLog['instructors_dir_found'].push(name);
+                instructorsLog['instructors_course_history_failed'].push(name);
                 instructorsInfo[ucinetid] = instructorResult[1]; 
                 break;
         }
     });
-    
     // Calculate time elapsed
     const endTime = new Date();
     const timeDiff = endTime.getTime() - startTime;
@@ -153,9 +165,15 @@ export async function getAllInstructors(concurrent_limit: number, attempts: numb
 }
 
 
+/**
+ * Prints the number of items inside the fields of the InstructorsLog
+ * 
+ * @param instructorsLog - instructorsLog object
+ */
 function printInstructorsLog(instructorsLog: InstructorsLog) {
     console.log("-------------- Instructors Log --------------");
     console.log(`  faculty_links:`, Object.keys(instructorsLog['faculty_links']).length);
+    console.log(`  instructors_found:`, Object.keys(instructorsLog['instructors_found']).length);
     for (const key in instructorsLog) {
         const array = instructorsLog[key];
         if (Array.isArray(array)) {
@@ -196,7 +214,6 @@ export async function getInstructor(instructorName: string, schools: string[], r
     instructorObject['title'] = directoryInfo['title'];
     instructorObject['department'] = directoryInfo['department'];
     instructorObject['email'] = directoryInfo['email'];
-
     const courseHistory = await getCourseHistory(instructorObject['name'], relatedDepartments, attempts, year_threshold);
     instructorObject['shortened_name'] = courseHistory[1]['shortened_name'];
     instructorObject['course_history'] = courseHistory[1]['course_history'];
@@ -476,6 +493,7 @@ export async function getDirectoryInfo(instructorName: string, attempts: number)
             await sleep(1000);
             return await getDirectoryInfo(name, attempts-1);
         }
+        console.log('Failed to access directory! You may be making too many requests. Try lowering the concurrent limit.');
         return ['FAILED', {}];
     }
     // No match found
@@ -531,6 +549,12 @@ export async function getCourseHistory(instructorName: string, relatedDepartment
     try {
         // Parse first page
         page = await fetchHistoryPage(params, attempts);
+        if (page === 'HISTORY_FAILED') {
+            throw new Error(page);
+        }
+        else if (page === 'HISTORY_NOT_FOUND') {
+            throw new Error(page)
+        }
         continueParsing = await parseHistoryPage(page, year_threshold, relatedDepartments, courseHistory, nameCounts);
         // Set up parameters to parse previous pages (older course pages)
         let row = 1;
@@ -571,6 +595,13 @@ export async function getCourseHistory(instructorName: string, relatedDepartment
 }
 
 
+/**
+ * Get a page from the InstructHist website
+ * 
+ * @param params - query parameters for the get request
+ * @param attempts - Number of times the page will be requested if fail
+ * @returns 
+ */
 export async function fetchHistoryPage(params: { [key: string]: string }, attempts: number): Promise<string> {
     try {
         const response = await axios.get(URL_TO_INSTRUCT_HISTORY, {params});
@@ -581,7 +612,6 @@ export async function fetchHistoryPage(params: { [key: string]: string }, attemp
                 return 'HISTORY_NOT_FOUND';
             }
             else if (warning.text().trim().endsWith('connection to database is down.')) {
-                console.log("InstrucHist connection to database is down! You may be making too many requests. Try lowering the concurrent limit.");
                 throw new Error('HISTORY_FAILED'); // This mean database is die
             } 
         }
@@ -593,6 +623,7 @@ export async function fetchHistoryPage(params: { [key: string]: string }, attemp
             return await fetchHistoryPage(params, attempts-1);
         }
     }
+    console.log("InstrucHist connection to database is down! You may be making too many requests. Try lowering the concurrent limit.");
     return 'HISTORY_FAILED';
 }
 
@@ -666,8 +697,16 @@ export async function parseHistoryPage(
 }
 
 
-export async function exportAllInstructorsToJson(concurrent_limit: number, attempts: number, year_threshold: number, path: string = 'tools/instructorScraper/') {
-    const instructorsData = await getAllInstructors(concurrent_limit, attempts, year_threshold);
+/**
+ * Call getAllInstructors and store to json file
+ * 
+ * @param concurrency_limit - Number of concurrent calls at a time
+ * @param attempts - Number of attempts to make a request if fail
+ * @param year_threshold - Number of years to look back when scraping instructor's course history
+ * @param path - Directory where the json file will be created
+ */
+export async function exportAllInstructorsToJson(concurrency_limit: number, attempts: number, year_threshold: number, path: string = 'tools/instructorScraper/') {
+    const instructorsData = await getAllInstructors(concurrency_limit, attempts, year_threshold);
     const jsonResult = JSON.stringify(instructorsData);
     fs.writeFile(path + 'instructors_data.json', jsonResult, (error) => {
         if (error) {
@@ -678,8 +717,3 @@ export async function exportAllInstructorsToJson(concurrent_limit: number, attem
         }
     });
 }
-
-async function main() {
-    await exportAllInstructorsToJson(600, 5, 20);
-}
-main();
