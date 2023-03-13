@@ -207,16 +207,18 @@ async function scrape(name: string, term: Term) {
   logger.info(`Scraping term ${name}`);
   // The timestamp for this scraping run.
   const timestamp = new Date();
-  // All departments to
+  // All departments to scrape.
   const deptCodes = (await getDepts())
     .map((dept) => dept.deptValue)
     .filter((deptValue) => deptValue !== "ALL");
+  // The data structure that holds all scraped data.
   const results: Record<string, ScrapedTerm> = {
     [`${term.year} ${term.quarter}`]: {
       department: {},
       ge: {},
     },
   };
+  // The list of parameters to pass to ``callWebSocAPI``.
   let inputs: [Term, WebsocAPIOptions][] = [
     ...deptCodes.map(
       (department) => [term, { department }] as [Term, WebsocAPIOptions]
