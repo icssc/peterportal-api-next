@@ -39,10 +39,7 @@ export const rawHandler: RawHandler = async (request) => {
          * proxy WebSoc in that case.
          */
         const termExists = await prisma.websocSection.findFirst({
-          where: {
-            year: parsedQuery.year,
-            quarter: parsedQuery.quarter,
-          },
+          where: { year: parsedQuery.year, quarter: parsedQuery.quarter },
         });
 
         if (!parsedQuery.cache && termExists) {
@@ -58,10 +55,7 @@ export const rawHandler: RawHandler = async (request) => {
           try {
             await prisma.websocTerm.upsert({
               where: {
-                idx: {
-                  year: parsedQuery.year,
-                  quarter: parsedQuery.quarter,
-                },
+                idx: { year: parsedQuery.year, quarter: parsedQuery.quarter },
               },
               create: {
                 year: parsedQuery.year,
