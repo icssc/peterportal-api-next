@@ -10,7 +10,7 @@ import type {
   WebsocSection,
   WebsocSectionMeeting,
 } from "peterportal-api-next-types";
-import { geCategories, sectionTypes } from "peterportal-api-next-types";
+import { geCodes, sectionTypes } from "peterportal-api-next-types";
 import { getTermDateData } from "registrar-api";
 import {
   type WebsocAPIOptions,
@@ -30,11 +30,23 @@ type EnhancedSection = {
   section: WebsocSection;
 };
 
+/**
+ * Object that contains all relevant data for a term.
+ */
 type ScrapedTerm = {
+  /**
+   * All ``WebsocAPIResponses`` returned by querying a department.
+   */
   department: Record<string, WebsocAPIResponse>;
+  /**
+   * All ``WebsocAPIResponses`` returned by querying a GE category.
+   */
   ge: Record<string, WebsocAPIResponse>;
 };
 
+/**
+ * An instructor object that can be inserted directly into Prisma.
+ */
 type ProcessedInstructor = {
   year: string;
   quarter: Quarter;
@@ -43,6 +55,9 @@ type ProcessedInstructor = {
   name: string;
 };
 
+/**
+ * A meeting object that can be inserted directly into Prisma.
+ */
 type ProcessedMeeting = {
   year: string;
   quarter: Quarter;
@@ -54,11 +69,20 @@ type ProcessedMeeting = {
   endTime: number;
 };
 
+/**
+ * A section object containing additional metadata.
+ */
 type ProcessedSection = {
+  /**
+   * Contains the instructors and meetings associated with this section.
+   */
   meta: {
     instructors: ProcessedInstructor[];
     meetings: ProcessedMeeting[];
   };
+  /**
+   * The section object that can be inserted directly into Prisma.
+   */
   data: {
     year: string;
     quarter: Quarter;
@@ -80,7 +104,9 @@ type ProcessedSection = {
   };
 };
 
-const FIVE_MINUTES_MS = 5 * 60 * 1000;
+// The duration to sleep between scraping runs, or to wait before querying the
+// database for terms to scrape on demand if there were none in the last query.
+const SLEEP_DURATION = 5 * 60 * 1000; // 5 minutes
 
 const prisma = new PrismaClient();
 
@@ -96,6 +122,13 @@ const logger = createLogger({
   transports: [new transports.Console()],
   exitOnError: false,
 });
+
+/**
+ * Sleep for the given number of milliseconds.
+ * @param duration Duration in ms.
+ */
+const sleep = async (duration: number) =>
+  new Promise((resolve) => setTimeout(resolve, duration));
 
 /**
  * Get all terms that are to be scraped on a daily basis.
@@ -124,13 +157,6 @@ async function getTermsToScrape(date: Date) {
       )
   );
 }
-
-/**
- * Sleep for the given number of milliseconds.
- * @param duration Duration in ms.
- */
-const sleep = async (duration: number) =>
-  new Promise((resolve) => setTimeout(resolve, duration));
 
 /**
  * Get unique array of meetings.
@@ -172,9 +198,16 @@ function isolateSection(data: EnhancedSection): WebsocAPIResponse {
   return { schools: [school] };
 }
 
+/**
+ * The scraping function.
+ * @param name The name of the term to scrape.
+ * @param term The parameters of the term to scrape.
+ */
 async function scrape(name: string, term: Term) {
   logger.info(`Scraping term ${name}`);
+  // The timestamp for this scraping run.
   const timestamp = new Date();
+  // All departments to
   const deptCodes = (await getDepts())
     .map((dept) => dept.deptValue)
     .filter((deptValue) => deptValue !== "ALL");
@@ -188,9 +221,7 @@ async function scrape(name: string, term: Term) {
     ...deptCodes.map(
       (department) => [term, { department }] as [Term, WebsocAPIOptions]
     ),
-    ...(Object.keys(geCategories) as GE[]).map(
-      (ge) => [term, { ge }] as [Term, WebsocAPIOptions]
-    ),
+    ...geCodes.map((ge) => [term, { ge }] as [Term, WebsocAPIOptions]),
   ];
   for (;;) {
     logger.info(`Making ${inputs.length} concurrent calls to WebSoc`);
@@ -363,7 +394,7 @@ async function scrape(name: string, term: Term) {
   });
   logger.info(`Removed ${sectionsDeleted.count} sections`);
   logger.info("Sleeping for 5 minutes");
-  await sleep(FIVE_MINUTES_MS);
+  await sleep(SLEEP_DURATION);
 }
 
 /**
@@ -403,7 +434,7 @@ async function scrape(name: string, term: Term) {
       }
       if (!scraped || !Object.keys(termsOnDemand).length) {
         logger.info("No terms to scrape on demand, sleeping for 5 minutes");
-        await sleep(FIVE_MINUTES_MS);
+        await sleep(SLEEP_DURATION);
       }
     }
   } catch (e) {
