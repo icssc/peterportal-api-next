@@ -140,6 +140,19 @@ export const getTermDateData = async (
     year,
     3
   );
+  for (const key in ret) {
+    if (key.includes("Fall")) {
+      (ret[key] as QuarterDates).instructionStart.setDate(
+        (ret[key] as QuarterDates).instructionStart.getDate() -
+          ((ret[key] as QuarterDates).instructionStart.getDay() - 4)
+      );
+    } else {
+      (ret[key] as QuarterDates).instructionStart.setDate(
+        (ret[key] as QuarterDates).instructionStart.getDate() -
+          ((ret[key] as QuarterDates).instructionStart.getDay() - 1)
+      );
+    }
+  }
   return ret as Record<string, QuarterDates>;
 };
 
