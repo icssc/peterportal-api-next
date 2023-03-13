@@ -405,6 +405,8 @@ async function scrape(name: string, term: Term) {
     logger.info("websoc-scraper-v2 daemon starting");
     let now = new Date();
     let termsInScope = await getTermsToScrape(now);
+    for (const [name, term] of Object.entries(termsInScope))
+      await scrape(name, term);
     for (;;) {
       const curr = new Date();
       // Check the available terms every day and scrape all of them once.
