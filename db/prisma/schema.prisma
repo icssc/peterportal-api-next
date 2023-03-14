@@ -12,18 +12,23 @@ datasource db {
 // Do not modify anything above this line unless you know what you are doing.
 
 model GradesInstructor {
-  name     String          @id
-  sections GradesSection[]
+  year        Int
+  quarter     String
+  sectionCode Int
+  section     GradesSection @relation(fields: [year, quarter, sectionCode], references: [year, quarter, sectionCode])
+  name        String
+
+  @@id([year, quarter, sectionCode, name])
+  @@unique([year, quarter, sectionCode, name], name: "idx")
 }
 
 model GradesSection {
-  id           Int                @id @default(autoincrement())
   year         Int
   quarter      String
-  instructors  GradesInstructor[]
+  sectionCode  Int
   department   String
   courseNumber String
-  sectionCode  Int
+  instructors  GradesInstructor[]
   gradeACount  Int
   gradeBCount  Int
   gradeCCount  Int
@@ -33,4 +38,7 @@ model GradesSection {
   gradeNPCount Int
   gradeWCount  Int
   averageGPA   Float
+
+  @@id([year, quarter, sectionCode])
+  @@unique([year, quarter, sectionCode], name: "idx")
 }
