@@ -5,7 +5,7 @@ import {
   createOKResult,
   logger,
 } from "api-core";
-import {
+import type {
   APIGatewayProxyEvent,
   APIGatewayProxyResult,
   Context,

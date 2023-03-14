@@ -4,12 +4,12 @@
   "private": true,
   "license": "MIT",
   "type": "module",
+  "main": "index.ts",
   "scripts": {
     "build": "node build.mjs"
   },
   "dependencies": {
     "api-core": "*",
-    "api-route-example-db": "^0.0.0",
     "winston": "^3.8.2"
   },
   "devDependencies": {
