@@ -22,6 +22,7 @@ const api = new ApiStack(app, "peterportal-api-next");
 // You should not need to touch anything else in this file,
 // or any other file in this directory.
 api.addRoute("/v1/graphql", "graphql");
+api.addRoute("/v1/rest/grades/{id}", "grades");
 api.addRoute(
   "/v1/rest/websoc",
   "websoc",
