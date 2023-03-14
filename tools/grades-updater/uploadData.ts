@@ -16,12 +16,12 @@ type Section = {
     instructors: string[];
   };
   data: {
-    year: number;
+    year: string;
     quarter: Quarter;
     department: string;
     courseNumber: string;
     courseNumeric: number;
-    sectionCode: number;
+    sectionCode: string;
     gradeACount: number;
     gradeBCount: number;
     gradeCCount: number;
@@ -106,7 +106,7 @@ async function processFile(filePath: string): Promise<Section[]> {
         instructors: Array.from(course.instructors),
       },
       data: {
-        year: parseYear(course.year, course.quarter),
+        year: parseYear(course.year, course.quarter).toString(),
         quarter: course.quarter,
         department: course.department,
         courseNumber: course.courseNumber,
@@ -114,7 +114,7 @@ async function processFile(filePath: string): Promise<Section[]> {
           const n = parseInt(course.courseNumber.replace(/\D/g, ""));
           return isNaN(n) ? 0 : n;
         })(),
-        sectionCode: course.courseCode,
+        sectionCode: course.courseCode.toString(),
         gradeACount: course.a,
         gradeBCount: course.b,
         gradeCCount: course.c,

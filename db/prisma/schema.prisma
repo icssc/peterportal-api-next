@@ -21,9 +21,9 @@ enum Quarter {
 }
 
 model GradesInstructor {
-  year        Int
+  year        String
   quarter     Quarter
-  sectionCode Int
+  sectionCode String
   section     GradesSection @relation(fields: [year, quarter, sectionCode], references: [year, quarter, sectionCode])
   name        String
 
@@ -32,9 +32,9 @@ model GradesInstructor {
 }
 
 model GradesSection {
-  year          Int
+  year          String
   quarter       Quarter
-  sectionCode   Int
+  sectionCode   String
   department    String
   courseNumber  String
   courseNumeric Int
