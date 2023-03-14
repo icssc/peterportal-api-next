@@ -17,9 +17,10 @@ type Section = {
   };
   data: {
     year: number;
-    quarter: string;
+    quarter: Quarter;
     department: string;
     courseNumber: string;
+    courseNumeric: number;
     sectionCode: number;
     gradeACount: number;
     gradeBCount: number;
@@ -109,6 +110,10 @@ async function processFile(filePath: string): Promise<Section[]> {
         quarter: course.quarter,
         department: course.department,
         courseNumber: course.courseNumber,
+        courseNumeric: (() => {
+          const n = parseInt(course.courseNumber.replace(/\D/g, ""));
+          return isNaN(n) ? 0 : n;
+        })(),
         sectionCode: course.courseCode,
         gradeACount: course.a,
         gradeBCount: course.b,
