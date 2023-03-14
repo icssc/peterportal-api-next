@@ -1,4 +1,4 @@
-import { divisionCodes, quarters } from "peterportal-api-next-types";
+import { anyArray, divisionCodes, quarters } from "peterportal-api-next-types";
 import { z } from "zod";
 
 export const QuerySchema = z.object({
@@ -16,7 +16,7 @@ export const QuerySchema = z.object({
     .string()
     .regex(/^\d{5}$/, { message: "Invalid sectionCode provided" })
     .optional(),
-  division: z.enum(divisionCodes).optional(),
+  division: z.enum(anyArray).or(z.enum(divisionCodes)).optional(),
   excludePNP: z.boolean().optional(),
 });
 

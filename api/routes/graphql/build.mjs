@@ -10,11 +10,6 @@ for (const k in process.env) {
 }
 
 switch (process.env.NODE_ENV) {
-  case "development":
-    define["process.env.BASE_URL"] = `http://localhost:${
-      process.env.API_PORT || 8080
-    }`;
-    break;
   case "staging":
     define[
       "process.env.BASE_URL"

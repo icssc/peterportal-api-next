@@ -69,16 +69,18 @@ export function aggregateGrades(grades: GradesRaw): GradesAggregate {
       ({
         year,
         quarter,
+        sectionCode,
         department,
         courseNumber,
-        sectionCode,
+        courseNumeric,
         instructors,
       }) => ({
         year,
         quarter,
+        sectionCode,
         department,
         courseNumber,
-        sectionCode,
+        courseNumeric,
         instructors,
       })
     ),
