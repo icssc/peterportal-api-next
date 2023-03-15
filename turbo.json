@@ -1,6 +1,8 @@
 {
   "pipeline": {
-    "generate": {},
+    "generate": {
+      "cache": false
+    },
     "build": {
       "dependsOn": ["^generate"],
       "outputs": ["dist/**"]

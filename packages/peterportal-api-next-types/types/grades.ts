@@ -21,6 +21,10 @@ export type GradeSection = {
    */
   courseNumber: string;
   /**
+   * The numeric part of the course number.
+   */
+  courseNumeric: number;
+  /**
    * The section code of the section.
    */
   sectionCode: string;

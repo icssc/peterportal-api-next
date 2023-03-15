@@ -1,5 +1,5 @@
 {
-  "name": "api-route-example-base",
+  "name": "api-route-grades",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -10,7 +10,9 @@
   },
   "dependencies": {
     "api-core": "*",
-    "winston": "^3.8.2"
+    "db": "*",
+    "winston": "^3.8.2",
+    "zod": "^3.21.4"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.109",

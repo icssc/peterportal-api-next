@@ -49,6 +49,14 @@ type WebsocSchool {
 type WebsocAPIResponse {
   schools: [WebsocSchool!]!
 }
+enum Quarter {
+  Fall
+  Winter
+  Spring
+  Summer1
+  Summer10wk
+  Summer2
+}
 enum GE {
   GE_1A
   GE_1B
@@ -95,7 +103,7 @@ enum CancelledCourses {
 extend type Query {
   websoc(
     year: String!
-    quarter: String!
+    quarter: Quarter!
     cache: Boolean
     ge: GE
     department: String
