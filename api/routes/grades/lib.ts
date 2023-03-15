@@ -63,6 +63,14 @@ export function constructPrismaQuery(
   };
 }
 
+/**
+ * Given an array of sections and their grade distributions, aggregate them into
+ * a single object. The ``sectionList`` is the array of sections with their
+ * grade distribution information removed, and the ``gradeDistribution`` object
+ * contains the sum of the number of grades given out, as well as the arithmetic
+ * mean of each section's average GPA in the given dataset.
+ * @param grades The array of grades to aggregate.
+ */
 export function aggregateGrades(grades: GradesRaw): GradesAggregate {
   return {
     sectionList: grades.map(
