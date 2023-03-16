@@ -104,9 +104,12 @@ type ProcessedSection = {
   };
 };
 
-// The duration to sleep between scraping runs, or to wait before querying the
-// database for terms to scrape on demand if there were none in the last query.
-const SLEEP_DURATION = 5 * 60 * 1000; // 5 minutes
+/**
+ * The duration to sleep between scraping runs, or to wait before querying the
+ * database for terms to scrape on demand if there were none in the last query.
+ * default: 5 minutes
+ */
+const SLEEP_DURATION = 5 * 60 * 1000;
 
 const prisma = new PrismaClient();
 
