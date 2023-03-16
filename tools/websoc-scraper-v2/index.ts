@@ -116,6 +116,8 @@ type ProcessedSection = {
  */
 const SLEEP_DURATION = 5 * 60 * 1000;
 
+const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
+
 const prisma = new PrismaClient();
 
 const logger = createLogger({
@@ -204,6 +206,35 @@ function isolateSection(data: EnhancedSection): WebsocAPIResponse {
   return { schools: [school] };
 }
 
+function courseNumberToNumeric(courseNumber: string) {
+  const n = parseInt(courseNumber.replace(/\D/g, ""));
+  return isNaN(n) ? 0 : n;
+}
+
+function parseStartAndEndTimes(time: string): {
+  startTime: number;
+  endTime: number;
+} {
+  let startTime = -1;
+  let endTime = -1;
+  if (time !== "TBA") {
+    const [startTimeString, endTimeString] = time
+      .trim()
+      .split("-")
+      .map((x) => x.trim());
+    const [startTimeHour, startTimeMinute] = startTimeString.split(":");
+    startTime =
+      parseInt(startTimeHour, 10) * 60 + parseInt(startTimeMinute, 10);
+    const [endTimeHour, endTimeMinute] = endTimeString.split(":");
+    endTime = parseInt(endTimeHour, 10) * 60 + parseInt(endTimeMinute, 10);
+    if (endTimeMinute.includes("p")) {
+      startTime += 12 * 60;
+      endTime += 12 * 60;
+    }
+  }
+  return { startTime, endTime };
+}
+
 /**
  * The scraping function.
  * @param name The name of the term to scrape.
@@ -233,7 +264,7 @@ async function scrape(name: string, term: Term) {
     ),
     ...geCodes.map((ge) => [term, { ge }] as [Term, WebsocAPIOptions]),
   ];
-  for (;;) {
+  while (inputs.length) {
     logger.info(`Making ${inputs.length} concurrent calls to WebSoc`);
     const settledResults = await Promise.allSettled(
       inputs.map(([term, options]) =>
@@ -258,9 +289,10 @@ async function scrape(name: string, term: Term) {
     logger.info(
       `${fulfilledIndices.length} calls succeeded, ${inputs.length} remain`
     );
-    if (!inputs.length) break;
-    logger.info("Sleeping for 1 minute");
-    await sleep(60 * 1000);
+    if (inputs.length) {
+      logger.info("Sleeping for 1 minute");
+      await sleep(60 * 1000);
+    }
   }
   const res: Record<string, ProcessedSection> = {};
   logger.info("Processing all sections");
@@ -286,34 +318,9 @@ async function scrape(name: string, term: Term) {
                     quarter,
                     sectionCode,
                     timestamp,
-                    days: ["Su", "M", "Tu", "W", "Th", "F", "Sa"].filter((x) =>
-                      m.days.includes(x)
-                    ),
+                    days: days.filter((x) => m.days.includes(x)),
                     buildings: m.bldg,
-                    ...(() => {
-                      let startTime = -1;
-                      let endTime = -1;
-                      if (m.time !== "TBA") {
-                        const [startTimeString, endTimeString] = m.time
-                          .trim()
-                          .split("-")
-                          .map((x) => x.trim());
-                        const [startTimeHour, startTimeMinute] =
-                          startTimeString.split(":");
-                        startTime =
-                          parseInt(startTimeHour) * 60 +
-                          parseInt(startTimeMinute);
-                        const [endTimeHour, endTimeMinute] =
-                          endTimeString.split(":");
-                        endTime =
-                          parseInt(endTimeHour) * 60 + parseInt(endTimeMinute);
-                        if (endTimeMinute.includes("p")) {
-                          startTime += 12 * 60;
-                          endTime += 12 * 60;
-                        }
-                      }
-                      return { startTime, endTime };
-                    })(),
+                    ...parseStartAndEndTimes(m.time),
                   })),
                 },
                 data: {
@@ -324,10 +331,7 @@ async function scrape(name: string, term: Term) {
                   geCategories: [],
                   department: department.deptCode,
                   courseNumber: course.courseNumber,
-                  courseNumeric: (() => {
-                    const n = parseInt(course.courseNumber.replace(/\D/g, ""));
-                    return isNaN(n) ? 0 : n;
-                  })(),
+                  courseNumeric: courseNumberToNumeric(course.courseNumber),
                   courseTitle: course.courseTitle,
                   sectionType:
                     section.sectionType as (typeof sectionTypes)[number],
@@ -350,21 +354,21 @@ async function scrape(name: string, term: Term) {
         }
       }
     }
-    for (const [geCategory, response] of Object.entries(data.ge)) {
-      for (const school of response.schools) {
-        for (const department of school.departments) {
-          for (const course of department.courses) {
-            for (const section of course.sections) {
+    Object.entries(data.ge).forEach(([geCategory, response]) => {
+      response.schools.forEach((school) => {
+        school.departments.forEach((department) => {
+          department.courses.forEach((course) => {
+            course.sections.forEach((section) => {
               if (res[`${term} ${section.sectionCode}`]) {
                 res[`${term} ${section.sectionCode}`].data.geCategories.push(
                   geCategory as GE
                 );
               }
-            }
-          }
-        }
-      }
-    }
+            });
+          });
+        });
+      });
+    });
   }
   logger.info(`Processed ${Object.keys(res).length} sections`);
   const sectionsCreated = await prisma.websocSection.createMany({
