@@ -18,11 +18,12 @@ type NormalizeInput = string | string[] | undefined;
  * Get unique, sorted array of strings.
  * @param value String of comma-separated values or array of such strings.
  */
-function normalizeValue(value: NormalizeInput): string[] {
+function normalizeValue(value: NormalizeInput): string[] | undefined {
+  if (!value) return undefined;
   const unique = new Set(
     Array.isArray(value)
       ? value.flatMap((x) => x.split(","))
-      : value?.split(",")
+      : value.split(",")
   );
   return [...unique].sort();
 }
@@ -64,7 +65,6 @@ export const QuerySchema = z
       .or(z.string())
       .optional()
       .transform(normalizeValue)
-      .optional(),
     sectionCodes: z
       .string()
       .array()
@@ -113,7 +113,7 @@ export const QuerySchema = z
     (x) =>
       x.ge ||
       x.department ||
-      (x.sectionCodes ?? [""])[0].length ||
+      x.sectionCodes?.[0].length ||
       x.instructorName,
     {
       message:
