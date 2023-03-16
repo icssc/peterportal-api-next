@@ -1,5 +1,6 @@
 import axios, { all, AxiosInstance } from "axios";
 import cheerio from "cheerio";
+import fs from "fs";
 
 // TODO: ADD DEBUG STATEMENTS AND FILE WRITING
 
@@ -280,14 +281,16 @@ export async function getAllCourses(courseURL: string, json_data: { [key: string
 
             // try to parse prerequisite
             if (courseBody.length > 1){
-                parsePrerequisite(courseBody[1], response, classInforamtion);
+                const node = parsePrerequisite(courseBody[1], response, classInforamtion);
+                console.log(node);
                 // maps the course to its requirement Node
                 // json_data[courseID]["node"] = node Why is this commented out?
             }
             // doesn't have any prerequisites
             else {
-                //if debug:
-                    //print("\t\tNOREQS")
+                if (debug){
+                    console.log("\t\tNOREQS");
+                }
             }
             // get course body (0:Course Description, 1:Prerequisite)
             //const courseBody = $(courseBlock).find('div').children();
@@ -371,9 +374,9 @@ export async function parseCourseBody(courseBody: object, response:any, classInf
         if (pTagText.length > 0 && pTagText[0] === '(' && (pTagText.includes('I') || pTagText.includes('V'))) {
             // try to parse GE types
             const ges: RegExp = /(?<type>[IV]+)\.?(?<subtype>[abAB]?)/g;
-            // if (debug) {
-            //     console.log('\t\tGE:');
-            // }
+            if (debug) {
+                console.log('\t\tGE:');
+            }
             let match: RegExpExecArray | null;
             while ((match = ges.exec(pTagText)) !== null) {
                 // normalize IA and VA to Ia and Va
@@ -382,13 +385,13 @@ export async function parseCourseBody(courseBody: object, response:any, classInf
                 pTagText = pTagText.replace(match.groups!.type + match.groups!.subtype, extractedGE);
                 // add to ge_types
                 classInfo['ge_list'].push(GE_DICTIONARY[extractedGE]);
-                // if (debug) {
-                // console.log(`${GE_DICTIONARY[extractedGE]} `);
-                // }
+                if (debug) {
+                console.log(`${GE_DICTIONARY[extractedGE]} `);
+                }
             }
-            // if (debug) {
-            //     console.log();
-            // }
+            if (debug) {
+                console.log();
+            }
             // store the full string
             classInfo['ge_text'] = pTagText;
         }
@@ -433,9 +436,9 @@ export function parsePrerequisite(tag: any, response:any, classInfo: { [key: str
             let special = false;
             // if doesnt have a link to another course, probably a special requirement
             if (!$(tag).find("a").text().length) {
-                // if (debug) {
-                //     console.log("\t\tSPECIAL REQ NO LINK:", rawReqs);
-                // }
+                if (debug) {
+                    console.log("\t\tSPECIAL REQ NO LINK:", rawReqs);
+                }
                 specialRequirements.add(rawReqs);
                 return;
             }
@@ -444,9 +447,9 @@ export function parsePrerequisite(tag: any, response:any, classInfo: { [key: str
                 const courseRegex = /^([^a-z]+ )+[A-Z0-9]+$/;
                 // if doesnt match course code regex, its probably a special requirement unless whitelisted
                 if (!courseRegex.test(extractedReqs[i].trim()) && !SPECIAL_PREREQUISITE_WHITE_LIST.some(exception => extractedReqs[i].includes(exception))) {
-                    // if (debug) {
-                    //     console.log("\t\tSPECIAL REQ BAD FORMAT:", rawReqs);
-                    // }
+                    if (debug) {
+                        console.log("\t\tSPECIAL REQ BAD FORMAT:", rawReqs);
+                    }
                     specialRequirements.add(rawReqs);
                     return;
                 }
@@ -458,32 +461,33 @@ export function parsePrerequisite(tag: any, response:any, classInfo: { [key: str
             tokenizedReqs = replaceAllSubString(tokenizedReqs, "(", " ( ");
             tokenizedReqs = replaceAllSubString(tokenizedReqs, ")", " ) ");
             const tokens = tokenizedReqs.split(/\s+/);
-            console.log(tokens);
-            const node = nodify(tokens, extractedReqs, classInfo["department"] + " " + classInfo["number"]);
+            
+            //const node = nodify(tokens, extractedReqs, classInfo["department"] + " " + classInfo["number"]);
 
-            classInfo["prerequisite_tree"] = node.toString();
+            //classInfo["prerequisite_tree"] = node.toString();
             classInfo["prerequisite_list"] = extractedReqs;
 
-            // if (debug) {
-            //     console.log("\t\tREQS:", rawReqs);
-            //     console.log("\t\tREQSTOKENS:", tokens);
-            //     console.log("\t\tNODE:", node);
-            // }
-            return node;
+            if (debug) {
+                console.log("\t\tREQS:", rawReqs);
+                console.log("\t\tREQSTOKENS:", tokens);
+                //console.log("\t\tNODE:", node);
+            }
+
+            //return node;
         }
     }
     else {
-        // if (debug) {
-        //     console.log("\t\tNOREQS");
-        // }
+        if (debug) {
+            console.log("\t\tNOREQS");
+        }
     }
 }
 
 /**
- * @param {string} json_data: collection of class information generated from getAllCourses
+ * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
  * @returns {void}: sets the prerequisite info based on the prerequisite database instead of the catalogue
 */
-function setReliablePrerequisites(json_data: any): void {
+function setReliablePrerequisites(json_data: {[key: string]: any}): void {
     console.log("\nSetting Reliable Prerequisites...");
     // const prerequisite_data = JSON.parse(
     // fs.readFileSync(prerequisiteScraper.PREREQUISITE_DATA_NAME, "utf-8")
@@ -492,18 +496,125 @@ function setReliablePrerequisites(json_data: any): void {
     const reqsReplaced = [];
     // go through each prerequisite course
     //for (const courseID in prerequisite_data) {
+        // if course exists in catalogue and prerequisite list is more detailed
+    //     if (courseID in json_data && prerequisite_data[courseID]["prerequisiteList"].length > json_data[courseID]["prerequisite_list"].length) {
+    //         reqsReplaced.push(courseID);
+    //         // rewrite the prerequisite data
+    //         json_data[courseID]["prerequisite_tree"] = prerequisite_data[courseID]["prerequisiteJSON"];
+    //         json_data[courseID]["prerequisite_list"] = prerequisite_data[courseID]["prerequisiteList"];
+    //         json_data[courseID]["prerequisite_text"] = prerequisite_data[courseID]["fullReqs"];
+    //     }
+    //     bar.inc();
+    // }
+    // console.log(Replaced ${reqsReplaced.length} course prerequisites!);
+    // console.log("Done!");
+}
+
+/**
+ * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
+ * @returns {void}: sets the dependencies for courses
+*/
+function setDependencies(json_data: {[key: string]: any}): void {
+    console.log("\nSetting Course Dependencies...");
+    //const bar = new ProgressBar(json_data.length, debug);
+    // go through each prerequisiteList to add dependencies
+    for (const courseID in json_data) {
+        // iterate prerequisiteList
+        for (const prerequisite of json_data[courseID]["prerequisite_list"]) {
+            const trimmedPrereq = prerequisite.replaceAllSubString(" ", "");
+            // prereq needs to exist as a class
+            if (trimmedPrereq in json_data) {
+                const readableCourseID = json_data[courseID]["department"] + " " + json_data[courseID]["number"];
+                json_data[trimmedPrereq]["prerequisite_for"].push(readableCourseID);
+            }
+        }
+        //bar.inc();
+    }
+    console.log("Done!");
+}
+
+/**
+ * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
+ * @returns {void}: sets the professorHistory for courses
+*/
+function setProfessorHistory(json_data: {[key: string]: any}): void {
+    // console.log("\nSetting Professor History...");
+    // // collection of professor information generated from professorScraper.py
+    // const professor_data = require(professorScraper.PROFESSOR_DATA_NAME); NEED Professor Scraper??
+    // const bar = new ProgressBar(Object.keys(professor_data).length, debug);
+    // // go through each professor data values
+    // for (const professor of Object.values(professor_data)) {
+    //     // go through each course that professor has taught
+    //     for (const courseID of professor["course_history"]) {
+    //         const trimmedCourseID = courseID.replaceAllSubString(" ", "");
+    //         // course needs to exist as a class
+    //         if (trimmedCourseID in json_data) {
+    //             json_data[trimmedCourseID]["professor_history"].push(professor["ucinetid"]);
+    //         }
+    //     }
+    //     bar.inc();
+    // }
+    // console.log("Done!");
+}
+
+/**
+ * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
+ * @returns {void}: writes the json_data to a json file
+*/
+function writeJsonData(json_data: {[key: string]: any}, filename: string = "tools/courseScraper/course_data.json"): void {
+    console.log(`\nWriting JSON to ${filename}...`);
+    //const bar = new ProgressBar(Object.keys(json_data).length, debug);
+    // Maybe delete the existing data?
+    fs.writeFile(filename, JSON.stringify(json_data), (error) => {
+        if (error) {
+          console.error("Error writing to file " + filename, error);
+        } else {
+          console.log(
+            "Exported instructors data to",
+            filename + "course_data.json"
+          );
+        }
+    });
+}
+
+/**
+ * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
+ * @returns {void}: used to create the dictionary for aliases
+*/
+function printAllDepartments(json_data: {[key: string]: any}): void {
+    const departments: {[key: string]: any[]} = {};
+    for (const c of Object.values(json_data)) {
+        const d = c["id_department"];
+        if (!(d in departments)) {
+            departments[d] = [];
+        }
+    }
+    console.log("{" + Object.keys(departments).sort().map((k) => `${JSON.stringify(k)}: ${JSON.stringify(departments[k])},`).join("\n") + "}");
+}
+
+/**
+ * @param {string} targetClass: the class to test requirements for
+ * @param {string[]} takenClasses: the classes that have been taken
+ * @param {boolean} expectedValue: the expected result
+ * @returns {void}
+*/
+function testRequirements(targetClass: string, takenClasses: string[], expectedValue: boolean): void {
+    // console.log(`Target: ${targetClass}, Node: ${json_data[targetClass]["node"]}, Taken: ${takenClasses}`);
+    // console.log(`Expected: ${expectedValue}, Actual: ${json_data[targetClass]["node"].prereqsMet(takenClasses)}\n`);
 }
 
 
-// getDepartmentToSchoolMapping().then((response) => {
-//     console.log(response);
-// });
+// if name == main
+
+// whether to print out info
+const debug = false;
 
 const noSchoolDepartment = new Set<string>();
 const specialRequirements = new Set<string>();
 
-//console.log(determineCourseLevel("I&C Sci 33"));
 
+
+// test for getAllCourses
 getAllCourseURLS().then((response) => {
     response.map(async (url) => {
         getAllCourses(url, {}, {});
