@@ -11,15 +11,6 @@ datasource db {
 
 // Do not modify anything above this line unless you know what you are doing.
 
-enum Quarter {
-  Fall
-  Winter
-  Spring
-  Summer1
-  Summer10wk
-  Summer2
-}
-
 model GradesInstructor {
   year        String
   quarter     Quarter
