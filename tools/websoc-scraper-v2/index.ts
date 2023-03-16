@@ -1,4 +1,7 @@
+import "dotenv/config";
+
 import { PrismaClient } from "db";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import type {
   GE,
   Quarter,
@@ -171,7 +174,7 @@ async function getTermsToScrape(date: Date) {
  */
 function getUniqueMeetings(meetings: WebsocSectionMeeting[]) {
   return meetings.reduce((acc, meeting) => {
-    if (!acc.find((m) => m.days === meeting.days && m.time === meeting.time)) {
+    if (!acc.find((m) => m.days === meeting.days && m === meeting)) {
       acc.push(meeting);
     }
     return acc;
@@ -414,44 +417,41 @@ async function scrape(name: string, term: Term) {
 /**
  * The entry point of the program.
  */
-(async function main() {
+async function main() {
   try {
-    logger.info("websoc-scraper-v2 daemon starting");
-    let now = new Date();
-    let termsInScope = await getTermsToScrape(now);
-    for (const [name, term] of Object.entries(termsInScope))
-      await scrape(name, term);
-    for (;;) {
-      const curr = new Date();
-      // Check the available terms every day and scrape all of them once.
-      if (curr.getDate() !== now.getDate()) {
-        termsInScope = await getTermsToScrape(curr);
-        for (const [name, term] of Object.entries(termsInScope))
-          await scrape(name, term);
-      }
-      now = curr;
-      // Check the database for terms to scrape on demand.
-      const websocTerms = await prisma.websocTerm.findMany({
-        where: { timestamp: { gte: now } },
-        select: { year: true, quarter: true },
-      });
-      const termsOnDemandEntries = websocTerms.map(
-        (x) => [`${x.year} ${x.quarter}`, x] as TermEntry
-      );
-      const termsOnDemand = Object.fromEntries(termsOnDemandEntries);
-      let scraped = false;
-      for (const [name, term] of Object.entries(termsOnDemand)) {
-        if (!(name in termsInScope)) {
-          logger.info(`Term ${name} requested but not in scope, skipping`);
-          continue;
-        }
-        scraped = true;
+    logger.info("websoc-scraper-v2 starting");
+    const prev = new Date(
+      existsSync("/tmp/websoc_scraper_v2")
+        ? parseInt(readFileSync("/tmp/websoc_scraper_v2").toString())
+        : Date.now() - 24 * 60 * 60 * 1000
+    );
+    const termsInScope = await getTermsToScrape(prev);
+    const curr = new Date();
+    // If it is a new day, scrape all terms.
+    if (curr.getDate() !== prev.getDate()) {
+      for (const [name, term] of Object.entries(termsInScope))
         await scrape(name, term);
+    }
+    // Check the database for terms to scrape on demand.
+    const websocTerms = await prisma.websocTerm.findMany({
+      where: { timestamp: { gte: curr } },
+      select: { year: true, quarter: true },
+    });
+    const termsOnDemandEntries = websocTerms.map(
+      (x) => [`${x.year} ${x.quarter}`, x] as TermEntry
+    );
+    const termsOnDemand = Object.fromEntries(termsOnDemandEntries);
+    let scraped = false;
+    for (const [name, term] of Object.entries(termsOnDemand)) {
+      if (!(name in termsInScope)) {
+        logger.info(`Term ${name} requested but not in scope, skipping`);
+        continue;
       }
-      if (!scraped || !Object.keys(termsOnDemand).length) {
-        logger.info("No terms to scrape on demand, sleeping for 5 minutes");
-        await sleep(SLEEP_DURATION);
-      }
+      scraped = true;
+      await scrape(name, term);
+    }
+    if (!scraped || !Object.keys(termsOnDemand).length) {
+      logger.info("No terms to scrape on demand, exiting");
     }
   } catch (e) {
     if (e instanceof Error) {
@@ -460,6 +460,9 @@ async function scrape(name: string, term: Term) {
     } else {
       logger.error(e);
     }
-    throw e;
+  } finally {
+    writeFileSync("/tmp/websoc_scraper_v2", Date.now().toString());
   }
-})();
+}
+
+main();
