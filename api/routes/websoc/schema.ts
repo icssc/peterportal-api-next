@@ -82,9 +82,11 @@ export const QuerySchema = z
       .optional(),
     building: z.string().optional(),
     room: z.string().optional(),
-    division: z.enum(anyArray).or(z.enum(divisionCodes)).optional(),
-    sectionType: z.enum(anyArray).or(z.enum(sectionTypes)).optional(),
-    fullCourses: z.enum(anyArray).or(z.enum(fullCoursesOptions)).optional(),
+    division: z.union([z.enum(anyArray), z.enum(divisionCodes)]).optional(),
+    sectionType: z.union([z.enum(anyArray), z.enum(sectionTypes)]).optional(),
+    fullCourses: z
+      .union([z.enum(anyArray), z.enum(fullCoursesOptions)])
+      .optional(),
     cancelledCourses: z.enum(cancelledCoursesOptions).optional(),
     units: z
       .string()
