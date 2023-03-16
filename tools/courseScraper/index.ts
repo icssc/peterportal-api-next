@@ -35,6 +35,25 @@ const PRETOKENIZE = ["AP Physics C: Electricity and Magnetism"]
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 /**
+ * @param {string} str: string to normalize (usually parsed from cheerio object)
+ * @param {string} find: all substrings of str that match find will be replaced with replace
+ * @param {string} replace: the string that will replace all substrings of str that match find
+ * @returns {string}: a string with all substrings of str that match find replaced with replace
+*/
+function replaceAllSubString(str: string, find: string, replace: string): string {
+    return str.replace(new RegExp(escapeRegExp(find), 'g'), replace);
+}
+
+/**
+ * 
+ * @param string string that will have meta characters escaped
+ * @returns escaped string
+ */
+function escapeRegExp(string: string): string {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); // $& means the whole matched string
+}
+
+/**
 * @param {string} s: string to normalize (usually parsed from cheerio object)
 * @returns {string}: a normalized string that can be safely compared to other strings
 */
@@ -420,9 +439,61 @@ export function parsePrerequisite(tag: any, response:any, classInfo: { [key: str
                 specialRequirements.add(rawReqs);
                 return;
             }
+            // if has a link, continue tokenizing
+            for (let i = 0; i < extractedReqs.length; i++) {
+                const courseRegex = /^([^a-z]+ )+[A-Z0-9]+$/;
+                // if doesnt match course code regex, its probably a special requirement unless whitelisted
+                if (!courseRegex.test(extractedReqs[i].trim()) && !SPECIAL_PREREQUISITE_WHITE_LIST.some(exception => extractedReqs[i].includes(exception))) {
+                    // if (debug) {
+                    //     console.log("\t\tSPECIAL REQ BAD FORMAT:", rawReqs);
+                    // }
+                    specialRequirements.add(rawReqs);
+                    return;
+                }
+                // does the actual replacement
+                tokenizedReqs = tokenizedReqs.replace(extractedReqs[i].trim(), i.toString());
+            }
+            // place a space between parentheses to tokenize
+            // use helper function because .replace only replaces the first instance of a substring
+            tokenizedReqs = replaceAllSubString(tokenizedReqs, "(", " ( ");
+            tokenizedReqs = replaceAllSubString(tokenizedReqs, ")", " ) ");
+            const tokens = tokenizedReqs.split(/\s+/);
+            console.log(tokens);
+            const node = nodify(tokens, extractedReqs, classInfo["department"] + " " + classInfo["number"]);
+
+            classInfo["prerequisite_tree"] = node.toString();
+            classInfo["prerequisite_list"] = extractedReqs;
+
+            // if (debug) {
+            //     console.log("\t\tREQS:", rawReqs);
+            //     console.log("\t\tREQSTOKENS:", tokens);
+            //     console.log("\t\tNODE:", node);
+            // }
+            return node;
         }
     }
+    else {
+        // if (debug) {
+        //     console.log("\t\tNOREQS");
+        // }
+    }
 }
+
+/**
+ * @param {string} json_data: collection of class information generated from getAllCourses
+ * @returns {void}: sets the prerequisite info based on the prerequisite database instead of the catalogue
+*/
+function setReliablePrerequisites(json_data: any): void {
+    console.log("\nSetting Reliable Prerequisites...");
+    // const prerequisite_data = JSON.parse(
+    // fs.readFileSync(prerequisiteScraper.PREREQUISITE_DATA_NAME, "utf-8")
+    // );
+    //const bar = new ProgressBar(prerequisite_data.length, debug);
+    const reqsReplaced = [];
+    // go through each prerequisite course
+    //for (const courseID in prerequisite_data) {
+}
+
 
 // getDepartmentToSchoolMapping().then((response) => {
 //     console.log(response);
