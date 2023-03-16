@@ -34,6 +34,10 @@ export type Course = {
    */
   courseNumber: string;
   /**
+   * The numeric part of the course number.
+   */
+  courseNumeric: number;
+  /**
    * The school that the course belongs to.
    */
   school: string;

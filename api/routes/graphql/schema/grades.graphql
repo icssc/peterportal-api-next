@@ -1,0 +1,68 @@
+type GradesSection {
+  year: String!
+  quarter: Quarter!
+  sectionCode: String!
+  department: String!
+  courseNumber: String!
+  courseNumeric: Int!
+  instructors: [String!]!
+}
+
+type GradeDistribution {
+  gradeACount: Int!
+  gradeBCount: Int!
+  gradeCCount: Int!
+  gradeDCount: Int!
+  gradeFCount: Int!
+  gradePCount: Int!
+  gradeNPCount: Int!
+  gradeWCount: Int!
+  averageGPA: Float!
+}
+
+type RawGrade {
+  year: String!
+  quarter: Quarter!
+  sectionCode: String!
+  department: String!
+  courseNumber: String!
+  courseNumeric: Int!
+  gradeACount: Int!
+  gradeBCount: Int!
+  gradeCCount: Int!
+  gradeDCount: Int!
+  gradeFCount: Int!
+  gradePCount: Int!
+  gradeNPCount: Int!
+  gradeWCount: Int!
+  averageGPA: Float!
+  instructors: [String!]!
+}
+
+type AggregateGrades {
+  sectionList: [GradesSection!]!
+  gradeDistribution: GradeDistribution
+}
+
+extend type Query {
+  rawGrades(
+    year: String
+    quarter: Quarter
+    instructor: String
+    department: String
+    courseNumber: String
+    sectionCode: String
+    division: Division
+    excludePNP: Boolean
+  ): [RawGrade!]!
+  aggregateGrades(
+    year: String
+    quarter: Quarter
+    instructor: String
+    department: String
+    courseNumber: String
+    sectionCode: String
+    division: Division
+    excludePNP: Boolean
+  ): AggregateGrades
+}

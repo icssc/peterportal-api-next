@@ -1,33 +1,13 @@
 import { build } from "esbuild";
-import { cp, mkdir, rm } from "fs/promises";
+import { chmod, copyFile, mkdir, rm } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
-
-const define = {};
-
-for (const k in process.env) {
-  define[`process.env.${k}`] = JSON.stringify(process.env[k]);
-}
-
-switch (process.env.NODE_ENV) {
-  case "staging":
-    define[
-      "process.env.BASE_URL"
-    ] = `https://${process.env.STAGE}.api-next.peterportal.org`;
-    break;
-  case "production":
-    define["process.env.BASE_URL"] = "https://api-next.peterportal.org";
-    break;
-}
-
-define["process.env.BASE_URL"] = JSON.stringify(define["process.env.BASE_URL"]);
 
 (async () => {
   const cwd = dirname(fileURLToPath(import.meta.url));
   /** @type {import("esbuild").BuildOptions} */
   const options = {
     bundle: true,
-    define,
     entryPoints: [join(cwd, "index.ts")],
     logLevel: "info",
     minify: true,
@@ -47,9 +27,21 @@ define["process.env.BASE_URL"] = JSON.stringify(define["process.env.BASE_URL"]);
         name: "copy",
         setup(build) {
           build.onEnd(async () => {
-            await cp(join(cwd, "schema/"), join(cwd, "dist/schema/"), {
-              recursive: true,
-            });
+            await copyFile(
+              join(
+                cwd,
+                "../../../node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node"
+              ),
+              join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node")
+            );
+            await copyFile(
+              join(cwd, "../../../node_modules/.prisma/client/schema.prisma"),
+              join(cwd, "dist/schema.prisma")
+            );
+            await chmod(
+              join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node"),
+              0o755
+            );
           });
         },
       },

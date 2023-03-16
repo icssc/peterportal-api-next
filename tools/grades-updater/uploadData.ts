@@ -12,21 +12,26 @@ import {
 } from "./gradesUpdaterUtil";
 
 type Section = {
-  year: number;
-  quarter: string;
-  instructors: string[];
-  department: string;
-  courseNumber: string;
-  sectionCode: number;
-  gradeACount: number;
-  gradeBCount: number;
-  gradeCCount: number;
-  gradeDCount: number;
-  gradeFCount: number;
-  gradePCount: number;
-  gradeNPCount: number;
-  gradeWCount: number;
-  averageGPA: number;
+  meta: {
+    instructors: string[];
+  };
+  data: {
+    year: string;
+    quarter: Quarter;
+    department: string;
+    courseNumber: string;
+    courseNumeric: number;
+    sectionCode: string;
+    gradeACount: number;
+    gradeBCount: number;
+    gradeCCount: number;
+    gradeDCount: number;
+    gradeFCount: number;
+    gradePCount: number;
+    gradeNPCount: number;
+    gradeWCount: number;
+    averageGPA: number;
+  };
 };
 
 const prisma = new PrismaClient();
@@ -97,21 +102,29 @@ async function processFile(filePath: string): Promise<Section[]> {
 
   for await (const course of courseParser) {
     sections.push({
-      year: parseYear(course.year, course.quarter),
-      quarter: course.quarter,
-      instructors: Array.from(course.instructors),
-      department: course.department,
-      courseNumber: course.courseNumber,
-      sectionCode: course.courseCode,
-      gradeACount: course.a,
-      gradeBCount: course.b,
-      gradeCCount: course.c,
-      gradeDCount: course.d,
-      gradeFCount: course.f,
-      gradePCount: course.p,
-      gradeNPCount: course.np,
-      gradeWCount: course.w,
-      averageGPA: course.gpaAvg,
+      meta: {
+        instructors: Array.from(course.instructors),
+      },
+      data: {
+        year: parseYear(course.year, course.quarter).toString(),
+        quarter: course.quarter,
+        department: course.department,
+        courseNumber: course.courseNumber,
+        courseNumeric: (() => {
+          const n = parseInt(course.courseNumber.replace(/\D/g, ""));
+          return isNaN(n) ? 0 : n;
+        })(),
+        sectionCode: course.courseCode.toString(),
+        gradeACount: course.a,
+        gradeBCount: course.b,
+        gradeCCount: course.c,
+        gradeDCount: course.d,
+        gradeFCount: course.f,
+        gradePCount: course.p,
+        gradeNPCount: course.np,
+        gradeWCount: course.w,
+        averageGPA: course.gpaAvg,
+      },
     });
   }
 
@@ -123,29 +136,21 @@ async function processFile(filePath: string): Promise<Section[]> {
  * @param sections The sections to upload.
  */
 async function processData(sections: Section[]): Promise<void> {
-  await Promise.all(
-    Array.from(new Set(sections.map((s) => s.instructors).flat())).map((i) =>
-      prisma.gradesInstructor.upsert({
-        where: { name: i },
-        update: {},
-        create: { name: i },
-      })
-    )
-  );
-  await Promise.all(
-    sections.map((s) =>
-      prisma.gradesSection.create({
-        data: {
-          ...s,
-          instructors: {
-            connect: s.instructors.map((i) => ({
-              name: i,
-            })),
-          },
-        },
-      })
-    )
-  );
+  await prisma.gradesSection.createMany({
+    data: sections.map((section) => section.data),
+    skipDuplicates: true,
+  });
+  await prisma.gradesInstructor.createMany({
+    data: sections.flatMap((section) =>
+      section.meta.instructors.map((name) => ({
+        year: section.data.year,
+        quarter: section.data.quarter,
+        sectionCode: section.data.sectionCode,
+        name,
+      }))
+    ),
+    skipDuplicates: true,
+  });
 }
 
 /**
