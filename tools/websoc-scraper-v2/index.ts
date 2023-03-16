@@ -21,6 +21,11 @@ import {
 import { createLogger, format, transports } from "winston";
 
 /**
+ * An entry that contains the term name and the term object.
+ */
+type TermEntry = [string, Term];
+
+/**
  * Section that also contains all relevant WebSoc metadata.
  */
 type EnhancedSection = {
@@ -138,24 +143,24 @@ const sleep = async (duration: number) =>
  * @param date The current date.
  */
 async function getTermsToScrape(date: Date) {
-  const termDateData = await Promise.all(
-    [
-      ...(Array(3).keys()).map((x) =>
-        getTermDateData((x + date.getFullYear() - 1).toString()
-      )
-    ])
-  const quarterDates = {...termDateData}
-  type TermEntry = [string, Term]
-
-  const terms = await getTerms()
+  const termDateData = await Promise.all([
+    ...Array.from(Array(3).keys()).map((x) =>
+      getTermDateData((x + date.getFullYear() - 1).toString())
+    ),
+  ]);
+  const quarterDates = Object.assign({}, ...termDateData);
+  const terms = await getTerms();
   const termEntries = terms
     .map((term) => term.shortName)
     .filter((term) => Object.keys(quarterDates).includes(term))
     .filter((term) => date <= quarterDates[term].finalsStart)
     .map((term) => {
-      const termEntry: TermEntry = [term, { year: term.split(" ")[0], quarter: term.split(" ")[1] }]
-      return termEntry
-    })
+      const termEntry: TermEntry = [
+        term,
+        { year: term.split(" ")[0], quarter: term.split(" ")[1] as Quarter },
+      ];
+      return termEntry;
+    });
   return Object.fromEntries(termEntries);
 }
 
@@ -208,8 +213,8 @@ async function scrape(name: string, term: Term) {
   logger.info(`Scraping term ${name}`);
   // The timestamp for this scraping run.
   const timestamp = new Date();
- const depts = await getDepts();
- 
+  const depts = await getDepts();
+
   // All departments to scrape.
   const deptCodes = depts
     .map((dept) => dept.deptValue)
@@ -422,11 +427,13 @@ async function scrape(name: string, term: Term) {
       }
       now = curr;
       // Check the database for terms to scrape on demand.
-      const websocTerms =  await prisma.websocTerm.findMany({
-          where: { timestamp: { gte: now } },
-          select: { year: true, quarter: true },
-        })
-      const termsOnDemandEntries = websocTerms.map((x) => [`${x.year} ${x.quarter}`, x]);      
+      const websocTerms = await prisma.websocTerm.findMany({
+        where: { timestamp: { gte: now } },
+        select: { year: true, quarter: true },
+      });
+      const termsOnDemandEntries = websocTerms.map(
+        (x) => [`${x.year} ${x.quarter}`, x] as TermEntry
+      );
       const termsOnDemand = Object.fromEntries(termsOnDemandEntries);
       let scraped = false;
       for (const [name, term] of Object.entries(termsOnDemand)) {
