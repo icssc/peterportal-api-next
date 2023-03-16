@@ -301,7 +301,7 @@ export function constructPrismaQuery(
 
   switch (parsedQuery.cancelledCourses) {
     case undefined:
-       AND.push({ cancelled: false });
+      AND.push({ cancelled: false });
       break;
     case "Exclude":
       AND.push({ cancelled: false });
@@ -316,7 +316,7 @@ export function constructPrismaQuery(
         sectionCode: code.includes("-")
           ? {
               gte: parseInt(code.split("-")[0], 10),
-              lte: parseInt(code.split("-")[1]), 10,
+              lte: parseInt(code.split("-")[1], 10),
             }
           : parseInt(code),
       }))
@@ -386,9 +386,8 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
       .flatMap((copiedQuery) =>
         keys.map((k) => ({
           ...copiedQuery,
-          sectionCodes: query.sectionCodes?
-            .slice(k * 5, (k + 1) * 5)
-            .join(",") || [],
+          sectionCodes:
+            query.sectionCodes?.slice(k * 5, (k + 1) * 5).join(",") || "",
         }))
       );
   } else {
