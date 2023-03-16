@@ -34,7 +34,7 @@ const dependencies = [".prisma", "db", "registrar-api", "websoc-api-next"];
       .map((x) => rm(join(cwd, `${targetDir}node_modules/.prisma/client`, x)))
   );
   await writeFile(
-    join(cwd, "${targetDir}.env"),
+    join(cwd, `${targetDir}.env`),
     // eslint-disable-next-line turbo/no-undeclared-env-vars
     `DATABASE_URL="${process.env.DATABASE_URL_SCRAPER}"\nNODE_ENV="production"\nTZ="America/Los_Angeles"`
   );
