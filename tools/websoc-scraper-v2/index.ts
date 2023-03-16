@@ -135,27 +135,25 @@ const sleep = async (duration: number) =>
  * @param date The current date.
  */
 async function getTermsToScrape(date: Date) {
-  const quarterDates = Object.assign(
-    {},
-    ...(await Promise.all(
-      Array.from(Array(3).keys()).map((x) =>
-        getTermDateData((x + date.getFullYear() - 1).toString())
+  const termDateData = await Promise.all(
+    [
+      ...(Array(3).keys()).map((x) =>
+        getTermDateData((x + date.getFullYear() - 1).toString()
       )
-    ))
-  );
-  return Object.fromEntries(
-    (await getTerms())
-      .map((term) => term.shortName)
-      .filter((term) => Object.keys(quarterDates).includes(term))
-      .filter((term) => date <= quarterDates[term].finalsStart)
-      .map(
-        (term) =>
-          [term, { year: term.split(" ")[0], quarter: term.split(" ")[1] }] as [
-            string,
-            Term
-          ]
-      )
-  );
+    ])
+  const quarterDates = {...termDateData}
+  type TermEntry = [string, Term]
+
+  const terms = await getTerms()
+  const termEntries = terms
+    .map((term) => term.shortName)
+    .filter((term) => Object.keys(quarterDates).includes(term))
+    .filter((term) => date <= quarterDates[term].finalsStart)
+    .map((term) => {
+      const termEntry: TermEntry = [term, { year: term.split(" ")[0], quarter: term.split(" ")[1] }]
+      return termEntry
+    })
+  return Object.fromEntries(termEntries);
 }
 
 /**
@@ -207,8 +205,10 @@ async function scrape(name: string, term: Term) {
   logger.info(`Scraping term ${name}`);
   // The timestamp for this scraping run.
   const timestamp = new Date();
+ const depts = await getDepts();
+ 
   // All departments to scrape.
-  const deptCodes = (await getDepts())
+  const deptCodes = depts
     .map((dept) => dept.deptValue)
     .filter((deptValue) => deptValue !== "ALL");
   // The data structure that holds all scraped data.
@@ -263,7 +263,7 @@ async function scrape(name: string, term: Term) {
           for (const course of department.courses) {
             for (const section of course.sections) {
               const [year, quarter] = term.split(" ") as [string, Quarter];
-              const sectionCode = parseInt(section.sectionCode);
+              const sectionCode = parseInt(section.sectionCode, 10);
               res[`${term} ${section.sectionCode}`] = {
                 meta: {
                   instructors: section.instructors.map((name) => ({
@@ -311,7 +311,7 @@ async function scrape(name: string, term: Term) {
                 data: {
                   year,
                   quarter,
-                  sectionCode: parseInt(section.sectionCode),
+                  sectionCode: parseInt(section.sectionCode, 10),
                   timestamp,
                   geCategories: [],
                   department: department.deptCode,
@@ -324,13 +324,13 @@ async function scrape(name: string, term: Term) {
                   sectionType:
                     section.sectionType as (typeof sectionTypes)[number],
                   units: section.units,
-                  maxCapacity: parseInt(section.maxCapacity),
+                  maxCapacity: parseInt(section.maxCapacity, 10),
                   sectionFull:
                     section.status === "FULL" || section.status === "Waitl",
                   waitlistFull: section.status === "FULL",
                   overEnrolled:
-                    parseInt(section.numCurrentlyEnrolled.totalEnrolled) >
-                    parseInt(section.maxCapacity),
+                    parseInt(section.numCurrentlyEnrolled.totalEnrolled, 10) >
+                    parseInt(section.maxCapacity, 10),
                   cancelled: section.sectionComment.includes(
                     "***  CANCELLED  ***"
                   ),
@@ -419,14 +419,12 @@ async function scrape(name: string, term: Term) {
       }
       now = curr;
       // Check the database for terms to scrape on demand.
-      const termsOnDemand = Object.fromEntries(
-        (
-          await prisma.websocTerm.findMany({
-            where: { timestamp: { gte: now } },
-            select: { year: true, quarter: true },
-          })
-        ).map((x) => [`${x.year} ${x.quarter}`, x])
-      );
+      const websocTerms =  await prisma.websocTerm.findMany({
+          where: { timestamp: { gte: now } },
+          select: { year: true, quarter: true },
+        })
+      const termsOnDemandEntries = websocTerms.map((x) => [`${x.year} ${x.quarter}`, x]);      
+      const termsOnDemand = Object.fromEntries(termsOnDemandEntries);
       let scraped = false;
       for (const [name, term] of Object.entries(termsOnDemand)) {
         if (!(name in termsInScope)) {
