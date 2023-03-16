@@ -140,6 +140,7 @@ export const getTermDateData = async (
     year,
     3
   );
+  // Normalize all terms to start on a Monday, or a Thursday if it is Fall.
   for (const key in ret) {
     if (key.includes("Fall")) {
       (ret[key] as QuarterDates).instructionStart.setDate(
