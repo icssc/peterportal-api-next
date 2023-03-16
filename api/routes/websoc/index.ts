@@ -99,8 +99,8 @@ export const rawHandler: RawHandler = async (request) => {
         let queries = normalizeQuery(parsedQuery);
         let websocResponseData: WebsocAPIResponse = { schools: [] };
         let retries = 0;
-
-        for (;;) {
+let failed: WebsocAPIOptions[] = [];
+        while (queries.length && retries < 3) {
           const responses = await Promise.allSettled(
             queries.map((options) => callWebSocAPI(parsedQuery, options))
           );

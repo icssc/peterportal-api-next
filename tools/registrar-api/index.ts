@@ -86,8 +86,8 @@ export const getTermDateData = async (
   const shortYear = year.slice(2);
   const response = await fetch(
     `https://www.reg.uci.edu/calendars/quarterly/${year}-${
-      parseInt(year) + 1
-    }/quarterly${shortYear}-${parseInt(shortYear) + 1}.html`
+      parseInt(year, 10) + 1
+    }/quarterly${shortYear}-${parseInt(shortYear, 10) + 1}.html`
   );
   if (response.status === 404) return {};
   const quarterData: string[][] = [];

@@ -301,6 +301,8 @@ export function constructPrismaQuery(
 
   switch (parsedQuery.cancelledCourses) {
     case undefined:
+       AND.push({ cancelled: false });
+      break;
     case "Exclude":
       AND.push({ cancelled: false });
       break;
@@ -313,8 +315,8 @@ export function constructPrismaQuery(
       ...parsedQuery.sectionCodes.map((code) => ({
         sectionCode: code.includes("-")
           ? {
-              gte: parseInt(code.split("-")[0]),
-              lte: parseInt(code.split("-")[1]),
+              gte: parseInt(code.split("-")[0], 10),
+              lte: parseInt(code.split("-")[1]), 10,
             }
           : parseInt(code),
       }))
@@ -384,9 +386,9 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
       .flatMap((copiedQuery) =>
         keys.map((k) => ({
           ...copiedQuery,
-          sectionCodes: (query.sectionCodes ?? [])
+          sectionCodes: query.sectionCodes?
             .slice(k * 5, (k + 1) * 5)
-            .join(","),
+            .join(",") || [],
         }))
       );
   } else {
@@ -408,13 +410,13 @@ export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
     schools.departments.forEach((department) => {
       department.courses.forEach((course) =>
         course.sections.sort(
-          (a, b) => parseInt(a.sectionCode) - parseInt(b.sectionCode)
+          (a, b) => parseInt(a.sectionCode, 10) - parseInt(b.sectionCode, 10)
         )
       );
       department.courses.sort((a, b) => {
         const numOrd =
-          parseInt(a.courseNumber.replace(/\D/g, "")) -
-          parseInt(b.courseNumber.replace(/\D/g, ""));
+          parseInt(a.courseNumber.replace(/\D/g, ""), 10) -
+          parseInt(b.courseNumber.replace(/\D/g, ""), 10);
         return numOrd ? numOrd : lexOrd(a.courseNumber, b.courseNumber);
       });
     });
