@@ -21,9 +21,7 @@ type NormalizeInput = string | string[] | undefined;
 function normalizeValue(value: NormalizeInput): string[] | undefined {
   if (!value) return undefined;
   const unique = new Set(
-    Array.isArray(value)
-      ? value.flatMap((x) => x.split(","))
-      : value.split(",")
+    Array.isArray(value) ? value.flatMap((x) => x.split(",")) : value.split(",")
   );
   return [...unique].sort();
 }
@@ -64,7 +62,7 @@ export const QuerySchema = z
       .array()
       .or(z.string())
       .optional()
-      .transform(normalizeValue)
+      .transform(normalizeValue),
     sectionCodes: z
       .string()
       .array()
@@ -111,10 +109,7 @@ export const QuerySchema = z
   })
   .refine(
     (x) =>
-      x.ge ||
-      x.department ||
-      x.sectionCodes?.[0].length ||
-      x.instructorName,
+      x.ge || x.department || x.sectionCodes?.[0].length || x.instructorName,
     {
       message:
         'At least one of "ge", "department", "sectionCodes", or "instructorName" must be provided',
