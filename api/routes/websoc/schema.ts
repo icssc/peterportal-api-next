@@ -10,15 +10,15 @@ import {
 import { z } from "zod";
 
 /**
- * Input to a normalizer function.
+ * Input to a transform function.
  */
-type NormalizeInput = string | string[] | undefined;
+type TransformInput = string | string[] | undefined;
 
 /**
  * Get unique, sorted array of strings.
  * @param value String of comma-separated values or array of such strings.
  */
-function normalizeValue(value: NormalizeInput): string[] | undefined {
+function flattenStringsAndSplit(value: TransformInput): string[] | undefined {
   if (!value) return undefined;
   const unique = new Set(
     Array.isArray(value) ? value.flatMap((x) => x.split(",")) : value.split(",")
@@ -32,7 +32,9 @@ const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
  * Get unique, sorted array of day strings from input.
  * @param value String of combined days of the week (e.g. ``MWF``) or array of such strings.
  */
-function normalizeDays(value: NormalizeInput): string[] | undefined {
+function flattenDayStringsAndSplit(
+  value: TransformInput
+): string[] | undefined {
   if (!value) return undefined;
   const unique = new Set(
     Array.isArray(value)
@@ -62,13 +64,13 @@ export const QuerySchema = z
       .array()
       .or(z.string())
       .optional()
-      .transform(normalizeValue),
+      .transform(flattenStringsAndSplit),
     sectionCodes: z
       .string()
       .array()
       .or(z.string())
       .optional()
-      .transform(normalizeValue)
+      .transform(flattenStringsAndSplit)
       .optional(),
     instructorName: z.string().optional(),
     days: z
@@ -76,7 +78,7 @@ export const QuerySchema = z
       .array()
       .or(z.string())
       .optional()
-      .transform(normalizeDays)
+      .transform(flattenDayStringsAndSplit)
       .optional(),
     building: z.string().optional(),
     room: z.string().optional(),
@@ -91,7 +93,7 @@ export const QuerySchema = z
       .array()
       .or(z.string())
       .optional()
-      .transform(normalizeValue)
+      .transform(flattenStringsAndSplit)
       .optional(),
     cache: z
       .string()
