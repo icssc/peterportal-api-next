@@ -8,7 +8,7 @@ const targetDir = "dist/";
 const sourceFiles = ["ecosystem.config.js", "index.ts", "package.json"];
 const dependencies = [".prisma", "db", "registrar-api", "websoc-api-next"];
 
-(async function main() {
+async function buildApp() {
   await rm(join(cwd, targetDir), { recursive: true, force: true });
   await mkdir(join(cwd, `${targetDir}node_modules`), {
     recursive: true,
@@ -34,7 +34,10 @@ const dependencies = [".prisma", "db", "registrar-api", "websoc-api-next"];
   );
   await writeFile(
     join(cwd, `${targetDir}.env`),
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
-    `DATABASE_URL="${process.env.DATABASE_URL_SCRAPER}"\nNODE_ENV="production"\nTZ="America/Los_Angeles"`
+    `DATABASE_URL="${process.env.DATABASE_URL_SCRAPER}"\n
+    NODE_ENV="production"\n
+    TZ="America/Los_Angeles"`
   );
-})();
+}
+
+buildApp();
