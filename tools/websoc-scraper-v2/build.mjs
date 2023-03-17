@@ -9,6 +9,8 @@ const sourceFiles = ["ecosystem.config.js", "index.ts", "package.json"];
 const dependencies = [".prisma", "db", "registrar-api", "websoc-api-next"];
 
 async function buildApp() {
+  if (!process.env.DATABASE_URL_SCRAPER)
+    throw new Error("Scraper database URL not provided. Stop.");
   await rm(join(cwd, targetDir), { recursive: true, force: true });
   await mkdir(join(cwd, `${targetDir}node_modules`), {
     recursive: true,

@@ -36,7 +36,7 @@ export class WebsocScraperV2Stack extends Stack {
         logGroup: new LogGroup(this, `${id}-log-group`, {
           logGroupName: `/aws/ecs/cluster/${id}`,
         }),
-        streamPrefix: "/aws/ecs/cluster",
+        streamPrefix: "/aws/ecs/container",
       }),
     });
     new Ec2Service(this, `${id}-service`, { cluster, taskDefinition });
