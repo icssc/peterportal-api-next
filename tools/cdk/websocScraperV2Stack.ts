@@ -7,13 +7,16 @@ import {
   Ec2TaskDefinition,
   LogDriver,
 } from "aws-cdk-lib/aws-ecs";
-import { LogGroup, RetentionDays } from "aws-cdk-lib/aws-logs";
+import { LogGroup } from "aws-cdk-lib/aws-logs";
 import type { Construct } from "constructs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 export class WebsocScraperV2Stack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps) {
+    if (process.env.NODE_ENV !== "production") {
+      throw new Error("Cannot deploy this stack outside of production. Stop.");
+    }
     super(scope, id, props);
     const cluster = new Cluster(this, `${id}-cluster`, {
       capacity: {

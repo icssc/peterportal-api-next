@@ -8,6 +8,10 @@ import { WebsocScraperV2Stack } from "./websocScraperV2Stack";
 const app = new App({ autoSynth: true });
 const props: StackProps = {
   env: { region: "us-east-1" },
-  terminationProtection: /* true */ false,
+  terminationProtection: true
 };
-new WebsocScraperV2Stack(app, "peterportal-api-next-websoc-scraper-v2", props);
+new WebsocScraperV2Stack(
+  app,
+  "peterportal-api-next-websoc-scraper-v2-prod",
+  props
+);
