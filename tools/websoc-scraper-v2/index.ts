@@ -125,13 +125,16 @@ const prisma = new PrismaClient();
 
 const logger = createLogger({
   level: "info",
-  format: format.combine(
+  format:
     process.env.NODE_ENV === "development"
-      ? format.colorize({ all: true })
-      : format.uncolorize(),
-    format.timestamp(),
-    format.printf((info) => `${info.timestamp} [${info.level}] ${info.message}`)
-  ),
+      ? format.combine(
+          format.colorize({ all: true }),
+          format.timestamp(),
+          format.printf(
+            (info) => `${info.timestamp} [${info.level}] ${info.message}`
+          )
+        )
+      : format.printf((info) => `[${info.level}] ${info.message}`),
   transports: [new transports.Console()],
   exitOnError: false,
 });

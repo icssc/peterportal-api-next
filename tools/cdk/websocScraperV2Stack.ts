@@ -7,6 +7,7 @@ import {
   Ec2TaskDefinition,
   LogDriver,
 } from "aws-cdk-lib/aws-ecs";
+import { LogGroup } from "aws-cdk-lib/aws-logs";
 import type { Construct } from "constructs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -28,7 +29,10 @@ export class WebsocScraperV2Stack extends Stack {
         join(dirname(fileURLToPath(import.meta.url)), "../websoc-scraper-v2/")
       ),
       memoryReservationMiB: 768,
-      logging: LogDriver.awsLogs({ streamPrefix: "aws/ecs/task/" }),
+      logging: LogDriver.awsLogs({
+        logGroup: new LogGroup(this, `/aws/ecs/cluster/${id}`),
+        streamPrefix: "/aws/ecs/cluster",
+      }),
     });
     new Ec2Service(this, `${id}-service`, { cluster, taskDefinition });
   }
