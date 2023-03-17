@@ -16,6 +16,7 @@
         "BASE_URL",
         "CERTIFICATE_ARN",
         "DATABASE_URL",
+        "DATABASE_URL_SCRAPER",
         "HOSTED_ZONE_ID",
         "NODE_ENV",
         "PR_NUM",
