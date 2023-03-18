@@ -213,7 +213,7 @@ function isolateSection(data: EnhancedSection): WebsocAPIResponse {
 }
 
 function courseNumberToNumeric(courseNumber: string) {
-  const n = parseInt(courseNumber.replace(/\D/g, ""));
+  const n = parseInt(courseNumber.replace(/\D/g, ""), 10);
   return isNaN(n) ? 0 : n;
 }
 
@@ -280,7 +280,7 @@ async function scrape(name: string, term: Term) {
     const fulfilledIndices: number[] = [];
     for (const [i, res] of Object.entries(settledResults)) {
       if (res.status === "fulfilled") {
-        const idx = parseInt(i);
+        const idx = parseInt(i, 10);
         const input = inputs[idx];
         const term = `${input[0].year} ${input[0].quarter}`;
         if (input[1].department) {
@@ -428,7 +428,7 @@ async function main() {
       existsSync("/tmp/websoc_scraper_v2") &&
       curr.getDate() ===
         new Date(
-          parseInt(readFileSync("/tmp/websoc_scraper_v2").toString())
+          parseInt(readFileSync("/tmp/websoc_scraper_v2").toString(), 10)
         ).getDate()
     );
     const termsInScope = await getTermsToScrape(curr);
@@ -444,14 +444,14 @@ async function main() {
       select: { year: true, quarter: true },
     });
     const termsOnDemandEntries: TermEntry[] = websocTerms
-      .map((x) => [`${x.year} ${x.quarter}`, x])
+      .map((x) => [`${x.year} ${x.quarter}`, x] as TermEntry)
       .filter(([name]) => {
         if (!(name in termsInScope)) {
           logger.info(`Term ${name} requested but not in scope, skipping`);
           return false;
         }
         return true;
-    })
+      });
     const termsOnDemand = Object.fromEntries(termsOnDemandEntries);
     let scraped = false;
     for (const [name, term] of Object.entries(termsOnDemand)) {

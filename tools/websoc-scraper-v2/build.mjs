@@ -29,8 +29,11 @@ async function buildApp() {
       )
     )
   );
+  const prismaFiles = await readdir(
+    join(cwd, `${targetDir}node_modules/.prisma/client`)
+  );
   await Promise.all(
-    (await readdir(join(cwd, `${targetDir}node_modules/.prisma/client`)))
+    prismaFiles
       .filter((x) => x.includes(".node") && !x.includes("debian-openssl-1.1.x"))
       .map((x) => rm(join(cwd, `${targetDir}node_modules/.prisma/client`, x)))
   );
