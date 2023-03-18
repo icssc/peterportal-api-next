@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import "dotenv/config";
 
-import { type StackProps, App } from "aws-cdk-lib";
+import { App } from "aws-cdk-lib";
+import type { StackProps } from "aws-cdk-lib";
 
 import { WebsocScraperV2Stack } from "./websocScraperV2Stack";
 

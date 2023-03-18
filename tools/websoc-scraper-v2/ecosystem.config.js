@@ -4,7 +4,7 @@ module.exports = {
       name: "websoc-scraper-v2",
       script: "tsx index.ts",
       instances: 1,
-      restart_delay: 5 * 60 * 1000,
+      restart_delay: 5 * 60 * 1000,  // 5 minutes in ms
     },
   ],
 };

@@ -443,16 +443,18 @@ async function main() {
       where: { timestamp: { gte: curr } },
       select: { year: true, quarter: true },
     });
-    const termsOnDemandEntries = websocTerms.map(
-      (x) => [`${x.year} ${x.quarter}`, x] as TermEntry
-    );
+    const termsOnDemandEntries: TermEntry[] = websocTerms
+      .map((x) => [`${x.year} ${x.quarter}`, x])
+      .filter(([name]) => {
+        if (!(name in termsInScope)) {
+          logger.info(`Term ${name} requested but not in scope, skipping`);
+          return false;
+        }
+        return true;
+    })
     const termsOnDemand = Object.fromEntries(termsOnDemandEntries);
     let scraped = false;
     for (const [name, term] of Object.entries(termsOnDemand)) {
-      if (!(name in termsInScope)) {
-        logger.info(`Term ${name} requested but not in scope, skipping`);
-        continue;
-      }
       scraped = true;
       await scrape(name, term);
     }
