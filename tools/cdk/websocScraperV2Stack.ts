@@ -16,9 +16,8 @@ import { fileURLToPath } from "url";
 
 export class WebsocScraperV2Stack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps) {
-    if (process.env.NODE_ENV !== "production") {
+    if (process.env.NODE_ENV !== "production")
       throw new Error("Cannot deploy this stack outside of production. Stop.");
-    }
     if (!process.env.DATABASE_URL_SCRAPER)
       throw new Error("Scraper database URL not provided. Stop.");
     super(scope, id, props);
@@ -31,6 +30,7 @@ export class WebsocScraperV2Stack extends Stack {
     });
     const linuxParameters = new LinuxParameters(this, `${id}-linux-params`, {
       maxSwap: Size.mebibytes(1280),
+      swappiness: 60, // the default swappiness but is required apparently
     });
     linuxParameters.addTmpfs({ containerPath: "/tmp", size: 128 });
     const taskDefinition = new Ec2TaskDefinition(this, `${id}-taskdef`);
