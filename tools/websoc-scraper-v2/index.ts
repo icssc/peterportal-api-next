@@ -423,15 +423,18 @@ async function scrape(name: string, term: Term) {
 async function main() {
   try {
     logger.info("websoc-scraper-v2 starting");
-    const prev = new Date(
-      existsSync("/tmp/websoc_scraper_v2")
-        ? parseInt(readFileSync("/tmp/websoc_scraper_v2").toString())
-        : Date.now() - 24 * 60 * 60 * 1000
-    );
-    const termsInScope = await getTermsToScrape(prev);
     const curr = new Date();
+    const isNewDay = !(
+      existsSync("/tmp/websoc_scraper_v2") &&
+      curr.getDate() ===
+        new Date(
+          parseInt(readFileSync("/tmp/websoc_scraper_v2").toString())
+        ).getDate()
+    );
+    const termsInScope = await getTermsToScrape(curr);
     // If it is a new day, scrape all terms.
-    if (curr.getDate() !== prev.getDate()) {
+    if (isNewDay) {
+      logger.info("New day, scraping all terms in scope");
       for (const [name, term] of Object.entries(termsInScope))
         await scrape(name, term);
     }
