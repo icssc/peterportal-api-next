@@ -17,6 +17,8 @@ export class WebsocScraperV2Stack extends Stack {
     if (process.env.NODE_ENV !== "production") {
       throw new Error("Cannot deploy this stack outside of production. Stop.");
     }
+    if (!process.env.DATABASE_URL_SCRAPER)
+      throw new Error("Scraper database URL not provided. Stop.");
     super(scope, id, props);
     const cluster = new Cluster(this, `${id}-cluster`, {
       capacity: {
@@ -28,6 +30,11 @@ export class WebsocScraperV2Stack extends Stack {
     const taskDefinition = new Ec2TaskDefinition(this, `${id}-taskdef`);
     taskDefinition.addContainer(`${id}-container`, {
       containerName: `${id}-container`,
+      environment: {
+        DATABASE_URL: process.env.DATABASE_URL_SCRAPER,
+        NODE_ENV: "production",
+        TZ: "America/Los_Angeles",
+      },
       image: ContainerImage.fromAsset(
         join(dirname(fileURLToPath(import.meta.url)), "../websoc-scraper-v2/")
       ),
