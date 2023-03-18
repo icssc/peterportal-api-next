@@ -1,4 +1,5 @@
-import { type StackProps, Stack } from "aws-cdk-lib";
+import type { StackProps } from "aws-cdk-lib";
+import { Stack } from "aws-cdk-lib";
 import { InstanceType } from "aws-cdk-lib/aws-ec2";
 import {
   Cluster,
