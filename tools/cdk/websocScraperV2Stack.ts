@@ -1,11 +1,12 @@
 import type { StackProps } from "aws-cdk-lib";
-import { Stack } from "aws-cdk-lib";
+import { RemovalPolicy, Size, Stack } from "aws-cdk-lib";
 import { InstanceType } from "aws-cdk-lib/aws-ec2";
 import {
   Cluster,
   ContainerImage,
   Ec2Service,
   Ec2TaskDefinition,
+  LinuxParameters,
   LogDriver,
 } from "aws-cdk-lib/aws-ecs";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
@@ -28,6 +29,10 @@ export class WebsocScraperV2Stack extends Stack {
         maxCapacity: 1,
       },
     });
+    const linuxParameters = new LinuxParameters(this, `${id}-linux-params`, {
+      maxSwap: Size.mebibytes(1280),
+    });
+    linuxParameters.addTmpfs({ containerPath: "/tmp", size: 128 });
     const taskDefinition = new Ec2TaskDefinition(this, `${id}-taskdef`);
     taskDefinition.addContainer(`${id}-container`, {
       containerName: `${id}-container`,
@@ -40,9 +45,11 @@ export class WebsocScraperV2Stack extends Stack {
         join(dirname(fileURLToPath(import.meta.url)), "../websoc-scraper-v2/")
       ),
       memoryReservationMiB: 768,
+      linuxParameters,
       logging: LogDriver.awsLogs({
         logGroup: new LogGroup(this, `${id}-log-group`, {
           logGroupName: `/aws/ecs/cluster/${id}`,
+          removalPolicy: RemovalPolicy.DESTROY,
         }),
         streamPrefix: "/aws/ecs/container",
       }),
