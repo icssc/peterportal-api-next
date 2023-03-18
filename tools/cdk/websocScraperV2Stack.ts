@@ -39,7 +39,7 @@ export class WebsocScraperV2Stack extends Stack {
       environment: {
         DATABASE_URL: process.env.DATABASE_URL_SCRAPER,
         NODE_ENV: "production",
-        NODE_OPTIONS: "--expose-gc --max-old-space-size=4096",
+        NODE_OPTIONS: "--max-old-space-size=4096",
         TZ: "America/Los_Angeles",
       },
       image: ContainerImage.fromAsset(

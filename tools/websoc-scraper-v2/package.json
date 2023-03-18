@@ -9,7 +9,6 @@
   },
   "dependencies": {
     "db": "*",
-    "dotenv": "^16.0.3",
     "peterportal-api-next-types": "*",
     "registrar-api": "*",
     "websoc-api-next": "*",

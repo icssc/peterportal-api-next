@@ -1,5 +1,3 @@
-import "dotenv/config";
-
 import { PrismaClient } from "db";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import type {
@@ -124,7 +122,7 @@ const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
 const prisma = new PrismaClient();
 
 const logger = createLogger({
-  level: "info",
+  level: "debug",
   format:
     process.env.NODE_ENV === "development"
       ? format.combine(
@@ -242,11 +240,28 @@ function parseStartAndEndTimes(time: string): {
 }
 
 /**
+ * Forces the V8 garbage collector to run, printing the memory usage before and
+ * after the fact.
+ *
+ * Requires the ``--expose-gc`` flag to be set, otherwise this is a no-op aside
+ * from printing the same memory usage twice.
+ */
+function forceGC() {
+  logger.debug("Memory usage:");
+  logger.debug(JSON.stringify(process.memoryUsage()));
+  logger.debug("Forcing garbage collection");
+  global.gc?.();
+  logger.debug("Memory usage:");
+  logger.debug(JSON.stringify(process.memoryUsage()));
+}
+
+/**
  * The scraping function.
  * @param name The name of the term to scrape.
  * @param term The parameters of the term to scrape.
  */
 async function scrape(name: string, term: Term) {
+  forceGC();
   logger.info(`Scraping term ${name}`);
   // The timestamp for this scraping run.
   const timestamp = new Date();
@@ -443,7 +458,7 @@ async function main() {
       where: { timestamp: { gte: curr } },
       select: { year: true, quarter: true },
     });
-    const termsOnDemandEntries: TermEntry[] = websocTerms
+    const termsOnDemandEntries = websocTerms
       .map((x) => [`${x.year} ${x.quarter}`, x] as TermEntry)
       .filter(([name]) => {
         if (!(name in termsInScope)) {
