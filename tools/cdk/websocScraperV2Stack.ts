@@ -29,8 +29,8 @@ export class WebsocScraperV2Stack extends Stack {
       },
     });
     const linuxParameters = new LinuxParameters(this, `${id}-linux-params`, {
-      maxSwap: Size.mebibytes(1280),
-      swappiness: 60, // the default swappiness but is required apparently
+      maxSwap: Size.mebibytes(4096),
+      swappiness: 90,
     });
     linuxParameters.addTmpfs({ containerPath: "/tmp", size: 128 });
     const taskDefinition = new Ec2TaskDefinition(this, `${id}-taskdef`);
