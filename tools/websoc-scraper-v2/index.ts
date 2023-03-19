@@ -1,5 +1,4 @@
 import { PrismaClient } from "db";
-import { existsSync, readFileSync, writeFileSync } from "fs";
 import type {
   GE,
   Quarter,
