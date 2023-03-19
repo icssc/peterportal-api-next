@@ -13,6 +13,10 @@ import {
   LogDriver,
 } from "aws-cdk-lib/aws-ecs";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
+import {
+  AwsCustomResource,
+  AwsCustomResourcePolicy,
+} from "aws-cdk-lib/custom-resources";
 import type { Construct } from "constructs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
@@ -33,6 +37,22 @@ export class WebsocScraperV2Stack extends Stack {
       maxCapacity: 1,
       vpc,
     });
+    // https://github.com/aws/aws-cdk/issues/18179#issuecomment-1150981559
+    const asgForceDelete = new AwsCustomResource(this, "asg-force-delete", {
+      installLatestAwsSdk: false,
+      onDelete: {
+        service: "AutoScaling",
+        action: "deleteAutoScalingGroup",
+        parameters: {
+          AutoScalingGroupName: asg.autoScalingGroupName,
+          ForceDelete: true,
+        },
+      },
+      policy: AwsCustomResourcePolicy.fromSdkCalls({
+        resources: AwsCustomResourcePolicy.ANY_RESOURCE,
+      }),
+    });
+    asgForceDelete.node.addDependency(asg);
     /*
      * This allocates a 2 GiB swap file on each EC2 instance
      * and enables it for use. Consider removing this in the future
