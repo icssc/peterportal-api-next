@@ -266,7 +266,6 @@ async function scrape(name: string, term: Term) {
   // The timestamp for this scraping run.
   const timestamp = new Date();
   const depts = await getDepts();
-
   // All departments to scrape.
   const deptCodes = depts
     .map((dept) => dept.deptValue)
