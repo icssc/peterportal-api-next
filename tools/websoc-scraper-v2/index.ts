@@ -149,11 +149,11 @@ const sleep = async (duration: number) =>
  */
 async function getTermsToScrape(date: Date) {
   const termDateData = await Promise.all([
-    ...Array.from(Array(3).keys()).map((x) =>
-      getTermDateData((x + date.getFullYear() - 1).toString())
+    ...[-1, 0, 1].map((x) =>
+      getTermDateData((date.getFullYear() + x).toString())
     ),
   ]);
-  const quarterDates = Object.assign({}, ...termDateData);
+  const quarterDates = termDateData.reduce((p, c) => Object.assign(p, c), {});
   const terms = await getTerms();
   const termEntries = terms
     .map((term) => term.shortName)
@@ -214,10 +214,7 @@ function courseNumberToNumeric(courseNumber: string) {
   return isNaN(n) ? 0 : n;
 }
 
-function parseStartAndEndTimes(time: string): {
-  startTime: number;
-  endTime: number;
-} {
+function parseStartAndEndTimes(time: string) {
   let startTime = -1;
   let endTime = -1;
   if (time !== "TBA") {
@@ -406,29 +403,32 @@ async function scrape(name: string, term: Term) {
   logger.info(`Inserted ${instructorsCreated.count} instructors`);
   logger.info(`Inserted ${meetingsCreated.count} meetings`);
   logger.info(`Inserted ${meetingsCreated.count} meetings`);
-  const instructorsDeleted = await prisma.websocSectionInstructor.deleteMany({
-    where: {
-      year: term.year,
-      quarter: term.quarter,
-      timestamp: { lt: timestamp },
-    },
-  });
+  const [instructorsDeleted, meetingsDeleted, sectionsDeleted] =
+    await prisma.$transaction([
+      prisma.websocSectionInstructor.deleteMany({
+        where: {
+          year: term.year,
+          quarter: term.quarter,
+          timestamp: { lt: timestamp },
+        },
+      }),
+      prisma.websocSectionMeeting.deleteMany({
+        where: {
+          year: term.year,
+          quarter: term.quarter,
+          timestamp: { lt: timestamp },
+        },
+      }),
+      prisma.websocSection.deleteMany({
+        where: {
+          year: term.year,
+          quarter: term.quarter,
+          timestamp: { lt: timestamp },
+        },
+      }),
+    ]);
   logger.info(`Removed ${instructorsDeleted.count} instructors`);
-  const meetingsDeleted = await prisma.websocSectionMeeting.deleteMany({
-    where: {
-      year: term.year,
-      quarter: term.quarter,
-      timestamp: { lt: timestamp },
-    },
-  });
   logger.info(`Removed ${meetingsDeleted.count} meetings`);
-  const sectionsDeleted = await prisma.websocSection.deleteMany({
-    where: {
-      year: term.year,
-      quarter: term.quarter,
-      timestamp: { lt: timestamp },
-    },
-  });
   logger.info(`Removed ${sectionsDeleted.count} sections`);
   logger.info("Sleeping for 5 minutes");
   await sleep(SLEEP_DURATION);
