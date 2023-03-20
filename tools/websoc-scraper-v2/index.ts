@@ -351,7 +351,7 @@ async function scrape(name: string, term: Term) {
                   courseNumeric: courseNumberToNumeric(course.courseNumber),
                   courseTitle: course.courseTitle,
                   sectionType:
-                    section.sectionType as ProcessedSection['data']['sectionType'],
+                    section.sectionType as ProcessedSection["data"]["sectionType"],
                   units: section.units,
                   maxCapacity: parseInt(section.maxCapacity, 10),
                   sectionFull:
@@ -388,17 +388,18 @@ async function scrape(name: string, term: Term) {
     });
   }
   logger.info(`Processed ${Object.keys(res).length} sections`);
-  const [sectionsCreated, instructorsCreated, meetingsCreated] = await prisma.$transaction([
-    prisma.websocSection.createMany({
-      data: Object.values(res).map((d) => d.data),
-    }),
-    prisma.websocSectionInstructor.createMany({
-      data: Object.values(res).flatMap((d) => d.meta.instructors),
-    }),
-    prisma.websocSectionMeeting.createMany({
-      data: Object.values(res).flatMap((d) => d.meta.meetings),
-    })
-  ])
+  const [sectionsCreated, instructorsCreated, meetingsCreated] =
+    await prisma.$transaction([
+      prisma.websocSection.createMany({
+        data: Object.values(res).map((d) => d.data),
+      }),
+      prisma.websocSectionInstructor.createMany({
+        data: Object.values(res).flatMap((d) => d.meta.instructors),
+      }),
+      prisma.websocSectionMeeting.createMany({
+        data: Object.values(res).flatMap((d) => d.meta.meetings),
+      }),
+    ]);
   logger.info(`Inserted ${sectionsCreated.count} sections`);
   logger.info(`Inserted ${instructorsCreated.count} instructors`);
   logger.info(`Inserted ${meetingsCreated.count} meetings`);
