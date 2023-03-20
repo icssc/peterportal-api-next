@@ -121,14 +121,17 @@ const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
 const prisma = new PrismaClient();
 
 const logger = createLogger({
-  level: "info",
-  format: format.combine(
+  level: "debug",
+  format:
     process.env.NODE_ENV === "development"
-      ? format.colorize({ all: true })
-      : format.uncolorize(),
-    format.timestamp(),
-    format.printf((info) => `${info.timestamp} [${info.level}] ${info.message}`)
-  ),
+      ? format.combine(
+          format.colorize({ all: true }),
+          format.timestamp(),
+          format.printf(
+            (info) => `${info.timestamp} [${info.level}] ${info.message}`
+          )
+        )
+      : format.printf((info) => `[${info.level}] ${info.message}`),
   transports: [new transports.Console()],
   exitOnError: false,
 });
@@ -171,7 +174,7 @@ async function getTermsToScrape(date: Date) {
  */
 function getUniqueMeetings(meetings: WebsocSectionMeeting[]) {
   return meetings.reduce((acc, meeting) => {
-    if (!acc.find((m) => m.days === meeting.days && m.time === meeting.time)) {
+    if (!acc.find((m) => m.days === meeting.days && m === meeting)) {
       acc.push(meeting);
     }
     return acc;
@@ -207,7 +210,7 @@ function isolateSection(data: EnhancedSection): WebsocAPIResponse {
 }
 
 function courseNumberToNumeric(courseNumber: string) {
-  const n = parseInt(courseNumber.replace(/\D/g, ""));
+  const n = parseInt(courseNumber.replace(/\D/g, ""), 10);
   return isNaN(n) ? 0 : n;
 }
 
@@ -236,16 +239,32 @@ function parseStartAndEndTimes(time: string): {
 }
 
 /**
+ * Forces the V8 garbage collector to run, printing the memory usage before and
+ * after the fact.
+ *
+ * Requires the ``--expose-gc`` flag to be set, otherwise this is a no-op aside
+ * from printing the same memory usage twice.
+ */
+function forceGC() {
+  logger.debug("Memory usage:");
+  logger.debug(JSON.stringify(process.memoryUsage()));
+  logger.debug("Forcing garbage collection");
+  global.gc?.();
+  logger.debug("Memory usage:");
+  logger.debug(JSON.stringify(process.memoryUsage()));
+}
+
+/**
  * The scraping function.
  * @param name The name of the term to scrape.
  * @param term The parameters of the term to scrape.
  */
 async function scrape(name: string, term: Term) {
+  forceGC();
   logger.info(`Scraping term ${name}`);
   // The timestamp for this scraping run.
   const timestamp = new Date();
   const depts = await getDepts();
-
   // All departments to scrape.
   const deptCodes = depts
     .map((dept) => dept.deptValue)
@@ -274,7 +293,7 @@ async function scrape(name: string, term: Term) {
     const fulfilledIndices: number[] = [];
     for (const [i, res] of Object.entries(settledResults)) {
       if (res.status === "fulfilled") {
-        const idx = parseInt(i);
+        const idx = parseInt(i, 10);
         const input = inputs[idx];
         const term = `${input[0].year} ${input[0].quarter}`;
         if (input[1].department) {
@@ -414,45 +433,13 @@ async function scrape(name: string, term: Term) {
 /**
  * The entry point of the program.
  */
-(async function main() {
+async function main() {
   try {
-    logger.info("websoc-scraper-v2 daemon starting");
-    let now = new Date();
-    let termsInScope = await getTermsToScrape(now);
+    logger.info("websoc-scraper-v2 starting");
+    const now = new Date();
+    const termsInScope = await getTermsToScrape(now);
     for (const [name, term] of Object.entries(termsInScope))
       await scrape(name, term);
-    for (;;) {
-      const curr = new Date();
-      // Check the available terms every day and scrape all of them once.
-      if (curr.getDate() !== now.getDate()) {
-        termsInScope = await getTermsToScrape(curr);
-        for (const [name, term] of Object.entries(termsInScope))
-          await scrape(name, term);
-      }
-      now = curr;
-      // Check the database for terms to scrape on demand.
-      const websocTerms = await prisma.websocTerm.findMany({
-        where: { timestamp: { gte: now } },
-        select: { year: true, quarter: true },
-      });
-      const termsOnDemandEntries = websocTerms.map(
-        (x) => [`${x.year} ${x.quarter}`, x] as TermEntry
-      );
-      const termsOnDemand = Object.fromEntries(termsOnDemandEntries);
-      let scraped = false;
-      for (const [name, term] of Object.entries(termsOnDemand)) {
-        if (!(name in termsInScope)) {
-          logger.info(`Term ${name} requested but not in scope, skipping`);
-          continue;
-        }
-        scraped = true;
-        await scrape(name, term);
-      }
-      if (!scraped || !Object.keys(termsOnDemand).length) {
-        logger.info("No terms to scrape on demand, sleeping for 5 minutes");
-        await sleep(SLEEP_DURATION);
-      }
-    }
   } catch (e) {
     if (e instanceof Error) {
       logger.error(e.message);
@@ -460,6 +447,7 @@ async function scrape(name: string, term: Term) {
     } else {
       logger.error(e);
     }
-    throw e;
   }
-})();
+}
+
+main();

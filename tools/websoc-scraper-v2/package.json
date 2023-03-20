@@ -13,9 +13,5 @@
     "registrar-api": "*",
     "websoc-api-next": "*",
     "winston": "^3.8.2"
-  },
-  "devDependencies": {
-    "@types/tar": "^6.1.4",
-    "tar": "^6.1.13"
   }
 }

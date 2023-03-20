@@ -1,16 +1,15 @@
-import { copyFile, cp, mkdir, readdir, rm, writeFile } from "fs/promises";
+import { copyFile, cp, mkdir, readdir, rm } from "fs/promises";
 import { dirname, join } from "path";
-import { create } from "tar";
 import { fileURLToPath } from "url";
 
 const cwd = dirname(fileURLToPath(import.meta.url));
 
-const targetDir = "dist/websoc-scraper-v2/";
+const targetDir = "dist/";
 const sourceFiles = ["ecosystem.config.js", "index.ts", "package.json"];
 const dependencies = [".prisma", "db", "registrar-api", "websoc-api-next"];
 
-(async function main() {
-  await rm(join(cwd, "dist/"), { recursive: true, force: true });
+async function buildApp() {
+  await rm(join(cwd, targetDir), { recursive: true, force: true });
   await mkdir(join(cwd, `${targetDir}node_modules`), {
     recursive: true,
   });
@@ -28,22 +27,14 @@ const dependencies = [".prisma", "db", "registrar-api", "websoc-api-next"];
       )
     )
   );
+  const prismaFiles = await readdir(
+    join(cwd, `${targetDir}node_modules/.prisma/client`)
+  );
   await Promise.all(
-    (await readdir(join(cwd, `${targetDir}node_modules/.prisma/client`)))
-      .filter((x) => x.includes(".node") && !x.includes("arm64"))
+    prismaFiles
+      .filter((x) => x.includes(".node") && !x.includes("debian-openssl-1.1.x"))
       .map((x) => rm(join(cwd, `${targetDir}node_modules/.prisma/client`, x)))
   );
-  await writeFile(
-    join(cwd, `${targetDir}.env`),
-    // eslint-disable-next-line turbo/no-undeclared-env-vars
-    `DATABASE_URL="${process.env.DATABASE_URL_SCRAPER}"\nNODE_ENV="production"\nTZ="America/Los_Angeles"`
-  );
-  process.chdir(join(cwd, "dist"));
-  await create(
-    {
-      gzip: true,
-      file: "websoc-scraper-v2.tar.gz",
-    },
-    ["websoc-scraper-v2/"]
-  );
-})();
+}
+
+buildApp();
