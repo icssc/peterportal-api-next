@@ -244,6 +244,7 @@ function parseStartAndEndTimes(time: string): {
  *
  * Requires the ``--expose-gc`` flag to be set, otherwise this is a no-op aside
  * from printing the same memory usage twice.
+ * @see ecosystem.config.js for the execution configuration under pm2
  */
 function forceGC() {
   logger.debug("Memory usage:");
@@ -353,7 +354,7 @@ async function scrape(name: string, term: Term) {
                   courseNumeric: courseNumberToNumeric(course.courseNumber),
                   courseTitle: course.courseTitle,
                   sectionType:
-                    section.sectionType as (typeof sectionTypes)[number],
+                    section.sectionType as ProcessedSection['data']['sectionType'],
                   units: section.units,
                   maxCapacity: parseInt(section.maxCapacity, 10),
                   sectionFull:
@@ -390,17 +391,20 @@ async function scrape(name: string, term: Term) {
     });
   }
   logger.info(`Processed ${Object.keys(res).length} sections`);
-  const sectionsCreated = await prisma.websocSection.createMany({
-    data: Object.values(res).map((d) => d.data),
-  });
+  const [sectionsCreated, instructorsCreated, meetingsCreated] = await prisma.$transaction([
+    prisma.websocSection.createMany({
+      data: Object.values(res).map((d) => d.data),
+    }),
+    prisma.websocSectionInstructor.createMany({
+      data: Object.values(res).flatMap((d) => d.meta.instructors),
+    }),
+    prisma.websocSectionMeeting.createMany({
+      data: Object.values(res).flatMap((d) => d.meta.meetings),
+    })
+  ])
   logger.info(`Inserted ${sectionsCreated.count} sections`);
-  const instructorsCreated = await prisma.websocSectionInstructor.createMany({
-    data: Object.values(res).flatMap((d) => d.meta.instructors),
-  });
   logger.info(`Inserted ${instructorsCreated.count} instructors`);
-  const meetingsCreated = await prisma.websocSectionMeeting.createMany({
-    data: Object.values(res).flatMap((d) => d.meta.meetings),
-  });
+  logger.info(`Inserted ${meetingsCreated.count} meetings`);
   logger.info(`Inserted ${meetingsCreated.count} meetings`);
   const instructorsDeleted = await prisma.websocSectionInstructor.deleteMany({
     where: {

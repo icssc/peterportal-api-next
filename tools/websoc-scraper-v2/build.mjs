@@ -2,7 +2,7 @@ import { copyFile, cp, mkdir, readdir, rm } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
-const cwd = dirname(fileURLToPath(import.meta.url));
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const targetDir = "dist/";
 const sourceFiles = ["ecosystem.config.js", "index.ts", "package.json"];
