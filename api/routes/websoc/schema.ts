@@ -70,8 +70,7 @@ export const QuerySchema = z
       .array()
       .or(z.string())
       .optional()
-      .transform(flattenStringsAndSplit)
-      .optional(),
+      .transform(flattenStringsAndSplit),
     instructorName: z.string().optional(),
     days: z
       .string()
