@@ -452,6 +452,7 @@ async function main() {
     } else {
       logger.error(e);
     }
+    await sleep(SLEEP_DURATION);
   }
 }
 
