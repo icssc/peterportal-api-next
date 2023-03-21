@@ -37,7 +37,7 @@ export class WebsocScraperV2Stack extends Stack {
       maxCapacity: 1,
       vpc,
     });
-  /** @see {@link https://github.com/aws/aws-cdk/issues/18179#issuecomment-1150981559} */
+    /** @see {@link https://github.com/aws/aws-cdk/issues/18179#issuecomment-1150981559} */
     const asgForceDelete = new AwsCustomResource(this, "asg-force-delete", {
       installLatestAwsSdk: false,
       onDelete: {
