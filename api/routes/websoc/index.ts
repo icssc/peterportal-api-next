@@ -34,23 +34,22 @@ export const rawHandler: RawHandler = async (request) => {
         const parsedQuery = QuerySchema.parse(query);
 
         /**
-         * Check whether an entry with the specified term exists in the sections
-         * table. If not, then we're probably not scraping that term, so just
-         * proxy WebSoc in that case.
+         * Check whether an entry with the specified term exists in the sections table.
+         * If not, then we're probably not scraping that term, so just proxy WebSoc.
          */
         const termExists = await prisma.websocSection.findFirst({
           where: { year: parsedQuery.year, quarter: parsedQuery.quarter },
         });
 
-        if (!parsedQuery.cache && termExists) {
+        if (parsedQuery.cache && termExists) {
           // The TTL for the scraper request.
           const timestamp = new Date();
           timestamp.setDate(timestamp.getDate() + 1);
 
           /**
-           * This needs to be wrapped in a try-catch since it is possible for
-           * race conditions to happen. In this case it's fine if the query
-           * doesn't execute, because the entry will have already been created.
+           * This needs to be wrapped in a try-catch since race conditions are possible.
+           * In this case it's fine if the query doesn't execute,
+           * because the entry will have already been created.
            */
           try {
             await prisma.websocTerm.upsert({
@@ -87,6 +86,9 @@ export const rawHandler: RawHandler = async (request) => {
             );
           }
 
+          /**
+           * Return found sections if using cache and they exist in database.
+           */
           if (websocSections.length) {
             const websocApiResponses = websocSections
               .map((x) => x.data)
@@ -97,18 +99,23 @@ export const rawHandler: RawHandler = async (request) => {
         }
 
         let queries = normalizeQuery(parsedQuery);
-        let websocResponseData: WebsocAPIResponse = { schools: [] };
         let retries = 0;
-let failed: WebsocAPIOptions[] = [];
+
+        let responses: PromiseSettledResult<WebsocAPIResponse>[] = [];
+        let queryString = "";
+
+        let successes: PromiseFulfilledResult<WebsocAPIResponse>[] = [];
+        const failed: WebsocAPIOptions[] = [];
+
+        let websocResponseData: WebsocAPIResponse = { schools: [] };
+
         while (queries.length && retries < 3) {
-          const responses = await Promise.allSettled(
+          responses = await Promise.allSettled(
             queries.map((options) => callWebSocAPI(parsedQuery, options))
           );
 
-          const failed: WebsocAPIOptions[] = [];
-
           responses.forEach((response, i) => {
-            const queryString = JSON.stringify(queries[i]);
+            queryString = JSON.stringify(queries[i]);
             if (response.status === "fulfilled") {
               logger.info(`WebSoc query for ${queryString} succeeded`);
             } else {
@@ -117,23 +124,24 @@ let failed: WebsocAPIOptions[] = [];
             }
           });
 
-          const successes = responses.filter(fulfilled);
+          successes = responses.filter(fulfilled);
           websocResponseData = successes.reduce(
             (acc, curr) => combineResponses(acc, curr.value),
             websocResponseData
           );
 
           queries = failed;
-          if (!queries.length) break;
-          // 3 attempts + (1 + 2 + 4) seconds ~= Lambda timeout (15 seconds)
-          if (retries >= 2)
-            return createErrorResult(
-              500,
-              "WebSoc failed to respond too many times. Please try again later.",
-              requestId
-            );
-          await sleep(1000 * 2 ** retries++);
+          if (queries.length) await sleep(1000 * 2 ** retries++);
         }
+
+        // 3 attempts + (1 + 2 + 4) seconds ~= Lambda timeout (15 seconds)
+        if (retries >= 2)
+          return createErrorResult(
+            500,
+            "WebSoc failed to respond too many times. Please try again later.",
+            requestId
+          );
+
         return createOKResult(sortResponse(websocResponseData), requestId);
       } catch (e) {
         if (e instanceof ZodError) {

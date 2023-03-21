@@ -15,10 +15,15 @@ import { z } from "zod";
 type TransformInput = string | string[] | undefined;
 
 /**
+ * Output of a transform function.
+ */
+type TransformOutput = string[] | undefined;
+
+/**
  * Get unique, sorted array of strings.
  * @param value String of comma-separated values or array of such strings.
  */
-function flattenStringsAndSplit(value: TransformInput): string[] | undefined {
+function flattenStringsAndSplit(value: TransformInput): TransformOutput {
   if (!value) return undefined;
   const unique = new Set(
     Array.isArray(value) ? value.flatMap((x) => x.split(",")) : value.split(",")
@@ -32,16 +37,14 @@ const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
  * Get unique, sorted array of day strings from input.
  * @param value String of combined days of the week (e.g. ``MWF``) or array of such strings.
  */
-function flattenDayStringsAndSplit(
-  value: TransformInput
-): string[] | undefined {
+function flattenDayStringsAndSplit(value: TransformInput): TransformOutput {
   if (!value) return undefined;
   const unique = new Set(
     Array.isArray(value)
       ? value.flatMap((x) => days.filter((y) => y.includes(x)))
       : days.filter((x) => value.includes(x))
   );
-  return [...unique].sort();
+  return [...unique];
 }
 
 /**
@@ -77,8 +80,7 @@ export const QuerySchema = z
       .array()
       .or(z.string())
       .optional()
-      .transform(flattenDayStringsAndSplit)
-      .optional(),
+      .transform(flattenDayStringsAndSplit),
     building: z.string().optional(),
     room: z.string().optional(),
     division: z.union([z.enum(anyArray), z.enum(divisionCodes)]).optional(),
@@ -92,13 +94,11 @@ export const QuerySchema = z
       .array()
       .or(z.string())
       .optional()
-      .transform(flattenStringsAndSplit)
-      .optional(),
+      .transform(flattenStringsAndSplit),
     cache: z
       .string()
       .optional()
-      .transform((x) => !(x === "false"))
-      .optional(),
+      .transform((x) => !(x === "false")),
     startTime: z
       .string()
       .regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/)

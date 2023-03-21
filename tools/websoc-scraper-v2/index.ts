@@ -111,13 +111,13 @@ type ProcessedSection = {
 
 /**
  * The duration to sleep between scraping runs.
- * Default: 5 minutes
+ * Default: 5 minutes in ms
  */
 const SLEEP_DURATION = 5 * 60 * 1000;
 
 /**
  * The duration to sleep when an error is caught.
- * Default: 30 minutes
+ * Default: 30 minutes in ms
  */
 const ERROR_SLEEP_DURATION = 30 * 60 * 1000;
 
@@ -153,11 +153,9 @@ const sleep = async (duration: number) =>
  * @param date The current date.
  */
 async function getTermsToScrape(date: Date) {
-  const termDateData = await Promise.all([
-    ...[-1, 0, 1].map((x) =>
-      getTermDateData((date.getFullYear() + x).toString())
-    ),
-  ]);
+  const termDateData = await Promise.all(
+    [-1, 0, 1].map((x) => getTermDateData((date.getFullYear() + x).toString()))
+  );
   const quarterDates = termDateData.reduce((p, c) => Object.assign(p, c), {});
   const terms = await getTerms();
   const termEntries = terms
@@ -265,27 +263,30 @@ function forceGC() {
 async function scrape(name: string, term: Term) {
   forceGC();
   logger.info(`Scraping term ${name}`);
-  // The timestamp for this scraping run.
-  const timestamp = new Date();
+
   const depts = await getDepts();
-  // All departments to scrape.
+
+  /** All departments to scrape. */
   const deptCodes = depts
     .map((dept) => dept.deptValue)
     .filter((deptValue) => deptValue !== "ALL");
-  // The data structure that holds all scraped data.
+
+  /** The data structure that holds all scraped data. */
   const results: Record<string, ScrapedTerm> = {
     [`${term.year} ${term.quarter}`]: {
       department: {},
       ge: {},
     },
   };
-  // The list of parameters to pass to ``callWebSocAPI``.
+
+  /** The list of parameters to pass to ``callWebSocAPI``. */
   let inputs: [Term, WebsocAPIOptions][] = [
     ...deptCodes.map(
       (department) => [term, { department }] as [Term, WebsocAPIOptions]
     ),
     ...geCodes.map((ge) => [term, { ge }] as [Term, WebsocAPIOptions]),
   ];
+
   while (inputs.length) {
     logger.info(`Making ${inputs.length} concurrent calls to WebSoc`);
     const settledResults = await Promise.allSettled(
@@ -316,8 +317,14 @@ async function scrape(name: string, term: Term) {
       await sleep(SLEEP_DURATION);
     }
   }
+
+  /** The timestamp for this scraping run. */
+  const timestamp = new Date();
+
   const res: Record<string, ProcessedSection> = {};
+
   logger.info("Processing all sections");
+
   for (const [term, data] of Object.entries(results)) {
     for (const response of Object.values(data.department)) {
       for (const school of response.schools) {
@@ -392,7 +399,9 @@ async function scrape(name: string, term: Term) {
       });
     });
   }
+
   logger.info(`Processed ${Object.keys(res).length} sections`);
+
   const [sectionsCreated, instructorsCreated, meetingsCreated] =
     await prisma.$transaction([
       prisma.websocSection.createMany({
@@ -405,10 +414,12 @@ async function scrape(name: string, term: Term) {
         data: Object.values(res).flatMap((d) => d.meta.meetings),
       }),
     ]);
+
   logger.info(`Inserted ${sectionsCreated.count} sections`);
   logger.info(`Inserted ${instructorsCreated.count} instructors`);
   logger.info(`Inserted ${meetingsCreated.count} meetings`);
   logger.info(`Inserted ${meetingsCreated.count} meetings`);
+
   const [instructorsDeleted, meetingsDeleted, sectionsDeleted] =
     await prisma.$transaction([
       prisma.websocSectionInstructor.deleteMany({
@@ -433,10 +444,12 @@ async function scrape(name: string, term: Term) {
         },
       }),
     ]);
+
   logger.info(`Removed ${instructorsDeleted.count} instructors`);
   logger.info(`Removed ${meetingsDeleted.count} meetings`);
   logger.info(`Removed ${sectionsDeleted.count} sections`);
   logger.info("Sleeping for 5 minutes");
+
   await sleep(SLEEP_DURATION);
 }
 

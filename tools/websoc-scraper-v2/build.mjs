@@ -10,9 +10,7 @@ const dependencies = [".prisma", "db", "registrar-api", "websoc-api-next"];
 
 async function buildApp() {
   await rm(join(__dirname, targetDir), { recursive: true, force: true });
-  await mkdir(join(__dirname, `${targetDir}node_modules`), {
-    recursive: true,
-  });
+  await mkdir(join(__dirname, `${targetDir}node_modules`), { recursive: true });
   await Promise.all(
     sourceFiles.map((file) =>
       copyFile(join(__dirname, file), join(__dirname, `${targetDir}${file}`))
