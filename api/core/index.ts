@@ -140,7 +140,7 @@ class LambdaRequest implements IRequest {
 /**
  * The signature that all `rawHandler`s exported from `some-route` should have.
  */
-type RawHandler = (request: IRequest) => Promise<APIGatewayProxyResult>;
+export type RawHandler = (request: IRequest) => Promise<APIGatewayProxyResult>;
 
 /**
  * The signature that an Express handler should have.
@@ -151,7 +151,7 @@ type ExpressHandler = RequestHandler;
 /**
  * The signature that an `async/await`-based Lambda proxy handler should have.
  */
-type LambdaHandler = (
+export type LambdaHandler = (
   event: APIGatewayProxyEvent,
   context: Context
 ) => Promise<APIGatewayProxyResult>;

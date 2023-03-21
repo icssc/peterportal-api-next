@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "deploy": "cdk deploy --all --require-approval never"
+    "deploy": "cdk deploy --all --require-approval never",
+    "destroy": "cdk destroy --all --force"
   },
   "dependencies": {
-    "tools-websoc-cache-updater": "*"
+    "websoc-scraper-v2": "*"
   },
   "devDependencies": {
     "@types/babel__traverse": "^7.18.3",

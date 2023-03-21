@@ -11,6 +11,7 @@ import {
   Term,
   TermData,
   WebsocAPIResponse,
+  WebsocSectionMeeting,
 } from "peterportal-api-next-types";
 
 /* region Constants */
@@ -228,23 +229,33 @@ export const callWebSocAPI = async (
   const response = await fetch("https://www.reg.uci.edu/perl/WebSoc", {
     method: "POST",
     body: data,
+    redirect: "error",
   });
 
   const json: WebsocAPIResponse = await transform(
     await response.text(),
     template
   );
-  json.schools.forEach((s) =>
-    s.departments.forEach((d) =>
-      d.courses.forEach((c) =>
-        c.sections.forEach((e) =>
-          e.meetings.forEach((m) => (m.bldg = [m.bldg] as unknown as string[]))
+  json.schools.forEach((school) =>
+    school.departments.forEach((department) =>
+      department.courses.forEach((course) =>
+        course.sections.forEach(
+          (section) => (section.meetings = getUniqueMeetings(section.meetings))
         )
       )
     )
   );
   return json;
 };
+
+function getUniqueMeetings(meetings: WebsocSectionMeeting[]) {
+  return meetings.reduce((acc, meeting) => {
+    if (!acc.find((m) => m.days === meeting.days && m.time === meeting.time)) {
+      acc.push(meeting);
+    }
+    return acc;
+  }, [] as WebsocSectionMeeting[]);
+}
 
 // Returns all currently visible undergraduate and graduate terms.
 export const getTerms = async (): Promise<TermData[]> => {

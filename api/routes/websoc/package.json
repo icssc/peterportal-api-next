@@ -9,21 +9,14 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "@aws-sdk/client-lambda": "^3.276.0",
     "api-core": "*",
-    "ddb": "*",
-    "object-hash": "^3.0.0",
+    "db": "*",
     "websoc-api-next": "*",
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "@types/aws-lambda": "^8.10.109",
-    "@types/express": "^4.17.14",
     "@types/node": "^18.11.10",
-    "@types/object-hash": "^3.0.2",
-    "aws-lambda": "^1.0.7",
     "esbuild": "^0.17.8",
-    "express": "^4.18.2",
     "peterportal-api-next-types": "*",
     "typescript": "^4.9.4"
   }

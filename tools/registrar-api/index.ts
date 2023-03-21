@@ -84,16 +84,15 @@ export const getTermDateData = async (
   if (year.length !== 4 || isNaN(parseInt(year)))
     throw new Error("Error: Invalid year provided.");
   const shortYear = year.slice(2);
-  const response = await (
-    await fetch(
-      `https://www.reg.uci.edu/calendars/quarterly/${year}-${
-        parseInt(year) + 1
-      }/quarterly${shortYear}-${parseInt(shortYear) + 1}.html`
-    )
-  ).text();
+  const response = await fetch(
+    `https://www.reg.uci.edu/calendars/quarterly/${year}-${
+      parseInt(year, 10) + 1
+    }/quarterly${shortYear}-${parseInt(shortYear, 10) + 1}.html`
+  );
+  if (response.status === 404) return {};
   const quarterData: string[][] = [];
   const summerSessionData: string[][] = [];
-  const $ = load(response);
+  const $ = load(await response.text());
   const $table = $("table.calendartable");
   $table
     .eq(2)
@@ -141,6 +140,20 @@ export const getTermDateData = async (
     year,
     3
   );
+  // Normalize all terms to start on a Monday, or a Thursday if it is Fall.
+  for (const key in ret) {
+    if (key.includes("Fall")) {
+      (ret[key] as QuarterDates).instructionStart.setDate(
+        (ret[key] as QuarterDates).instructionStart.getDate() -
+          ((ret[key] as QuarterDates).instructionStart.getDay() - 4)
+      );
+    } else {
+      (ret[key] as QuarterDates).instructionStart.setDate(
+        (ret[key] as QuarterDates).instructionStart.getDate() -
+          ((ret[key] as QuarterDates).instructionStart.getDay() - 1)
+      );
+    }
+  }
   return ret as Record<string, QuarterDates>;
 };
 

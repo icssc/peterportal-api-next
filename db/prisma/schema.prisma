@@ -1,6 +1,6 @@
 generator client {
   provider      = "prisma-client-js"
-  binaryTargets = ["native", "rhel-openssl-1.0.x"]
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "debian-openssl-1.1.x"]
 }
 
 datasource db {
@@ -10,15 +10,6 @@ datasource db {
 }
 
 // Do not modify anything above this line unless you know what you are doing.
-
-enum Quarter {
-  Fall
-  Winter
-  Spring
-  Summer1
-  Summer10wk
-  Summer2
-}
 
 model GradesInstructor {
   year        String
@@ -51,4 +42,85 @@ model GradesSection {
 
   @@id([year, quarter, sectionCode])
   @@unique([year, quarter, sectionCode], name: "idx")
+}
+
+enum Quarter {
+  Fall
+  Winter
+  Spring
+  Summer1
+  Summer10wk
+  Summer2
+}
+
+enum WebsocSectionType {
+  Act
+  Col
+  Dis
+  Fld
+  Lab
+  Lec
+  Qiz
+  Res
+  Sem
+  Stu
+  Tap
+  Tut
+}
+
+model WebsocSectionInstructor {
+  id          Int           @id @default(autoincrement())
+  year        String
+  quarter     Quarter
+  sectionCode Int
+  timestamp   DateTime
+  section     WebsocSection @relation(fields: [year, quarter, sectionCode, timestamp], references: [year, quarter, sectionCode, timestamp])
+  name        String
+}
+
+model WebsocSectionMeeting {
+  id          Int           @id @default(autoincrement())
+  year        String
+  quarter     Quarter
+  sectionCode Int
+  timestamp   DateTime
+  section     WebsocSection @relation(fields: [year, quarter, sectionCode, timestamp], references: [year, quarter, sectionCode, timestamp])
+  days        Json
+  startTime   Int
+  endTime     Int
+  buildings   Json
+}
+
+model WebsocTerm {
+  year      String
+  quarter   Quarter
+  timestamp DateTime
+
+  @@id([year, quarter])
+  @@unique([year, quarter], name: "idx")
+}
+
+model WebsocSection {
+  year          String
+  quarter       Quarter
+  sectionCode   Int
+  timestamp     DateTime
+  geCategories  Json
+  department    String
+  courseNumber  String
+  courseNumeric Int
+  instructors   WebsocSectionInstructor[]
+  courseTitle   String
+  sectionType   WebsocSectionType
+  units         String
+  meetings      WebsocSectionMeeting[]
+  maxCapacity   Int
+  sectionFull   Boolean
+  waitlistFull  Boolean
+  overEnrolled  Boolean
+  cancelled     Boolean
+  data          Json
+
+  @@id([year, quarter, sectionCode, timestamp])
+  @@unique([year, quarter, sectionCode, timestamp], name: "idx")
 }

@@ -42,6 +42,7 @@ An up-to-date list of contributors to this repository is available [here](https:
 - Daniel Boghossian ([@Dg155](https://github.com/Dg155))
 - Ethan Deng ([@ethand605](https://github.com/ethand605))
 - Yizhen Liu ([@imliuyzh](https://github.com/imliuyzh))
+- Minh Nguyen ([@MinhxNguyen7](https://github.com/MinhxNguyen7))
 - Randy Huynh ([@RandyHuynh5815](https://github.com/RandyHuynh5815))
 - Frederick Dong ([@Voark](https://github.com/Voark))
 - Yasper De Jong ([@y-dejong](https://github.com/y-dejong))
