@@ -110,11 +110,16 @@ type ProcessedSection = {
 };
 
 /**
- * The duration to sleep between scraping runs, or to wait before querying the
- * database for terms to scrape on demand if there were none in the last query.
- * default: 5 minutes
+ * The duration to sleep between scraping runs.
+ * Default: 5 minutes
  */
 const SLEEP_DURATION = 5 * 60 * 1000;
+
+/**
+ * The duration to sleep when an error is caught.
+ * Default: 30 minutes
+ */
+const ERROR_SLEEP_DURATION = 30 * 60 * 1000;
 
 const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
 
@@ -307,8 +312,8 @@ async function scrape(name: string, term: Term) {
       `${fulfilledIndices.length} calls succeeded, ${inputs.length} remain`
     );
     if (inputs.length) {
-      logger.info("Sleeping for 1 minute");
-      await sleep(60 * 1000);
+      logger.info("Sleeping for 5 minutes");
+      await sleep(SLEEP_DURATION);
     }
   }
   const res: Record<string, ProcessedSection> = {};
@@ -452,7 +457,8 @@ async function main() {
     } else {
       logger.error(e);
     }
-    await sleep(SLEEP_DURATION);
+    logger.info("Sleeping for 30 minutes");
+    await sleep(ERROR_SLEEP_DURATION);
   }
 }
 
