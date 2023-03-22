@@ -2,12 +2,17 @@ import axios, { all, AxiosInstance } from "axios";
 import cheerio from "cheerio";
 import fs from "fs";
 
-// TODO: ADD DEBUG STATEMENTS AND FILE WRITING
-
 // scrape links
 const CATALOGUE_BASE_URL : string = "http://catalogue.uci.edu"
 const URL_TO_ALL_COURSES : string = CATALOGUE_BASE_URL + "/allcourses/"
 const URL_TO_ALL_SCHOOLS : string = CATALOGUE_BASE_URL + "/schoolsandprograms/"
+
+// output file names
+const GENERATE_JSON_NAME = "all_courses.json";
+const DEPT_SCHOOL_MAP_NAME = "dept_school_map.json";
+const COURSES_DATA_NAME = "course_data.json";
+const SPECIAL_REQS_NAME = "special_reqs.txt";
+const SCHOOL_LIST_NAME = "school_list.txt";
 
 // references
 let GE_DICTIONARY: { [key:string] : string} = {
@@ -94,6 +99,9 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
         const $ = cheerio.load(response.data);
         // get school name
         const school: string = normalizeString($("#contentarea > h1").text());
+        if (debug) {
+            console.log("School: " + school);
+        }
         // if this school has the "Courses" tab
         const schoolCourses = $("#courseinventorytab");
         if (schoolCourses.text() != '') {
@@ -176,7 +184,9 @@ export async function mapCoursePageToSchool(mapping: { [key: string]: string }, 
         const courseID: string = courseInfo[0];
         const id_dept: string = courseID.split(' ').slice(0, -1).join(" ");
         // set the mapping
-        console.log(id_dept);
+        if (debug) {
+            console.log(`\t${id_dept}`);
+        }
         mapping[id_dept] = school;
     })
 }
@@ -216,6 +226,9 @@ export async function getAllCourses(courseURL: string, json_data: { [key: string
     const $ = cheerio.load(response.data);
     // department name
     var department: string = normalizeString($("#contentarea > h1").text());
+    if (debug) {
+        console.log("Department: " + department);
+    }
     // strip off department id
     department = department.slice(0, department.indexOf("(")).trim();
     $("#courseinventorycontainer > .courses").each(async (i: any, course: cheerio.Element) => {
@@ -237,6 +250,9 @@ export async function getAllCourses(courseURL: string, json_data: { [key: string
             var courseID: string = courseInfo[0];
             const courseName: string = courseInfo[1];
             const courseUnits: string = courseInfo[2];
+            if (debug) {
+                console.log("\t", courseID, courseName, courseUnits);
+            }
             // get course body (0:Course Description, 1:Prerequisite)
             const courseBody = $(courseBlock).find('div').find('p');
             const courseDescription: string = normalizeString($(courseBody[0]).text());
@@ -292,8 +308,6 @@ export async function getAllCourses(courseURL: string, json_data: { [key: string
                     console.log("\t\tNOREQS");
                 }
             }
-            // get course body (0:Course Description, 1:Prerequisite)
-            //const courseBody = $(courseBlock).find('div').children();
         })
         // const courseBlockPromises: Promise<string[]>[] = courseBlocks.map(x => getCourseInfo(x, courseURL));
         // const courseBlockResults: string[][] = await Promise.all(courseBlockPromises);
@@ -492,7 +506,6 @@ function setReliablePrerequisites(json_data: {[key: string]: any}): void {
     // const prerequisite_data = JSON.parse(
     // fs.readFileSync(prerequisiteScraper.PREREQUISITE_DATA_NAME, "utf-8")
     // );
-    //const bar = new ProgressBar(prerequisite_data.length, debug);
     const reqsReplaced = [];
     // go through each prerequisite course
     //for (const courseID in prerequisite_data) {
@@ -504,7 +517,6 @@ function setReliablePrerequisites(json_data: {[key: string]: any}): void {
     //         json_data[courseID]["prerequisite_list"] = prerequisite_data[courseID]["prerequisiteList"];
     //         json_data[courseID]["prerequisite_text"] = prerequisite_data[courseID]["fullReqs"];
     //     }
-    //     bar.inc();
     // }
     // console.log(Replaced ${reqsReplaced.length} course prerequisites!);
     // console.log("Done!");
@@ -516,7 +528,6 @@ function setReliablePrerequisites(json_data: {[key: string]: any}): void {
 */
 function setDependencies(json_data: {[key: string]: any}): void {
     console.log("\nSetting Course Dependencies...");
-    //const bar = new ProgressBar(json_data.length, debug);
     // go through each prerequisiteList to add dependencies
     for (const courseID in json_data) {
         // iterate prerequisiteList
@@ -528,7 +539,6 @@ function setDependencies(json_data: {[key: string]: any}): void {
                 json_data[trimmedPrereq]["prerequisite_for"].push(readableCourseID);
             }
         }
-        //bar.inc();
     }
     console.log("Done!");
 }
@@ -541,7 +551,6 @@ function setProfessorHistory(json_data: {[key: string]: any}): void {
     // console.log("\nSetting Professor History...");
     // // collection of professor information generated from professorScraper.py
     // const professor_data = require(professorScraper.PROFESSOR_DATA_NAME); NEED Professor Scraper??
-    // const bar = new ProgressBar(Object.keys(professor_data).length, debug);
     // // go through each professor data values
     // for (const professor of Object.values(professor_data)) {
     //     // go through each course that professor has taught
@@ -552,7 +561,6 @@ function setProfessorHistory(json_data: {[key: string]: any}): void {
     //             json_data[trimmedCourseID]["professor_history"].push(professor["ucinetid"]);
     //         }
     //     }
-    //     bar.inc();
     // }
     // console.log("Done!");
 }
@@ -606,17 +614,84 @@ function testRequirements(targetClass: string, takenClasses: string[], expectedV
 
 // if name == main
 
+// directory holding all the JSON file
+const path = "tools/courseScraper/";
 // whether to print out info
 const debug = false;
+// whether to use cached data instead of rescraping (for faster development/testing for prerequisite/professor)
+const cache = false;
+// debugging information
+const specialRequirements = new Set();
+const noSchoolDepartment = new Set();
+//Dont know if we need this or not
+// // the Selenium Chrome driver
+// const options = new webdriver.chrome.Options();
+// options.headless();
+// if (process.env.NODE_ENV === 'production') {
+//   options.addArguments("--disable-dev-shm-usage");
+// }
+// const driver = new webdriver.Builder()
+//   .forBrowser('chrome')
+//   .setChromeOptions(options)
+//   .build();
+// store all of the data
+let json_data = {};
+// put this at the end
+if (!cache) {
+  json_data = JSON.parse(fs.readFileSync(path + COURSES_DATA_NAME, "utf8"));
+}
+// scrape data if not using cache option
+if (!cache) {
+    // maps department code to school
+    let departmentToSchoolMapping = {};
+    if (!cache) {
+      departmentToSchoolMapping = getDepartmentToSchoolMapping();
+    }
+    // Pre-reqs that are not in the database (idk if we need this)
+    // const conflictFile = fs.createWriteStream(CONFLICT_PREREQ_NAME);
+    // conflictFile.write(
+    //   "Following courses have conflicting AND/OR logic in their prerequisites\n");
+    // conflictFile.close();
+  
+    // get urls to scrape
+    const allCourseURLS = await getAllCourseURLS();
+    console.log("\nParsing Each Course URL...");
+    // populate json_data
+    for (const classURL of allCourseURLS) {
+      await getAllCourses(classURL, json_data,
+        departmentToSchoolMapping);
+    }
+    fs.writeFileSync(path + COURSES_DATA_NAME, JSON.stringify(json_data)); //is this a correct translation?
+    console.log("Successfully parsed all course URLs!");
 
-const noSchoolDepartment = new Set<string>();
-const specialRequirements = new Set<string>();
+    // Debug information about school
+    const schoolFile = fs.createWriteStream(path + SCHOOL_LIST_NAME);
+    schoolFile.write("List of Schools:\n");
+    for (const school of Array.from(new Set(Object.values(departmentToSchoolMapping))).sort()) {
+      schoolFile.write(school + "\n");
+    }
+    schoolFile.close();
+    if (noSchoolDepartment.size === 0) {
+      console.log("SUCCESS! ALL DEPARTMENTS HAVE A SCHOOL!");
+    } else {
+      console.log("FAILED!", noSchoolDepartment,
+        "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT AT getDepartmentToSchoolMapping");
+    }
+  
+    // Debug information about special requirements
+    const specialFile = fs.createWriteStream(SPECIAL_REQS_NAME);
+    specialFile.write("Special Requirements:\n");
+    for (const sReq of Array.from(specialRequirements).sort()) {
+      specialFile.write(sReq+"\n");
+    }
+    specialFile.close();
+}
 
-
-
-// test for getAllCourses
-getAllCourseURLS().then((response) => {
-    response.map(async (url) => {
-        getAllCourses(url, {}, {});
-    })
-});
+// set reliable prerequisites
+setReliablePrerequisites(json_data);
+// set dependencies between each course
+setDependencies(json_data);
+// set professor history
+setProfessorHistory(json_data);
+// write data to index into elasticSearch
+writeJsonData(json_data);
