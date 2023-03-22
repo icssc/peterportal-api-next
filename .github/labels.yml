@@ -61,6 +61,9 @@
 - name: "type: dependency"
   color: 0366d6
   description: Pull requests that update a dependency file
+- name: "type: devops"
+  color: 615d2e
+  description: Related to DevOps
 - name: "type: discussion"
   color: d4c5f9
   description: Questions, proposals and info that requires discussion
@@ -79,18 +82,15 @@
 - name: "type: question"
   color: d876e3
   description: Further information is requested
+- name: "area: api"
+  color: 42890d
+  description: Related to the API in general
 - name: "area: rest-api"
   color: 006b75
-  description: Related to the REST API
+  description: Related to the REST API specifically
 - name: "area: graphql-api"
   color: aef093
-  description: Related to the GraphQL API
-- name: "area: cdk"
-  color: 615d2e
-  description: Related to the AWS CDK
-- name: "area: db"
-  color: 42890d
-  description: Related to the Prisma database client
+  description: Related to the GraphQL API specifically
 - name: "area: tools"
   color: 9951a0
   description: Related to the API's maintenance tooling
