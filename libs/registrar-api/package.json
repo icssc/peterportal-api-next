@@ -1,5 +1,5 @@
 {
-  "name": "registrar-api",
+  "name": "@libs/registrar-api",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",

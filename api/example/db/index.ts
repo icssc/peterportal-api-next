@@ -1,3 +1,4 @@
+import { PrismaClient } from "@libs/db";
 import type { IRequest } from "api-core";
 import {
   createErrorResult,
@@ -10,7 +11,6 @@ import type {
   APIGatewayProxyResult,
   Context,
 } from "aws-lambda";
-import { PrismaClient } from "db";
 
 export const rawHandler = async (
   request: IRequest

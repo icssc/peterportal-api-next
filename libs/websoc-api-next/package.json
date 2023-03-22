@@ -1,5 +1,5 @@
 {
-  "name": "websoc-api-next",
+  "name": "@libs/websoc-api-next",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",

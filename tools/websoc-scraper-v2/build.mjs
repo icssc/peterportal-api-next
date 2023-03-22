@@ -6,7 +6,12 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const targetDir = "dist/";
 const sourceFiles = ["ecosystem.config.js", "index.ts", "package.json"];
-const dependencies = [".prisma", "db", "registrar-api", "websoc-api-next"];
+const dependencies = [
+  ".prisma",
+  "@libs/db",
+  "@libs/registrar-api",
+  "@libs/websoc-api-next",
+];
 
 async function buildApp() {
   await rm(join(__dirname, targetDir), { recursive: true, force: true });

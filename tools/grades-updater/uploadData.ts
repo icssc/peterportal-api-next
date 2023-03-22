@@ -1,5 +1,5 @@
+import { PrismaClient } from "@libs/db";
 import { type CastingContext, type Parser, parse } from "csv-parse";
-import { PrismaClient } from "db";
 import fs from "fs";
 import { resolve } from "path";
 import type { Quarter } from "peterportal-api-next-types";

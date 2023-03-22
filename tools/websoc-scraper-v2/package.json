@@ -8,10 +8,10 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "db": "*",
+    "@libs/db": "*",
+    "@libs/registrar-api": "*",
+    "@libs/websoc-api-next": "*",
     "peterportal-api-next-types": "*",
-    "registrar-api": "*",
-    "websoc-api-next": "*",
     "winston": "^3.8.2"
   }
 }

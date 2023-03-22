@@ -1,4 +1,5 @@
-import { Prisma } from "db";
+import { Prisma } from "@libs/db";
+import { WebsocAPIOptions } from "@libs/websoc-api-next";
 import type {
   WebsocAPIResponse,
   WebsocCourse,
@@ -7,7 +8,6 @@ import type {
   WebsocSection,
   WebsocSectionMeeting,
 } from "peterportal-api-next-types";
-import type { WebsocAPIOptions } from "websoc-api-next";
 
 import type { Query } from "./schema";
 

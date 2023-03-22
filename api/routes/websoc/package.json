@@ -9,9 +9,9 @@
     "build": "node build.mjs"
   },
   "dependencies": {
+    "@libs/db": "*",
+    "@libs/websoc-api-next": "*",
     "api-core": "*",
-    "db": "*",
-    "websoc-api-next": "*",
     "zod": "^3.21.4"
   },
   "devDependencies": {

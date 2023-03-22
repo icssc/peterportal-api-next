@@ -1,4 +1,6 @@
-import { type CastingContext, type Parser, parse } from "csv-parse";
+import { callWebSocAPI } from "@libs/websoc-api-next";
+import type { CastingContext, Parser } from "csv-parse";
+import { parse } from "csv-parse";
 import { stringify } from "csv-stringify/sync";
 import fs from "fs";
 import { EOL } from "os";
@@ -8,7 +10,6 @@ import type {
   WebsocAPIResponse,
   WebsocSection,
 } from "peterportal-api-next-types";
-import { callWebSocAPI } from "websoc-api-next";
 
 import {
   type Grade,

@@ -1,4 +1,11 @@
-import { PrismaClient } from "db";
+import { PrismaClient } from "@libs/db";
+import { getTermDateData } from "@libs/registrar-api";
+import {
+  type WebsocAPIOptions,
+  callWebSocAPI,
+  getDepts,
+  getTerms,
+} from "@libs/websoc-api-next";
 import type {
   GE,
   Quarter,
@@ -11,13 +18,6 @@ import type {
   WebsocSectionMeeting,
 } from "peterportal-api-next-types";
 import { geCodes, sectionTypes } from "peterportal-api-next-types";
-import { getTermDateData } from "registrar-api";
-import {
-  type WebsocAPIOptions,
-  callWebSocAPI,
-  getDepts,
-  getTerms,
-} from "websoc-api-next";
 import { createLogger, format, transports } from "winston";
 
 /**
