@@ -26,17 +26,17 @@ export const restResolverFactory =
       args
   ) =>
   async (_: never, args: ParsedUrlQueryInput): Promise<unknown> => {
-    const res: RawResponse<unknown> = await (
-      await fetch(
-        `${
-          process.env.BASE_URL ||
-          `http://localhost:${process.env.API_PORT || 8080}`
-        }${path}?${encode(transform(args))}`
-      )
-    ).json();
-    if (isErrorResponse(res))
-      throw new GraphQLError(res.message, {
-        extensions: { code: res.error.toUpperCase().replace(" ", "_") },
+    const baseUrl =
+      process.env.NODE_ENV === "development"
+        ? `http://localhost:${process.env.API_PORT || 8080}`
+        : `https://${
+            process.env.STAGE === "prod" ? "" : `${process.env.STAGE}.`
+          }api-next.peterportal.org`;
+    const res = await fetch(`${baseUrl}${path}?${encode(transform(args))}`);
+    const json: RawResponse<unknown> = await res.json();
+    if (isErrorResponse(json))
+      throw new GraphQLError(json.message, {
+        extensions: { code: json.error.toUpperCase().replace(" ", "_") },
       });
-    return res.payload;
+    return json.payload;
   };

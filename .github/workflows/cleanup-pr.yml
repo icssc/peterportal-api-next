@@ -26,7 +26,7 @@ jobs:
       AWS_REGION: us-east-1
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
-      DATABASE_URL: ${{ secrets.DATABASE_URL_DEV }}
+      DATABASE_URL: ${{ secrets.DATABASE_URL_STAGING }}
       HOSTED_ZONE_ID: ${{ secrets.HOSTED_ZONE_ID }}
       NODE_ENV: staging
       PR_NUM: ${{ github.event.pull_request.number }}
