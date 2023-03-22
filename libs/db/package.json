@@ -9,8 +9,8 @@
   "scripts": {
     "db:push": "prisma db push",
     "generate": "prisma generate",
-    "migrate:dev": "dotenv -e ../.env.development -- prisma migrate dev",
-    "migrate:reset": "dotenv -e ../.env.development -- prisma migrate reset"
+    "migrate:dev": "dotenv -e ../../.env.development -- prisma migrate dev",
+    "migrate:reset": "dotenv -e ../../.env.development -- prisma migrate reset"
   },
   "dependencies": {
     "@prisma/client": "^4.11.0"
