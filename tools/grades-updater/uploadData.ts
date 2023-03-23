@@ -114,7 +114,7 @@ async function processFile(filePath: string): Promise<Section[]> {
           const n = parseInt(course.courseNumber.replace(/\D/g, ""));
           return isNaN(n) ? 0 : n;
         })(),
-        sectionCode: course.courseCode.toString(),
+        sectionCode: course.courseCode.toString().padStart(5, "0"),
         gradeACount: course.a,
         gradeBCount: course.b,
         gradeCCount: course.c,

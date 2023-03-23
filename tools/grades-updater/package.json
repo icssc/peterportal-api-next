@@ -6,16 +6,18 @@
   "type": "module",
   "scripts": {
     "sanitize": "tsx sanitizeData.ts",
-    "upload": "npx dotenv -e ../../.env.grades -- tsx uploadData.ts"
+    "upload": "dotenv -e ../../.env.grades -- tsx uploadData.ts"
   },
   "dependencies": {
+    "@libs/db": "*",
     "csv-parse": "^5.3.5",
     "csv-stringify": "^6.2.4",
-    "tsx": "^3.12.3",
     "winston": "^3.8.2"
   },
   "devDependencies": {
     "@types/node": "^18.14.0",
-    "peterportal-api-next-types": "*"
+    "dotenv-cli": "^7.1.0",
+    "peterportal-api-next-types": "*",
+    "tsx": "^3.12.3"
   }
 }
