@@ -42,7 +42,7 @@ export const lambdaHandler = startServerAndCreateLambdaHandler(
   handlers.createAPIGatewayProxyEventRequestHandler(),
   {
     middleware: [
-      async (_) => {
+      async () => {
         return async (res) => {
           res.headers = {
             ...res.headers,

@@ -6,7 +6,6 @@ import {
   RestApi,
 } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
-import { Role } from "aws-cdk-lib/aws-iam";
 import { Code, Function, FunctionProps, Runtime } from "aws-cdk-lib/aws-lambda";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";

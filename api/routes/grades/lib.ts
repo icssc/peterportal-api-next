@@ -1,4 +1,4 @@
-import { GradesSection, Prisma, PrismaClient } from "@libs/db";
+import { Prisma } from "@libs/db";
 import type {
   GradeDistribution,
   GradesAggregate,

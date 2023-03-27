@@ -1,4 +1,4 @@
-import { GradesInstructor, GradesSection, PrismaClient } from "@libs/db";
+import { PrismaClient } from "@libs/db";
 import type { IRequest } from "api-core";
 import {
   createErrorResult,
