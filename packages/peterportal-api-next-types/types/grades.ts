@@ -99,3 +99,11 @@ export type GradesAggregate = {
    */
   gradeDistribution: GradeDistribution;
 };
+
+export type GradesOptions = {
+  years: string[];
+  departments: string[];
+  courseNumbers: string[];
+  sectionCodes: string[];
+  instructors: string[];
+};

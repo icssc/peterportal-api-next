@@ -7,6 +7,14 @@ import type {
 
 import { Query } from "./schema";
 
+/**
+ * Returns the lexicographical ordering of two elements.
+ * @param a The left hand side of the comparison.
+ * @param b The right hand side of the comparison.
+ */
+export const lexOrd = (a: string, b: string): number =>
+  a === b ? 0 : a > b ? 1 : -1;
+
 const isNotPNPOnly = ({
   gradeACount,
   gradeBCount,
