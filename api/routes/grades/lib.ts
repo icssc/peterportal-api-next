@@ -127,14 +127,16 @@ export async function gradesSectionChunkFindMany<T extends GradesSection>(
   params?: Prisma.GradesSectionFindManyArgs,
   take = 20000
 ): Promise<T[]> {
-  const ret: T[] = [];
-  for (let skip = 0; ; skip += take) {
-    const res = await prisma.gradesSection.findMany({
-      ...params,
-      skip,
-      take,
-    });
-    if (!res.length) return ret;
-    ret.push(...(res as T[]));
+  const count = await prisma.gradesSection.count({ where: params?.where });
+  const promises = [];
+  for (let skip = 0; skip < count; skip += take) {
+    promises.push(
+      prisma.gradesSection.findMany({
+        ...params,
+        skip,
+        take,
+      })
+    );
   }
+  return (await Promise.all(promises)).flat() as T[];
 }
