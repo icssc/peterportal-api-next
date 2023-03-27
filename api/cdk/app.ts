@@ -23,10 +23,8 @@ const api = new ApiStack(app, "peterportal-api-next");
 // or any other file in this directory.
 api.addRoute("/v1/graphql", "graphql");
 api.addRoute("/v1/rest/grades/{id}", "grades");
-api.addRoute(
-  "/v1/rest/websoc",
-  "websoc",
-  new Role(api, "peterportal-api-next-websoc-route-role", {
+api.addRoute("/v1/rest/websoc", "websoc", {
+  role: new Role(api, "peterportal-api-next-websoc-route-role", {
     assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
     managedPolicies: [
       ManagedPolicy.fromAwsManagedPolicyName(
@@ -57,5 +55,5 @@ api.addRoute(
         ],
       }),
     },
-  })
-);
+  }),
+});
