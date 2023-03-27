@@ -14,12 +14,7 @@ import type {
 import type { GradesOptions, GradesRaw } from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
-import {
-  aggregateGrades,
-  constructPrismaQuery,
-  gradesSectionChunkFindMany,
-  lexOrd,
-} from "./lib";
+import { aggregateGrades, constructPrismaQuery, lexOrd } from "./lib";
 import { QuerySchema } from "./schema";
 
 export const rawHandler = async (
@@ -38,9 +33,7 @@ export const rawHandler = async (
           case "aggregate":
             {
               const res = (
-                await gradesSectionChunkFindMany<
-                  GradesSection & { instructors: GradesInstructor[] }
-                >(prisma, {
+                await prisma.gradesSection.findMany({
                   where: constructPrismaQuery(parsedQuery),
                   include: { instructors: true },
                 })
