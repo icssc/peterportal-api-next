@@ -1,4 +1,4 @@
-import { PrismaClient } from "@libs/db";
+import { GradesInstructor, GradesSection, PrismaClient } from "@libs/db";
 import type { IRequest } from "api-core";
 import {
   createErrorResult,
@@ -14,7 +14,12 @@ import type {
 import type { GradesOptions, GradesRaw } from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
-import { aggregateGrades, constructPrismaQuery, lexOrd } from "./lib";
+import {
+  aggregateGrades,
+  constructPrismaQuery,
+  gradesSectionChunkFindMany,
+  lexOrd,
+} from "./lib";
 import { QuerySchema } from "./schema";
 
 export const rawHandler = async (
@@ -33,7 +38,9 @@ export const rawHandler = async (
           case "aggregate":
             {
               const res = (
-                await prisma.gradesSection.findMany({
+                await gradesSectionChunkFindMany<
+                  GradesSection & { instructors: GradesInstructor[] }
+                >(prisma, {
                   where: constructPrismaQuery(parsedQuery),
                   include: { instructors: true },
                 })
@@ -62,17 +69,17 @@ export const rawHandler = async (
               },
               distinct: ["year", "department", "courseNumber", "sectionCode"],
             });
-            const years: Set<string> = new Set();
-            const departments: Set<string> = new Set();
-            const courseNumbers: Set<string> = new Set();
-            const sectionCodes: Set<string> = new Set();
+            const years = new Set<string>();
+            const departments = new Set<string>();
+            const courseNumbers = new Set<string>();
+            const sectionCodes = new Set<string>();
             res.forEach(({ year, department, courseNumber, sectionCode }) => {
               years.add(year);
               departments.add(department);
               courseNumbers.add(courseNumber);
               sectionCodes.add(sectionCode);
             });
-            const ret: Omit<GradesOptions, "instructors"> = {
+            const ret = {
               years: Array.from(years).sort().reverse(),
               departments: Array.from(departments).sort(),
               courseNumbers: Array.from(courseNumbers).sort((a, b) => {
@@ -86,18 +93,20 @@ export const rawHandler = async (
             return createOKResult<GradesOptions>(
               {
                 ...ret,
-                instructors: (
-                  await prisma.gradesInstructor.findMany({
-                    where: {
-                      year: { in: ret.years },
-                      sectionCode: { in: ret.sectionCodes },
-                    },
-                    select: { name: true },
-                    distinct: ["name"],
-                  })
-                )
-                  .map((x) => x.name)
-                  .sort(),
+                instructors: parsedQuery.instructor
+                  ? [parsedQuery.instructor]
+                  : (
+                      await prisma.gradesInstructor.findMany({
+                        where: {
+                          year: { in: ret.years },
+                          sectionCode: { in: ret.sectionCodes },
+                        },
+                        select: { name: true },
+                        distinct: ["name"],
+                      })
+                    )
+                      .map((x) => x.name)
+                      .sort(),
               },
               requestId
             );

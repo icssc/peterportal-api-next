@@ -1,4 +1,4 @@
-import { Prisma } from "@libs/db";
+import { GradesSection, Prisma, PrismaClient } from "@libs/db";
 import type {
   GradeDistribution,
   GradesAggregate,
@@ -120,4 +120,21 @@ export function aggregateGrades(grades: GradesRaw): GradesAggregate {
         grades.filter(isNotPNPOnly).length,
     },
   };
+}
+
+export async function gradesSectionChunkFindMany<T extends GradesSection>(
+  prisma: PrismaClient,
+  params?: Prisma.GradesSectionFindManyArgs,
+  take = 20000
+): Promise<T[]> {
+  const ret: T[] = [];
+  for (let skip = 0; ; skip += take) {
+    const res = await prisma.gradesSection.findMany({
+      ...params,
+      skip,
+      take,
+    });
+    if (!res.length) return ret;
+    ret.push(...(res as T[]));
+  }
 }
