@@ -79,7 +79,6 @@ export type GradeDistribution = {
 /**
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/grades/raw``.
- * @alpha
  */
 export type GradesRaw = (GradeSection & GradeDistribution)[];
 
@@ -87,7 +86,6 @@ export type GradesRaw = (GradeSection & GradeDistribution)[];
  * An object that represents aggregate grades statistics for a given query.
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/grades/aggregate``.
- * @alpha
  */
 export type GradesAggregate = {
   /**
@@ -98,4 +96,32 @@ export type GradesAggregate = {
    * The combined grades distribution of all sections in the query.
    */
   gradeDistribution: GradeDistribution;
+};
+
+/**
+ * The type of the payload returned on a successful response from querying
+ * ``/v1/rest/grades/options``.
+ * @alpha
+ */
+export type GradesOptions = {
+  /**
+   * The list of years that matched the given filters.
+   */
+  years: string[];
+  /**
+   * The list of departments that matched the given filters.
+   */
+  departments: string[];
+  /**
+   * The list of course numbers that matched the given filters.
+   */
+  courseNumbers: string[];
+  /**
+   * The list of section codes that matched the given filters.
+   */
+  sectionCodes: string[];
+  /**
+   * The list of instructors that matched the given filters.
+   */
+  instructors: string[];
 };
