@@ -42,31 +42,6 @@ export const rawHandler: RawHandler = async (request) => {
         });
 
         if (parsedQuery.cache && termExists) {
-          // The TTL for the scraper request.
-          const timestamp = new Date();
-          timestamp.setDate(timestamp.getDate() + 1);
-
-          /**
-           * This needs to be wrapped in a try-catch since race conditions are possible.
-           * In this case it's fine if the query doesn't execute,
-           * because the entry will have already been created.
-           */
-          try {
-            await prisma.websocTerm.upsert({
-              where: {
-                idx: { year: parsedQuery.year, quarter: parsedQuery.quarter },
-              },
-              create: {
-                year: parsedQuery.year,
-                quarter: parsedQuery.quarter,
-                timestamp,
-              },
-              update: { timestamp },
-            });
-          } catch {
-            // noop
-          }
-
           const websocSections = await prisma.websocSection.findMany({
             where: constructPrismaQuery(parsedQuery),
             select: { data: true },
