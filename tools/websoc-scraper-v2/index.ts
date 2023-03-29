@@ -69,6 +69,7 @@ type ProcessedMeeting = {
   sectionCode: number;
   timestamp: Date;
   days: string[];
+  daysString: string;
   startTime: number;
   endTime: number;
 };
@@ -81,6 +82,7 @@ type ProcessedMeetingBuilding = {
   quarter: Quarter;
   sectionCode: number;
   timestamp: Date;
+  daysString: string;
   startTime: number;
   endTime: number;
   bldg: string;
@@ -361,6 +363,7 @@ async function scrape(name: string, term: Term) {
                     sectionCode,
                     timestamp,
                     days: days.filter((x) => m.days.includes(x)),
+                    daysString: m.days,
                     ...parseStartAndEndTimes(m.time),
                   })),
                   buildings: section.meetings.flatMap((m) =>
@@ -369,6 +372,7 @@ async function scrape(name: string, term: Term) {
                       quarter,
                       sectionCode,
                       timestamp,
+                      daysString: m.days,
                       ...parseStartAndEndTimes(m.time),
                       bldg,
                     }))
