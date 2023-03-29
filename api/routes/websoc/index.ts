@@ -26,7 +26,6 @@ const prisma = new PrismaClient();
 
 export const rawHandler: RawHandler = async (request) => {
   const { method, path, query, requestId } = request.getParams();
-  logger.info(`${method} ${path} ${JSON.stringify(query)}`);
   switch (method) {
     case "HEAD":
     case "GET":

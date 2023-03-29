@@ -21,7 +21,6 @@ export const rawHandler = async (
   request: IRequest
 ): Promise<APIGatewayProxyResult> => {
   const { method, path, params, query, requestId } = request.getParams();
-  logger.info(`${method} ${path} ${JSON.stringify(query)}`);
   const prisma = new PrismaClient();
   switch (method) {
     case "HEAD":

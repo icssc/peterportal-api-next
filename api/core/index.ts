@@ -93,9 +93,10 @@ export interface IRequest {
 class ExpressRequest implements IRequest {
   constructor(private readonly req: Request) {}
   getParams() {
-    const { body, method, params, path, query } = this.req;
+    const { body, headers, method, params, path, query } = this.req;
     return {
       body,
+      headers,
       method,
       params,
       path,
@@ -116,6 +117,7 @@ class LambdaRequest implements IRequest {
   getParams() {
     const {
       body,
+      headers,
       httpMethod: method,
       multiValueQueryStringParameters: mqs,
       pathParameters: params,
@@ -123,6 +125,7 @@ class LambdaRequest implements IRequest {
     } = this.event;
     return {
       body: JSON.parse(body ?? "{}"),
+      headers,
       method,
       params,
       path,
@@ -165,6 +168,10 @@ interface HandlerParams {
    * The body of the request.
    */
   body: Record<string, string>;
+  /**
+   * Any headers included in the request.
+   */
+  headers: Record<string, string>;
   /**
    * The method of the request.
    */
@@ -212,7 +219,7 @@ export const createOKResult = <T>(
     statusCode: 200,
     body: JSON.stringify(body),
     headers: {
-      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
       "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
     },
@@ -245,7 +252,7 @@ export const createErrorResult = (
         ? error
         : "An unknown error has occurred. Please try again.",
   };
-  logger.info(`${body.statusCode} ${body.error}: ${body.message}`);
+  logger.error(`${body.statusCode} ${body.error}: ${body.message}`);
   return {
     statusCode,
     body: JSON.stringify(body),
@@ -265,7 +272,9 @@ export const createErrorResult = (
 export const createExpressHandler =
   (handler: RawHandler): ExpressHandler =>
   async (req, res): Promise<void> => {
-    const result = await handler(new ExpressRequest(req));
+    const request = new ExpressRequest(req);
+    logger.info(`Request: ${JSON.stringify(request.getParams())}`);
+    const result = await handler(request);
     res.status(result.statusCode);
     res.set(result.headers);
     res.send(JSON.parse(result.body));
@@ -282,7 +291,9 @@ export const createLambdaHandler =
     event: APIGatewayProxyEvent,
     context: Context
   ): Promise<APIGatewayProxyResult> => {
-    return handler(new LambdaRequest(event, context));
+    const request = new LambdaRequest(event, context);
+    logger.info(`Request: ${JSON.stringify(request.getParams())}`);
+    return handler(request);
   };
 
 /**
