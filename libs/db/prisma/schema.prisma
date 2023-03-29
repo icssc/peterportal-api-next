@@ -84,9 +84,10 @@ model WebsocSectionMeetingBuilding {
   quarter     Quarter
   sectionCode Int
   timestamp   DateTime
+  daysString  String
   startTime   Int
   endTime     Int
-  meeting     WebsocSectionMeeting @relation(fields: [year, quarter, sectionCode, timestamp, startTime, endTime], references: [year, quarter, sectionCode, timestamp, startTime, endTime])
+  meeting     WebsocSectionMeeting @relation(fields: [year, quarter, sectionCode, timestamp, daysString, startTime, endTime], references: [year, quarter, sectionCode, timestamp, daysString, startTime, endTime])
   bldg        String
 }
 
@@ -98,11 +99,12 @@ model WebsocSectionMeeting {
   timestamp   DateTime
   section     WebsocSection                  @relation(fields: [year, quarter, sectionCode, timestamp], references: [year, quarter, sectionCode, timestamp])
   days        Json
+  daysString  String
   startTime   Int
   endTime     Int
   buildings   WebsocSectionMeetingBuilding[]
 
-  @@unique([year, quarter, sectionCode, timestamp, startTime, endTime], name: "idx")
+  @@unique([year, quarter, sectionCode, timestamp, daysString, startTime, endTime], name: "idx")
 }
 
 model WebsocSection {
