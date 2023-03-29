@@ -59,6 +59,18 @@ export const QuerySchema = z
       required_error: 'Parameter "quarter" not provided',
       invalid_type_error: "Invalid quarter provided",
     }),
+    cache: z
+      .string()
+      .optional()
+      .transform((x) => !(x === "false")),
+    cacheOnly: z
+      .string()
+      .optional()
+      .transform((x) => x === "true"),
+    includeCoCourses: z
+      .string()
+      .optional()
+      .transform((x) => x === "true"),
     ge: z.enum(anyArray).or(z.enum(geCodes)).optional(),
     department: z.string().optional(),
     courseTitle: z.string().optional(),
@@ -95,10 +107,6 @@ export const QuerySchema = z
       .or(z.string())
       .optional()
       .transform(flattenStringsAndSplit),
-    cache: z
-      .string()
-      .optional()
-      .transform((x) => !(x === "false")),
     startTime: z
       .string()
       .regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/)
@@ -108,15 +116,25 @@ export const QuerySchema = z
       .regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/)
       .optional(),
   })
+  .refine((x) => x.cache || !x.cacheOnly, {
+    message: "cacheOnly cannot be true if cache is false",
+  })
+  .refine((x) => x.cache || !x.cacheOnly, {
+    message: "includeCoCourses cannot be true if cache is false",
+  })
   .refine(
     (x) =>
-      x.ge || x.department || x.sectionCodes?.[0].length || x.instructorName,
+      x.cacheOnly ||
+      x.ge ||
+      x.department ||
+      x.sectionCodes?.[0].length ||
+      x.instructorName,
     {
       message:
         'At least one of "ge", "department", "sectionCodes", or "instructorName" must be provided',
     }
   )
-  .refine((x) => x.building || !x.room, {
+  .refine((x) => x.cacheOnly || x.building || !x.room, {
     message: 'If "building" is provided, "room" must also be provided',
   });
 
