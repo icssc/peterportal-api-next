@@ -6,9 +6,9 @@ pagination_next: null
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
-# WebSoC
+# WebSoc
 
-The WebSoC (Web Schedule of Classes) endpoint allows programmatic access to the UCI Schedule of Classes.
+The WebSoc (Web Schedule of Classes) endpoint allows programmatic access to the UCI Schedule of Classes.
 
 PeterPortal API maintains a cache of all WebSoc data, which is updated every hour. By default, the endpoint will return data from the cache if it can, falling back to WebSoc on a cache miss. This improves the overall response time, but may result in stale data.
 
