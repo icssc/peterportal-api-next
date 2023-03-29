@@ -119,8 +119,8 @@ export const QuerySchema = z
   .refine((x) => x.cache || !x.cacheOnly, {
     message: "cacheOnly cannot be true if cache is false",
   })
-  .refine((x) => x.cache || !x.cacheOnly, {
-    message: "includeCoCourses cannot be true if cache is false",
+  .refine((x) => x.cacheOnly || !x.includeCoCourses, {
+    message: "includeCoCourses cannot be true if cacheOnly is false",
   })
   .refine(
     (x) =>

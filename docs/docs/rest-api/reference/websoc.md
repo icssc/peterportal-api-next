@@ -6,12 +6,11 @@ pagination_next: null
 import Tabs from "@theme/Tabs";
 import TabItem from "@theme/TabItem";
 
-# WebSOC
+# WebSoC
 
-<span style={{ color: "var(--ifm-color-primary-lightest)" }}>
+The WebSoC (Web Schedule of Classes) endpoint allows programmatic access to the UCI Schedule of Classes.
 
-<h2>Use the REST API to get information from WebSOC.</h2>
-</span>
+PeterPortal API maintains a cache of all WebSoc data, which is updated every hour. By default, the endpoint will return data from the cache if it can, falling back to WebSoc on a cache miss. This improves the overall response time, but may result in stale data.
 
 ## Query the Schedule of Classes
 
@@ -27,9 +26,17 @@ The quarter to query. Case-sensitive.
 
 #### `cache` boolean
 
-To improve response times, this endpoint will return data from our cache by default. The cache is updated approximately every five minutes.
+Whether to query the cache at all; defaults to `true`. If this is set to `false`, then the endpoint will query WebSoc directly instead. Note that disabling the cache for large queries may result in a timeout.
 
-If you would like to disable this behavior, pass `false` to this parameter. Note that disabling the cache for large queries may result in a timeout.
+#### `cacheOnly` boolean
+
+Whether to use the cache exclusively; defaults to `false`. If this is set to `true`, then none of the following parameters marked with **\*** are required, but cache misses will not result in a fallback query.
+
+#### `includeCoCourses` boolean
+
+When querying by GE categories, the default behavior of WebSoc is to return only the main section of the course that satisfies the desired GE category. Setting this flag to `true` also returns any co-courses (discussions, labs, etc.) associated with the main section, but requires `cacheOnly` to also be set to `true`.
+
+To preserve backwards compatibility with WebSoc, this defaults to `false`.
 
 #### `ge`**\*** ANY | GE-1A | GE-1B | GE-2 | GE-3 | GE-4 | GE-5A | GE-5B | GE-6 | GE-7 | GE-8
 
@@ -48,7 +55,7 @@ The five-digit section code(s).
 Any substring of the desired instructor's last name. To search an exact last
 name, append a comma to the parameter.
 
-At least one of the parameters marked with **\*** must be provided and must not be ANY.
+If `cacheOnly` is `false`, at least one of the parameters marked with **\*** must be provided and must not be ANY.
 
 #### `building` string
 
@@ -230,116 +237,6 @@ type WebsocAPIResponse = {
     }[];
   }[];
 };
-```
-
-</TabItem>
-</Tabs>
-
-## Get all available departments
-
-:::info
-
-This endpoint is not currently available; as such, the documentation outlined below is subject to change.
-
-:::
-
-### Query parameters
-
-None.
-
-### Code sample
-
-<Tabs>
-<TabItem value="bash" label="cURL">
-
-```bash
-curl "https://api-next.peterportal.org/v1/rest/websoc/departments"
-```
-
-</TabItem>
-</Tabs>
-
-### Response
-
-<Tabs>
-<TabItem value="json" label="Example payload">
-
-```json
-[
-  {
-    "deptLabel": "ALL: Include All Departments",
-    "deptValue": "ALL"
-  },
-  "...",
-  {
-    "deptLabel": "I&C SCI: Information and Computer Science",
-    "deptValue": "I&C SCI"
-  },
-  "..."
-]
-```
-
-</TabItem>
-<TabItem value="ts" label="Payload schema">
-
-```typescript
-// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/websoc.ts
-type DepartmentResponse = { deptLabel: string; deptValue: string }[];
-```
-
-</TabItem>
-</Tabs>
-
-## Get all available terms
-
-:::info
-
-This endpoint is not currently available; as such, the documentation outlined below is subject to change.
-
-:::
-
-### Query parameters
-
-None.
-
-### Code sample
-
-<Tabs>
-<TabItem value="bash" label="cURL">
-
-```bash
-curl "https://api-next.peterportal.org/v1/rest/websoc/terms"
-```
-
-</TabItem>
-</Tabs>
-
-### Response
-
-<Tabs>
-<TabItem value="json" label="Example payload">
-
-```json
-[
-  {
-    "shortName": "2023 Summer2",
-    "longName": "2023 Summer Session 2"
-  },
-  "...",
-  {
-    "shortName": "2023 Spring",
-    "longName": "2023 Spring Quarter"
-  },
-  "..."
-]
-```
-
-</TabItem>
-<TabItem value="ts" label="Payload schema">
-
-```typescript
-// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/websoc.ts
-type TermResponse = { shortName: string; longName: string }[];
 ```
 
 </TabItem>
