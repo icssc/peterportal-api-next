@@ -69,9 +69,23 @@ type ProcessedMeeting = {
   sectionCode: number;
   timestamp: Date;
   days: string[];
-  buildings: string[];
+  daysString: string;
   startTime: number;
   endTime: number;
+};
+
+/**
+ * A meeting building object that can be inserted directly into Prisma.
+ */
+type ProcessedMeetingBuilding = {
+  year: string;
+  quarter: Quarter;
+  sectionCode: number;
+  timestamp: Date;
+  daysString: string;
+  startTime: number;
+  endTime: number;
+  bldg: string;
 };
 
 /**
@@ -84,6 +98,7 @@ type ProcessedSection = {
   meta: {
     instructors: ProcessedInstructor[];
     meetings: ProcessedMeeting[];
+    buildings: ProcessedMeetingBuilding[];
   };
   /**
    * The section object that can be inserted directly into Prisma.
@@ -348,9 +363,20 @@ async function scrape(name: string, term: Term) {
                     sectionCode,
                     timestamp,
                     days: days.filter((x) => m.days.includes(x)),
-                    buildings: m.bldg,
+                    daysString: m.days,
                     ...parseStartAndEndTimes(m.time),
                   })),
+                  buildings: section.meetings.flatMap((m) =>
+                    m.bldg.map((bldg) => ({
+                      year,
+                      quarter,
+                      sectionCode,
+                      timestamp,
+                      daysString: m.days,
+                      ...parseStartAndEndTimes(m.time),
+                      bldg,
+                    }))
+                  ),
                 },
                 data: {
                   year,
@@ -402,50 +428,69 @@ async function scrape(name: string, term: Term) {
 
   logger.info(`Processed ${Object.keys(res).length} sections`);
 
-  const [sectionsCreated, instructorsCreated, meetingsCreated] =
-    await prisma.$transaction([
-      prisma.websocSection.createMany({
-        data: Object.values(res).map((d) => d.data),
-      }),
-      prisma.websocSectionInstructor.createMany({
-        data: Object.values(res).flatMap((d) => d.meta.instructors),
-      }),
-      prisma.websocSectionMeeting.createMany({
-        data: Object.values(res).flatMap((d) => d.meta.meetings),
-      }),
-    ]);
+  const [
+    sectionsCreated,
+    instructorsCreated,
+    meetingsCreated,
+    buildingsCreated,
+  ] = await prisma.$transaction([
+    prisma.websocSection.createMany({
+      data: Object.values(res).map((d) => d.data),
+    }),
+    prisma.websocSectionInstructor.createMany({
+      data: Object.values(res).flatMap((d) => d.meta.instructors),
+    }),
+    prisma.websocSectionMeeting.createMany({
+      data: Object.values(res).flatMap((d) => d.meta.meetings),
+    }),
+    prisma.websocSectionMeetingBuilding.createMany({
+      data: Object.values(res).flatMap((d) => d.meta.buildings),
+    }),
+  ]);
 
   logger.info(`Inserted ${sectionsCreated.count} sections`);
   logger.info(`Inserted ${instructorsCreated.count} instructors`);
   logger.info(`Inserted ${meetingsCreated.count} meetings`);
-  logger.info(`Inserted ${meetingsCreated.count} meetings`);
+  logger.info(`Inserted ${buildingsCreated.count} buildings`);
 
-  const [instructorsDeleted, meetingsDeleted, sectionsDeleted] =
-    await prisma.$transaction([
-      prisma.websocSectionInstructor.deleteMany({
-        where: {
-          year: term.year,
-          quarter: term.quarter,
-          timestamp: { lt: timestamp },
-        },
-      }),
-      prisma.websocSectionMeeting.deleteMany({
-        where: {
-          year: term.year,
-          quarter: term.quarter,
-          timestamp: { lt: timestamp },
-        },
-      }),
-      prisma.websocSection.deleteMany({
-        where: {
-          year: term.year,
-          quarter: term.quarter,
-          timestamp: { lt: timestamp },
-        },
-      }),
-    ]);
+  const [
+    instructorsDeleted,
+    buildingsDeleted,
+    meetingsDeleted,
+    sectionsDeleted,
+  ] = await prisma.$transaction([
+    prisma.websocSectionInstructor.deleteMany({
+      where: {
+        year: term.year,
+        quarter: term.quarter,
+        timestamp: { lt: timestamp },
+      },
+    }),
+    prisma.websocSectionMeetingBuilding.deleteMany({
+      where: {
+        year: term.year,
+        quarter: term.quarter,
+        timestamp: { lt: timestamp },
+      },
+    }),
+    prisma.websocSectionMeeting.deleteMany({
+      where: {
+        year: term.year,
+        quarter: term.quarter,
+        timestamp: { lt: timestamp },
+      },
+    }),
+    prisma.websocSection.deleteMany({
+      where: {
+        year: term.year,
+        quarter: term.quarter,
+        timestamp: { lt: timestamp },
+      },
+    }),
+  ]);
 
   logger.info(`Removed ${instructorsDeleted.count} instructors`);
+  logger.info(`Removed ${buildingsDeleted.count} buildings`);
   logger.info(`Removed ${meetingsDeleted.count} meetings`);
   logger.info(`Removed ${sectionsDeleted.count} sections`);
   logger.info("Sleeping for 5 minutes");

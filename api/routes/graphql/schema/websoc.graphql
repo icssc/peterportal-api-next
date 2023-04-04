@@ -105,6 +105,8 @@ extend type Query {
     year: String!
     quarter: Quarter!
     cache: Boolean
+    cacheOnly: Boolean
+    includeCoCourses: Boolean
     ge: GE
     department: String
     sectionCodes: String

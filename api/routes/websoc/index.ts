@@ -32,43 +32,85 @@ export const rawHandler: RawHandler = async (request) => {
       try {
         const parsedQuery = QuerySchema.parse(query);
 
-        /**
-         * Check whether an entry with the specified term exists in the sections table.
-         * If not, then we're probably not scraping that term, so just proxy WebSoc.
-         */
-        const termExists = await prisma.websocSection.findFirst({
-          where: { year: parsedQuery.year, quarter: parsedQuery.quarter },
-        });
-
-        if (parsedQuery.cache && termExists) {
-          const websocSections = await prisma.websocSection.findMany({
-            where: constructPrismaQuery(parsedQuery),
-            select: { data: true },
-            distinct: ["year", "quarter", "sectionCode"],
+        if (parsedQuery.cache) {
+          /**
+           * Check whether an entry with the specified term exists in the sections table.
+           * If not, then we're probably not scraping that term, so just proxy WebSoc.
+           */
+          const termExists = await prisma.websocSection.findFirst({
+            where: { year: parsedQuery.year, quarter: parsedQuery.quarter },
           });
+          if (termExists || parsedQuery.cacheOnly) {
+            const websocSections = await prisma.websocSection.findMany({
+              where: constructPrismaQuery(parsedQuery),
+              select: { department: true, courseNumber: true, data: true },
+              distinct: ["year", "quarter", "sectionCode"],
+            });
 
-          /**
-           * WebSoc throws an error if a query returns more than 900 sections,
-           * so we probably want to maintain this invariant as well.
-           * (Also to prevent abuse of the endpoint.)
-           */
-          if (websocSections.length > 900) {
-            return createErrorResult(
-              400,
-              "More than 900 sections matched your query. Please refine your search.",
-              requestId
-            );
-          }
+            /**
+             * WebSoc throws an error if a query returns more than 900 sections,
+             * so we want to maintain this invariant as well, but only if
+             * cacheOnly is set to false.
+             */
+            if (websocSections.length > 900 && !parsedQuery.cacheOnly) {
+              return createErrorResult(
+                400,
+                "More than 900 sections matched your query. Please refine your search.",
+                requestId
+              );
+            }
 
-          /**
-           * Return found sections if using cache and they exist in database.
-           */
-          if (websocSections.length) {
-            const websocApiResponses = websocSections
-              .map((x) => x.data)
-              .filter(notNull) as WebsocAPIResponse[];
-            const combinedResponses = combineResponses(...websocApiResponses);
-            return createOKResult(sortResponse(combinedResponses), requestId);
+            /**
+             * Return found sections if we're using the cache and if they exist
+             * in the database.
+             */
+            if (websocSections.length) {
+              /**
+               * If the includeCoCourses flag is set, get a mapping of all
+               * departments to the included course numbers, and return all
+               * sections that match from the database.
+               */
+              if (parsedQuery.includeCoCourses) {
+                const courses: Record<string, string[]> = {};
+                websocSections.forEach(({ department, courseNumber }) => {
+                  courses[department]
+                    ? courses[department].push(courseNumber)
+                    : (courses[department] = [courseNumber]);
+                });
+                const transactions = Object.entries(courses).map(
+                  ([department, courseNumbers]) =>
+                    prisma.websocSection.findMany({
+                      where: {
+                        department,
+                        courseNumber: { in: courseNumbers },
+                      },
+                      select: { data: true },
+                      distinct: ["year", "quarter", "sectionCode"],
+                    })
+                );
+                const responses = (await prisma.$transaction(transactions))
+                  .flat()
+                  .map((x) => x.data)
+                  .filter(notNull) as WebsocAPIResponse[];
+                const combinedResponses = combineResponses(...responses);
+                return createOKResult(
+                  sortResponse(combinedResponses),
+                  requestId
+                );
+              }
+              const websocApiResponses = websocSections
+                .map((x) => x.data)
+                .filter(notNull) as WebsocAPIResponse[];
+              const combinedResponses = combineResponses(...websocApiResponses);
+              return createOKResult(sortResponse(combinedResponses), requestId);
+            }
+            /**
+             * If this code is reached and the cacheOnly flag is set, return
+             * an empty WebsocAPIResponse object. Otherwise, fall back to
+             * querying WebSoc.
+             */
+            if (parsedQuery.cacheOnly)
+              return createOKResult({ schools: [] }, requestId);
           }
         }
 

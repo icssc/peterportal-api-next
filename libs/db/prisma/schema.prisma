@@ -78,26 +78,33 @@ model WebsocSectionInstructor {
   name        String
 }
 
-model WebsocSectionMeeting {
-  id          Int           @id @default(autoincrement())
+model WebsocSectionMeetingBuilding {
+  id          Int                  @id @default(autoincrement())
   year        String
   quarter     Quarter
   sectionCode Int
   timestamp   DateTime
-  section     WebsocSection @relation(fields: [year, quarter, sectionCode, timestamp], references: [year, quarter, sectionCode, timestamp])
-  days        Json
+  daysString  String
   startTime   Int
   endTime     Int
-  buildings   Json
+  meeting     WebsocSectionMeeting @relation(fields: [year, quarter, sectionCode, timestamp, daysString, startTime, endTime], references: [year, quarter, sectionCode, timestamp, daysString, startTime, endTime])
+  bldg        String
 }
 
-model WebsocTerm {
-  year      String
-  quarter   Quarter
-  timestamp DateTime
+model WebsocSectionMeeting {
+  id          Int                            @id @default(autoincrement())
+  year        String
+  quarter     Quarter
+  sectionCode Int
+  timestamp   DateTime
+  section     WebsocSection                  @relation(fields: [year, quarter, sectionCode, timestamp], references: [year, quarter, sectionCode, timestamp])
+  days        Json
+  daysString  String
+  startTime   Int
+  endTime     Int
+  buildings   WebsocSectionMeetingBuilding[]
 
-  @@id([year, quarter])
-  @@unique([year, quarter], name: "idx")
+  @@unique([year, quarter, sectionCode, timestamp, daysString, startTime, endTime], name: "idx")
 }
 
 model WebsocSection {

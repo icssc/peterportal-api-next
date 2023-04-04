@@ -310,6 +310,22 @@ export function constructPrismaQuery(
       AND.push({ cancelled: true });
   }
 
+  if (parsedQuery.building) {
+    AND.push({
+      meetings: {
+        every: {
+          buildings: {
+            some: {
+              bldg: parsedQuery.room
+                ? `${parsedQuery.building} ${parsedQuery.room}`
+                : { contains: parsedQuery.building },
+            },
+          },
+        },
+      },
+    });
+  }
+
   if (parsedQuery.sectionCodes) {
     OR.push(
       ...parsedQuery.sectionCodes.map((code) => ({

@@ -8,9 +8,9 @@ import TabItem from "@theme/TabItem";
 
 # Grades
 
-PeterPortal API maintains a database of past grades dating back to 2014 Summer Session 1. This database is updated from the [Public Records Office](https://pro.uci.edu/) as soon as they are available.
+PeterPortal API maintains a database of past grades dating back to 2014 Summer Session 1. This database is updated from the [Public Records Office](https://pro.uci.edu/) as soon as they are available. This endpoint allows users to query that database with any desired filters.
 
-Please note that due to the size of the data, not providing any filters for the grades statistics endpoints will most likely result in an error. If you must fetch all data from the database at once, please consider doing so by year.
+Please note that due to the size of the database, not providing any filters for the grades statistics endpoints will most likely result in an error. If you must fetch all data from the database at once, please consider doing so by year.
 
 ## Query parameters for all endpoints
 
