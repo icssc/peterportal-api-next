@@ -1,4 +1,4 @@
-import axios from "axios";
+import fetch from "cross-fetch";
 import * as cheerio from "cheerio";
 import he from "he";
 import pLimit from "p-limit";
@@ -39,7 +39,7 @@ type InstructorsLog = {
   [key: string]:
     | string[]
     | { [key: string]: string }
-    | { [key: string]: { [key: string]: string[] } }
+    | { [key: string]: { [key: string]: string[] } };
   faculty_links: { [faculty_link: string]: string }; // Mapping of faculty links to departments
   instructors_found: {
     [key: string]: { schools: string[]; related_departments: string[] };
@@ -318,8 +318,8 @@ export async function getFacultyLinks(
         [schoolName]: [],
       };
       try {
-        const response = await axios.get(schoolUrl);
-        const $ = cheerio.load(response.data);
+        const response = await (await fetch(schoolUrl)).text();
+        const $ = cheerio.load(response);
         // Faculty tab found
         if ($("#facultytab").length !== 0) {
           schoolURLs[schoolName].push(schoolUrl);
@@ -355,8 +355,8 @@ export async function getFacultyLinks(
       return schoolURLs;
     }
     // Get links to all schools and store them into an array
-    const response = await axios.get(URL_TO_ALL_SCHOOLS);
-    const $ = cheerio.load(response.data);
+    const response = await (await fetch(URL_TO_ALL_SCHOOLS)).text();
+    const $ = cheerio.load(response);
     const schoolLinks: string[][] = [];
     $("#textcontainer h4 a").each(function (this: cheerio.Element) {
       const schoolURL = $(this).attr("href");
@@ -400,8 +400,8 @@ export async function getInstructorNames(
 ): Promise<string[]> {
   const result: string[] = [];
   try {
-    const response = await axios.get(facultyLink);
-    const $ = cheerio.load(response.data);
+    const response = await (await fetch(facultyLink)).text();
+    const $ = cheerio.load(response);
     $(".faculty").each(function (this: cheerio.Element) {
       let name = he.decode($(this).find(".name").text()); // Get name and try decoding
       name = name.split(",")[0]; // Remove suffixes that begin with ","  ex: ", Jr."
@@ -434,8 +434,8 @@ export async function getDepartmentCourses(
   const departmentCourses: string[] = [];
   try {
     const courseUrl = facultyLink.replace("#faculty", "#courseinventory");
-    const response = await axios.get(courseUrl);
-    const $ = cheerio.load(response.data);
+    const response = await (await fetch(courseUrl)).text();
+    const $ = cheerio.load(response);
     $("#courseinventorycontainer .courses").each(function (
       this: cheerio.Element
     ) {
@@ -507,84 +507,110 @@ export async function getDirectoryInfo(
     "Content-Type": "application/x-www-form-urlencoded",
   };
   let name = instructorName.replace(/\./g, ""); // remove '.' from name
-  const data = {
+  const data = new URLSearchParams({
     uciKey: name,
     filter: "all", // "all" instead of "staff" bc some instructors are not "staff" (?)
-  };
+  });
   try {
     // Try multiple attempts to get results bc the directory is so inconsistent
-    let response = await axios.post(URL_TO_DIRECTORY, data, {
+    // Search with base name
+    let response = await fetch(URL_TO_DIRECTORY, {
+      method: "POST",
       headers: headers,
-    }); // Search with base name
+      body: data,
+    }).then((res) => res.json());
     // Try stripping '-' from name
-    if (response.data.length === 0 && name.includes("-")) {
-      data["uciKey"] = name.replace(/-/g, "");
-      response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+    if (Object.keys(response).length === 0 && name.includes("-")) {
+      data.set("uciKey", name.replace(/-/g, ""));
+      response = await fetch(URL_TO_DIRECTORY, {
+        method: "POST",
+        headers: headers,
+        body: data,
+      }).then((res) => res.json());
     }
     // Try prepending all single characters to the next word "Alexander W Thornton" -> "Alexander WThornton"
-    if (response.data.length === 0 && /(\b\w{1})\s(\w+)/g.test(name)) {
-      data["uciKey"] = name.replace(/(\b\w{1})\s(\w+)/g, "$1$2");
-      response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+    if (Object.keys(response).length === 0 && /(\b\w{1})\s(\w+)/g.test(name)) {
+      data.set("uciKey", name.replace(/(\b\w{1})\s(\w+)/g, "$1$2"));
+      response = await fetch(URL_TO_DIRECTORY, {
+        method: "POST",
+        headers: headers,
+        body: data,
+      }).then((res) => res.json());
     }
     const nameSplit = name.split(" ");
     // Try parts surrounding middle initial
     if (
-      response.data.length === 0 &&
+      Object.keys(response).length === 0 &&
       nameSplit.length > 2 &&
       nameSplit[1].length === 1
     ) {
-      data["uciKey"] = nameSplit[0] + " " + nameSplit[2];
-      response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+      data.set("uciKey", nameSplit[0] + " " + nameSplit[2]);
+      response = await fetch(URL_TO_DIRECTORY, {
+        method: "POST",
+        headers: headers,
+        body: data,
+      }).then((res) => res.json());
     }
     // Try first and last part of name
-    if (response.data.length === 0) {
-      data["uciKey"] = nameSplit[0] + " " + nameSplit[nameSplit.length - 1];
-      response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+    if (Object.keys(response).length === 0) {
+      data.set("uciKey", nameSplit[0] + " " + nameSplit[nameSplit.length - 1]);
+      response = await fetch(URL_TO_DIRECTORY, {
+        method: "POST",
+        headers: headers,
+        body: data,
+      }).then((res) => res.json());
     }
     // Try first and last part of name but shorter first name
-    if (response.data.length === 0 && nameSplit[0].length > 7) {
-      data["uciKey"] =
-        nameSplit[0].slice(0, 5) + " " + nameSplit[nameSplit.length - 1];
-      response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+    if (Object.keys(response).length === 0 && nameSplit[0].length > 7) {
+      data.set(
+        "uciKey",
+        nameSplit[0].slice(0, 5) + " " + nameSplit[nameSplit.length - 1]
+      );
+      response = await fetch(URL_TO_DIRECTORY, {
+        method: "POST",
+        headers: headers,
+        body: data,
+      }).then((res) => res.json());
     }
     // Try name without last part
     if (
-      response.data.length == 0 &&
+      Object.keys(response).length == 0 &&
       nameSplit.length > 2 &&
       nameSplit[1].length > 1
     ) {
-      data["uciKey"] = nameSplit.slice(0, -1).join(" ");
-      response = await axios.post(URL_TO_DIRECTORY, data, { headers: headers });
+      data.set("uciKey", nameSplit.slice(0, -1).join(" "));
+      response = await fetch(URL_TO_DIRECTORY, {
+        method: "POST",
+        headers: headers,
+        body: data,
+      }).then((res) => res.json());
     }
     let json;
     // 1 result found, likely hit
-    if (response.data.length == 1) {
-      json = response.data[0][1];
+    if (Object.keys(response).length == 1) {
+      json = response[0][1];
     }
     // Multiple results, need to find best match
-    else if (response.data.length > 1) {
+    else if (Object.keys(response).length > 1) {
       // Retrieve names with highest match score
-      const nameResults = [strToTitleCase(response.data[0][1]["Name"])];
-      for (let i = 1; i < response.data.length; i++) {
-        if (response.data[i][0] == response.data[0][0]) {
-          nameResults.push(strToTitleCase(response.data[i][1]["Name"]));
+      const nameResults = [strToTitleCase(response[0][1]["Name"])];
+      for (let i = 1; i < Object.keys(response).length; i++) {
+        if (response[i][0] == response[0][0]) {
+          nameResults.push(strToTitleCase(response[i][1]["Name"]));
         }
       }
-      const nameScores = response.data.map(
-        (res: [number, { [key: string]: string }]) => [res[0], res[1]["Name"]]
-      );
       const match = stringSimilarity.findBestMatch(name, nameResults);
       if (match["bestMatch"]["rating"] >= 0.5) {
-        json = response.data[match["bestMatchIndex"]][1];
+        json = response[match["bestMatchIndex"]][1];
       }
       // Check if Nickname matches
       else if (
         stringSimilarity.compareTwoStrings(
           name,
-          response.data[match["bestMatchIndex"]][1]["Nickname"]
+          response[match["bestMatchIndex"]][1]["Nickname"]
         ) >= 0.5
       ) {
-        json = response.data[match["bestMatchIndex"]][1];
+        json = response[match["bestMatchIndex"]][1];
       }
     }
     if (json) {
@@ -739,8 +765,10 @@ export async function fetchHistoryPage(
   attempts: number
 ): Promise<string> {
   try {
-    const response = await axios.get(URL_TO_INSTRUCT_HISTORY, { params });
-    const $ = cheerio.load(response.data);
+    const response = await (
+      await fetch(URL_TO_INSTRUCT_HISTORY + "?" + new URLSearchParams(params))
+    ).text();
+    const $ = cheerio.load(response);
     const warning = $("tr td.lcRegWeb_red_message");
     if (warning.length) {
       if (
@@ -754,7 +782,7 @@ export async function fetchHistoryPage(
         throw new Error("HISTORY_FAILED"); // This mean database is die
       }
     }
-    return response.data;
+    return response;
   } catch (error) {
     if (attempts > 0) {
       await sleep(1000);
