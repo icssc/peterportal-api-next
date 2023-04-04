@@ -240,9 +240,9 @@ export const callWebSocAPI = async (
     school.departments.forEach((department) =>
       department.courses.forEach((course) =>
         course.sections.forEach((section) => {
-          section.meetings.forEach(
-            (meeting) => (meeting.bldg = [meeting.bldg] as unknown as string[])
-          );
+          section.meetings.forEach((meeting) => {
+            meeting.bldg = [meeting.bldg].flat();
+          });
           section.meetings = getUniqueMeetings(section.meetings);
         })
       )
@@ -253,12 +253,10 @@ export const callWebSocAPI = async (
 
 function getUniqueMeetings(meetings: WebsocSectionMeeting[]) {
   return meetings.reduce((acc, meeting) => {
-    let i;
-    if (
-      (i = acc.findIndex(
-        (m) => m.days === meeting.days && m.time === meeting.time
-      )) === -1
-    ) {
+    const i = acc.findIndex(
+      (m) => m.days === meeting.days && m.time === meeting.time
+    );
+    if (i === -1) {
       acc.push(meeting);
     } else {
       acc[i].bldg.push(...meeting.bldg);

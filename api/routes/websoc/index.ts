@@ -77,7 +77,7 @@ export const rawHandler: RawHandler = async (request) => {
                     ? courses[department].push(courseNumber)
                     : (courses[department] = [courseNumber]);
                 });
-                const promises = Object.entries(courses).map(
+                const transactions = Object.entries(courses).map(
                   ([department, courseNumbers]) =>
                     prisma.websocSection.findMany({
                       where: {
@@ -88,7 +88,7 @@ export const rawHandler: RawHandler = async (request) => {
                       distinct: ["year", "quarter", "sectionCode"],
                     })
                 );
-                const responses = (await Promise.all(promises))
+                const responses = (await prisma.$transaction(transactions))
                   .flat()
                   .map((x) => x.data)
                   .filter(notNull) as WebsocAPIResponse[];
