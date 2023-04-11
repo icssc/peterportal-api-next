@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const targetDir = "dist/";
-const sourceFiles = ["ecosystem.config.js", "index.ts", "package.json"];
+const sourceFiles = ["index.ts", "package.json"];
 const dependencies = [
   ".prisma",
   "@libs/db",

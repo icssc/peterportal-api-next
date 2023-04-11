@@ -1,11 +1,6 @@
 import { PrismaClient } from "@libs/db";
 import { getTermDateData } from "@libs/registrar-api";
-import {
-  type WebsocAPIOptions,
-  callWebSocAPI,
-  getDepts,
-  getTerms,
-} from "@libs/websoc-api-next";
+import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
 import type {
   GE,
   Quarter,
@@ -125,10 +120,16 @@ type ProcessedSection = {
 };
 
 /**
- * The duration to sleep between scraping runs.
- * Default: 5 minutes in ms
+ * The duration to sleep between requests.
+ * Default: 500 ms
  */
-const SLEEP_DURATION = 5 * 60 * 1000;
+const REQUEST_SLEEP_DURATION = 500;
+
+/**
+ * The duration to sleep between scraping runs, or if rate-limited.
+ * Default: 3 minutes in ms
+ */
+const SLEEP_DURATION = 3 * 60 * 1000;
 
 /**
  * The duration to sleep when an error is caught.
@@ -190,14 +191,13 @@ async function getTermsToScrape(date: Date) {
 /**
  * Get unique array of meetings.
  */
-function getUniqueMeetings(meetings: WebsocSectionMeeting[]) {
-  return meetings.reduce((acc, meeting) => {
-    if (!acc.find((m) => m.days === meeting.days && m === meeting)) {
+const getUniqueMeetings = (meetings: WebsocSectionMeeting[]) =>
+  meetings.reduce((acc, meeting) => {
+    if (!acc.find((m) => m.days === meeting.days && m.time === meeting.time)) {
       acc.push(meeting);
     }
     return acc;
   }, [] as WebsocSectionMeeting[]);
-}
 
 /**
  * Given all parent data about a section, isolate relevant data.
@@ -259,7 +259,6 @@ function parseStartAndEndTimes(time: string) {
  *
  * Requires the ``--expose-gc`` flag to be set, otherwise this is a no-op aside
  * from printing the same memory usage twice.
- * @see ecosystem.config.js for the execution configuration under pm2
  */
 function forceGC() {
   logger.debug("Memory usage:");
@@ -294,43 +293,48 @@ async function scrape(name: string, term: Term) {
     },
   };
 
-  /** The list of parameters to pass to ``callWebSocAPI``. */
-  let inputs: [Term, WebsocAPIOptions][] = [
-    ...deptCodes.map(
-      (department) => [term, { department }] as [Term, WebsocAPIOptions]
-    ),
-    ...geCodes.map((ge) => [term, { ge }] as [Term, WebsocAPIOptions]),
-  ];
-
-  while (inputs.length) {
-    logger.info(`Making ${inputs.length} concurrent calls to WebSoc`);
-    const settledResults = await Promise.allSettled(
-      inputs.map(([term, options]) =>
-        callWebSocAPI(term, { ...options, cancelledCourses: "Include" })
-      )
-    );
-    const fulfilledIndices: number[] = [];
-    for (const [i, res] of Object.entries(settledResults)) {
-      if (res.status === "fulfilled") {
-        const idx = parseInt(i, 10);
-        const input = inputs[idx];
-        const term = `${input[0].year} ${input[0].quarter}`;
-        if (input[1].department) {
-          results[term].department[input[1].department] = res.value;
-        } else if (input[1].ge) {
-          results[term].ge[input[1].ge] = res.value;
+  for (const department of deptCodes) {
+    logger.info(`Scraping ${department}`);
+    let done = false;
+    while (!done) {
+      try {
+        results[name].department[department] = await callWebSocAPI(term, {
+          department,
+        });
+        done = true;
+      } catch (e) {
+        if (e instanceof Error) {
+          logger.error(`${e.name}: ${e.message}`);
+          logger.error(e.stack);
+        } else {
+          logger.error(e);
         }
-        fulfilledIndices.push(idx);
+        logger.info("Rate limited, sleeping for 3 minutes");
+        await sleep(SLEEP_DURATION);
       }
     }
-    inputs = inputs.filter((_, i) => !fulfilledIndices.includes(i));
-    logger.info(
-      `${fulfilledIndices.length} calls succeeded, ${inputs.length} remain`
-    );
-    if (inputs.length) {
-      logger.info("Sleeping for 5 minutes");
-      await sleep(SLEEP_DURATION);
+    await sleep(REQUEST_SLEEP_DURATION);
+  }
+
+  for (const ge of geCodes) {
+    logger.info(`Scraping ${ge}`);
+    let done = false;
+    while (!done) {
+      try {
+        results[name].ge[ge] = await callWebSocAPI(term, { ge });
+        done = true;
+      } catch (e) {
+        if (e instanceof Error) {
+          logger.error(`${e.name}: ${e.message}`);
+          logger.error(e.stack);
+        } else {
+          logger.error(e);
+        }
+        logger.info("Rate limited, sleeping for 3 minutes");
+        await sleep(SLEEP_DURATION);
+      }
     }
+    await sleep(REQUEST_SLEEP_DURATION);
   }
 
   /** The timestamp for this scraping run. */
@@ -428,6 +432,24 @@ async function scrape(name: string, term: Term) {
 
   logger.info(`Processed ${Object.keys(res).length} sections`);
 
+  let connected = false;
+  while (!connected) {
+    try {
+      await prisma.$connect();
+      connected = true;
+    } catch (e) {
+      logger.error(`Failed to connect to database`);
+      if (e instanceof Error) {
+        logger.error(e.message);
+        logger.error(e.stack);
+      } else {
+        logger.error(e);
+      }
+      logger.info("Sleeping for 3 minutes");
+      await sleep(SLEEP_DURATION);
+    }
+  }
+
   const [
     sectionsCreated,
     instructorsCreated,
@@ -453,47 +475,31 @@ async function scrape(name: string, term: Term) {
   logger.info(`Inserted ${meetingsCreated.count} meetings`);
   logger.info(`Inserted ${buildingsCreated.count} buildings`);
 
+  const params = {
+    where: {
+      year: term.year,
+      quarter: term.quarter,
+      timestamp: { lt: timestamp },
+    },
+  };
+
   const [
     instructorsDeleted,
     buildingsDeleted,
     meetingsDeleted,
     sectionsDeleted,
   ] = await prisma.$transaction([
-    prisma.websocSectionInstructor.deleteMany({
-      where: {
-        year: term.year,
-        quarter: term.quarter,
-        timestamp: { lt: timestamp },
-      },
-    }),
-    prisma.websocSectionMeetingBuilding.deleteMany({
-      where: {
-        year: term.year,
-        quarter: term.quarter,
-        timestamp: { lt: timestamp },
-      },
-    }),
-    prisma.websocSectionMeeting.deleteMany({
-      where: {
-        year: term.year,
-        quarter: term.quarter,
-        timestamp: { lt: timestamp },
-      },
-    }),
-    prisma.websocSection.deleteMany({
-      where: {
-        year: term.year,
-        quarter: term.quarter,
-        timestamp: { lt: timestamp },
-      },
-    }),
+    prisma.websocSectionInstructor.deleteMany(params),
+    prisma.websocSectionMeetingBuilding.deleteMany(params),
+    prisma.websocSectionMeeting.deleteMany(params),
+    prisma.websocSection.deleteMany(params),
   ]);
 
   logger.info(`Removed ${instructorsDeleted.count} instructors`);
   logger.info(`Removed ${buildingsDeleted.count} buildings`);
   logger.info(`Removed ${meetingsDeleted.count} meetings`);
   logger.info(`Removed ${sectionsDeleted.count} sections`);
-  logger.info("Sleeping for 5 minutes");
+  logger.info("Sleeping for 3 minutes");
 
   await sleep(SLEEP_DURATION);
 }
@@ -520,4 +526,4 @@ async function main() {
   }
 }
 
-main();
+main().then(() => []);
