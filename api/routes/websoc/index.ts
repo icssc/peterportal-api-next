@@ -1,6 +1,6 @@
 import { PrismaClient } from "@libs/db";
 import type { WebsocAPIOptions } from "@libs/websoc-api-next";
-import { callWebSocAPI } from "@libs/websoc-api-next";
+import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
 import type { LambdaHandler, RawHandler } from "api-core";
 import {
   createErrorResult,
@@ -25,11 +25,21 @@ import { QuerySchema } from "./schema";
 const prisma = new PrismaClient();
 
 export const rawHandler: RawHandler = async (request) => {
-  const { method, path, query, requestId } = request.getParams();
+  const { method, path, params, query, requestId } = request.getParams();
   switch (method) {
     case "HEAD":
     case "GET":
       try {
+        switch (params?.option) {
+          case "terms":
+            return getTerms().then((results) =>
+              createOKResult(results, requestId)
+            ); // TODO: change to TermData type
+          case "depts":
+            return getDepts().then((results) =>
+              createOKResult(results, requestId)
+            );
+        }
         const parsedQuery = QuerySchema.parse(query);
 
         if (parsedQuery.cache) {

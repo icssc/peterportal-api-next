@@ -9,6 +9,8 @@ const router = Router();
 // You should not need to touch anything else in this file,
 // or any other file in this directory.
 router.all("/v1/rest/grades/:id", createExpressHandler(gradesHandler));
-router.all("/v1/rest/websoc", createExpressHandler(websocHandler));
+const websocExpressHandler = createExpressHandler(websocHandler);
+router.all("/v1/rest/websoc", websocExpressHandler);
+router.all("/v1/rest/websoc/:option", websocExpressHandler);
 
 export default router;
