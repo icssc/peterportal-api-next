@@ -4,6 +4,7 @@ import type {
   Context,
 } from "aws-lambda";
 import type { Request, RequestHandler } from "express";
+import warmer from "lambda-warmer";
 import type { ErrorResponse, Response } from "peterportal-api-next-types";
 import { createLogger, format, transports } from "winston";
 
@@ -291,6 +292,8 @@ export const createLambdaHandler =
     event: APIGatewayProxyEvent,
     context: Context
   ): Promise<APIGatewayProxyResult> => {
+    if (await warmer(event))
+      return createOKResult("Warmed", context.awsRequestId);
     const request = new LambdaRequest(event, context);
     logger.info(`Request: ${JSON.stringify(request.getParams())}`);
     return handler(request);

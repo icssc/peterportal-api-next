@@ -6,6 +6,9 @@ import {
   RestApi,
 } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
+import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
+import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Code, Function, FunctionProps, Runtime } from "aws-cdk-lib/aws-lambda";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
@@ -15,7 +18,9 @@ import { fileURLToPath } from "url";
 
 export class ApiStack extends Stack {
   private api: RestApi;
+  private rule: Rule;
   private readonly env: Record<string, string>;
+  private readonly functions: Record<string, lambda.Function> = {};
   private readonly integrations: Record<string, LambdaIntegration> = {};
   private readonly props: StackProps;
 
@@ -88,7 +93,7 @@ export class ApiStack extends Stack {
       "ANY",
       this.integrations[functionName] ??
         (this.integrations[functionName] = new LambdaIntegration(
-          new Function(this, functionName, {
+          (this.functions[functionName] = new Function(this, functionName, {
             code: Code.fromAsset(
               join(
                 dirname(fileURLToPath(import.meta.url)),
@@ -106,8 +111,13 @@ export class ApiStack extends Stack {
             runtime: Runtime.NODEJS_16_X,
             memorySize: 512,
             ...props,
-          })
+          }))
         ))
+    );
+    this.rule.addTarget(
+      new LambdaFunction(this.functions[functionName], {
+        event: RuleTargetInput.fromObject({ warmer: true }),
+      })
     );
   }
 
@@ -178,5 +188,9 @@ export class ApiStack extends Stack {
     });
 
     this.api = api;
+
+    this.rule = new Rule(this, `peterportal-api-next-${stage}-warming-rule`, {
+      schedule: Schedule.rate(Duration.minutes(5)),
+    });
   }
 }

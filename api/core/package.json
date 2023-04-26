@@ -6,6 +6,7 @@
   "type": "module",
   "main": "index.ts",
   "dependencies": {
+    "lambda-warmer": "^2.0.0",
     "winston": "^3.8.2"
   },
   "devDependencies": {
