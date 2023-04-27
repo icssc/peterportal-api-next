@@ -122,7 +122,7 @@ class LambdaRequest implements IRequest {
     private readonly event: APIGatewayProxyEvent,
     private readonly context: Context
   ) {
-    this._isWarmerRequest = event.body === '{warmer:"true"}';
+    this._isWarmerRequest = event.body === '{"warmer":"true"}';
   }
   getParams() {
     const {
