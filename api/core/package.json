@@ -6,8 +6,6 @@
   "type": "module",
   "main": "index.ts",
   "dependencies": {
-    "@aws-sdk/client-lambda": "^3.319.0",
-    "lambda-warmer": "^2.0.0",
     "winston": "^3.8.2"
   },
   "devDependencies": {
