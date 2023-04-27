@@ -110,9 +110,7 @@ class ExpressRequest implements IRequest {
       requestId: zeroUUID,
     } as HandlerParams;
   }
-  isWarmerRequest() {
-    return false;
-  }
+  isWarmerRequest = () => false;
 }
 
 /**
@@ -150,9 +148,7 @@ class LambdaRequest implements IRequest {
       requestId: this.context.awsRequestId,
     } as HandlerParams;
   }
-  isWarmerRequest() {
-    return this._isWarmerRequest;
-  }
+  isWarmerRequest = () => this._isWarmerRequest;
 }
 
 /**
