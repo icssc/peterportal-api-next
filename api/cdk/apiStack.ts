@@ -116,7 +116,7 @@ export class ApiStack extends Stack {
     );
     this.rule.addTarget(
       new LambdaFunction(this.functions[functionName], {
-        event: RuleTargetInput.fromObject({ warmer: true }),
+        event: RuleTargetInput.fromObject({ body: "warmer" }),
       })
     );
   }

@@ -4,7 +4,6 @@ import type {
   Context,
 } from "aws-lambda";
 import type { Request, RequestHandler } from "express";
-import warmer from "lambda-warmer";
 import type { ErrorResponse, Response } from "peterportal-api-next-types";
 import { createLogger, format, transports } from "winston";
 
@@ -82,6 +81,12 @@ export interface IRequest {
    * @return Relevant request data from the parameters passed in the constructor.
    */
   getParams(): HandlerParams;
+
+  /**
+   * @return Whether the request is a warmer request. Is always ``false`` if the
+   * request is an ``ExpressRequest``.
+   */
+  isWarmerRequest(): boolean;
 }
 
 /* endregion */
@@ -105,16 +110,22 @@ class ExpressRequest implements IRequest {
       requestId: zeroUUID,
     } as HandlerParams;
   }
+  isWarmerRequest() {
+    return false;
+  }
 }
 
 /**
  * Request data populated by a Lambda integration.
  */
 class LambdaRequest implements IRequest {
+  private readonly _isWarmerRequest: boolean;
   constructor(
     private readonly event: APIGatewayProxyEvent,
     private readonly context: Context
-  ) {}
+  ) {
+    this._isWarmerRequest = event.body === "warmer";
+  }
   getParams() {
     const {
       body,
@@ -138,6 +149,9 @@ class LambdaRequest implements IRequest {
       ),
       requestId: this.context.awsRequestId,
     } as HandlerParams;
+  }
+  isWarmerRequest() {
+    return this._isWarmerRequest;
   }
 }
 
@@ -292,8 +306,6 @@ export const createLambdaHandler =
     event: APIGatewayProxyEvent,
     context: Context
   ): Promise<APIGatewayProxyResult> => {
-    if (await warmer(event))
-      return createOKResult("Warmed", context.awsRequestId);
     const request = new LambdaRequest(event, context);
     logger.info(`Request: ${JSON.stringify(request.getParams())}`);
     return handler(request);
