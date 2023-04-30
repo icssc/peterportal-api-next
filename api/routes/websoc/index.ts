@@ -26,6 +26,14 @@ const prisma = new PrismaClient();
 
 export const rawHandler: RawHandler = async (request) => {
   const { method, path, query, requestId } = request.getParams();
+  if (request.isWarmerRequest()) {
+    try {
+      await prisma.$connect();
+      return createOKResult("Warmed", requestId);
+    } catch (e) {
+      createErrorResult(500, e, requestId);
+    }
+  }
   switch (method) {
     case "HEAD":
     case "GET":
