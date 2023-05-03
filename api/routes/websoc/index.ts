@@ -26,7 +26,6 @@ const prisma = new PrismaClient();
 
 export const rawHandler: RawHandler = async (request) => {
   const { method, path, params, query, requestId } = request.getParams();
-  const { method, path, query, requestId } = request.getParams();
   if (request.isWarmerRequest()) {
     try {
       await prisma.$connect();
