@@ -31,14 +31,68 @@ export const rawHandler: RawHandler = async (request) => {
     case "GET":
       try {
         switch (params?.option) {
-          case "terms":
-            return getTerms().then((results) =>
-              createOKResult(results, requestId)
-            ); // TODO: change to TermData type
-          case "depts":
-            return getDepts().then((results) =>
-              createOKResult(results, requestId)
-            );
+          case "terms": {
+            const [gradesTerms, webSocTerms] = await Promise.all([
+              prisma.gradesSection.findMany({
+                distinct: ["year", "quarter"],
+                select: {
+                  year: true,
+                  quarter: true,
+                },
+                orderBy: [{ year: "desc" }, { quarter: "desc" }],
+              }),
+              getTerms(),
+            ]);
+            const shortNames = webSocTerms.map((x) => x.shortName);
+            gradesTerms.forEach(({ year, quarter }) => {
+              if (!shortNames.includes(`${year} ${quarter}`)) {
+                let longName = year;
+                switch (quarter) {
+                  case "Summer1":
+                    longName += " Summer Session 1";
+                    break;
+                  case "Summer2":
+                    longName += " Summer Session 2";
+                    break;
+                  case "Summer10wk":
+                    longName += " 10-wk Summer";
+                    break;
+                  default:
+                    longName += ` ${quarter} Quarter`;
+                    break;
+                }
+                webSocTerms.push({
+                  shortName: `${year} ${quarter}`,
+                  longName: longName,
+                });
+              }
+            });
+            return createOKResult(webSocTerms, requestId);
+          }
+
+          case "depts": {
+            const [gradesDepts, webSocDepts] = await Promise.all([
+              prisma.gradesSection.findMany({
+                distinct: ["department"],
+                select: {
+                  department: true,
+                },
+              }),
+              getDepts(),
+            ]);
+
+            const deptValues = webSocDepts.map((x) => x.deptValue);
+            gradesDepts.forEach((element) => {
+              if (!deptValues.includes(element.department)) {
+                webSocDepts.push({
+                  deptLabel: element.department,
+                  deptValue: element.department,
+                });
+              }
+            });
+
+            return createOKResult(webSocDepts, requestId);
+          }
         }
         const parsedQuery = QuerySchema.parse(query);
 
