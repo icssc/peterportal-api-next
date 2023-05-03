@@ -17,11 +17,20 @@ import { ZodError } from "zod";
 import { aggregateGrades, constructPrismaQuery, lexOrd } from "./lib";
 import { QuerySchema } from "./schema";
 
+const prisma = new PrismaClient();
+
 export const rawHandler = async (
   request: IRequest
 ): Promise<APIGatewayProxyResult> => {
   const { method, path, params, query, requestId } = request.getParams();
-  const prisma = new PrismaClient();
+  if (request.isWarmerRequest()) {
+    try {
+      await prisma.$connect();
+      return createOKResult("Warmed", requestId);
+    } catch (e) {
+      createErrorResult(500, e, requestId);
+    }
+  }
   switch (method) {
     case "HEAD":
     case "GET":

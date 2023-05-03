@@ -81,6 +81,12 @@ export interface IRequest {
    * @return Relevant request data from the parameters passed in the constructor.
    */
   getParams(): HandlerParams;
+
+  /**
+   * @return Whether the request is a warmer request. Is always ``false`` if the
+   * request is an ``ExpressRequest``.
+   */
+  isWarmerRequest(): boolean;
 }
 
 /* endregion */
@@ -104,16 +110,20 @@ class ExpressRequest implements IRequest {
       requestId: zeroUUID,
     } as HandlerParams;
   }
+  isWarmerRequest = () => false;
 }
 
 /**
  * Request data populated by a Lambda integration.
  */
 class LambdaRequest implements IRequest {
+  private readonly _isWarmerRequest: boolean;
   constructor(
     private readonly event: APIGatewayProxyEvent,
     private readonly context: Context
-  ) {}
+  ) {
+    this._isWarmerRequest = event.body === '{"warmer":"true"}';
+  }
   getParams() {
     const {
       body,
@@ -138,6 +148,7 @@ class LambdaRequest implements IRequest {
       requestId: this.context.awsRequestId,
     } as HandlerParams;
   }
+  isWarmerRequest = () => this._isWarmerRequest;
 }
 
 /**
