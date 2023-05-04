@@ -11,6 +11,18 @@ datasource db {
 
 // Do not modify anything above this line unless you know what you are doing.
 
+model CalendarTerm {
+  year             String
+  quarter          Quarter
+  instructionStart DateTime
+  instructionEnd   DateTime
+  finalsStart      DateTime
+  finalsEnd        DateTime
+
+  @@id([year, quarter])
+  @@unique([year, quarter], name: "idx")
+}
+
 model GradesInstructor {
   year        String
   quarter     Quarter
