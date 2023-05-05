@@ -129,7 +129,16 @@ export const getTermDateData = async (
   addSingleDateRow(quarterData, 2, "instructionStart", ret, year);
   addSingleDateRow(quarterData, 17, "instructionEnd", ret, year);
   addMultipleDateRow(quarterData, 18, "finalsStart", "finalsEnd", ret, year);
-  addSingleDateRow(summerSessionData, 3, "instructionStart", ret, year, 3);
+  addSingleDateRow(
+    summerSessionData,
+    // Before the 2021-22 academic year, Juneteenth was either not observed or observed during one of the Summer Sessions.
+    // This change accounts for the difference in table row numbering caused by this change.
+    2 + Number(parseInt(year, 10) > 2020),
+    "instructionStart",
+    ret,
+    year,
+    3
+  );
   addSingleDateRow(summerSessionData, 6, "instructionEnd", ret, year, 3);
   addMultipleDateRow(
     summerSessionData,
@@ -140,6 +149,7 @@ export const getTermDateData = async (
     year,
     3
   );
+  console.log(ret);
   // Normalize all terms to start on a Monday, or a Thursday if it is Fall.
   for (const key in ret) {
     if (key.includes("Fall")) {
