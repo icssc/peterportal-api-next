@@ -1,0 +1,80 @@
+import { PrismaClient } from "@libs/db";
+import { getTermDateData } from "@libs/registrar-api";
+import type { IRequest } from "api-core";
+import {
+  createErrorResult,
+  createLambdaHandler,
+  createOKResult,
+} from "api-core";
+import type {
+  APIGatewayProxyEvent,
+  APIGatewayProxyResult,
+  Context,
+} from "aws-lambda";
+import { Quarter, QuarterDates } from "peterportal-api-next-types";
+import { ZodError } from "zod";
+
+import { QuerySchema } from "./schema";
+
+const prisma = new PrismaClient();
+
+export const rawHandler = async (
+  request: IRequest
+): Promise<APIGatewayProxyResult> => {
+  const { method, path, query, requestId } = request.getParams();
+  if (request.isWarmerRequest()) {
+    try {
+      await prisma.$connect();
+      return createOKResult("Warmed", requestId);
+    } catch (e) {
+      createErrorResult(500, e, requestId);
+    }
+  }
+  switch (method) {
+    case "HEAD":
+    case "GET":
+      try {
+        const parsedQuery = QuerySchema.parse(query);
+        const res = await prisma.calendarTerm.findFirst({
+          where: { year: parsedQuery.year, quarter: parsedQuery.quarter },
+          select: {
+            instructionStart: true,
+            instructionEnd: true,
+            finalsStart: true,
+            finalsEnd: true,
+          },
+        });
+        if (res) return createOKResult<QuarterDates>(res, requestId);
+        const termDateData = await getTermDateData(
+          parsedQuery.quarter === "Fall"
+            ? parsedQuery.year
+            : (parseInt(parsedQuery.year) - 1).toString(10)
+        );
+        await prisma.calendarTerm.createMany({
+          data: Object.entries(termDateData).map(([term, data]) => ({
+            year: term.split(" ")[0],
+            quarter: term.split(" ")[1] as Quarter,
+            ...data,
+          })),
+        });
+        return createOKResult(
+          termDateData[[parsedQuery.year, parsedQuery.quarter].join(" ")],
+          requestId
+        );
+      } catch (e) {
+        if (e instanceof ZodError) {
+          const messages = e.issues.map((issue) => issue.message);
+          return createErrorResult(400, messages.join("; "), requestId);
+        }
+        return createErrorResult(400, e, requestId);
+      }
+    default:
+      return createErrorResult(400, `Cannot ${method} ${path}`, requestId);
+  }
+};
+
+export const lambdaHandler = async (
+  event: APIGatewayProxyEvent,
+  context: Context
+): Promise<APIGatewayProxyResult> =>
+  createLambdaHandler(rawHandler)(event, context);
