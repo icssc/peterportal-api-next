@@ -57,6 +57,12 @@ export const rawHandler = async (
             ...data,
           })),
         });
+        if (!Object.keys(termDateData).length)
+          return createErrorResult(
+            400,
+            `The requested term, ${parsedQuery.year} ${parsedQuery.quarter}, is currently unavailable.`,
+            requestId
+          );
         return createOKResult(
           termDateData[[parsedQuery.year, parsedQuery.quarter].join(" ")],
           requestId
