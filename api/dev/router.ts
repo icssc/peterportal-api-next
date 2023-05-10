@@ -12,7 +12,9 @@ const router = Router();
 // or any other file in this directory.
 router.all("/v1/rest/calendar", createExpressHandler(calendarHandler));
 router.all("/v1/rest/grades/:id", createExpressHandler(gradesHandler));
-router.all("/v1/rest/websoc", createExpressHandler(websocHandler));
+const websocExpressHandler = createExpressHandler(websocHandler);
+router.all("/v1/rest/websoc", websocExpressHandler);
+router.all("/v1/rest/websoc/:option", websocExpressHandler);
 router.all("/v1/rest/larc", createExpressHandler(larcHandler));
 
 export default router;

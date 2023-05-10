@@ -17,4 +17,5 @@ api.addRoute("/v1/rest/calendar", "calendar");
 api.addRoute("/v1/graphql", "graphql");
 api.addRoute("/v1/rest/grades/{id}", "grades");
 api.addRoute("/v1/rest/websoc", "websoc");
+api.addRoute("/v1/rest/websoc/{option}", "websoc");
 api.addRoute("/v1/rest/larc", "larc");

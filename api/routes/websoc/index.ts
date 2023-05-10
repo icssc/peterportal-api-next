@@ -1,6 +1,6 @@
 import { PrismaClient } from "@libs/db";
 import type { WebsocAPIOptions } from "@libs/websoc-api-next";
-import { callWebSocAPI } from "@libs/websoc-api-next";
+import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
 import type { LambdaHandler, RawHandler } from "api-core";
 import {
   createErrorResult,
@@ -25,7 +25,7 @@ import { QuerySchema } from "./schema";
 const prisma = new PrismaClient();
 
 export const rawHandler: RawHandler = async (request) => {
-  const { method, path, query, requestId } = request.getParams();
+  const { method, path, params, query, requestId } = request.getParams();
   if (request.isWarmerRequest()) {
     try {
       await prisma.$connect();
@@ -38,6 +38,95 @@ export const rawHandler: RawHandler = async (request) => {
     case "HEAD":
     case "GET":
       try {
+        switch (params?.option) {
+          case "terms": {
+            const [gradesTerms, webSocTerms] = await Promise.all([
+              prisma.gradesSection.findMany({
+                distinct: ["year", "quarter"],
+                select: {
+                  year: true,
+                  quarter: true,
+                },
+                orderBy: [{ year: "desc" }, { quarter: "desc" }],
+              }),
+              getTerms(),
+            ]);
+            const shortNames = webSocTerms.map((x) => x.shortName);
+            gradesTerms.forEach(({ year, quarter }) => {
+              if (!shortNames.includes(`${year} ${quarter}`)) {
+                let longName = year;
+                switch (quarter) {
+                  case "Summer1":
+                    longName += " Summer Session 1";
+                    break;
+                  case "Summer2":
+                    longName += " Summer Session 2";
+                    break;
+                  case "Summer10wk":
+                    longName += " 10-wk Summer";
+                    break;
+                  default:
+                    longName += ` ${quarter} Quarter`;
+                    break;
+                }
+                webSocTerms.push({
+                  shortName: `${year} ${quarter}`,
+                  longName: longName,
+                });
+              }
+            });
+            const quarterOrder = [
+              "Winter",
+              "Spring",
+              "Summer1",
+              "Summer10wk",
+              "Summer2",
+              "Fall",
+            ];
+            webSocTerms.sort((a, b) => {
+              if (a.shortName.substring(0, 4) > b.shortName.substring(0, 4))
+                return -1;
+              if (a.shortName.substring(0, 4) < b.shortName.substring(0, 4))
+                return 1;
+              return (
+                quarterOrder.indexOf(b.shortName.substring(5)) -
+                quarterOrder.indexOf(a.shortName.substring(5))
+              );
+            });
+            return createOKResult(webSocTerms, requestId);
+          }
+
+          case "depts": {
+            const [gradesDepts, webSocDepts] = await Promise.all([
+              prisma.gradesSection.findMany({
+                distinct: ["department"],
+                select: {
+                  department: true,
+                },
+              }),
+              getDepts(),
+            ]);
+
+            const deptValues = webSocDepts.map((x) => x.deptValue);
+            gradesDepts.forEach((element) => {
+              if (!deptValues.includes(element.department)) {
+                webSocDepts.push({
+                  deptLabel: element.department,
+                  deptValue: element.department,
+                });
+              }
+            });
+
+            webSocDepts.sort((a, b) => {
+              if (a.deptValue == "ALL") return -1;
+              if (b.deptValue == "ALL") return 1;
+              if (a.deptValue > b.deptValue) return 1;
+              if (a.deptValue < b.deptValue) return -1;
+              return 0;
+            });
+            return createOKResult(webSocDepts, requestId);
+          }
+        }
         const parsedQuery = QuerySchema.parse(query);
 
         if (parsedQuery.cache) {
