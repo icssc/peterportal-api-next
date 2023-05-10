@@ -8,5 +8,4 @@ if git diff --cached --name-only --diff-filter=ACM | grep ts &>/dev/null; then
   npx --no -- tsc -p docs/cdk --noEmit
   echo "...none found."
 fi
-
 npx --no -- lint-staged
