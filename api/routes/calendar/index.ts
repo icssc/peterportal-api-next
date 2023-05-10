@@ -34,9 +34,9 @@ export const rawHandler = async (
     case "HEAD":
     case "GET":
       try {
-        const parsedQuery = QuerySchema.parse(query);
+        const where = QuerySchema.parse(query);
         const res = await prisma.calendarTerm.findFirst({
-          where: { year: parsedQuery.year, quarter: parsedQuery.quarter },
+          where,
           select: {
             instructionStart: true,
             instructionEnd: true,
@@ -46,9 +46,9 @@ export const rawHandler = async (
         });
         if (res) return createOKResult<QuarterDates>(res, requestId);
         const termDateData = await getTermDateData(
-          parsedQuery.quarter === "Fall"
-            ? parsedQuery.year
-            : (parseInt(parsedQuery.year) - 1).toString(10)
+          where.quarter === "Fall"
+            ? where.year
+            : (parseInt(where.year) - 1).toString(10)
         );
         await prisma.calendarTerm.createMany({
           data: Object.entries(termDateData).map(([term, data]) => ({
@@ -60,11 +60,11 @@ export const rawHandler = async (
         if (!Object.keys(termDateData).length)
           return createErrorResult(
             400,
-            `The requested term, ${parsedQuery.year} ${parsedQuery.quarter}, is currently unavailable.`,
+            `The requested term, ${where.year} ${where.quarter}, is currently unavailable.`,
             requestId
           );
         return createOKResult(
-          termDateData[[parsedQuery.year, parsedQuery.quarter].join(" ")],
+          termDateData[[where.year, where.quarter].join(" ")],
           requestId
         );
       } catch (e) {
