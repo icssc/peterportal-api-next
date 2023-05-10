@@ -1,14 +1,18 @@
-import fetch from "cross-fetch";
 import * as cheerio from "cheerio";
+import fetch from "cross-fetch";
+import fs from "fs";
 import he from "he";
 import pLimit from "p-limit";
+import { dirname } from "path";
 import stringSimilarity from "string-similarity";
-import fs from "fs";
+import { fileURLToPath } from "url";
+import winston, { log } from "winston";
 
-const CATALOGUE_BASE_URL: string = "http://catalogue.uci.edu";
-const URL_TO_ALL_SCHOOLS: string =
-  "http://catalogue.uci.edu/schoolsandprograms/";
-const URL_TO_DIRECTORY: string = "https://directory.uci.edu/";
+const __dirname = dirname(fileURLToPath(import.meta.url));
+
+const CATALOGUE_BASE_URL = "http://catalogue.uci.edu";
+const URL_TO_ALL_SCHOOLS = "http://catalogue.uci.edu/schoolsandprograms/";
+const URL_TO_DIRECTORY = "https://directory.uci.edu/";
 const URL_TO_INSTRUCT_HISTORY = "http://www.reg.uci.edu/perl/InstructHist";
 
 const YEAR_THRESHOLD = 20; // Number of years to look back when grabbing course history
@@ -26,7 +30,6 @@ type Instructor = {
 };
 
 type InstructorsData = {
-  date: string;
   result: InstructorsInfo;
   log: InstructorsLog;
 };
@@ -53,6 +56,24 @@ type InstructorsLog = {
 };
 
 /**
+ * Logger object to log info, errors, and warnings
+ */
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json(),
+    winston.format.prettyPrint()
+  ),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({
+      filename: `${__dirname}/logs/${Date.now()}.log`,
+    }),
+  ],
+});
+
+/**
  * @param ms - Milliseconds to wait
  */
 function sleep(ms: number) {
@@ -65,7 +86,9 @@ function sleep(ms: number) {
  * The speed of this scraper largely depends on concurrency_limit and year_threshold. UCI websites run on boomer servers and will
  * die with too many concurrent calls so we bottleneck. If a request fails we retry up to the number of attempts.
  *
- * Recommended arguments: concurrency_limt = 100, attempts = 5
+ * Recommended parameters:
+ * concurrency_limit <= 100;  Going more than 100 will likely result in more failed requests
+ * attempts <= 5;
  *
  * @param concurrency_limit - Number of concurrent calls at a time
  * @param attempts - Number of attempts to make a request if fail
@@ -78,11 +101,10 @@ export async function getAllInstructors(
   year_threshold: number = YEAR_THRESHOLD
 ): Promise<InstructorsData> {
   const currentYear = new Date().getFullYear();
-  console.log(
-    "Scraping instructor data from",
-    currentYear - year_threshold,
-    "to",
-    currentYear
+  logger.info(
+    `Scraping instructor data from ${
+      currentYear - year_threshold
+    } to ${currentYear}`
   );
   const limit = pLimit(concurrency_limit);
   const startTime = new Date().getTime();
@@ -99,7 +121,7 @@ export async function getAllInstructors(
   };
   const facultyLinks = await getFacultyLinks(attempts);
   instructorsLog["faculty_links"] = facultyLinks;
-  console.log("Retrieved", Object.keys(facultyLinks).length, "faculty links");
+  logger.info(`Retrieved ${Object.keys(facultyLinks).length} faculty links`);
   const instructorNamePromises = Object.keys(facultyLinks).map((link) =>
     getInstructorNames(link, attempts)
   );
@@ -140,8 +162,8 @@ export async function getAllInstructors(
       limit(() =>
         getInstructor(
           name,
-          instructorsDict[name].schools,
-          Array.from(instructorsDict[name].courses),
+          schools,
+          related_departments,
           attempts,
           year_threshold
         )
@@ -149,13 +171,11 @@ export async function getAllInstructors(
     );
     instructorsLog["instructors_found"][name] = {
       schools: schools,
-      related_departments: [],
+      related_departments: related_departments,
     };
   });
-  console.log(
-    "Retrieved",
-    Object.keys(instructorsDict).length,
-    "instructor names"
+  logger.info(
+    `Retrieved ${Object.keys(instructorsDict).length} instructor names`
   );
   const instructors = await Promise.all(instructorPromises);
   // Store results and log
@@ -186,48 +206,20 @@ export async function getAllInstructors(
         break;
     }
   });
+  const data = {
+    result: instructorsInfo,
+    log: instructorsLog,
+  };
+  logger.info(data);
   // Calculate time elapsed
   const endTime = new Date();
   const timeDiff = endTime.getTime() - startTime;
   const seconds = timeDiff / 1000;
   const minutes = seconds / 60;
-  console.log(
-    "Completed scraping instructors data (",
-    Math.floor(minutes),
-    "min",
-    Math.floor(seconds % 60),
-    "sec )"
-  );
-  printInstructorsLog(instructorsLog);
-  return {
-    date: endTime.toISOString(),
-    result: instructorsInfo,
-    log: instructorsLog,
-  };
-}
-
-/**
- * Print the number of items inside the fields of the InstructorsLog
- *
- * @param instructorsLog - instructorsLog object
- */
-function printInstructorsLog(instructorsLog: InstructorsLog) {
-  console.log("-------------- Instructors Log --------------");
-  console.log(
-    `  faculty_links:`,
-    Object.keys(instructorsLog["faculty_links"]).length
-  );
-  console.log(
-    `  instructors_found:`,
-    Object.keys(instructorsLog["instructors_found"]).length
-  );
-  for (const key in instructorsLog) {
-    const array = instructorsLog[key];
-    if (Array.isArray(array)) {
-      console.log(`  ${key}:`, instructorsLog[key].length);
-    }
-  }
-  console.log("---------------------------------------------");
+  logger.info({
+    time_elapsed: `${Math.floor(minutes)} min ${Math.floor(seconds % 60)} sec`,
+  });
+  return data;
 }
 
 /**
@@ -258,10 +250,11 @@ export async function getInstructor(
     shortened_name: "",
     course_history: {},
   };
-  let [status, directoryInfo] = await getDirectoryInfo(
+  const [directory_status, directoryInfo] = await getDirectoryInfo(
     instructorName,
     attempts
   );
+  let status = directory_status;
   if (status !== "FOUND") {
     return [status, instructorObject];
   }
@@ -283,6 +276,61 @@ export async function getInstructor(
 }
 
 /**
+ * Traverse the school's department pages to retrieve its correpsonding faculty links.
+ * 
+ * @param schoolUrl - URL to scrape data from
+ * @param schoolName - Name of the school
+ * @param root - Boolean for if we are scraping main school page, determines if we should keep crawling
+ * @param attempts - Number of times the function will be called again if request fails
+ * @returns {object}: A map of the schoolName to an array of faculty links
+ * Example:
+ *      {'The Henry Samueli School of Engineering': [ 'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofbiomedicalengineering/#faculty',
+      'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofchemicalandbiomolecularengineering/#faculty', ...]}
+*/
+async function getFaculty(
+  schoolUrl: string,
+  schoolName: string,
+  root: boolean,
+  attempts: number
+): Promise<{ [key: string]: string[] }> {
+  const schoolURLs: { [faculty_link: string]: string[] } = {
+    [schoolName]: [],
+  };
+  try {
+    const response = await (await fetch(schoolUrl)).text();
+    const $ = cheerio.load(response);
+    // Faculty tab found
+    if ($("#facultytab").length !== 0) {
+      schoolURLs[schoolName].push(schoolUrl);
+    }
+    // No faculty tab, might have departments tab
+    else if (root) {
+      const departmentLinks: string[][] = [];
+      $(".levelone li a").each(function (this: cheerio.Element) {
+        const departmentURL = $(this).attr("href");
+        departmentLinks.push([
+          CATALOGUE_BASE_URL + departmentURL + "#faculty",
+          schoolName,
+        ]);
+      });
+      const departmentLinksPromises = departmentLinks.map((x) =>
+        getFaculty(x[0], x[1], false, attempts - 1)
+      );
+      const departmentLinksResults = await Promise.all(departmentLinksPromises);
+      departmentLinksResults.forEach((res) => {
+        schoolURLs[schoolName] = schoolURLs[schoolName].concat(res[schoolName]);
+      });
+    }
+  } catch (error) {
+    if (attempts > 0) {
+      await sleep(1000);
+      return await getFaculty(schoolUrl, schoolName, false, attempts - 1);
+    }
+  }
+  return schoolURLs;
+}
+
+/**
  * Return the faculty links and their corresponding school name
  *
  * @param attempts - Number of times the function will be called again if request fails
@@ -296,64 +344,6 @@ export async function getFacultyLinks(
 ): Promise<{ [faculty_link: string]: string }> {
   const result: { [faculty_link: string]: string } = {};
   try {
-    /**
-         * Asynchronously traverse the school's department pages to retrieve its correpsonding faculty links.
-         * 
-         * @param schoolUrl - URL to scrape data from
-         * @param schoolName - Name of the school
-         * @param root - Boolean for if we are scraping main school page, determines if we should keep crawling
-         * @param attempts - Number of times the function will be called again if request fails
-         * @returns {object}: A map of the schoolName to an array of faculty links
-         * Example:
-         *      {'The Henry Samueli School of Engineering': [ 'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofbiomedicalengineering/#faculty',
-                'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofchemicalandbiomolecularengineering/#faculty', ...]}
-         */
-    async function getFaculty(
-      schoolUrl: string,
-      schoolName: string,
-      root: boolean,
-      attempts: number
-    ): Promise<{ [key: string]: string[] }> {
-      const schoolURLs: { [faculty_link: string]: string[] } = {
-        [schoolName]: [],
-      };
-      try {
-        const response = await (await fetch(schoolUrl)).text();
-        const $ = cheerio.load(response);
-        // Faculty tab found
-        if ($("#facultytab").length !== 0) {
-          schoolURLs[schoolName].push(schoolUrl);
-        }
-        // No faculty tab, might have departments tab
-        else if (root) {
-          const departmentLinks: string[][] = [];
-          $(".levelone li a").each(function (this: cheerio.Element) {
-            const departmentURL = $(this).attr("href");
-            departmentLinks.push([
-              CATALOGUE_BASE_URL + departmentURL + "#faculty",
-              schoolName,
-            ]);
-          });
-          const departmentLinksPromises = departmentLinks.map((x) =>
-            getFaculty(x[0], x[1], false, attempts - 1)
-          );
-          const departmentLinksResults = await Promise.all(
-            departmentLinksPromises
-          );
-          departmentLinksResults.forEach((res) => {
-            schoolURLs[schoolName] = schoolURLs[schoolName].concat(
-              res[schoolName]
-            );
-          });
-        }
-      } catch (error) {
-        if (attempts > 0) {
-          await sleep(1000);
-          return await getFaculty(schoolUrl, schoolName, false, attempts - 1);
-        }
-      }
-      return schoolURLs;
-    }
     // Get links to all schools and store them into an array
     const response = await (await fetch(URL_TO_ALL_SCHOOLS)).text();
     const $ = cheerio.load(response);
@@ -372,7 +362,7 @@ export async function getFacultyLinks(
     );
     const schoolLinksResults = await Promise.all(schoolLinksPromises);
     schoolLinksResults.forEach((schoolURLs) => {
-      for (let schoolName in schoolURLs) {
+      for (const schoolName in schoolURLs) {
         schoolURLs[schoolName].forEach((url) => {
           result[url] = schoolName;
         });
@@ -479,7 +469,7 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
   if (facultyLink in lookup) {
     return lookup[facultyLink];
   }
-  console.log(
+  logger.warn(
     `WARNING! ${facultyLink} does not have an associated Courses page! Use https://www.reg.uci.edu/perl/InstructHist to hardcode.`
   );
   return [];
@@ -506,7 +496,7 @@ export async function getDirectoryInfo(
   const headers = {
     "Content-Type": "application/x-www-form-urlencoded",
   };
-  let name = instructorName.replace(/\./g, ""); // remove '.' from name
+  const name = instructorName.replace(/\./g, ""); // remove '.' from name
   const data = new URLSearchParams({
     uciKey: name,
     filter: "all", // "all" instead of "staff" bc some instructors are not "staff" (?)
@@ -631,7 +621,7 @@ export async function getDirectoryInfo(
       await sleep(1000);
       return await getDirectoryInfo(name, attempts - 1);
     }
-    console.log(
+    logger.error(
       "Failed to access directory! You may be making too many requests. Try lowering the concurrent limit."
     );
     return ["FAILED", {}];
@@ -744,6 +734,9 @@ export async function getCourseHistory(
   for (const courseId in courseHistory) {
     courseHistoryListed[courseId] = Array.from(courseHistory[courseId]);
   }
+  if (status == "FOUND" && Object.keys(courseHistoryListed).length == 0) {
+    status = "HISTORY_NOT_FOUND";
+  }
   return [
     status,
     {
@@ -789,7 +782,7 @@ export async function fetchHistoryPage(
       return await fetchHistoryPage(params, attempts - 1);
     }
   }
-  console.log(
+  logger.error(
     "InstrucHist connection to database is down! You may be making too many requests. Try lowering the concurrent limit."
   );
   return "HISTORY_FAILED";
@@ -876,7 +869,7 @@ export async function parseHistoryPage(
       return false;
     }
   } catch (error) {
-    console.log(error);
+    logger.error(error);
   }
   return entryFound;
 }
@@ -889,26 +882,16 @@ export async function parseHistoryPage(
  * @param year_threshold - Number of years to look back when scraping instructor's course history
  * @param path - Directory where the json file will be created
  */
-export async function exportAllInstructorsToJson(
-  concurrency_limit: number,
-  attempts: number,
-  year_threshold: number,
-  path: string = "tools/instructorScraper/"
+export async function exportInstructorsToJson(
+  instructorsData: InstructorsInfo
 ) {
-  const instructorsData = await getAllInstructors(
-    concurrency_limit,
-    attempts,
-    year_threshold
-  );
   const jsonResult = JSON.stringify(instructorsData);
-  fs.writeFile(path + "instructors_data.json", jsonResult, (error) => {
+  const path = `${__dirname}/results/${Date.now()}.log`;
+  fs.writeFile(path, jsonResult, (error) => {
     if (error) {
       console.error("Error writing to file", error);
     } else {
-      console.log(
-        "Exported instructors data to",
-        path + "instructors_data.json"
-      );
+      console.log("Exported instructors data to", path);
     }
   });
 }
