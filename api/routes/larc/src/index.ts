@@ -9,36 +9,38 @@ export async function getLarcSections() {
 
   const $ = cheerio.load(html);
 
-  const larcSections = $(".tutorial-group").map((_, card) => {
-    const match = $(card)
-      .find(".card-header")
-      .text()
-      .trim()
-      .match(/(?<courseCode>[^()]*)( \(same as (?<sameAs>.*)\))? - (.*) \((?<courseName>.*)\)/);
+  const larcSections = $(".tutorial-group")
+    .toArray()
+    .map((card) => {
+      const match = $(card)
+        .find(".card-header")
+        .text()
+        .trim()
+        .match(/(?<courseCode>[^()]*)( \(same as (?<sameAs>.*)\))? - (.*) \((?<courseName>.*)\)/);
 
-    const body = $(card)
-      .find(".list-group")
-      .map((_, group) => {
-        const rows = $(group).find(".col-lg-4");
+      const body = $(card)
+        .find(".list-group")
+        .toArray()
+        .map((group) => {
+          const rows = $(group).find(".col-lg-4");
 
-        const [day, time] = $(rows[0])
-          .find(".col")
-          .map((_, col) => $(col).text().trim());
+          const [day, time] = $(rows[0])
+            .find(".col")
+            .map((_, col) => $(col).text().trim());
 
-        const [instructor, building] = $(rows[1])
-          .find(".col")
-          .map((_, col) => $(col).text().trim());
+          const [instructor, building] = $(rows[1])
+            .find(".col")
+            .map((_, col) => $(col).text().trim());
 
-        return { day, time, instructor, building };
-      })
-      .toArray();
+          return { day, time, instructor, building };
+        });
 
-    const larcSection = { header: match?.groups, body };
+      const larcSection = { header: { ...match?.groups }, body };
 
-    console.log("header: ", larcSection.header, "\n", "body: ", larcSection.body);
+      // console.log("header: ", larcSection.header, "\n", "body: ", larcSection.body);
 
-    return larcSection;
-  });
+      return larcSection;
+    });
 
   return larcSections;
 }
@@ -52,3 +54,9 @@ export const lambdaHandler = async (
   event: APIGatewayProxyEvent,
   context: Context
 ): Promise<APIGatewayProxyResult> => createLambdaHandler(rawHandler)(event, context);
+
+// async function start() {
+//   const larcSections = await getLarcSections();
+//   console.log('larc', larcSections);
+// }
+// start()
