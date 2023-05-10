@@ -11,7 +11,7 @@
     "inlineSourceMap": true,
     "inlineSources": false,
     "isolatedModules": true,
-    "module": "NodeNext",
+    "module": "ES2020",
     "moduleResolution": "Node",
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": true,
@@ -30,7 +30,7 @@
     "strict": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": false,
-    "target": "ESNext"
+    "target": "ES2020"
   },
   "exclude": ["build/", "**/cdk.out/**/*", "dist/", "node_modules/"],
   "include": ["api/**/*", "libs/**/*", "packages/**/*", "tools/**/*"]

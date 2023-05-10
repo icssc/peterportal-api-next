@@ -2,6 +2,7 @@ import { createOKResult, RawHandler } from "api/core";
 import { createLambdaHandler } from "api-core";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import * as cheerio from "cheerio";
+import { fetch } from "cross-fetch";
 
 export async function getLarcSections() {
   const html = await fetch("https://enroll.larc.uci.edu/").then((res) => res.text());
