@@ -1,5 +1,6 @@
 import { createExpressHandler } from "api-core";
 import { rawHandler as gradesHandler } from "api-route-grades";
+import { rawHandler as larcHandler } from "api-route-larc";
 import { rawHandler as websocHandler } from "api-route-websoc";
 import { Router } from "express";
 
@@ -12,5 +13,6 @@ router.all("/v1/rest/grades/:id", createExpressHandler(gradesHandler));
 const websocExpressHandler = createExpressHandler(websocHandler);
 router.all("/v1/rest/websoc", websocExpressHandler);
 router.all("/v1/rest/websoc/:option", websocExpressHandler);
+router.all("/v1/rest/larc", createExpressHandler(larcHandler));
 
 export default router;
