@@ -75,6 +75,24 @@ export const rawHandler: RawHandler = async (request) => {
                 });
               }
             });
+            const quarterOrder = [
+              "Winter",
+              "Spring",
+              "Summer1",
+              "Summer10wk",
+              "Summer2",
+              "Fall",
+            ];
+            webSocTerms.sort((a, b) => {
+              if (a.shortName.substring(0, 4) > b.shortName.substring(0, 4))
+                return -1;
+              if (a.shortName.substring(0, 4) < b.shortName.substring(0, 4))
+                return 1;
+              return (
+                quarterOrder.indexOf(b.shortName.substring(5)) -
+                quarterOrder.indexOf(a.shortName.substring(5))
+              );
+            });
             return createOKResult(webSocTerms, requestId);
           }
 
@@ -99,6 +117,13 @@ export const rawHandler: RawHandler = async (request) => {
               }
             });
 
+            webSocDepts.sort((a, b) => {
+              if (a.deptValue == "ALL") return -1;
+              if (b.deptValue == "ALL") return 1;
+              if (a.deptValue > b.deptValue) return 1;
+              if (a.deptValue < b.deptValue) return -1;
+              return 0;
+            });
             return createOKResult(webSocDepts, requestId);
           }
         }
