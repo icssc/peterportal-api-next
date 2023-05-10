@@ -11,7 +11,7 @@
     "inlineSourceMap": true,
     "inlineSources": false,
     "isolatedModules": true,
-    "module": "ES2020",
+    "module": "NodeNext",
     "moduleResolution": "Node",
     "noFallthroughCasesInSwitch": false,
     "noImplicitAny": true,

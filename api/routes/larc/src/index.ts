@@ -1,9 +1,7 @@
 import * as cheerio from "cheerio";
 
 export async function getLarcSections() {
-  const html = await fetch("https://enroll.larc.uci.edu/").then((res) =>
-    res.text()
-  );
+  const html = await fetch("https://enroll.larc.uci.edu/").then((res) => res.text());
 
   const $ = cheerio.load(html);
 
@@ -12,9 +10,7 @@ export async function getLarcSections() {
       .find(".card-header")
       .text()
       .trim()
-      .match(
-        /(?<courseCode>[^()]*)( \(same as (?<sameAs>.*)\))? - (.*) \((?<courseName>.*)\)/
-      );
+      .match(/(?<courseCode>[^()]*)( \(same as (?<sameAs>.*)\))? - (.*) \((?<courseName>.*)\)/);
 
     const body = $(card)
       .find(".list-group")
@@ -33,22 +29,9 @@ export async function getLarcSections() {
       })
       .toArray();
 
-    const larcSection = {
-      header: {
-        courseCode: match?.groups?.courseCode,
-        courseName: match?.groups?.courseName,
-        sameAs: match?.groups?.sameAs,
-      },
-      body,
-    };
+    const larcSection = { header: match?.groups, body };
 
-    console.log(
-      "header: ",
-      larcSection.header,
-      "\n",
-      "body: ",
-      larcSection.body
-    );
+    console.log("header: ", larcSection.header, "\n", "body: ", larcSection.body);
 
     return larcSection;
   });
