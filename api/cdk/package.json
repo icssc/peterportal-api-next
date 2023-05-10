@@ -8,6 +8,7 @@
     "destroy": "cdk destroy --all --force"
   },
   "dependencies": {
+    "api-route-calendar": "*",
     "api-route-grades": "*",
     "api-route-graphql": "*",
     "api-route-larc": "*",

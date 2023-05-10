@@ -225,8 +225,7 @@ export type Department = {
 
 /**
  * The type of the payload returned on a successful response from querying
- * ``/v1/rest/websoc/departments``.
- * @alpha
+ * ``/v1/rest/websoc/depts``.
  */
 export type DepartmentResponse = Department[];
 
@@ -249,6 +248,5 @@ export type TermData = {
 /**
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/websoc/terms``.
- * @alpha
  */
 export type TermResponse = TermData[];

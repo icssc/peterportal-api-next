@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "api-core": "*",
+    "api-route-calendar": "*",
     "api-route-grades": "*",
     "api-route-graphql": "*",
     "api-route-larc": "*",
