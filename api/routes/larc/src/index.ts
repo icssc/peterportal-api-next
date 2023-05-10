@@ -1,3 +1,6 @@
+import { createOKResult, RawHandler } from "api/core";
+import { createLambdaHandler } from "api-core";
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import * as cheerio from "cheerio";
 
 export async function getLarcSections() {
@@ -39,4 +42,12 @@ export async function getLarcSections() {
   return larcSections;
 }
 
-getLarcSections();
+export const rawHandler: RawHandler = async (request) => {
+  const larcSections = await getLarcSections();
+  return createOKResult(larcSections, request.getParams().requestId);
+};
+
+export const lambdaHandler = async (
+  event: APIGatewayProxyEvent,
+  context: Context
+): Promise<APIGatewayProxyResult> => createLambdaHandler(rawHandler)(event, context);
