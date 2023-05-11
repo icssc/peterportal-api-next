@@ -1,14 +1,7 @@
 /**
  * The list of quarters in an academic year.
  */
-export const quarters = [
-  "Fall",
-  "Winter",
-  "Spring",
-  "Summer1",
-  "Summer10wk",
-  "Summer2",
-] as const;
+export const quarters = ["Fall", "Winter", "Spring", "Summer1", "Summer10wk", "Summer2"] as const;
 /**
  * The list of all section types.
  */

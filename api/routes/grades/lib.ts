@@ -1,9 +1,5 @@
 import { Prisma } from "@libs/db";
-import type {
-  GradeDistribution,
-  GradesAggregate,
-  GradesRaw,
-} from "peterportal-api-next-types";
+import type { GradeDistribution, GradesAggregate, GradesRaw } from "peterportal-api-next-types";
 
 import { Query } from "./schema";
 
@@ -12,8 +8,7 @@ import { Query } from "./schema";
  * @param a The left hand side of the comparison.
  * @param b The right hand side of the comparison.
  */
-export const lexOrd = (a: string, b: string): number =>
-  a === b ? 0 : a > b ? 1 : -1;
+export const lexOrd = (a: string, b: string): number => (a === b ? 0 : a > b ? 1 : -1);
 
 const isNotPNPOnly = ({
   gradeACount,
@@ -21,22 +16,11 @@ const isNotPNPOnly = ({
   gradeCCount,
   gradeDCount,
   gradeFCount,
-}: GradeDistribution) =>
-  gradeACount || gradeBCount || gradeCCount || gradeDCount || gradeFCount;
+}: GradeDistribution) => gradeACount || gradeBCount || gradeCCount || gradeDCount || gradeFCount;
 
-export function constructPrismaQuery(
-  parsedQuery: Query
-): Prisma.GradesSectionWhereInput {
-  const {
-    year,
-    quarter,
-    instructor,
-    department,
-    courseNumber,
-    sectionCode,
-    division,
-    excludePNP,
-  } = parsedQuery;
+export function constructPrismaQuery(parsedQuery: Query): Prisma.GradesSectionWhereInput {
+  const { year, quarter, instructor, department, courseNumber, sectionCode, division, excludePNP } =
+    parsedQuery;
   const courseNumeric: Prisma.IntFilter = {};
   switch (division) {
     case "LowerDiv":
@@ -82,15 +66,7 @@ export function constructPrismaQuery(
 export function aggregateGrades(grades: GradesRaw): GradesAggregate {
   return {
     sectionList: grades.map(
-      ({
-        year,
-        quarter,
-        sectionCode,
-        department,
-        courseNumber,
-        courseNumeric,
-        instructors,
-      }) => ({
+      ({ year, quarter, sectionCode, department, courseNumber, courseNumeric, instructors }) => ({
         year,
         quarter,
         sectionCode,
@@ -116,8 +92,7 @@ export function aggregateGrades(grades: GradesRaw): GradesAggregate {
         ).map((key) => [key, grades.reduce((a, { [key]: b }) => a + b, 0)])
       ) as Omit<GradeDistribution, "averageGPA">),
       averageGPA:
-        grades.reduce((a, { averageGPA: b }) => a + b, 0) /
-        grades.filter(isNotPNPOnly).length,
+        grades.reduce((a, { averageGPA: b }) => a + b, 0) / grades.filter(isNotPNPOnly).length,
     },
   };
 }

@@ -16,8 +16,7 @@ permissions:
   repository-projects: write
 jobs:
   clean-up:
-    if:
-      (github.event.action == 'labeled' && github.event.label.name == 'no deploy')
+    if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy')
       || github.event.action == 'closed'
     runs-on: ubuntu-latest
     env:

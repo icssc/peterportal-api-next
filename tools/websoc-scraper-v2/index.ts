@@ -148,9 +148,7 @@ const logger = createLogger({
       ? format.combine(
           format.colorize({ all: true }),
           format.timestamp(),
-          format.printf(
-            (info) => `${info.timestamp} [${info.level}] ${info.message}`
-          )
+          format.printf((info) => `${info.timestamp} [${info.level}] ${info.message}`)
         )
       : format.printf((info) => `[${info.level}] ${info.message}`),
   transports: [new transports.Console()],
@@ -161,8 +159,7 @@ const logger = createLogger({
  * Sleep for the given number of milliseconds.
  * @param duration Duration in ms.
  */
-const sleep = async (duration: number) =>
-  new Promise((resolve) => setTimeout(resolve, duration));
+const sleep = async (duration: number) => new Promise((resolve) => setTimeout(resolve, duration));
 
 /**
  * Get all terms that are to be scraped on a daily basis.
@@ -241,8 +238,7 @@ function parseStartAndEndTimes(time: string) {
       .split("-")
       .map((x) => x.trim());
     const [startTimeHour, startTimeMinute] = startTimeString.split(":");
-    startTime =
-      parseInt(startTimeHour, 10) * 60 + parseInt(startTimeMinute, 10);
+    startTime = parseInt(startTimeHour, 10) * 60 + parseInt(startTimeMinute, 10);
     const [endTimeHour, endTimeMinute] = endTimeString.split(":");
     endTime = parseInt(endTimeHour, 10) * 60 + parseInt(endTimeMinute, 10);
     if (endTimeMinute.includes("p")) {
@@ -281,9 +277,7 @@ async function scrape(name: string, term: Term) {
   const depts = await getDepts();
 
   /** All departments to scrape. */
-  const deptCodes = depts
-    .map((dept) => dept.deptValue)
-    .filter((deptValue) => deptValue !== "ALL");
+  const deptCodes = depts.map((dept) => dept.deptValue).filter((deptValue) => deptValue !== "ALL");
 
   /** The data structure that holds all scraped data. */
   const results: Record<string, ScrapedTerm> = {
@@ -392,19 +386,15 @@ async function scrape(name: string, term: Term) {
                   courseNumber: course.courseNumber,
                   courseNumeric: courseNumberToNumeric(course.courseNumber),
                   courseTitle: course.courseTitle,
-                  sectionType:
-                    section.sectionType as ProcessedSection["data"]["sectionType"],
+                  sectionType: section.sectionType as ProcessedSection["data"]["sectionType"],
                   units: section.units,
                   maxCapacity: parseInt(section.maxCapacity, 10),
-                  sectionFull:
-                    section.status === "FULL" || section.status === "Waitl",
+                  sectionFull: section.status === "FULL" || section.status === "Waitl",
                   waitlistFull: section.status === "FULL",
                   overEnrolled:
                     parseInt(section.numCurrentlyEnrolled.totalEnrolled, 10) >
                     parseInt(section.maxCapacity, 10),
-                  cancelled: section.sectionComment.includes(
-                    "***  CANCELLED  ***"
-                  ),
+                  cancelled: section.sectionComment.includes("***  CANCELLED  ***"),
                   data: isolateSection({ school, department, course, section }),
                 },
               };
@@ -419,9 +409,7 @@ async function scrape(name: string, term: Term) {
           department.courses.forEach((course) => {
             course.sections.forEach((section) => {
               if (res[`${term} ${section.sectionCode}`]) {
-                res[`${term} ${section.sectionCode}`].data.geCategories.push(
-                  geCategory as GE
-                );
+                res[`${term} ${section.sectionCode}`].data.geCategories.push(geCategory as GE);
               }
             });
           });
@@ -450,25 +438,21 @@ async function scrape(name: string, term: Term) {
     }
   }
 
-  const [
-    sectionsCreated,
-    instructorsCreated,
-    meetingsCreated,
-    buildingsCreated,
-  ] = await prisma.$transaction([
-    prisma.websocSection.createMany({
-      data: Object.values(res).map((d) => d.data),
-    }),
-    prisma.websocSectionInstructor.createMany({
-      data: Object.values(res).flatMap((d) => d.meta.instructors),
-    }),
-    prisma.websocSectionMeeting.createMany({
-      data: Object.values(res).flatMap((d) => d.meta.meetings),
-    }),
-    prisma.websocSectionMeetingBuilding.createMany({
-      data: Object.values(res).flatMap((d) => d.meta.buildings),
-    }),
-  ]);
+  const [sectionsCreated, instructorsCreated, meetingsCreated, buildingsCreated] =
+    await prisma.$transaction([
+      prisma.websocSection.createMany({
+        data: Object.values(res).map((d) => d.data),
+      }),
+      prisma.websocSectionInstructor.createMany({
+        data: Object.values(res).flatMap((d) => d.meta.instructors),
+      }),
+      prisma.websocSectionMeeting.createMany({
+        data: Object.values(res).flatMap((d) => d.meta.meetings),
+      }),
+      prisma.websocSectionMeetingBuilding.createMany({
+        data: Object.values(res).flatMap((d) => d.meta.buildings),
+      }),
+    ]);
 
   logger.info(`Inserted ${sectionsCreated.count} sections`);
   logger.info(`Inserted ${instructorsCreated.count} instructors`);
@@ -483,17 +467,13 @@ async function scrape(name: string, term: Term) {
     },
   };
 
-  const [
-    instructorsDeleted,
-    buildingsDeleted,
-    meetingsDeleted,
-    sectionsDeleted,
-  ] = await prisma.$transaction([
-    prisma.websocSectionInstructor.deleteMany(params),
-    prisma.websocSectionMeetingBuilding.deleteMany(params),
-    prisma.websocSectionMeeting.deleteMany(params),
-    prisma.websocSection.deleteMany(params),
-  ]);
+  const [instructorsDeleted, buildingsDeleted, meetingsDeleted, sectionsDeleted] =
+    await prisma.$transaction([
+      prisma.websocSectionInstructor.deleteMany(params),
+      prisma.websocSectionMeetingBuilding.deleteMany(params),
+      prisma.websocSectionMeeting.deleteMany(params),
+      prisma.websocSection.deleteMany(params),
+    ]);
 
   logger.info(`Removed ${instructorsDeleted.count} instructors`);
   logger.info(`Removed ${buildingsDeleted.count} buildings`);
@@ -512,8 +492,7 @@ async function main() {
     logger.info("websoc-scraper-v2 starting");
     const now = new Date();
     const termsInScope = await getTermsToScrape(now);
-    for (const [name, term] of Object.entries(termsInScope))
-      await scrape(name, term);
+    for (const [name, term] of Object.entries(termsInScope)) await scrape(name, term);
   } catch (e) {
     if (e instanceof Error) {
       logger.error(e.message);

@@ -4,10 +4,7 @@ import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault,
 } from "@apollo/server/plugin/landingPage/default";
-import {
-  handlers,
-  startServerAndCreateLambdaHandler,
-} from "@as-integrations/aws-lambda";
+import { handlers, startServerAndCreateLambdaHandler } from "@as-integrations/aws-lambda";
 import { loadFilesSync } from "@graphql-tools/load-files";
 import { mergeTypeDefs } from "@graphql-tools/merge";
 import { dirname, join } from "path";
@@ -46,8 +43,7 @@ export const lambdaHandler = startServerAndCreateLambdaHandler(
         return async (res) => {
           res.headers = {
             ...res.headers,
-            "Access-Control-Allow-Headers":
-              "Apollo-Require-Preflight, Content-Type",
+            "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
             "Access-Control-Allow-Origin": "*",
             "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
           };

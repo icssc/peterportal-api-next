@@ -4,12 +4,7 @@ import fs from "fs";
 import { resolve } from "path";
 import type { Quarter } from "peterportal-api-next-types";
 
-import {
-  __dirname,
-  dataColumns,
-  handleError,
-  logger,
-} from "./gradesUpdaterUtil";
+import { __dirname, dataColumns, handleError, logger } from "./gradesUpdaterUtil";
 
 type Section = {
   meta: {

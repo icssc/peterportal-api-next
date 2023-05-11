@@ -20,11 +20,7 @@ import { encode } from "querystring";
  * resolver. Defaults to the identity function, if no transformation is needed.
  */
 export const restResolverFactory =
-  (
-    path: string,
-    transform: (args: ParsedUrlQueryInput) => ParsedUrlQueryInput = (args) =>
-      args
-  ) =>
+  (path: string, transform: (args: ParsedUrlQueryInput) => ParsedUrlQueryInput = (args) => args) =>
   async (_: never, args: ParsedUrlQueryInput): Promise<unknown> => {
     const baseUrl =
       process.env.NODE_ENV === "development"

@@ -12,9 +12,7 @@ export default function Sandbox() {
         const baseUrl =
           process.env.NODE_ENV === "development"
             ? `http://localhost:${process.env.API_PORT || 8080}`
-            : `https://${window.location.hostname
-                .replace(/-?docs/, "")
-                .replace(/^\./, "")}`;
+            : `https://${window.location.hostname.replace(/-?docs/, "").replace(/^\./, "")}`;
         return (
           <Layout title={"Sandbox"} noFooter>
             <ApolloSandbox

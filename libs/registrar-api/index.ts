@@ -4,20 +4,7 @@ import { QuarterDates, quarters } from "peterportal-api-next-types";
 
 /* region Constants */
 
-const months = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /* region Helper functions */
 
@@ -78,11 +65,8 @@ const addMultipleDateRow = (
 /* region Exported functions */
 
 // Returns relevant date data for each term in the given academic year.
-export const getTermDateData = async (
-  year: string
-): Promise<Record<string, QuarterDates>> => {
-  if (year.length !== 4 || isNaN(parseInt(year)))
-    throw new Error("Error: Invalid year provided.");
+export const getTermDateData = async (year: string): Promise<Record<string, QuarterDates>> => {
+  if (year.length !== 4 || isNaN(parseInt(year))) throw new Error("Error: Invalid year provided.");
   const shortYear = year.slice(2);
   const response = await fetch(
     `https://www.reg.uci.edu/calendars/quarterly/${year}-${
@@ -140,15 +124,7 @@ export const getTermDateData = async (
     3
   );
   addSingleDateRow(summerSessionData, 6, "instructionEnd", ret, year, 3);
-  addMultipleDateRow(
-    summerSessionData,
-    7,
-    "finalsStart",
-    "finalsEnd",
-    ret,
-    year,
-    3
-  );
+  addMultipleDateRow(summerSessionData, 7, "finalsStart", "finalsEnd", ret, year, 3);
   console.log(ret);
   // Normalize all terms to start on a Monday, or a Thursday if it is Fall.
   for (const key in ret) {

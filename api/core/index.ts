@@ -1,8 +1,4 @@
-import type {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Context,
-} from "aws-lambda";
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import type { Request, RequestHandler } from "express";
 import type { ErrorResponse, Response } from "peterportal-api-next-types";
 import { createLogger, format, transports } from "winston";
@@ -60,9 +56,7 @@ export const logger = createLogger({
       ? format.combine(
           format.colorize({ all: true }),
           format.timestamp(),
-          format.printf(
-            (info) => `${info.timestamp} [${info.level}] ${info.message}`
-          )
+          format.printf((info) => `${info.timestamp} [${info.level}] ${info.message}`)
         )
       : format.printf((info) => `[${info.level}] ${info.message}`),
   transports: [new transports.Console()],
@@ -118,10 +112,7 @@ class ExpressRequest implements IRequest {
  */
 class LambdaRequest implements IRequest {
   private readonly _isWarmerRequest: boolean;
-  constructor(
-    private readonly event: APIGatewayProxyEvent,
-    private readonly context: Context
-  ) {
+  constructor(private readonly event: APIGatewayProxyEvent, private readonly context: Context) {
     this._isWarmerRequest = event.body === '{"warmer":"true"}';
   }
   getParams() {
@@ -140,10 +131,7 @@ class LambdaRequest implements IRequest {
       params,
       path,
       query: Object.fromEntries(
-        Object.entries(mqs ?? {}).map(([k, v]) => [
-          k,
-          v?.length === 1 ? v[0] : v,
-        ])
+        Object.entries(mqs ?? {}).map(([k, v]) => [k, v?.length === 1 ? v[0] : v])
       ),
       requestId: this.context.awsRequestId,
     } as HandlerParams;
@@ -215,10 +203,7 @@ interface HandlerParams {
  * @param payload The payload to send in the response.
  * @param requestId The request ID associated with the request.
  */
-export const createOKResult = <T>(
-  payload: T,
-  requestId: string
-): APIGatewayProxyResult => {
+export const createOKResult = <T>(payload: T, requestId: string): APIGatewayProxyResult => {
   const body: Response<T> = {
     timestamp: toCLFString(new Date()),
     requestId,
@@ -298,10 +283,7 @@ export const createExpressHandler =
  */
 export const createLambdaHandler =
   (handler: RawHandler): LambdaHandler =>
-  async (
-    event: APIGatewayProxyEvent,
-    context: Context
-  ): Promise<APIGatewayProxyResult> => {
+  async (event: APIGatewayProxyEvent, context: Context): Promise<APIGatewayProxyResult> => {
     const request = new LambdaRequest(event, context);
     logger.info(`Request: ${JSON.stringify(request.getParams())}`);
     return handler(request);
@@ -318,15 +300,9 @@ export const createLambdaHandler =
 export const toCLFString = (date: Date): string =>
   `${date.getUTCDate().toString().padStart(2, "0")}/${
     months[date.getUTCMonth()]
-  }/${date.getUTCFullYear()}:${date
-    .getUTCHours()
-    .toString()
-    .padStart(2, "0")}:${date
+  }/${date.getUTCFullYear()}:${date.getUTCHours().toString().padStart(2, "0")}:${date
     .getUTCMinutes()
     .toString()
-    .padStart(2, "0")}:${date
-    .getUTCSeconds()
-    .toString()
-    .padStart(2, "0")} +0000`;
+    .padStart(2, "0")}:${date.getUTCSeconds().toString().padStart(2, "0")} +0000`;
 
 /* endregion */

@@ -1,16 +1,7 @@
 import { PrismaClient } from "@libs/db";
 import type { IRequest } from "api-core";
-import {
-  createErrorResult,
-  createLambdaHandler,
-  createOKResult,
-  logger,
-} from "api-core";
-import type {
-  APIGatewayProxyEvent,
-  APIGatewayProxyResult,
-  Context,
-} from "aws-lambda";
+import { createErrorResult, createLambdaHandler, createOKResult, logger } from "api-core";
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import type { GradesOptions, GradesRaw } from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
@@ -19,9 +10,7 @@ import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
-export const rawHandler = async (
-  request: IRequest
-): Promise<APIGatewayProxyResult> => {
+export const rawHandler = async (request: IRequest): Promise<APIGatewayProxyResult> => {
   const { method, path, params, query, requestId } = request.getParams();
   if (request.isWarmerRequest()) {
     try {
@@ -47,9 +36,7 @@ export const rawHandler = async (
                 })
               ).map((section) => ({
                 ...section,
-                instructors: section.instructors.map(
-                  (instructor) => instructor.name
-                ),
+                instructors: section.instructors.map((instructor) => instructor.name),
               }));
               switch (params.id) {
                 case "raw":
@@ -85,8 +72,7 @@ export const rawHandler = async (
               departments: Array.from(departments).sort(),
               courseNumbers: Array.from(courseNumbers).sort((a, b) => {
                 const numOrd =
-                  parseInt(a.replace(/\D/g, ""), 10) -
-                  parseInt(b.replace(/\D/g, ""), 10);
+                  parseInt(a.replace(/\D/g, ""), 10) - parseInt(b.replace(/\D/g, ""), 10);
                 return numOrd ? numOrd : lexOrd(a, b);
               }),
               sectionCodes: Array.from(sectionCodes).sort(),
@@ -113,11 +99,7 @@ export const rawHandler = async (
             );
           }
         }
-        return createErrorResult(
-          400,
-          `Invalid sub-resource ${params?.id}`,
-          requestId
-        );
+        return createErrorResult(400, `Invalid sub-resource ${params?.id}`, requestId);
       } catch (e) {
         if (e instanceof ZodError) {
           const messages = e.issues.map((issue) => issue.message);
@@ -145,5 +127,4 @@ export const rawHandler = async (
 export const lambdaHandler = async (
   event: APIGatewayProxyEvent,
   context: Context
-): Promise<APIGatewayProxyResult> =>
-  createLambdaHandler(rawHandler)(event, context);
+): Promise<APIGatewayProxyResult> => createLambdaHandler(rawHandler)(event, context);

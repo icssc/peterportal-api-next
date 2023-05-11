@@ -15,9 +15,7 @@ app.use("/v1/graphql", cors(), expressHandlerFactory());
 
 app.all("*", (req, res) => {
   logger.info(
-    `${req.method} ${req.path} ${JSON.stringify(
-      req.method === "GET" ? req.query : req.body
-    )}`
+    `${req.method} ${req.path} ${JSON.stringify(req.method === "GET" ? req.query : req.body)}`
   );
   const { statusCode, body, headers } = createErrorResult(
     404,
@@ -28,7 +26,5 @@ app.all("*", (req, res) => {
 });
 
 app.listen(port, () => {
-  logger.info(
-    `PeterPortal-API-Next development server listening on port ${port}`
-  );
+  logger.info(`PeterPortal-API-Next development server listening on port ${port}`);
 });

@@ -61,10 +61,8 @@ const template = {
                     totalEnrolled: "sec_enrollment/sec_enrolled",
                     sectionEnrolled: "sec_enrollment/sec_xlist_subenrolled",
                   },
-                  numOnWaitlist:
-                    "sec_enrollment/sec_waitlist[text() != ../../course_code]",
-                  numWaitlistCap:
-                    "sec_enrollment/sec_wait_cap[text() != ../../course_code]",
+                  numOnWaitlist: "sec_enrollment/sec_waitlist[text() != ../../course_code]",
+                  numWaitlistCap: "sec_enrollment/sec_wait_cap[text() != ../../course_code]",
                   numRequested: "sec_enrollment/sec_enroll_requests",
                   numNewOnlyReserved:
                     "sec_enrollment/sec_new_only_reserved[text() != ../../course_code]",
@@ -137,9 +135,7 @@ type OptionalOptions = {
  * This type alias strictly enforces these invariants instead of checking during
  * runtime.
  */
-export type WebsocAPIOptions = RequiredOptions &
-  BuildingRoomOptions &
-  OptionalOptions;
+export type WebsocAPIOptions = RequiredOptions & BuildingRoomOptions & OptionalOptions;
 
 /* endregion */
 
@@ -232,10 +228,7 @@ export const callWebSocAPI = async (
     redirect: "error",
   });
 
-  const json: WebsocAPIResponse = await transform(
-    await response.text(),
-    template
-  );
+  const json: WebsocAPIResponse = await transform(await response.text(), template);
   json.schools.forEach((school) =>
     school.departments.forEach((department) =>
       department.courses.forEach((course) =>
@@ -253,9 +246,7 @@ export const callWebSocAPI = async (
 
 function getUniqueMeetings(meetings: WebsocSectionMeeting[]) {
   return meetings.reduce((acc, meeting) => {
-    const i = acc.findIndex(
-      (m) => m.days === meeting.days && m.time === meeting.time
-    );
+    const i = acc.findIndex((m) => m.days === meeting.days && m.time === meeting.time);
     if (i === -1) {
       acc.push(meeting);
     } else {
@@ -267,9 +258,7 @@ function getUniqueMeetings(meetings: WebsocSectionMeeting[]) {
 
 // Returns all currently visible undergraduate and graduate terms.
 export const getTerms = async (): Promise<TermData[]> => {
-  const response = await (
-    await fetch("https://www.reg.uci.edu/perl/WebSoc")
-  ).text();
+  const response = await (await fetch("https://www.reg.uci.edu/perl/WebSoc")).text();
   const $ = load(response);
   return $("form")
     .eq(1)
@@ -325,9 +314,7 @@ export const getTerms = async (): Promise<TermData[]> => {
 
 // Returns all departments.
 export const getDepts = async (): Promise<Department[]> => {
-  const response = await (
-    await fetch("https://www.reg.uci.edu/perl/WebSoc")
-  ).text();
+  const response = await (await fetch("https://www.reg.uci.edu/perl/WebSoc")).text();
   const $ = load(response);
   return $("form")
     .eq(1)

@@ -11,8 +11,4 @@ const props: StackProps = {
   env: { region: "us-east-1" },
   terminationProtection: true,
 };
-new WebsocScraperV2Stack(
-  app,
-  "peterportal-api-next-websoc-scraper-v2-prod",
-  props
-);
+new WebsocScraperV2Stack(app, "peterportal-api-next-websoc-scraper-v2-prod", props);

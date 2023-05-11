@@ -42,9 +42,8 @@ const getUniqueMeetings = (meetings: WebsocSectionMeeting[]) =>
 /**
  * type guard that asserts that the settled promise was fulfilled
  */
-export const fulfilled = <T>(
-  value: PromiseSettledResult<T>
-): value is PromiseFulfilledResult<T> => value.status === "fulfilled";
+export const fulfilled = <T>(value: PromiseSettledResult<T>): value is PromiseFulfilledResult<T> =>
+  value.status === "fulfilled";
 
 /**
  * type guard that asserts input is defined
@@ -91,16 +90,12 @@ function isolateSection(data: EnhancedSection) {
  * eliminating duplicates and merging substructures.
  * @param responses The responses to combine.
  */
-export function combineResponses(
-  ...responses: WebsocAPIResponse[]
-): WebsocAPIResponse {
+export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIResponse {
   const allSections = responses.flatMap((response) =>
     response.schools.flatMap((school) =>
       school.departments.flatMap((department) =>
         department.courses.flatMap((course) =>
-          course.sections.map((section) =>
-            isolateSection({ school, department, course, section })
-          )
+          course.sections.map((section) => isolateSection({ school, department, course, section }))
         )
       )
     )
@@ -112,9 +107,7 @@ export function combineResponses(
    * append the corresponding structure of the section
    */
   const schools = allSections.reduce((acc, section) => {
-    const foundSchool = acc.find(
-      (s) => s.schoolName === section.school.schoolName
-    );
+    const foundSchool = acc.find((s) => s.schoolName === section.school.schoolName);
     if (!foundSchool) {
       acc.push(section.school);
       return acc;
@@ -158,20 +151,14 @@ export function combineResponses(
  */
 function minutesSinceMidnight(time: string): number {
   const [hour, minute] = time.split(":");
-  return (
-    parseInt(hour, 10) * 60 +
-    parseInt(minute, 10) +
-    (minute.includes("pm") ? 720 : 0)
-  );
+  return parseInt(hour, 10) * 60 + parseInt(minute, 10) + (minute.includes("pm") ? 720 : 0);
 }
 
 /**
  * Constructs a Prisma query for the given filter parameters.
  * @param parsedQuery The query object parsed by Zod.
  */
-export function constructPrismaQuery(
-  parsedQuery: Query
-): Prisma.WebsocSectionWhereInput {
+export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWhereInput {
   const AND: Prisma.WebsocSectionWhereInput[] = [
     { year: parsedQuery.year },
     { quarter: parsedQuery.quarter },
@@ -342,10 +329,7 @@ export function constructPrismaQuery(
   if (parsedQuery.units) {
     OR.push(
       ...parsedQuery.units.map((u) => ({
-        units:
-          u === "VAR"
-            ? { contains: "-" }
-            : { startsWith: parseFloat(u).toString() },
+        units: u === "VAR" ? { contains: "-" } : { startsWith: parseFloat(u).toString() },
       }))
     );
   }
@@ -393,17 +377,14 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
       ];
     }
 
-    const keys = query.sectionCodes
-      .map((_, i) => (i % 5 === 0 ? i : null))
-      .filter(notNull);
+    const keys = query.sectionCodes.map((_, i) => (i % 5 === 0 ? i : null)).filter(notNull);
 
     return query.units
       .map((units) => ({ ...baseQuery, units }))
       .flatMap((copiedQuery) =>
         keys.map((k) => ({
           ...copiedQuery,
-          sectionCodes:
-            query.sectionCodes?.slice(k * 5, (k + 1) * 5).join(",") || "",
+          sectionCodes: query.sectionCodes?.slice(k * 5, (k + 1) * 5).join(",") || "",
         }))
       );
   } else {
@@ -424,9 +405,7 @@ export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
   response.schools.forEach((schools) => {
     schools.departments.forEach((department) => {
       department.courses.forEach((course) =>
-        course.sections.sort(
-          (a, b) => parseInt(a.sectionCode, 10) - parseInt(b.sectionCode, 10)
-        )
+        course.sections.sort((a, b) => parseInt(a.sectionCode, 10) - parseInt(b.sectionCode, 10))
       );
       department.courses.sort((a, b) => {
         const numOrd =

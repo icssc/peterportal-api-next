@@ -19,10 +19,7 @@ The following is a code snippet that uses the Fetch API to make requests, but th
 <summary>Code</summary>
 
 ```ts
-import type {
-  RawResponse,
-  WebsocAPIResponse,
-} from "peterportal-api-next-types";
+import type { RawResponse, WebsocAPIResponse } from "peterportal-api-next-types";
 import { isErrorResponse } from "peterportal-api-next-types";
 
 try {

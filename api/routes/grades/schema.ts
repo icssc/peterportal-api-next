@@ -6,9 +6,7 @@ export const QuerySchema = z.object({
     .string()
     .regex(/^\d{4}$/, { message: "Invalid year provided" })
     .optional(),
-  quarter: z
-    .enum(quarters, { invalid_type_error: "Invalid quarter provided" })
-    .optional(),
+  quarter: z.enum(quarters, { invalid_type_error: "Invalid quarter provided" }).optional(),
   instructor: z.string().optional(),
   department: z.string().optional(),
   courseNumber: z.string().optional(),

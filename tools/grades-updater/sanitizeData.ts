@@ -5,19 +5,9 @@ import { stringify } from "csv-stringify/sync";
 import fs from "fs";
 import { EOL } from "os";
 import { basename, resolve } from "path";
-import type {
-  Quarter,
-  WebsocAPIResponse,
-  WebsocSection,
-} from "peterportal-api-next-types";
+import type { Quarter, WebsocAPIResponse, WebsocSection } from "peterportal-api-next-types";
 
-import {
-  type Grade,
-  __dirname,
-  dataColumns,
-  handleError,
-  logger,
-} from "./gradesUpdaterUtil";
+import { type Grade, __dirname, dataColumns, handleError, logger } from "./gradesUpdaterUtil";
 
 export interface RawGrade {
   year: string;
@@ -52,9 +42,7 @@ async function wait(min: number, max: number): Promise<void> {
     throw new RangeError("Please follow wait()'s function signature.");
   }
   const time: number = Math.floor(Math.random() * (max - min + 1)) + min;
-  return new Promise((resolve: (value: void) => void) =>
-    setTimeout(resolve, time)
-  );
+  return new Promise((resolve: (value: void) => void) => setTimeout(resolve, time));
 }
 
 /**
@@ -101,10 +89,7 @@ async function getInfo(
  * @param quarter Either "Summer", "Fall", "Winter", or "Spring."
  * @returns The academic year in the format of "XXXX."
  */
-function parseYear(
-  year: string,
-  quarter: "Fall" | "Winter" | "Spring" | "Summer"
-): string {
+function parseYear(year: string, quarter: "Fall" | "Winter" | "Spring" | "Summer"): string {
   return ["Summer", "Fall"].includes(quarter)
     ? year.substring(0, 4)
     : `${parseInt(year.substring(0, 4)) + 1}`;
@@ -138,12 +123,9 @@ async function updateInformation(info: RawGrade): Promise<Grade | null> {
       if (parseInt(section.sectionCode) === info.courseCode) {
         return {
           ...info,
-          quarter:
-            info.quarter !== "Summer" ? info.quarter : summerQuarters[index],
-          department:
-            responses[index].schools[0].departments[0].courses[0].deptCode,
-          courseNumber:
-            responses[index].schools[0].departments[0].courses[0].courseNumber,
+          quarter: info.quarter !== "Summer" ? info.quarter : summerQuarters[index],
+          department: responses[index].schools[0].departments[0].courses[0].deptCode,
+          courseNumber: responses[index].schools[0].departments[0].courses[0].courseNumber,
           instructors: section.instructors
             .filter((instructor: string) => instructor !== "STAFF")
             .join("; "),
@@ -246,9 +228,7 @@ async function sanitizeData(): Promise<void> {
   await Promise.all(
     fs
       .readdirSync(resolve(`${__dirname}/inputData`))
-      .map((file: string) =>
-        processFile(resolve(`${__dirname}/inputData/${file}`))
-      )
+      .map((file: string) => processFile(resolve(`${__dirname}/inputData/${file}`)))
   );
 }
 

@@ -27,9 +27,7 @@ describe("websoc-api-next tests", () => {
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("I&C SCI");
     expect(
-      res.schools[0].departments[0].courses.filter(
-        (x) => x.courseNumber == "32A"
-      ).length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "32A").length
     ).toEqual(1);
   });
   test("WebSOC query for Upper Division COMPSCI courses in 2022 Winter includes COMPSCI 161", async () => {
@@ -44,9 +42,7 @@ describe("websoc-api-next tests", () => {
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("COMPSCI");
     expect(
-      res.schools[0].departments[0].courses.filter(
-        (x) => x.courseNumber == "161"
-      ).length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "161").length
     ).toEqual(1);
   });
   test("WebSOC query for Graduate/Professional COMPSCI courses in 2022 Spring includes COMPSCI 260P", async () => {
@@ -61,9 +57,7 @@ describe("websoc-api-next tests", () => {
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("COMPSCI");
     expect(
-      res.schools[0].departments[0].courses.filter(
-        (x) => x.courseNumber == "260P"
-      ).length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "260P").length
     ).toEqual(1);
   });
   test("WebSOC query for COMPSCI courses in 2022 Summer1 includes COMPSCI 143A", async () => {
@@ -77,9 +71,7 @@ describe("websoc-api-next tests", () => {
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("COMPSCI");
     expect(
-      res.schools[0].departments[0].courses.filter(
-        (x) => x.courseNumber == "143A"
-      ).length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "143A").length
     ).toEqual(1);
   });
   test("WebSOC query for I&C SCI courses in 2022 Summer10wk includes I&C SCI 31", async () => {
@@ -93,9 +85,7 @@ describe("websoc-api-next tests", () => {
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("I&C SCI");
     expect(
-      res.schools[0].departments[0].courses.filter(
-        (x) => x.courseNumber == "31"
-      ).length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "31").length
     ).toEqual(1);
   });
   test("WebSOC query for I&C SCI courses in 2022 Summer2 includes I&C SCI 6B", async () => {
@@ -109,9 +99,7 @@ describe("websoc-api-next tests", () => {
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("I&C SCI");
     expect(
-      res.schools[0].departments[0].courses.filter(
-        (x) => x.courseNumber == "6B"
-      ).length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "6B").length
     ).toEqual(1);
   });
   test("WebSOC query for I&C SCI 6B in 2022 Summer2 has blank waitlist count in all sections", async () => {
@@ -126,9 +114,7 @@ describe("websoc-api-next tests", () => {
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("I&C SCI");
     expect(
-      res.schools[0].departments[0].courses[0].sections.every(
-        (x) => x.numOnWaitlist == ""
-      )
+      res.schools[0].departments[0].courses[0].sections.every((x) => x.numOnWaitlist == "")
     ).toBeTruthy();
   });
   test("WebSOC query for ECON courses in 2023 Winter includes comments for multiple course number ranges", async () => {
@@ -141,9 +127,7 @@ describe("websoc-api-next tests", () => {
     expect(res.schools).toHaveLength(1);
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("ECON");
-    expect(
-      res.schools[0].departments[0].courseNumberRangeComments.length
-    ).toBeGreaterThan(1);
+    expect(res.schools[0].departments[0].courseNumberRangeComments.length).toBeGreaterThan(1);
   });
   test("WebSOC query for HUMAN courses in 2023 Winter includes comments for multiple section code ranges", async () => {
     const res = await callWebSocAPI(
@@ -155,9 +139,7 @@ describe("websoc-api-next tests", () => {
     expect(res.schools).toHaveLength(1);
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("HUMAN");
-    expect(
-      res.schools[0].departments[0].sectionCodeRangeComments.length
-    ).toBeGreaterThan(1);
+    expect(res.schools[0].departments[0].sectionCodeRangeComments.length).toBeGreaterThan(1);
   });
   test("WebSOC query for GE-2 courses in 2023 Winter includes multiple schools", async () => {
     const res = await callWebSocAPI(

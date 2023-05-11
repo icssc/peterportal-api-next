@@ -38,10 +38,7 @@ import { fileURLToPath } from "url";
               join(cwd, "../../../node_modules/.prisma/client/schema.prisma"),
               join(cwd, "dist/schema.prisma")
             );
-            await chmod(
-              join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node"),
-              0o755
-            );
+            await chmod(join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node"), 0o755);
           });
         },
       },

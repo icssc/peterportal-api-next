@@ -36,16 +36,10 @@ export class DDBDocClient {
     }
   ) {
     this.client = new DynamoDB(configuration);
-    this.documentClient = DynamoDBDocumentClient.from(
-      this.client,
-      translateConfig
-    );
+    this.documentClient = DynamoDBDocumentClient.from(this.client, translateConfig);
   }
 
-  public async get(
-    tableName: string,
-    key?: Record<string, unknown>
-  ): Promise<GetCommandOutput> {
+  public async get(tableName: string, key?: Record<string, unknown>): Promise<GetCommandOutput> {
     return this.documentClient.send(
       new GetCommand({
         TableName: tableName,
@@ -53,13 +47,8 @@ export class DDBDocClient {
       })
     );
   }
-  public async put(
-    tableName: string,
-    item: Record<string, unknown>
-  ): Promise<PutCommandOutput> {
-    return this.documentClient.send(
-      new PutCommand({ TableName: tableName, Item: item })
-    );
+  public async put(tableName: string, item: Record<string, unknown>): Promise<PutCommandOutput> {
+    return this.documentClient.send(new PutCommand({ TableName: tableName, Item: item }));
   }
   public async query(
     tableName: string,

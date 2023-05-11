@@ -74,39 +74,17 @@ export const QuerySchema = z
     ge: z.enum(anyArray).or(z.enum(geCodes)).optional(),
     department: z.string().optional(),
     courseTitle: z.string().optional(),
-    courseNumber: z
-      .string()
-      .array()
-      .or(z.string())
-      .optional()
-      .transform(flattenStringsAndSplit),
-    sectionCodes: z
-      .string()
-      .array()
-      .or(z.string())
-      .optional()
-      .transform(flattenStringsAndSplit),
+    courseNumber: z.string().array().or(z.string()).optional().transform(flattenStringsAndSplit),
+    sectionCodes: z.string().array().or(z.string()).optional().transform(flattenStringsAndSplit),
     instructorName: z.string().optional(),
-    days: z
-      .string()
-      .array()
-      .or(z.string())
-      .optional()
-      .transform(flattenDayStringsAndSplit),
+    days: z.string().array().or(z.string()).optional().transform(flattenDayStringsAndSplit),
     building: z.string().optional(),
     room: z.string().optional(),
     division: z.union([z.enum(anyArray), z.enum(divisionCodes)]).optional(),
     sectionType: z.union([z.enum(anyArray), z.enum(sectionTypes)]).optional(),
-    fullCourses: z
-      .union([z.enum(anyArray), z.enum(fullCoursesOptions)])
-      .optional(),
+    fullCourses: z.union([z.enum(anyArray), z.enum(fullCoursesOptions)]).optional(),
     cancelledCourses: z.enum(cancelledCoursesOptions).optional(),
-    units: z
-      .string()
-      .array()
-      .or(z.string())
-      .optional()
-      .transform(flattenStringsAndSplit),
+    units: z.string().array().or(z.string()).optional().transform(flattenStringsAndSplit),
     startTime: z
       .string()
       .regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/)
@@ -123,12 +101,7 @@ export const QuerySchema = z
     message: "includeCoCourses cannot be true if cacheOnly is false",
   })
   .refine(
-    (x) =>
-      x.cacheOnly ||
-      x.ge ||
-      x.department ||
-      x.sectionCodes?.[0].length ||
-      x.instructorName,
+    (x) => x.cacheOnly || x.ge || x.department || x.sectionCodes?.[0].length || x.instructorName,
     {
       message:
         'At least one of "ge", "department", "sectionCodes", or "instructorName" must be provided',

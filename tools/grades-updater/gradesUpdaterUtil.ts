@@ -57,10 +57,7 @@ function createLogger(): Logger {
   ];
   return winston.createLogger({
     exceptionHandlers: transports,
-    format: winston.format.combine(
-      winston.format.timestamp(),
-      winston.format.prettyPrint()
-    ),
+    format: winston.format.combine(winston.format.timestamp(), winston.format.prettyPrint()),
     rejectionHandlers: transports,
     transports,
   });

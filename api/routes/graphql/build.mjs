@@ -30,13 +30,9 @@ async function buildApp() {
         name: "copy",
         setup(build) {
           build.onEnd(async () => {
-            await cp(
-              join(__dirname, "schema/"),
-              join(__dirname, "dist/schema/"),
-              {
-                recursive: true,
-              }
-            );
+            await cp(join(__dirname, "schema/"), join(__dirname, "dist/schema/"), {
+              recursive: true,
+            });
           });
         },
       },

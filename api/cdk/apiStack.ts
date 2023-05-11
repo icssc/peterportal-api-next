@@ -1,10 +1,5 @@
 import { Duration, Stack, StackProps } from "aws-cdk-lib";
-import {
-  EndpointType,
-  LambdaIntegration,
-  ResponseType,
-  RestApi,
-} from "aws-cdk-lib/aws-apigateway";
+import { EndpointType, LambdaIntegration, ResponseType, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
@@ -25,12 +20,9 @@ export class ApiStack extends Stack {
   private readonly props: StackProps;
 
   constructor(scope: Construct, id: string) {
-    if (!process.env.CERTIFICATE_ARN)
-      throw new Error("Certificate ARN not provided. Stop.");
-    if (!process.env.DATABASE_URL)
-      throw new Error("Database URL not provided. Stop.");
-    if (!process.env.HOSTED_ZONE_ID)
-      throw new Error("Hosted Zone ID not provided. Stop.");
+    if (!process.env.CERTIFICATE_ARN) throw new Error("Certificate ARN not provided. Stop.");
+    if (!process.env.DATABASE_URL) throw new Error("Database URL not provided. Stop.");
+    if (!process.env.HOSTED_ZONE_ID) throw new Error("Hosted Zone ID not provided. Stop.");
 
     let stage: string;
     switch (process.env.NODE_ENV) {
@@ -39,15 +31,11 @@ export class ApiStack extends Stack {
         break;
       case "staging":
         if (!process.env.PR_NUM)
-          throw new Error(
-            "Running in staging environment but no PR number specified. Stop."
-          );
+          throw new Error("Running in staging environment but no PR number specified. Stop.");
         stage = `staging-${process.env.PR_NUM}`;
         break;
       case "development":
-        throw new Error(
-          "Cannot deploy stack in development environment. Stop."
-        );
+        throw new Error("Cannot deploy stack in development environment. Stop.");
       default:
         throw new Error("Invalid environment specified. Stop.");
     }
@@ -78,15 +66,10 @@ export class ApiStack extends Stack {
    * @param name The short name of the module that handles the endpoint.
    * @param props Any props to pass to the Lambda handler.
    */
-  public addRoute(
-    path: string,
-    name: string,
-    props?: Partial<FunctionProps>
-  ): void {
+  public addRoute(path: string, name: string, props?: Partial<FunctionProps>): void {
     let resource = this.api.root;
     for (const pathPart of path.slice(1).split("/")) {
-      resource =
-        resource.getResource(pathPart) ?? resource.addResource(pathPart);
+      resource = resource.getResource(pathPart) ?? resource.addResource(pathPart);
     }
     const functionName = `peterportal-api-next-${this.env.stage}-${name}-handler`;
     resource.addMethod(
@@ -95,10 +78,7 @@ export class ApiStack extends Stack {
         (this.integrations[functionName] = new LambdaIntegration(
           (this.functions[functionName] = new Function(this, functionName, {
             code: Code.fromAsset(
-              join(
-                dirname(fileURLToPath(import.meta.url)),
-                `../routes/${name}/dist`
-              )
+              join(dirname(fileURLToPath(import.meta.url)), `../routes/${name}/dist`)
             ),
             environment: {
               DATABASE_URL: this.env.databaseUrl,
@@ -135,11 +115,7 @@ export class ApiStack extends Stack {
       disableExecuteApiEndpoint: true,
       domainName: {
         domainName: `${recordName}.${zoneName}`,
-        certificate: Certificate.fromCertificateArn(
-          this,
-          "peterportal-cert",
-          certificateArn
-        ),
+        certificate: Certificate.fromCertificateArn(this, "peterportal-cert", certificateArn),
       },
       endpointTypes: [EndpointType.EDGE],
       minimumCompressionSize: 128 * 1024, // 128 KiB
@@ -147,14 +123,10 @@ export class ApiStack extends Stack {
     });
 
     new ARecord(this, `peterportal-api-next-a-record-${stage}`, {
-      zone: HostedZone.fromHostedZoneAttributes(
-        this,
-        "peterportal-hosted-zone",
-        {
-          zoneName,
-          hostedZoneId,
-        }
-      ),
+      zone: HostedZone.fromHostedZoneAttributes(this, "peterportal-hosted-zone", {
+        zoneName,
+        hostedZoneId,
+      }),
       recordName,
       target: RecordTarget.fromAlias(new ApiGateway(api)),
     });

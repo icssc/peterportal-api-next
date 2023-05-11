@@ -54,5 +54,4 @@ export type RawResponse<T> = Response<T> | ErrorResponse;
  * ``ErrorResponse`` or a ``Response<T>``.
  * @param r The object to test.
  */
-export const isErrorResponse = <T>(r: RawResponse<T>): r is ErrorResponse =>
-  "error" in r;
+export const isErrorResponse = <T>(r: RawResponse<T>): r is ErrorResponse => "error" in r;

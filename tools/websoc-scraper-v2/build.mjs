@@ -6,12 +6,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const targetDir = "dist/";
 const sourceFiles = ["index.ts", "package.json"];
-const dependencies = [
-  ".prisma",
-  "@libs/db",
-  "@libs/registrar-api",
-  "@libs/websoc-api-next",
-];
+const dependencies = [".prisma", "@libs/db", "@libs/registrar-api", "@libs/websoc-api-next"];
 
 async function buildApp() {
   await rm(join(__dirname, targetDir), { recursive: true, force: true });
@@ -30,15 +25,11 @@ async function buildApp() {
       )
     )
   );
-  const prismaFiles = await readdir(
-    join(__dirname, `${targetDir}node_modules/.prisma/client`)
-  );
+  const prismaFiles = await readdir(join(__dirname, `${targetDir}node_modules/.prisma/client`));
   await Promise.all(
     prismaFiles
       .filter((x) => x.includes(".node") && !x.includes("debian-openssl-1.1.x"))
-      .map((x) =>
-        rm(join(__dirname, `${targetDir}node_modules/.prisma/client`, x))
-      )
+      .map((x) => rm(join(__dirname, `${targetDir}node_modules/.prisma/client`, x)))
   );
 }
 

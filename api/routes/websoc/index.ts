@@ -2,12 +2,7 @@ import { PrismaClient } from "@libs/db";
 import type { WebsocAPIOptions } from "@libs/websoc-api-next";
 import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
 import type { LambdaHandler, RawHandler } from "api-core";
-import {
-  createErrorResult,
-  createLambdaHandler,
-  createOKResult,
-  logger,
-} from "api-core";
+import { createErrorResult, createLambdaHandler, createOKResult, logger } from "api-core";
 import type { WebsocAPIResponse } from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
@@ -75,19 +70,10 @@ export const rawHandler: RawHandler = async (request) => {
                 });
               }
             });
-            const quarterOrder = [
-              "Winter",
-              "Spring",
-              "Summer1",
-              "Summer10wk",
-              "Summer2",
-              "Fall",
-            ];
+            const quarterOrder = ["Winter", "Spring", "Summer1", "Summer10wk", "Summer2", "Fall"];
             webSocTerms.sort((a, b) => {
-              if (a.shortName.substring(0, 4) > b.shortName.substring(0, 4))
-                return -1;
-              if (a.shortName.substring(0, 4) < b.shortName.substring(0, 4))
-                return 1;
+              if (a.shortName.substring(0, 4) > b.shortName.substring(0, 4)) return -1;
+              if (a.shortName.substring(0, 4) < b.shortName.substring(0, 4)) return 1;
               return (
                 quarterOrder.indexOf(b.shortName.substring(5)) -
                 quarterOrder.indexOf(a.shortName.substring(5))
@@ -174,26 +160,22 @@ export const rawHandler: RawHandler = async (request) => {
                     ? courses[department].push(courseNumber)
                     : (courses[department] = [courseNumber]);
                 });
-                const transactions = Object.entries(courses).map(
-                  ([department, courseNumbers]) =>
-                    prisma.websocSection.findMany({
-                      where: {
-                        department,
-                        courseNumber: { in: courseNumbers },
-                      },
-                      select: { data: true },
-                      distinct: ["year", "quarter", "sectionCode"],
-                    })
+                const transactions = Object.entries(courses).map(([department, courseNumbers]) =>
+                  prisma.websocSection.findMany({
+                    where: {
+                      department,
+                      courseNumber: { in: courseNumbers },
+                    },
+                    select: { data: true },
+                    distinct: ["year", "quarter", "sectionCode"],
+                  })
                 );
                 const responses = (await prisma.$transaction(transactions))
                   .flat()
                   .map((x) => x.data)
                   .filter(notNull) as WebsocAPIResponse[];
                 const combinedResponses = combineResponses(...responses);
-                return createOKResult(
-                  sortResponse(combinedResponses),
-                  requestId
-                );
+                return createOKResult(sortResponse(combinedResponses), requestId);
               }
               const websocApiResponses = websocSections
                 .map((x) => x.data)
@@ -206,8 +188,7 @@ export const rawHandler: RawHandler = async (request) => {
              * an empty WebsocAPIResponse object. Otherwise, fall back to
              * querying WebSoc.
              */
-            if (parsedQuery.cacheOnly)
-              return createOKResult({ schools: [] }, requestId);
+            if (parsedQuery.cacheOnly) return createOKResult({ schools: [] }, requestId);
           }
         }
 
