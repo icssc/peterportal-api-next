@@ -13,11 +13,11 @@ import { fileURLToPath } from "url";
 
 export class ApiStack extends Stack {
   private api: RestApi;
-  private rule: Rule;
+  private readonly props: StackProps;
   private readonly env: Record<string, string>;
   private readonly functions: Record<string, lambda.Function> = {};
   private readonly integrations: Record<string, LambdaIntegration> = {};
-  private readonly props: StackProps;
+  private readonly rules: Record<string, Rule> = {};
 
   constructor(scope: Construct, id: string) {
     if (!process.env.CERTIFICATE_ARN) throw new Error("Certificate ARN not provided. Stop.");
@@ -94,11 +94,18 @@ export class ApiStack extends Stack {
           }))
         ))
     );
-    this.rule.addTarget(
-      new LambdaFunction(this.functions[functionName], {
-        event: RuleTargetInput.fromObject({ body: '{"warmer":"true"}' }),
-      })
-    );
+    const ruleName = `peterportal-api-next-${this.env.stage}-${name}-warming-rule`;
+    if (!this.rules[ruleName]) {
+      this.rules[ruleName] = new Rule(this, ruleName, {
+        ruleName,
+        schedule: Schedule.rate(Duration.minutes(5)),
+      });
+      this.rules[ruleName].addTarget(
+        new LambdaFunction(this.functions[functionName], {
+          event: RuleTargetInput.fromObject({ body: '{"warmer":"true"}' }),
+        })
+      );
+    }
   }
 
   private setupAPI(): void {
@@ -160,9 +167,5 @@ export class ApiStack extends Stack {
     });
 
     this.api = api;
-
-    this.rule = new Rule(this, `peterportal-api-next-${stage}-warming-rule`, {
-      schedule: Schedule.rate(Duration.minutes(5)),
-    });
   }
 }
