@@ -7,7 +7,7 @@ export default {
     gradesOptions: restResolverFactory("/v1/rest/grades/options"),
     websoc: restResolverFactory("/v1/rest/websoc", (args) => ({
       ...args,
-      ge: args.ge?.toString().replace("_", "-"),
+      ...(args.ge !== undefined && { ge: args.ge?.toString().replace("_", "-") }),
     })),
   },
 };
