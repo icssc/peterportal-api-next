@@ -612,6 +612,17 @@ function testRequirements(targetClass: string, takenClasses: string[], expectedV
 }
 
 
+async function parseCourses(departmentToSchoolMapping: { [key: string]: string },  JSON_data: {[key: string]: any}) {
+    const allCourseURLS = await getAllCourseURLS();
+    console.log("\nParsing Each Course URL...");
+    // populate json_data
+    for (const classURL of allCourseURLS) {
+      await getAllCourses(classURL, JSON_data,
+        departmentToSchoolMapping);
+    }
+  }
+
+
 // if name == main
 
 // directory holding all the JSON file
@@ -653,14 +664,7 @@ if (!cache) {
     //   "Following courses have conflicting AND/OR logic in their prerequisites\n");
     // conflictFile.close();
   
-    // get urls to scrape
-    const allCourseURLS = await getAllCourseURLS();
-    console.log("\nParsing Each Course URL...");
-    // populate json_data
-    for (const classURL of allCourseURLS) {
-      await getAllCourses(classURL, json_data,
-        departmentToSchoolMapping);
-    }
+    parseCourses(departmentToSchoolMapping, json_data);
     fs.writeFileSync(path + COURSES_DATA_NAME, JSON.stringify(json_data)); //is this a correct translation?
     console.log("Successfully parsed all course URLs!");
 
