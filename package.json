@@ -4,26 +4,30 @@
   "private": true,
   "workspaces": [
     "api/**/*",
-    "cdk",
-    "db",
     "docs",
+    "docs/cdk",
+    "libs/*",
     "packages/*",
     "tools/*"
   ],
   "scripts": {
-    "build": "dotenv -c production -- turbo run build",
+    "build": "turbo run build",
     "commit": "cz",
-    "deploy": "dotenv -c production -- turbo run deploy",
+    "deploy": "turbo run deploy",
+    "destroy": "turbo run destroy",
     "dev": "dotenv -c development -- turbo run dev",
     "format": "prettier --write .",
-    "lint": "eslint --fix ."
+    "generate": "turbo run generate",
+    "postinstall": "husky install",
+    "lint": "eslint --fix .",
+    "test": "turbo run test"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
+    "*.?(c|m){js,ts}?(x)": [
       "eslint --quiet --fix",
       "prettier --write"
     ],
-    "*.{json,md,prisma,sql,yaml,yml}": [
+    "*.{css,graphql,json,md,prisma,sql,yaml,yml}": [
       "prettier --write"
     ]
   },
@@ -51,7 +55,7 @@
     "prettier-plugin-packagejson": "^2.4.0",
     "prettier-plugin-prisma": "^4.8.0",
     "prettier-plugin-sql": "^0.12.1",
-    "turbo": "^1.7.0",
+    "turbo": "latest",
     "typescript": "^4.9.4"
   },
   "packageManager": "npm@8.19.3",

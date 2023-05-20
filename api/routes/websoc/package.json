@@ -1,0 +1,23 @@
+{
+  "name": "api-route-websoc",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@libs/db": "*",
+    "@libs/websoc-api-next": "*",
+    "api-core": "*",
+    "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.10",
+    "esbuild": "^0.17.8",
+    "peterportal-api-next-types": "*",
+    "typescript": "^4.9.4"
+  }
+}

@@ -1,0 +1,145 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "debian-openssl-1.1.x"]
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+// Do not modify anything above this line unless you know what you are doing.
+
+model CalendarTerm {
+  year             String
+  quarter          Quarter
+  instructionStart DateTime
+  instructionEnd   DateTime
+  finalsStart      DateTime
+  finalsEnd        DateTime
+
+  @@id([year, quarter])
+  @@unique([year, quarter], name: "idx")
+}
+
+model GradesInstructor {
+  year        String
+  quarter     Quarter
+  sectionCode String
+  section     GradesSection @relation(fields: [year, quarter, sectionCode], references: [year, quarter, sectionCode])
+  name        String
+
+  @@id([year, quarter, sectionCode, name])
+  @@unique([year, quarter, sectionCode, name], name: "idx")
+}
+
+model GradesSection {
+  year          String
+  quarter       Quarter
+  sectionCode   String
+  department    String
+  courseNumber  String
+  courseNumeric Int
+  instructors   GradesInstructor[]
+  gradeACount   Int
+  gradeBCount   Int
+  gradeCCount   Int
+  gradeDCount   Int
+  gradeFCount   Int
+  gradePCount   Int
+  gradeNPCount  Int
+  gradeWCount   Int
+  averageGPA    Float
+
+  @@id([year, quarter, sectionCode])
+  @@unique([year, quarter, sectionCode], name: "idx")
+}
+
+enum Quarter {
+  Fall
+  Winter
+  Spring
+  Summer1
+  Summer10wk
+  Summer2
+}
+
+enum WebsocSectionType {
+  Act
+  Col
+  Dis
+  Fld
+  Lab
+  Lec
+  Qiz
+  Res
+  Sem
+  Stu
+  Tap
+  Tut
+}
+
+model WebsocSectionInstructor {
+  id          Int           @id @default(autoincrement())
+  year        String
+  quarter     Quarter
+  sectionCode Int
+  timestamp   DateTime
+  section     WebsocSection @relation(fields: [year, quarter, sectionCode, timestamp], references: [year, quarter, sectionCode, timestamp])
+  name        String
+}
+
+model WebsocSectionMeetingBuilding {
+  id          Int                  @id @default(autoincrement())
+  year        String
+  quarter     Quarter
+  sectionCode Int
+  timestamp   DateTime
+  daysString  String
+  startTime   Int
+  endTime     Int
+  meeting     WebsocSectionMeeting @relation(fields: [year, quarter, sectionCode, timestamp, daysString, startTime, endTime], references: [year, quarter, sectionCode, timestamp, daysString, startTime, endTime])
+  bldg        String
+}
+
+model WebsocSectionMeeting {
+  id          Int                            @id @default(autoincrement())
+  year        String
+  quarter     Quarter
+  sectionCode Int
+  timestamp   DateTime
+  section     WebsocSection                  @relation(fields: [year, quarter, sectionCode, timestamp], references: [year, quarter, sectionCode, timestamp])
+  days        Json
+  daysString  String
+  startTime   Int
+  endTime     Int
+  buildings   WebsocSectionMeetingBuilding[]
+
+  @@unique([year, quarter, sectionCode, timestamp, daysString, startTime, endTime], name: "idx")
+}
+
+model WebsocSection {
+  year          String
+  quarter       Quarter
+  sectionCode   Int
+  timestamp     DateTime
+  geCategories  Json
+  department    String
+  courseNumber  String
+  courseNumeric Int
+  instructors   WebsocSectionInstructor[]
+  courseTitle   String
+  sectionType   WebsocSectionType
+  units         String
+  meetings      WebsocSectionMeeting[]
+  maxCapacity   Int
+  sectionFull   Boolean
+  waitlistFull  Boolean
+  overEnrolled  Boolean
+  cancelled     Boolean
+  data          Json
+
+  @@id([year, quarter, sectionCode, timestamp])
+  @@unique([year, quarter, sectionCode, timestamp], name: "idx")
+}

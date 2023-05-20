@@ -1,6 +1,9 @@
 {
   "root": true,
   "env": { "es2020": true, "node": true },
+  "parserOptions": {
+    "sourceType": "module"
+  },
   "plugins": ["import", "simple-import-sort"],
   "extends": ["eslint:recommended", "turbo", "prettier"],
   "rules": {
@@ -15,9 +18,6 @@
       "files": ["**/*.ts", "**/*.tsx"],
       "env": { "es2020": true, "node": true },
       "parser": "@typescript-eslint/parser",
-      "parserOptions": {
-        "project": ["./tsconfig.json"]
-      },
       "plugins": ["import", "simple-import-sort", "@typescript-eslint"],
       "extends": [
         "eslint:recommended",

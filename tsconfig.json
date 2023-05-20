@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "alwaysStrict": true,
+    "baseUrl": ".",
     "composite": false,
     "declaration": true,
     "declarationMap": true,
@@ -19,20 +20,18 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "outDir": "dist",
+    "paths": {
+      "@libs/*": ["libs/*"],
+      "peterportal-api-next-types": ["packages/peterportal-api-next-types"]
+    },
     "preserveWatchOutput": true,
+    "resolveJsonModule": true,
     "skipLibCheck": true,
     "strict": true,
     "strictNullChecks": true,
     "strictPropertyInitialization": false,
     "target": "ES2020"
   },
-  "exclude": ["build/", "dist/", "node_modules/"],
-  "include": [
-    "api/**/*",
-    "cdk/**/*",
-    "db/**/*",
-    "docs/**/*",
-    "packages/**/*",
-    "tools/**/*"
-  ]
+  "exclude": ["build/", "**/cdk.out/**/*", "dist/", "node_modules/"],
+  "include": ["api/**/*", "libs/**/*", "packages/**/*", "tools/**/*"]
 }
