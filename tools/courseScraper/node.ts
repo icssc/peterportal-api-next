@@ -118,7 +118,7 @@ export class Node {
   }
 }
 
-export function nodify(tokens: string[], lookup: Node[], courseNumber: string): Node {
+export function nodify(tokens: string[], lookup: string[], courseNumber: string): Node {
   const stack = [new Node("?")];
   for (const token of tokens) {
     switch (token.toLowerCase()) {
@@ -152,7 +152,7 @@ export function nodify(tokens: string[], lookup: Node[], courseNumber: string): 
         break;
       default: {
         const newNode = new Node("#");
-        newNode.values.push(lookup[parseInt(token, 10)]);
+        newNode.values.push(lookup[parseInt(token, 10)] as unknown as Node);
         stack[0].values.push(newNode);
       }
     }
