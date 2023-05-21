@@ -1,6 +1,7 @@
 import axios, { all, AxiosInstance } from "axios";
 import cheerio from "cheerio";
 import fs from "fs";
+import {Node, nodify} from "./node";
 
 // scrape links
 const CATALOGUE_BASE_URL : string = "http://catalogue.uci.edu"
@@ -273,7 +274,7 @@ export async function getAllCourses(courseURL: string, json_data: { [key: string
             }
             // Examples at https://github.com/icssc-projects/PeterPortal/wiki/Course-Search
             // store class data into object
-            const classInforamtion: { [key: string]: any } = {
+            let classInforamtion: { [key: string]: any } = {
                 "id": courseID.replace(" ", ""),
                 "department": id_department,
                 "number": id_number,
@@ -288,7 +289,7 @@ export async function getAllCourses(courseURL: string, json_data: { [key: string
                 "concurrent": "", "same_as": "", "restriction": "", "overlap": "", "corequisite": "", "ge_list": [], "ge_text": "", "terms": []
             }
             // key with no spaces
-            courseID = courseID.replace(" ", "")
+            courseID = courseID.replace(" ", "");
             // stores dictionaries in json_data to add dependencies later
             json_data[courseID] = classInforamtion;
             // populates the dic with simple information
@@ -296,10 +297,9 @@ export async function getAllCourses(courseURL: string, json_data: { [key: string
 
             // try to parse prerequisite
             if (courseBody.length > 1){
-                const node = parsePrerequisite(courseBody[1], response, classInforamtion);
-                console.log(node);
+                //const node = parsePrerequisite(courseBody[1], response, classInforamtion);
                 // maps the course to its requirement Node
-                // json_data[courseID]["node"] = node Why is this commented out?
+                // json_data[courseID]["node"] = node // This was commented out in original python doc so... ???
             }
             // doesn't have any prerequisites
             else {
@@ -475,18 +475,18 @@ export function parsePrerequisite(tag: any, response:any, classInfo: { [key: str
             tokenizedReqs = replaceAllSubString(tokenizedReqs, ")", " ) ");
             const tokens = tokenizedReqs.split(/\s+/);
             
-            //const node = nodify(tokens, extractedReqs, classInfo["department"] + " " + classInfo["number"]);
+            const node = nodify(tokens, extractedReqs, classInfo["department"] + " " + classInfo["number"]);
 
-            //classInfo["prerequisite_tree"] = node.toString();
+            classInfo["prerequisite_tree"] = node.toString();
             classInfo["prerequisite_list"] = extractedReqs;
 
             if (debug) {
                 console.log("\t\tREQS:", rawReqs);
                 console.log("\t\tREQSTOKENS:", tokens);
-                //console.log("\t\tNODE:", node);
+                console.log("\t\tNODE:", node);
             }
 
-            //return node;
+            return node;
         }
     }
     else {
@@ -627,7 +627,7 @@ async function parseCourses(departmentToSchoolMapping: { [key: string]: string }
 // directory holding all the JSON file
 const path = "tools/courseScraper/";
 // whether to print out info
-const debug = false;
+const debug = true;
 // whether to use cached data instead of rescraping (for faster development/testing for prerequisite/professor)
 const cache = false;
 // debugging information
