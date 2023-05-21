@@ -11,6 +11,40 @@ datasource db {
 
 // Do not modify anything above this line unless you know what you are doing.
 
+// Enums
+
+enum CourseLevel {
+  LowerDiv
+  UpperDiv
+  Graduate
+}
+
+enum Quarter {
+  Fall
+  Winter
+  Spring
+  Summer1
+  Summer10wk
+  Summer2
+}
+
+enum WebsocSectionType {
+  Act
+  Col
+  Dis
+  Fld
+  Lab
+  Lec
+  Qiz
+  Res
+  Sem
+  Stu
+  Tap
+  Tut
+}
+
+// Models
+
 model CalendarTerm {
   year             String
   quarter          Quarter
@@ -21,6 +55,35 @@ model CalendarTerm {
 
   @@id([year, quarter])
   @@unique([year, quarter], name: "idx")
+}
+
+model Course {
+  id                String      @id
+  department        String
+  courseNumber      String
+  courseNumeric     Int
+  school            String
+  title             String
+  courseLevel       CourseLevel
+  minUnits          Float
+  maxUnits          Float
+  description       String      @db.Text
+  departmentName    String
+  instructorHistory Json
+  prerequisiteTree  Json
+  prerequisiteList  Json
+  prerequisiteText  String
+  prerequisiteFor   Json
+  repeatability     String
+  gradingOption     String
+  concurrent        String
+  sameAs            String
+  restriction       String
+  overlap           String
+  corequisites      String
+  geList            Json
+  geText            String
+  terms             Json
 }
 
 model GradesInstructor {
@@ -54,30 +117,6 @@ model GradesSection {
 
   @@id([year, quarter, sectionCode])
   @@unique([year, quarter, sectionCode], name: "idx")
-}
-
-enum Quarter {
-  Fall
-  Winter
-  Spring
-  Summer1
-  Summer10wk
-  Summer2
-}
-
-enum WebsocSectionType {
-  Act
-  Col
-  Dis
-  Fld
-  Lab
-  Lec
-  Qiz
-  Res
-  Sem
-  Stu
-  Tap
-  Tut
 }
 
 model WebsocSectionInstructor {
