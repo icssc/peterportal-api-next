@@ -41,7 +41,7 @@ const PRETOKENIZE = ["AP Physics C: Electricity and Magnetism"]
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 /**
- * @param {string} str: string to normalize (usually parsed from cheerio object)
+ * @param {string} str: the total string that will have substrings of it replaced
  * @param {string} find: all substrings of str that match find will be replaced with replace
  * @param {string} replace: the string that will replace all substrings of str that match find
  * @returns {string}: a string with all substrings of str that match find replaced with replace
@@ -51,7 +51,6 @@ function replaceAllSubString(str: string, find: string, replace: string): string
 }
 
 /**
- * 
  * @param string string that will have meta characters escaped
  * @returns escaped string
  */
@@ -540,7 +539,7 @@ function setDependencies(json_data: {[key: string]: any}): void {
             }
         }
     }
-    console.log("Done!");
+    console.log("Finished Setting Course Dependencies!");
 }
 
 /**
@@ -634,31 +633,21 @@ const cache = false;
 // debugging information
 const specialRequirements = new Set();
 const noSchoolDepartment = new Set();
-//Dont know if we need this or not
-// // the Selenium Chrome driver
-// const options = new webdriver.chrome.Options();
-// options.headless();
-// if (process.env.NODE_ENV === 'production') {
-//   options.addArguments("--disable-dev-shm-usage");
-// }
-// const driver = new webdriver.Builder()
-//   .forBrowser('chrome')
-//   .setChromeOptions(options)
-//   .build();
+
+
 // store all of the data
 let json_data = {};
-// put this at the end
-if (!cache) {
+let departmentToSchoolMapping = {};
+// If we are caching it, just get all the info from the already written json file
+if (cache) {
   json_data = JSON.parse(fs.readFileSync(path + COURSES_DATA_NAME, "utf8"));
 }
 // scrape data if not using cache option
 if (!cache) {
     // maps department code to school
-    let departmentToSchoolMapping = {};
-    if (!cache) {
-      departmentToSchoolMapping = getDepartmentToSchoolMapping();
-    }
-    // Pre-reqs that are not in the database (idk if we need this)
+    departmentToSchoolMapping = getDepartmentToSchoolMapping();
+
+    // Check conflict files from requirementNode.py after Eddy finishes up functions
     // const conflictFile = fs.createWriteStream(CONFLICT_PREREQ_NAME);
     // conflictFile.write(
     //   "Following courses have conflicting AND/OR logic in their prerequisites\n");
@@ -667,28 +656,6 @@ if (!cache) {
     parseCourses(departmentToSchoolMapping, json_data);
     fs.writeFileSync(path + COURSES_DATA_NAME, JSON.stringify(json_data)); //is this a correct translation?
     console.log("Successfully parsed all course URLs!");
-
-    // Debug information about school
-    const schoolFile = fs.createWriteStream(path + SCHOOL_LIST_NAME);
-    schoolFile.write("List of Schools:\n");
-    for (const school of Array.from(new Set(Object.values(departmentToSchoolMapping))).sort()) {
-      schoolFile.write(school + "\n");
-    }
-    schoolFile.close();
-    if (noSchoolDepartment.size === 0) {
-      console.log("SUCCESS! ALL DEPARTMENTS HAVE A SCHOOL!");
-    } else {
-      console.log("FAILED!", noSchoolDepartment,
-        "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT AT getDepartmentToSchoolMapping");
-    }
-  
-    // Debug information about special requirements
-    const specialFile = fs.createWriteStream(SPECIAL_REQS_NAME);
-    specialFile.write("Special Requirements:\n");
-    for (const sReq of Array.from(specialRequirements).sort()) {
-      specialFile.write(sReq+"\n");
-    }
-    specialFile.close();
 }
 
 // set reliable prerequisites
@@ -699,3 +666,28 @@ setDependencies(json_data);
 setProfessorHistory(json_data);
 // write data to index into elasticSearch
 writeJsonData(json_data);
+
+if (!cache)
+{
+    // Debug information about school
+    const schoolFile = fs.createWriteStream(path + SCHOOL_LIST_NAME);
+    schoolFile.write("List of Schools:\n");
+    for (const school of Array.from(new Set(Object.values(departmentToSchoolMapping))).sort()) {
+        schoolFile.write(school + "\n");
+    }
+    schoolFile.close();
+    if (noSchoolDepartment.size === 0) {
+        console.log("SUCCESS! ALL DEPARTMENTS HAVE A SCHOOL!");
+    } else {
+        console.log("FAILED!", noSchoolDepartment,
+        "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT AT getDepartmentToSchoolMapping");
+    }
+    
+    // Debug information about special requirements
+    const specialFile = fs.createWriteStream(SPECIAL_REQS_NAME);
+    specialFile.write("Special Requirements:\n");
+    for (const sReq of Array.from(specialRequirements).sort()) {
+        specialFile.write(sReq+"\n");
+    }
+    specialFile.close();
+}
