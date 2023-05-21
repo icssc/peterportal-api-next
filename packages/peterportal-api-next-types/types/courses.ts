@@ -52,11 +52,11 @@ export type Course = {
   /**
    * The minimum number of units that can be earned by taking the course.
    */
-  minUnits: string;
+  minUnits: number;
   /**
    * The maximum number of units that can be earned by taking the course.
    */
-  maxUnits: string;
+  maxUnits: number;
   /**
    * The course description.
    */
@@ -112,7 +112,7 @@ export type Course = {
   /**
    * The corequisites for this course.
    */
-  corequisite: string;
+  corequisites: string;
   /**
    * The list of GE categories that this course fulfills.
    */
