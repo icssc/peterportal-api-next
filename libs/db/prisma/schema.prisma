@@ -72,13 +72,13 @@ model Course {
   instructorHistory Json
   prerequisiteTree  Json
   prerequisiteList  Json
-  prerequisiteText  String
+  prerequisiteText  String      @db.Text
   prerequisiteFor   Json
   repeatability     String
   gradingOption     String
   concurrent        String
   sameAs            String
-  restriction       String
+  restriction       String      @db.Text
   overlap           String
   corequisites      String
   geList            Json
