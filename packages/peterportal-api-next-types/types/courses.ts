@@ -7,11 +7,11 @@ export type PrerequisiteTree = {
   /**
    * All of these courses must have been taken before this course can be taken.
    */
-  AND?: string[];
+  AND?: Array<string | PrerequisiteTree>;
   /**
    * One of these courses must have been taken before this course can be taken.
    */
-  OR?: string[];
+  OR?: Array<string | PrerequisiteTree>;
 };
 
 /**
