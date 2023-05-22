@@ -151,7 +151,7 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
  */
 function minutesSinceMidnight(time: string): number {
   const [hour, minute] = time.split(":");
-  return parseInt(hour, 10) * 60 + parseInt(minute, 10) + (minute.includes("pm") ? 720 : 0);
+  return (parseInt(hour, 10) % 12) * 60 + parseInt(minute, 10) + (minute.includes("pm") ? 720 : 0);
 }
 
 /**
@@ -234,6 +234,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
       meetings: {
         every: {
           endTime: {
+            gte: 0,
             lte: minutesSinceMidnight(parsedQuery.endTime),
           },
         },
