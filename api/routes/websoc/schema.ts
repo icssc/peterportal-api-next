@@ -85,14 +85,8 @@ export const QuerySchema = z
     fullCourses: z.union([z.enum(anyArray), z.enum(fullCoursesOptions)]).optional(),
     cancelledCourses: z.enum(cancelledCoursesOptions).optional(),
     units: z.string().array().or(z.string()).optional().transform(flattenStringsAndSplit),
-    startTime: z
-      .string()
-      .regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/)
-      .optional(),
-    endTime: z
-      .string()
-      .regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/)
-      .optional(),
+    startTime: z.optional(z.literal("").or(z.string().regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/))),
+    endTime: z.optional(z.literal("").or(z.string().regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/))),
   })
   .refine((x) => x.cache || !x.cacheOnly, {
     message: "cacheOnly cannot be true if cache is false",
