@@ -238,9 +238,9 @@ function parseStartAndEndTimes(time: string) {
       .split("-")
       .map((x) => x.trim());
     const [startTimeHour, startTimeMinute] = startTimeString.split(":");
-    startTime = parseInt(startTimeHour, 10) * 60 + parseInt(startTimeMinute, 10);
+    startTime = (parseInt(startTimeHour, 10) % 12) * 60 + parseInt(startTimeMinute, 10);
     const [endTimeHour, endTimeMinute] = endTimeString.split(":");
-    endTime = parseInt(endTimeHour, 10) * 60 + parseInt(endTimeMinute, 10);
+    endTime = (parseInt(endTimeHour, 10) % 12) * 60 + parseInt(endTimeMinute, 10);
     if (endTimeMinute.includes("p")) {
       startTime += 12 * 60;
       endTime += 12 * 60;
