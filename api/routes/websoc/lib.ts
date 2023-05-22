@@ -366,27 +366,29 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
     courseNumber: query.courseNumber?.join(","),
     days: query.days?.join(""),
   };
-  if (query.units && query.sectionCodes) {
-    if (query.units.length === 1 && query.sectionCodes.length < 6) {
-      return [
-        {
-          ...baseQuery,
-          units: query.units[0],
-          sectionCodes: query.sectionCodes.join(","),
-        },
-      ];
+  if (query.units) {
+    if (query.sectionCodes) {
+      if (query.units.length === 1 && query.sectionCodes.length < 6) {
+        return [
+          {
+            ...baseQuery,
+            units: query.units[0],
+            sectionCodes: query.sectionCodes.join(","),
+          },
+        ];
+      }
+      const keys = query.sectionCodes.map((_, i) => (i % 5 === 0 ? i : null)).filter(notNull);
+
+      return query.units
+        .map((units) => ({ ...baseQuery, units }))
+        .flatMap((copiedQuery) =>
+          keys.map((k) => ({
+            ...copiedQuery,
+            sectionCodes: query.sectionCodes?.slice(k * 5, (k + 1) * 5).join(",") || "",
+          }))
+        );
     }
-
-    const keys = query.sectionCodes.map((_, i) => (i % 5 === 0 ? i : null)).filter(notNull);
-
-    return query.units
-      .map((units) => ({ ...baseQuery, units }))
-      .flatMap((copiedQuery) =>
-        keys.map((k) => ({
-          ...copiedQuery,
-          sectionCodes: query.sectionCodes?.slice(k * 5, (k + 1) * 5).join(",") || "",
-        }))
-      );
+    return query.units.map((units) => ({ ...baseQuery, units }));
   } else {
     return [baseQuery];
   }
