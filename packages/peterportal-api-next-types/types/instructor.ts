@@ -12,7 +12,7 @@ export type Instructor = {
   /**
    * The full name of the instructor.
    */
-  instructorName: string;
+  name: string;
   /**
    * The shortened name (or WebSoc name; e.g. ``SHINDLER, M.``) of the instructor.
    */
@@ -21,6 +21,10 @@ export type Instructor = {
    * The instructor's title.
    */
   title: string;
+  /**
+   * The instructor's email address.
+   */
+  email: string;
   /**
    * The department to which the instructor belongs.
    */
@@ -34,9 +38,9 @@ export type Instructor = {
    */
   relatedDepartments: string[];
   /**
-   * Course(s) this instructor has taught in the past.
+   * Course(s) this instructor has taught in the past and the associated Quarter/Year.
    */
-  courseHistory: string[];
+  courseHistory: { [course_id: string]: string[] };
 };
 
 /**

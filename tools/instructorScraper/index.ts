@@ -7,6 +7,8 @@ import { dirname } from "path";
 import stringSimilarity from "string-similarity";
 import { fileURLToPath } from "url";
 import winston, { log } from "winston";
+import type { Instructor } from "peterportal-api-next-types";
+
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -16,18 +18,6 @@ const URL_TO_DIRECTORY = "https://directory.uci.edu/";
 const URL_TO_INSTRUCT_HISTORY = "http://www.reg.uci.edu/perl/InstructHist";
 
 const YEAR_THRESHOLD = 20; // Number of years to look back when grabbing course history
-
-type Instructor = {
-  name: string;
-  ucinetid: string;
-  title: string;
-  department: string;
-  email: string;
-  schools: string[];
-  related_departments: string[];
-  shortened_name: string;
-  course_history: { [course_id: string]: string[] };
-};
 
 type InstructorsData = {
   result: InstructorsInfo;
@@ -246,9 +236,9 @@ export async function getInstructor(
     department: "",
     email: "",
     schools: schools,
-    related_departments: relatedDepartments,
-    shortened_name: "",
-    course_history: {},
+    relatedDepartments: relatedDepartments,
+    shortenedName: "",
+    courseHistory: {},
   };
   const [directory_status, directoryInfo] = await getDirectoryInfo(
     instructorName,
@@ -269,8 +259,8 @@ export async function getInstructor(
     attempts,
     year_threshold
   );
-  instructorObject["shortened_name"] = courseHistory[1]["shortened_name"];
-  instructorObject["course_history"] = courseHistory[1]["course_history"];
+  instructorObject["shortenedName"] = courseHistory[1]["shortened_name"];
+  instructorObject["courseHistory"] = courseHistory[1]["course_history"];
   status = courseHistory[0];
   return [status, instructorObject];
 }
