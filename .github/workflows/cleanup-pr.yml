@@ -29,9 +29,6 @@ jobs:
       HOSTED_ZONE_ID: ${{ secrets.HOSTED_ZONE_ID }}
       NODE_ENV: staging
       PR_NUM: ${{ github.event.pull_request.number }}
-      TURBO_API: ${{ secrets.TURBO_API }}
-      TURBO_TEAM: team_peterportal_api_next
-      TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
     steps:
       - name: Check out codebase
         uses: actions/checkout@v3
