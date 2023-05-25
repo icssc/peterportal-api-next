@@ -17,7 +17,7 @@ export class WebsocProxyServiceStack extends Stack {
       functionName,
       handler: "index.handler",
       timeout: Duration.seconds(15),
-      runtime: Runtime.NODEJS_16_X,
+      runtime: Runtime.NODEJS_18_X,
       memorySize: 512,
       ...props,
     });
