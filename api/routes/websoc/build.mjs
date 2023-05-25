@@ -1,26 +1,10 @@
 import { build } from "esbuild";
-import { chmod, copyFile, cp, mkdir, rm } from "fs/promises";
+import { chmod, copyFile, mkdir, rm } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 // ESM hack for __dirname
 const cwd = dirname(fileURLToPath(import.meta.url));
-
-// The array of packages that ``camaro`` depends on.
-// All of these need to be copied into ``dist/node_modules`` after build.
-const camaroDeps = [
-  "@assemblyscript/loader",
-  "base64-js",
-  "camaro",
-  "eventemitter-asyncresource",
-  "hdr-histogram-js",
-  "hdr-histogram-percentiles-obj",
-  "nice-napi",
-  "node-addon-api",
-  "node-gyp-build",
-  "pako",
-  "piscina",
-];
 
 // The relative path to the generated Prisma Client.
 const prismaClientDir = "../../../node_modules/.prisma/client/";
@@ -36,7 +20,7 @@ async function buildApp() {
   await build({
     bundle: true,
     entryPoints: [join(cwd, "index.ts")],
-    external: ["camaro"],
+    external: ["@aws-sdk/client-lambda"],
     logLevel: "info",
     minify: true,
     outfile: join(cwd, "dist/index.cjs"),
@@ -56,15 +40,6 @@ async function buildApp() {
         name: "copy",
         setup(build) {
           build.onEnd(async () => {
-            await Promise.all(
-              camaroDeps.map((module) =>
-                cp(
-                  join(cwd, `../../../node_modules/${module}`),
-                  join(cwd, `dist/node_modules/${module}`),
-                  { recursive: true }
-                )
-              )
-            );
             // prisma
             await copyFile(
               join(cwd, `${prismaClientDir}${prismaQueryEngine}`),
