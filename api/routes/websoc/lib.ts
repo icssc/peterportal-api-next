@@ -1,6 +1,8 @@
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { Prisma } from "@libs/db";
 import { WebsocAPIOptions } from "@libs/websoc-api-next";
 import type {
+  Department,
   WebsocAPIResponse,
   WebsocCourse,
   WebsocDepartment,
@@ -410,4 +412,24 @@ export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
   });
   response.schools.sort((a, b) => lexOrd(a.schoolName, b.schoolName));
   return response;
+}
+
+/**
+ * Wraps the Lambda client to invoke the WebSoc proxy service.
+ * @param client The Lambda Client to use.
+ * @param body The body to send to the proxy service.
+ */
+export async function invokeProxyService(
+  client: LambdaClient,
+  body: Record<string, unknown>
+): Promise<unknown> {
+  const res = await client.send(
+    new InvokeCommand({
+      FunctionName: "peterportal-api-next-prod-websoc-proxy-service",
+      Payload: new TextEncoder().encode(JSON.stringify({ body: JSON.stringify(body) })),
+    })
+  );
+  const payload = JSON.parse(Buffer.from(res.Payload ?? []).toString());
+  console.log(payload.body);
+  return JSON.parse(payload.body);
 }
