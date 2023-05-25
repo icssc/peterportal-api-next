@@ -1,56 +1,65 @@
-import { callWebSocAPI, WebsocAPIOptions } from "@libs/websoc-api-next";
+import { callWebSocAPI, getDepts, getTerms, WebsocAPIOptions } from "@libs/websoc-api-next";
 import { createErrorResult, createOKResult, LambdaHandler, logger } from "api-core";
 import { combineResponses, fulfilled, sleep, sortResponse } from "api-route-websoc/lib";
-import { Query } from "api-route-websoc/schema";
 import { WebsocAPIResponse } from "peterportal-api-next-types";
 
 export const handler: LambdaHandler = async (event, context) => {
   const requestId = context.awsRequestId;
-  const { parsedQuery } = JSON.parse(event.body ?? "{}") as { parsedQuery: Query };
-  let { queries } = JSON.parse(event.body ?? "{}") as { queries: WebsocAPIOptions[] };
+  const body = JSON.parse(event.body ?? "{}");
+  switch (body.function) {
+    case "depts":
+      return createOKResult(await getDepts(), requestId);
+    case "terms":
+      return createOKResult(await getTerms(), requestId);
+    case "websoc": {
+      const parsedQuery = body.parsedQuery;
+      let queries: WebsocAPIOptions[] = body.queries;
+      let retries = 0;
 
-  let retries = 0;
+      let responses: PromiseSettledResult<WebsocAPIResponse>[] = [];
+      let queryString = "";
 
-  let responses: PromiseSettledResult<WebsocAPIResponse>[] = [];
-  let queryString = "";
+      let successes: PromiseFulfilledResult<WebsocAPIResponse>[] = [];
+      const failed: WebsocAPIOptions[] = [];
 
-  let successes: PromiseFulfilledResult<WebsocAPIResponse>[] = [];
-  const failed: WebsocAPIOptions[] = [];
+      let websocResponseData: WebsocAPIResponse = { schools: [] };
 
-  let websocResponseData: WebsocAPIResponse = { schools: [] };
+      while (queries.length && retries < 3) {
+        responses = await Promise.allSettled(
+          queries.map((options) => callWebSocAPI(parsedQuery, options))
+        );
 
-  while (queries.length && retries < 3) {
-    responses = await Promise.allSettled(
-      queries.map((options) => callWebSocAPI(parsedQuery, options))
-    );
+        responses.forEach((response, i) => {
+          queryString = JSON.stringify(queries[i]);
+          if (response.status === "fulfilled") {
+            logger.info(`WebSoc query for ${queryString} succeeded`);
+          } else {
+            logger.info(`WebSoc query for ${queryString} failed`);
+            failed.push(queries[i]);
+          }
+        });
 
-    responses.forEach((response, i) => {
-      queryString = JSON.stringify(queries[i]);
-      if (response.status === "fulfilled") {
-        logger.info(`WebSoc query for ${queryString} succeeded`);
-      } else {
-        logger.info(`WebSoc query for ${queryString} failed`);
-        failed.push(queries[i]);
+        successes = responses.filter(fulfilled);
+        websocResponseData = successes.reduce(
+          (acc, curr) => combineResponses(acc, curr.value),
+          websocResponseData
+        );
+
+        queries = failed;
+        if (queries.length) await sleep(1000 * 2 ** retries++);
       }
-    });
 
-    successes = responses.filter(fulfilled);
-    websocResponseData = successes.reduce(
-      (acc, curr) => combineResponses(acc, curr.value),
-      websocResponseData
-    );
+      // 3 attempts + (1 + 2 + 4) seconds ~= Lambda timeout (15 seconds)
+      if (retries >= 2)
+        return createErrorResult(
+          500,
+          "WebSoc failed to respond too many times. Please try again later.",
+          requestId
+        );
 
-    queries = failed;
-    if (queries.length) await sleep(1000 * 2 ** retries++);
+      return createOKResult(sortResponse(websocResponseData), requestId);
+    }
+    default:
+      return createOKResult({}, requestId);
   }
-
-  // 3 attempts + (1 + 2 + 4) seconds ~= Lambda timeout (15 seconds)
-  if (retries >= 2)
-    return createErrorResult(
-      500,
-      "WebSoc failed to respond too many times. Please try again later.",
-      requestId
-    );
-
-  return createOKResult(sortResponse(websocResponseData), requestId);
 };
