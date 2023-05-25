@@ -2,6 +2,14 @@
 import "dotenv/config";
 
 import { App } from "aws-cdk-lib";
+import {
+  Effect,
+  ManagedPolicy,
+  PolicyDocument,
+  PolicyStatement,
+  Role,
+  ServicePrincipal,
+} from "aws-cdk-lib/aws-iam";
 
 import { ApiStack } from "./apiStack.js";
 
@@ -17,6 +25,26 @@ api.addRoute("/v1/rest/calendar", "calendar");
 api.addRoute("/v1/rest/courses/{id}", "courses");
 api.addRoute("/v1/graphql", "graphql");
 api.addRoute("/v1/rest/grades/{id}", "grades");
-api.addRoute("/v1/rest/websoc", "websoc");
+api.addRoute("/v1/rest/websoc", "websoc", {
+  role: new Role(api, "peterportal-api-next-websoc-route-role", {
+    assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+    managedPolicies: [
+      ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
+    ],
+    inlinePolicies: {
+      lambdaInvokePolicy: new PolicyDocument({
+        statements: [
+          new PolicyStatement({
+            effect: Effect.ALLOW,
+            resources: [
+              `arn:aws:lambda:${process.env.AWS_REGION}:${process.env.ACCOUNT_ID}:function:peterportal-api-next-prod-websoc-proxy-service`,
+            ],
+            actions: ["lambda:InvokeFunction"],
+          }),
+        ],
+      }),
+    },
+  }),
+});
 api.addRoute("/v1/rest/websoc/{option}", "websoc");
 api.addRoute("/v1/rest/larc", "larc");
