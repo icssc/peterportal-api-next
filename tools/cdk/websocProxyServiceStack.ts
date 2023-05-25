@@ -15,7 +15,7 @@ export class WebsocProxyServiceStack extends Stack {
         join(dirname(fileURLToPath(import.meta.url)), "../websoc-proxy-service/dist")
       ),
       functionName,
-      handler: "index.lambdaHandler",
+      handler: "index.handler",
       timeout: Duration.seconds(15),
       runtime: Runtime.NODEJS_16_X,
       memorySize: 512,
