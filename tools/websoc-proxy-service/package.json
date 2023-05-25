@@ -1,0 +1,21 @@
+{
+  "name": "websoc-proxy-service",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "index.ts",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@libs/websoc-api-next": "*",
+    "api-core": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.10",
+    "esbuild": "^0.17.8",
+    "peterportal-api-next-types": "*",
+    "typescript": "^4.9.4"
+  }
+}
