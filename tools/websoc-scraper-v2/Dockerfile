@@ -1,4 +1,4 @@
-FROM node:16-bullseye-slim
+FROM node:18-bullseye-slim
 RUN npm i -g tsx
 USER node
 WORKDIR /home/node
