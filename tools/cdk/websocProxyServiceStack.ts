@@ -20,7 +20,7 @@ export class WebsocProxyServiceStack extends Stack {
       handler: "index.handler",
       timeout: Duration.seconds(15),
       runtime: Runtime.NODEJS_18_X,
-      memorySize: 512,
+      memorySize: 1024,
       ...props,
     });
     const ruleName = `peterportal-api-next-prod-websoc-proxy-service-warming-rule`;

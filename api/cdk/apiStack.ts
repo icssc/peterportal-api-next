@@ -89,7 +89,7 @@ export class ApiStack extends Stack {
             handler: `index.lambdaHandler`,
             timeout: Duration.seconds(15),
             runtime: Runtime.NODEJS_18_X,
-            memorySize: 512,
+            memorySize: 1024,
             ...props,
           }))
         ))
