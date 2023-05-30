@@ -8,7 +8,8 @@
     "destroy": "cdk destroy --all --force"
   },
   "dependencies": {
-    "docs": "*"
+    "docs": "*",
+    "dotenv": "^16.1.0"
   },
   "devDependencies": {
     "@types/babel__traverse": "^7.18.3",

@@ -6,7 +6,11 @@ import { rawHandler as larcHandler } from "api-route-larc";
 import { rawHandler as websocHandler } from "api-route-websoc";
 import { Router } from "express";
 
-const router = Router();
+/**
+ * "The inferred type of router cannot be named without a reference ..."
+ * @see https://github.com/microsoft/TypeScript/issues/42873
+ */
+const router: ReturnType<typeof Router> = Router();
 
 // To add new routes, insert additional router.all calls below this comment.
 // You should not need to touch anything else in this file,
