@@ -8,6 +8,7 @@
     "destroy": "cdk destroy --all --force"
   },
   "dependencies": {
+    "dotenv": "^16.1.0",
     "websoc-proxy-service": "*",
     "websoc-scraper-v2": "*"
   },
