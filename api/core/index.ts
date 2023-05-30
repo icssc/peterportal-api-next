@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
-import type { Request, RequestHandler } from "express";
 import type { ErrorResponse, Response } from "peterportal-api-next-types";
 import { createLogger, format, transports } from "winston";
+import type { Request, RequestHandler } from "express";
 
 // You should not need to touch anything else in this file,
 // unless you know what you are doing.
