@@ -84,6 +84,9 @@ importers:
       api-route-websoc:
         specifier: "*"
         version: link:../routes/websoc
+      dotenv:
+        specifier: ^16.1.0
+        version: 16.1.0
     devDependencies:
       "@types/babel__traverse":
         specifier: ^7.18.3
@@ -10870,7 +10873,7 @@ packages:
     hasBin: true
     dependencies:
       cross-spawn: 7.0.3
-      dotenv: 16.0.3
+      dotenv: 16.1.0
       dotenv-expand: 10.0.0
       minimist: 1.2.8
     dev: true
@@ -10905,13 +10908,12 @@ packages:
       webpack: 5.84.1
     dev: false
 
-  /dotenv@16.0.3:
+  /dotenv@16.1.0:
     resolution:
       {
-        integrity: sha512-7GO6HghkA5fYG9TYnNxi14/7K9f5occMlp3zXAuSxn7CKCxt9xbNWG7yF8hTCSUchlfWSe3uLmlPfigevRItzQ==,
+        integrity: sha512-XiwP/4cqatBNLEnKe169vPZCrovUmYngyVA4DgZ3uIVLJfZaBgr4uT0EF2TrEQqgWDDlekGo0muEYme5SR78Ww==,
       }
     engines: { node: ">=12" }
-    dev: true
 
   /dotenv@8.6.0:
     resolution:
