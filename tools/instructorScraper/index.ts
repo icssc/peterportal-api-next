@@ -85,7 +85,7 @@ function sleep(ms: number) {
  * @param year_threshold - Number of years to look back when scraping instructor's course history
  * @returns {InstructorsData} Object containing instructors info and stats regarding retrieval
  */
-export async function getAllInstructors(
+async function getAllInstructors(
   concurrency_limit: number,
   attempts: number,
   year_threshold: number = YEAR_THRESHOLD
@@ -222,7 +222,7 @@ export async function getAllInstructors(
  * @param year_threshold - number of years to look back when scraping instructor's course history
  * @returns {InstructorObject} Object containg the instructor's data
  */
-export async function getInstructor(
+async function getInstructor(
   instructorName: string,
   schools: string[],
   relatedDepartments: string[],
@@ -329,7 +329,7 @@ async function getFaculty(
  *      {'http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty':'Claire Trevor School of the Arts',
  *      'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofbiomedicalengineering/#faculty':'The Henry Samueli School of Engineering', ...}
  */
-export async function getFacultyLinks(
+async function getFacultyLinks(
   attempts: number
 ): Promise<{ [faculty_link: string]: string }> {
   const result: { [faculty_link: string]: string } = {};
@@ -374,7 +374,7 @@ export async function getFacultyLinks(
  * @param attempts - Number of times the function will be called again if request fails
  * @returns {string[]} A list of instructor names
  */
-export async function getInstructorNames(
+async function getInstructorNames(
   facultyLink: string,
   attempts: number
 ): Promise<string[]> {
@@ -407,7 +407,7 @@ export async function getInstructorNames(
  * Example:
  *      ["COMPSCI","IN4MATX","I&C SCI","SWE","STATS"] - http://catalogue.uci.edu/donaldbrenschoolofinformationandcomputersciences/#faculty
  */
-export async function getDepartmentCourses(
+async function getDepartmentCourses(
   facultyLink: string,
   attempts: number
 ): Promise<string[]> {
@@ -479,7 +479,7 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
             "email": "thornton@uci.edu"
         }
  */
-export async function getDirectoryInfo(
+async function getDirectoryInfo(
   instructorName: string,
   attempts: number
 ): Promise<[string, { [key: string]: string }]> {
@@ -626,7 +626,7 @@ export async function getDirectoryInfo(
  * @param str - String
  * @returns {string} String in title case
  */
-export function strToTitleCase(str: string): string {
+function strToTitleCase(str: string): string {
   const strArray = str.toLocaleLowerCase().split(" ");
   const titleCaseStr = strArray
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
@@ -643,7 +643,7 @@ export function strToTitleCase(str: string): string {
  * @param year_threshold - Number of years to look back when scraping instructor's course history
  * @returns {object} A dictionary containing the instructor's "shortened_name" and "course_history"
  */
-export async function getCourseHistory(
+async function getCourseHistory(
   instructorName: string,
   relatedDepartments: string[],
   attempts: number,
@@ -743,7 +743,7 @@ export async function getCourseHistory(
  * @param attempts - Number of times the page will be requested if fail
  * @returns
  */
-export async function fetchHistoryPage(
+async function fetchHistoryPage(
   params: { [key: string]: string },
   attempts: number
 ): Promise<string> {
@@ -789,7 +789,7 @@ export async function fetchHistoryPage(
  * @param nameCounts - a dictionary of instructor names storing the number of name occurrences found in entries (used to determine the 'official' shortened name - bc older record names may differ from current) ex: Thornton A.W. = Thornton A.
  * @returns {boolean} - true if entries are found, false if not
  */
-export async function parseHistoryPage(
+async function parseHistoryPage(
   instructorHistoryPage: string,
   year_threshold: number,
   relatedDepartments: string[],
@@ -864,24 +864,6 @@ export async function parseHistoryPage(
   return entryFound;
 }
 
-/**
- * Call getAllInstructors and store to json file
- *
- * @param concurrency_limit - Number of concurrent calls at a time
- * @param attempts - Number of attempts to make a request if fail
- * @param year_threshold - Number of years to look back when scraping instructor's course history
- * @param path - Directory where the json file will be created
- */
-export async function exportInstructorsToJson(
-  instructorsData: InstructorsInfo
-) {
-  const jsonResult = JSON.stringify(instructorsData);
-  const path = `${__dirname}/results/${Date.now()}.log`;
-  fs.writeFile(path, jsonResult, (error) => {
-    if (error) {
-      console.error("Error writing to file", error);
-    } else {
-      console.log("Exported instructors data to", path);
-    }
-  });
+async function main() {
+  // TODO: Upload data to prisma
 }
