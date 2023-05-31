@@ -9,8 +9,8 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "@libs/db": "*",
-    "api-core": "*",
+    "@libs/db": "workspace:*",
+    "api-core": "workspace:*",
     "winston": "^3.8.2"
   },
   "devDependencies": {

@@ -5,6 +5,10 @@
   "license": "MIT",
   "type": "module",
   "main": "index.ts",
+  "types": "index.ts",
+  "files": [
+    "."
+  ],
   "dependencies": {
     "express": "^4.18.2",
     "winston": "^3.8.2"

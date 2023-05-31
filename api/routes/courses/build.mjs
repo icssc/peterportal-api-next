@@ -3,6 +3,18 @@ import { chmod, copyFile, mkdir, rm } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
+// The relative path to the generated Prisma Client.
+const prismaClientDir = "../../../node_modules/prisma/";
+
+const prismaSchema = "../../../libs/db/prisma/schema.prisma"
+
+/*
+ * The file name of the Prisma query engine. This needs to be copied into the
+ * same directory as the bundle.
+ * @see {@link https://www.prisma.io/docs/concepts/components/prisma-client/module-bundlers}
+ */
+const prismaQueryEngine = "libquery_engine-rhel-openssl-1.0.x.so.node";
+
 (async () => {
   const cwd = dirname(fileURLToPath(import.meta.url));
   /** @type {import("esbuild").BuildOptions} */
@@ -27,18 +39,16 @@ import { fileURLToPath } from "url";
         name: "copy",
         setup(build) {
           build.onEnd(async () => {
+            // prisma
             await copyFile(
-              join(
-                cwd,
-                "../../../node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node"
-              ),
-              join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node")
+              join(cwd, `${prismaClientDir}${prismaQueryEngine}`),
+              join(cwd, `dist/${prismaQueryEngine}`)
             );
             await copyFile(
-              join(cwd, "../../../node_modules/.prisma/client/schema.prisma"),
+              join(cwd, prismaSchema),
               join(cwd, "dist/schema.prisma")
             );
-            await chmod(join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node"), 0o755);
+            await chmod(join(cwd, `dist/${prismaQueryEngine}`), 0o755);
           });
         },
       },
