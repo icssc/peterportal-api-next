@@ -4,49 +4,62 @@ import type { Construct } from "constructs";
 import type { PPA_SST_Config } from "../config.js";
 import { type InternalHandler, isHttpMethod, warmerRequestBody } from "../lambda-core/index.js";
 
-export interface ApiProps {
+export interface HandlerConfig {
+  /**
+   * The API route.
+   */
   route: string;
+
+  /**
+   * Directory on the file system to find the API route.
+   */
   directory: string;
-  env?: Record<string, string>;
+
+  /**
+   * Files to exclude.
+   * @default ["node_modules"]
+   */
   exclude?: string[];
-  methods?: string[];
+
+  /**
+   * Environment variables specific to the function.
+   */
+  env?: Record<string, string>;
 }
 
-export class ElysiaStack extends cdk.Stack {
-  id: string;
-
-  stage: string;
-
+export class PeterPortalAPI_SST_Stack extends cdk.Stack {
   api: cdk.aws_apigateway.RestApi;
 
-  constructor(scope: Construct, id: string, props: cdk.StackProps = {}, stage: string) {
-    // const recordName = `${stage === "prod" ? "" : `${stage}.`}api-next`;
+  config: PPA_SST_Config;
 
-    // const zoneName = "peterportal.org";
+  constructor(scope: Construct, config: PPA_SST_Config) {
+    super(scope, `${config.aws.id}-${config.aws.stage}`, config.aws.stackProps);
 
-    super(scope, `${id}-${stage}`, props);
+    const recordName = `${config.aws.stage === "prod" ? "" : `${config.aws.stage}.`}api-next`;
 
-    this.id = id;
+    this.config = config;
 
-    this.stage = stage;
-
-    this.api = new cdk.aws_apigateway.RestApi(this, `${id}-${stage}`, {
+    this.api = new cdk.aws_apigateway.RestApi(this, `${config.aws.id}-${config.aws.stage}`, {
       defaultCorsPreflightOptions: {
         allowOrigins: ["*"],
         allowHeaders: ["Apollo-Require-Preflight", "Content-Type"],
         allowMethods: ["GET", "HEAD", "POST"],
       },
-      // domainName: {
-      //   domainName: `${recordName}.${zoneName}`,
-      //   certificate: Certificate.fromCertificateArn(this, "peterportal-cert", certificateArn),
-      // },
-      // disableExecuteApiEndpoint: true,
+      domainName: {
+        domainName: `${recordName}.${config.aws.zoneName}`,
+        certificate: cdk.aws_certificatemanager.Certificate.fromCertificateArn(
+          this,
+          "peterportal-cert",
+          config.env?.certificateArn
+        ),
+      },
+      disableExecuteApiEndpoint: true,
       endpointTypes: [cdk.aws_apigateway.EndpointType.EDGE],
       minCompressionSize: cdk.Size.bytes(128 * 1024), // 128 KiB
-      restApiName: `${id}-${stage}`,
+      restApiName: `${config.aws.id}-${config.aws.stage}`,
     });
 
-    this.api.addGatewayResponse(`${id}-${stage}-5xx`, {
+    this.api.addGatewayResponse(`${config.aws.id}-${config.aws.stage}-5xx`, {
       type: cdk.aws_apigateway.ResponseType.DEFAULT_5XX,
       statusCode: "500",
       templates: {
@@ -60,7 +73,7 @@ export class ElysiaStack extends cdk.Stack {
       },
     });
 
-    this.api.addGatewayResponse(`${id}-${stage}-404`, {
+    this.api.addGatewayResponse(`${config.aws.id}-${config.aws.stage}-404`, {
       type: cdk.aws_apigateway.ResponseType.MISSING_AUTHENTICATION_TOKEN,
       statusCode: "404",
       templates: {
@@ -87,36 +100,36 @@ export class ElysiaStack extends cdk.Stack {
   /**
    * Adds an endpoint to the API.
    */
-  async addRoute(apiProps: ApiProps, config: PPA_SST_Config) {
+  async addRoute(handlerConfig: HandlerConfig) {
     let resource = this.api.root;
 
-    apiProps.route.split("/").forEach((route) => {
+    handlerConfig.route.split("/").forEach((route) => {
       resource = resource.getResource(route) ?? resource.addResource(route);
     });
 
     const internalHandlers: Record<string, InternalHandler> = await import(
-      `${apiProps.directory}/src/index`
+      `${handlerConfig.directory}/src/index`
     );
 
     Object.keys(internalHandlers)
       .filter(isHttpMethod)
       .forEach((httpMethod) => {
-        const route = apiProps.route.replace(/\//g, "-");
+        const route = handlerConfig.route.replace(/\//g, "-");
 
-        const functionName = `${this.id}-${this.stage}-${route}-${httpMethod}`;
+        const functionName = `${this.config.aws.id}-${this.config.aws.stage}-${route}-${httpMethod}`;
 
         const handler = new cdk.aws_lambda.Function(this, `${functionName}-handler`, {
           functionName,
           runtime: cdk.aws_lambda.Runtime.NODEJS_18_X,
-          code: cdk.aws_lambda.Code.fromAsset(apiProps.directory, {
-            exclude: apiProps.exclude ?? ["node_modules"],
+          code: cdk.aws_lambda.Code.fromAsset(handlerConfig.directory, {
+            exclude: handlerConfig.exclude ?? ["node_modules"],
           }),
-          handler: `${config.esbuild.outdir}/${config.runtime.nodeRuntimeFile.replace(
+          handler: `${this.config.esbuild.outdir}/${this.config.runtime.nodeRuntimeFile.replace(
             "js",
             httpMethod
           )}`,
           architecture: cdk.aws_lambda.Architecture.ARM_64,
-          environment: { ...apiProps.env, stage: this.stage },
+          environment: { ...handlerConfig.env, ...this.config.env, stage: this.config.aws.stage },
           timeout: cdk.Duration.seconds(15),
           memorySize: 512,
         });

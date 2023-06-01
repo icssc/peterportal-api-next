@@ -1,5 +1,21 @@
+import type { AppProps, StackProps } from "aws-cdk-lib";
 import type { BuildOptions } from "esbuild";
 import { loadConfig } from "unconfig";
+
+/**
+ * PeterPortal API SST's AWS configuration.
+ */
+interface PPA_AWS {
+  id: string;
+
+  stage: string;
+
+  zoneName: string;
+
+  appProps?: AppProps;
+
+  stackProps?: StackProps;
+}
 
 /**
  * Options that control dynamically generated files for different runtimes.
@@ -44,6 +60,11 @@ interface PPA_SST_Runtime {
  */
 export interface PPA_SST_Config {
   /**
+   * Directory to recursively find API routes.
+   */
+  directory: string;
+
+  /**
    * Port to start the Express development server on.
    */
   port: number | string;
@@ -57,6 +78,16 @@ export interface PPA_SST_Config {
    * Options for dynamically generating the different AWS Lambda runtime scripts.
    */
   runtime: PPA_SST_Runtime;
+
+  /**
+   * AWS configuration.
+   */
+  aws: PPA_AWS;
+
+  /**
+   * Environment variables.
+   */
+  env: Record<string, string>;
 }
 
 /**

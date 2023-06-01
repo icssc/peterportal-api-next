@@ -4,7 +4,7 @@ import { relative } from "node:path";
 import * as cdk from "aws-cdk-lib";
 
 import { getConfig } from "../config.js";
-import { type ApiProps, ElysiaStack } from "./stack.js";
+import { type HandlerConfig, PeterPortalAPI_SST_Stack } from "./stack.js";
 
 // import { env } from '../../../env'
 let env: any;
@@ -29,33 +29,30 @@ function getStage(NODE_ENV = "development") {
   }
 }
 
-const app = new cdk.App();
-
-const stage = getStage(env.NODE_ENV);
-
-const id = "peterportal-elysia";
-
-const apiDir = "../../../apps/api";
-
-const apiRoutes = readdirSync(apiDir);
-
-const getApiRoutes = (route = "", current: string[] = []): string[] => {
+const getApiRoutes = (route = "", apiDir = ".", current: string[] = []): string[] => {
   if (existsSync(`${apiDir}/${route}/package.json`)) {
     current.push(`${apiDir}/${route}`);
     return current;
   }
   const subRoutes = readdirSync(`${apiDir}/${route}`);
-  return subRoutes.flatMap((subRoute) => getApiRoutes(`${route}/${subRoute}`, current));
+  return subRoutes.flatMap((subRoute) => getApiRoutes(`${route}/${subRoute}`, apiDir, current));
 };
 
 async function start() {
+  const config = await getConfig();
+
+  config.env = env ?? {};
+  config.env.stage = getStage(env.NODE_ENV);
+
+  const app = new cdk.App(config.aws.appProps);
+
   /**
-   * Configs for all unique Lambda routes.
+   * Configs for all __unique__ Lambda routes.
    */
-  const handlerConfigs: ApiProps[] = apiRoutes
+  const handlerConfigs: HandlerConfig[] = readdirSync(config.directory)
     .flatMap((route) =>
-      getApiRoutes(route).map((apiRoute) => ({
-        route: relative(apiDir, apiRoute),
+      getApiRoutes(route, config.directory).map((apiRoute) => ({
+        route: relative(config.directory, apiRoute),
         directory: apiRoute,
         env,
       }))
@@ -64,11 +61,9 @@ async function start() {
       (config, index, configs) => configs.findIndex((c) => c.route === config.route) === index
     );
 
-  const stack = new ElysiaStack(app, id, {}, stage);
+  const stack = new PeterPortalAPI_SST_Stack(app, config);
 
-  const config = await getConfig();
-
-  Promise.all(handlerConfigs.map((handlerConfig) => stack.addRoute(handlerConfig, config)));
+  Promise.all(handlerConfigs.map((handlerConfig) => stack.addRoute(handlerConfig)));
 }
 
 start();
