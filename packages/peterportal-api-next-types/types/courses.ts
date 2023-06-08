@@ -1,17 +1,35 @@
 import { CourseLevel, GECategory } from "./constants";
 
 /**
+ * An object representing a course prerequisite.
+ */
+export type PrereqCourse = {
+  /**
+   * The course ID of this course.
+   */
+  courseId: string;
+  /**
+   * The minimum grade required for this course.
+   */
+  minGrade: string;
+  /**
+   * If course is a corequisite.
+   */
+  coreq?: boolean;
+}
+
+/**
  * An object representing a prerequisite tree for a course.
  */
 export type PrerequisiteTree = {
   /**
    * All of these courses must have been taken before this course can be taken.
    */
-  AND?: Array<string | PrerequisiteTree>;
+  AND?: Array<PrereqCourse | PrerequisiteTree>;
   /**
    * One of these courses must have been taken before this course can be taken.
    */
-  OR?: Array<string | PrerequisiteTree>;
+  OR?: Array<PrereqCourse | PrerequisiteTree>;
 };
 
 /**
