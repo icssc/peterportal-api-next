@@ -11,7 +11,7 @@ export type PrereqCourse = {
   /**
    * The minimum grade required for this course.
    */
-  minGrade: string;
+  minGrade?: string;
   /**
    * If course is a corequisite.
    */
@@ -30,6 +30,10 @@ export type PrerequisiteTree = {
    * One of these courses must have been taken before this course can be taken.
    */
   OR?: Array<PrereqCourse | PrerequisiteTree>;
+  /**
+   * These courses must not have been taken before this course can be taken.
+   */
+  NOT?: Array<PrereqCourse | PrerequisiteTree>;
 };
 
 /**
