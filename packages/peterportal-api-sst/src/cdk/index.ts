@@ -6,9 +6,6 @@ import * as cdk from "aws-cdk-lib";
 import { getConfig } from "../config.js";
 import { type HandlerConfig, PeterPortalAPI_SST_Stack } from "./stack.js";
 
-// import { env } from '../../../env'
-let env: Record<string, string> | undefined;
-
 function getStage(NODE_ENV = "development") {
   switch (NODE_ENV) {
     case "production":
@@ -41,8 +38,11 @@ const getApiRoutes = (route = "", apiDir = ".", current: string[] = []): string[
 async function start() {
   const config = await getConfig();
 
-  config.env = env ?? {};
-  config.env.stage = getStage(env.NODE_ENV);
+  /**
+   * TODO: schema validation.
+   */
+  config.env ??= {};
+  config.env.stage = getStage(config.env.NODE_ENV);
 
   const app = new cdk.App(config.aws.appProps);
 
@@ -54,7 +54,7 @@ async function start() {
       getApiRoutes(route, config.directory).map((apiRoute) => ({
         route: relative(config.directory, apiRoute),
         directory: apiRoute,
-        env,
+        env: config.env,
       }))
     )
     .filter(
