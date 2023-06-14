@@ -7,12 +7,11 @@ import { config } from "dotenv";
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 /**
- * ESbuild will pick up on this and copy the env file to the output folder.
+ * esbuild will pick up on this and copy the env file to the output folder.
  */
-// eslint-disable-next-line
 try {
   require("./.env");
-} catch {}
+} catch { /* noop */ }
 
 config({ path: resolve(__dirname, ".env") });
 
