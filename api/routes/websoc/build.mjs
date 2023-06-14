@@ -9,7 +9,7 @@ const cwd = dirname(fileURLToPath(import.meta.url));
 // The relative path to the generated Prisma Client.
 const prismaClientDir = "../../../node_modules/prisma/";
 
-const prismaSchema = "../../../libs/db/prisma/schema.prisma"
+const prismaSchema = "../../../libs/db/prisma/schema.prisma";
 
 /*
  * The file name of the Prisma query engine. This needs to be copied into the
@@ -47,10 +47,7 @@ async function buildApp() {
               join(cwd, `${prismaClientDir}${prismaQueryEngine}`),
               join(cwd, `dist/${prismaQueryEngine}`)
             );
-            await copyFile(
-              join(cwd, prismaSchema),
-              join(cwd, "dist/schema.prisma")
-            );
+            await copyFile(join(cwd, prismaSchema), join(cwd, "dist/schema.prisma"));
             await chmod(join(cwd, `dist/${prismaQueryEngine}`), 0o755);
           });
         },

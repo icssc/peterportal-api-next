@@ -11,7 +11,9 @@ const __dirname = fileURLToPath(new URL(".", import.meta.url));
  */
 try {
   require("./.env");
-} catch { /* noop */ }
+} catch {
+  /* noop */
+}
 
 config({ path: resolve(__dirname, ".env") });
 
