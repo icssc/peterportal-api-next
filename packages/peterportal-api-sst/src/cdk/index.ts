@@ -7,7 +7,7 @@ import { getConfig } from "../config.js";
 import { type HandlerConfig, PeterPortalAPI_SST_Stack } from "./stack.js";
 
 // import { env } from '../../../env'
-let env: any;
+let env: Record<string, string> | undefined;
 
 function getStage(NODE_ENV = "development") {
   switch (NODE_ENV) {
