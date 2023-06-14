@@ -77,7 +77,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
       - name: Deploy stacks
-        run: npm run deploy -- --filter="api-cdk" --filter="docs-cdk"
+        run: pnpm deploy -- --filter="api-cdk" --filter="docs-cdk"
 
       - name: Comment staging URLs
         uses: marocchino/sticky-pull-request-comment@v2
