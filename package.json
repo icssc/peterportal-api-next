@@ -2,16 +2,18 @@
   "name": "peterportal-api-next",
   "version": "0.0.0",
   "private": true,
-  "description": "the official PeterPortal API monorepository",
+  "description": "The official PeterPortal API-Next monorepo",
   "type": "module",
   "scripts": {
     "postinstall": "husky install",
     "build": "turbo run build",
+    "dev": "dotenv -c development -- turbo run dev",
     "deploy": "turbo run deploy",
     "destroy": "turbo run destroy",
     "commit": "cz",
     "lint": "eslint --fix .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "test": "turbo run test"
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.3",
