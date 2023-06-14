@@ -25,7 +25,7 @@ export const rawHandler: RawHandler = async (request) => {
           return createOKResult<Course>(
             normalizeCourse(
               await prisma.course.findUniqueOrThrow({
-                where: { id: params.id },
+                where: { id: decodeURI(params.id) },
               })
             ),
             requestId
