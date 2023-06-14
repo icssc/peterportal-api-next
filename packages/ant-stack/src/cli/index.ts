@@ -13,7 +13,7 @@ async function start() {
   const argv = cli({
     name: "ant",
 
-    version: "0.69.420",
+    version: "0.1.0",
 
     commands: [
       command({

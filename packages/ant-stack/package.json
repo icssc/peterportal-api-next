@@ -1,7 +1,7 @@
 {
   "name": "ant-stack",
   "version": "0.1.0",
-  "description": "custom serverless AWS framework for ants",
+  "description": "A serverless stack for ants",
   "type": "module",
   "scripts": {
     "build": "tsup",

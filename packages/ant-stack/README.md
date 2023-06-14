@@ -1,14 +1,15 @@
-# PeterPortal API SST (Serverless Stack)
+# 🐜 ant-stack
 
-Custom serverless, AWS framework for PeterPortal API.
+_what is this, a serverless stack for ants?_
 
 ## CLI
 
-- Helps manage a PPA-SST project.
+- Helps manage an AntStack project
 
 ## Lambda-Core
 
-- Core functionality of PeterPortal API on AWS Lambda
+- A batteries-included AWS Lambda-based API framework, with its own request/response types and
+  logger solution
 
 ## CDK (TODO)
 
@@ -17,19 +18,19 @@ Custom serverless, AWS framework for PeterPortal API.
 ### Idea
 
 - Developer only needs to export `InternalHandler`s that process an `InternalRequest` and return an `InternalResponse`
-- PPA-SST will compile output for different AWS Lambda JavaScript runtimes
+- AntStack will compile output for different AWS Lambda JavaScript runtimes
 
-## Development with PPA-SST
+## Development with AntStack
 
-1. Go to the specified `api-routes` directory in the `ppa.config`
-2. Create a new route with `ppa create`.
+1. Go to the specified `api-routes` directory in the `ant.config`
+2. Create a new route with `ant create`.
 3. Define and export `InternalHandler`s corresponding to the supported HTTP Methods for that route.
 
 - i.e. If your route supports POST requests, make sure `export const POST: InternalHandler = ...` is present.
 
-4. Test the route locally with `ppa dev`.
-   This creates an express server with the options in `ppa.config` behind the scenes.
-5. Build the route with `ppa build`
+4. Test the route locally with `ant dev`.
+   This creates an express server with the options in `ant.config` behind the scenes.
+5. Build the route with `ant build`
 
 - This builds a `dist/index.js` file with the file you worked on (`src/index.ts`).
 - There is a `dist/lambda-core.js` file that contains the bundled internals of Lambda-Core.

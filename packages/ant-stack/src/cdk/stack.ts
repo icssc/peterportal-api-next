@@ -55,7 +55,7 @@ export class PeterPortalAPI_SST_Stack extends cdk.Stack {
       },
       disableExecuteApiEndpoint: true,
       endpointTypes: [cdk.aws_apigateway.EndpointType.EDGE],
-      minCompressionSize: cdk.Size.bytes(128 * 1024), // 128 KiB
+      minimumCompressionSize: 128 * 1024, // 128 KiB
       restApiName: `${config.aws.id}-${config.aws.stage}`,
     });
 
