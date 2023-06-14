@@ -35,5 +35,5 @@ export const httpMethods = ["DELETE", "GET", "HEAD", "PATCH", "POST", "PUT", "OP
 export type HttpMethod = (typeof httpMethods)[number];
 
 export function isHttpMethod(method: string): method is HttpMethod {
-  return httpMethods.includes(method as any);
+  return httpMethods.includes(method as HttpMethod);
 }

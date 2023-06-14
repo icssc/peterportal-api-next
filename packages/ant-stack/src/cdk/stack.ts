@@ -1,7 +1,7 @@
 import * as cdk from "aws-cdk-lib";
 import type { Construct } from "constructs";
 
-import type { PPA_SST_Config } from "../config.js";
+import type { AntConfig } from "../config.js";
 import { type InternalHandler, isHttpMethod, warmerRequestBody } from "../lambda-core/index.js";
 
 export interface HandlerConfig {
@@ -30,9 +30,9 @@ export interface HandlerConfig {
 export class PeterPortalAPI_SST_Stack extends cdk.Stack {
   api: cdk.aws_apigateway.RestApi;
 
-  config: PPA_SST_Config;
+  config: AntConfig;
 
-  constructor(scope: Construct, config: PPA_SST_Config) {
+  constructor(scope: Construct, config: AntConfig) {
     super(scope, `${config.aws.id}-${config.aws.stage}`, config.aws.stackProps);
 
     const recordName = `${config.aws.stage === "prod" ? "" : `${config.aws.stage}.`}api-next`;

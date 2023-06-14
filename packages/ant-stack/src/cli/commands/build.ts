@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 import { build } from "esbuild";
 
-import { getConfig, type PPA_SST_Config } from "../../config.js";
+import { type AntConfig, getConfig } from "../../config.js";
 import {
   createBunHandler,
   createNodeHandler,
@@ -13,7 +13,7 @@ import {
 /**
  * Compile for an AWS Lambda runtime
  */
-async function compileRuntime(config: PPA_SST_Config, functionName: string, outputFile: string) {
+async function compileRuntime(config: AntConfig, functionName: string, outputFile: string) {
   const internalHandlers = await import(
     resolve(config.esbuild.outdir ?? ".", config.runtime.entryFile)
   );

@@ -3,9 +3,9 @@ import type { BuildOptions } from "esbuild";
 import { loadConfig } from "unconfig";
 
 /**
- * PeterPortal API SST's AWS configuration.
+ * AntStack's AWS configuration.
  */
-interface PPA_AWS {
+interface AntAWS {
   id: string;
 
   stage: string;
@@ -20,7 +20,7 @@ interface PPA_AWS {
 /**
  * Options that control dynamically generated files for different runtimes.
  */
-interface PPA_SST_Runtime {
+interface AntRuntime {
   /**
    * The name of the built file with all the handlers for the route.
    * @example dist/index.js
@@ -56,9 +56,9 @@ interface PPA_SST_Runtime {
 }
 
 /**
- * PeterPortal API development server configuration
+ * AntStack's development server configuration.
  */
-export interface PPA_SST_Config {
+export interface AntConfig {
   /**
    * Directory to recursively find API routes.
    */
@@ -77,12 +77,12 @@ export interface PPA_SST_Config {
   /**
    * Options for dynamically generating the different AWS Lambda runtime scripts.
    */
-  runtime: PPA_SST_Runtime;
+  runtime: AntRuntime;
 
   /**
    * AWS configuration.
    */
-  aws: PPA_AWS;
+  aws: AntAWS;
 
   /**
    * Environment variables.
@@ -94,13 +94,13 @@ export interface PPA_SST_Config {
  * Helper function to create configuration with type information in the input.
  * FIXME: this is very slow when used with {@link loadConfig} !
  */
-export const defineConfig = (config: PPA_SST_Config) => config;
+export const defineConfig = (config: AntConfig) => config;
 
 export async function getConfig() {
-  const loadedConfig = await loadConfig<Required<PPA_SST_Config>>({
+  const loadedConfig = await loadConfig<Required<AntConfig>>({
     sources: [
       {
-        files: ["ppa.config"],
+        files: ["ant.config"],
         extensions: ["ts", "js"],
       },
     ],

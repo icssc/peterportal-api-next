@@ -1,7 +1,7 @@
 {
-  "name": "peterportal-api-sst",
+  "name": "ant-stack",
   "version": "0.1.0",
-  "description": "custom serverless AWS framework for PeterPortal API",
+  "description": "custom serverless AWS framework for ants",
   "type": "module",
   "scripts": {
     "build": "tsup",
@@ -43,7 +43,7 @@
     }
   },
   "bin": {
-    "ppa": "./dist/cli.js"
+    "ant": "./dist/cli.js"
   },
   "dependencies": {
     "arktype": "^1.0.14-alpha",

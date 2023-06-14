@@ -8,10 +8,10 @@ import { automaticCreate, CreateOptions, interactiveCreate } from "./commands/cr
 import { startDevServer } from "./commands/dev.js";
 
 async function start() {
-  consola.log(chalk.green.bgRedBright(`PPA - PeterPortal API core CLI tool`));
+  consola.log(chalk.green.bgRedBright(`ant - AntStack's CLI tool`));
 
   const argv = cli({
-    name: "ppa",
+    name: "ant",
 
     version: "0.69.420",
 
