@@ -70,6 +70,6 @@ jobs:
         with:
           header: stagingURL
           recreate: true
-          message: 🚀 Staging instances deployed!\nAPI - https://staging-${{
-            github.event.pull_request.number }}.api-next.peterportal.org\nDocs - to
-            https://staging-${{ github.event.pull_request.number }}-docs.api-next.peterportal.org
+          message: 🚀 Staging instances deployed!
+            API - https://staging-${{ github.event.pull_request.number }}.api-next.peterportal.org
+            Docs - https://staging-${{ github.event.pull_request.number }}-docs.api-next.peterportal.org
