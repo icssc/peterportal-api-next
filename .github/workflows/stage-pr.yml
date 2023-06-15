@@ -71,5 +71,7 @@ jobs:
           header: stagingURL
           recreate: true
           message: 🚀 Staging instances deployed!
+
             API - https://staging-${{ github.event.pull_request.number }}.api-next.peterportal.org
+
             Docs - https://staging-${{ github.event.pull_request.number }}-docs.api-next.peterportal.org
