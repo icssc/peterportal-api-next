@@ -28,14 +28,11 @@ import { fileURLToPath } from "url";
         setup(build) {
           build.onEnd(async () => {
             await copyFile(
-              join(
-                cwd,
-                "../../../node_modules/.prisma/client/libquery_engine-rhel-openssl-1.0.x.so.node"
-              ),
+              join(cwd, "../../../node_modules/prisma/libquery_engine-rhel-openssl-1.0.x.so.node"),
               join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node")
             );
             await copyFile(
-              join(cwd, "../../../node_modules/.prisma/client/schema.prisma"),
+              join(cwd, "../../../node_modules/@libs/db/prisma/schema.prisma"),
               join(cwd, "dist/schema.prisma")
             );
             await chmod(join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node"), 0o755);
