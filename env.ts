@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import { type } from "arktype";
 import { config } from "dotenv";
 
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 /**
@@ -20,7 +22,6 @@ config({ path: resolve(__dirname, ".env") });
 export const envSchema = type(
   {
     DATABASE_URL: "string",
-    DATABASE_URL_SCRAPER: "string",
     NODE_ENV: "string",
   },
   { keys: "distilled" }

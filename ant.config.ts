@@ -29,7 +29,8 @@ export const entryFileName = "index";
  * Just using types is a lot faster!!
  */
 const config: AntConfig = {
-  port: 3000,
+  packageManager: "pnpm",
+  port: 8080,
   aws: {
     id: "peterportal-api-sst",
     stage: "dev",
