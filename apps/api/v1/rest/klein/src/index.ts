@@ -1,7 +1,7 @@
 import { createErrorResult, createOKResult, type InternalHandler, zeroUUID } from "ant-stack";
 
 const GET: InternalHandler = async (event) => {
-  return createOKResult({}, zeroUUID);
+  return createOKResult({ hello: "world" }, zeroUUID);
 };
 
 const POST: InternalHandler = async (event) => {

@@ -189,6 +189,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
     router = Router();
     endpoints.forEach((endpoint) => {
       consola.info(`🚀 Loading ${endpoint} from ${endpointBuildConfigs[endpoint].outdir}`);
+
       router.use(`/${relative(config.directory, endpoint)}`, (req, res, next) =>
         endpointMiddleware[endpoint](req, res, next)
       );
@@ -200,31 +201,31 @@ export async function startRootDevServer(config: Required<AntConfig>) {
    */
   const loadEndpoint = async (endpoint: string) => {
     console.log("setting up router for ", endpoint);
+
     endpointMiddleware[endpoint] = Router();
 
     const file = resolve(endpoint, `${config.esbuild.outdir}/index.js`);
 
     const internalHandlers = await import(`${file}?update=${Date.now()}`);
 
-    Object.keys(internalHandlers)
-      .filter(isMethod)
-      .forEach((key) => {
-        endpointMiddleware[endpoint][MethodsToExpress[key]](
-          "/",
-          createExpressHandler(internalHandlers[key])
-        );
-      });
-  };
+    const handlerMethods = internalHandlers.default
+      ? Object.keys(internalHandlers.default)
+      : Object.keys(internalHandlers);
 
-  /**
-   * Load all endpoints.
-   */
-  const loadAllEndpoints = async () => await Promise.all(endpoints.map(loadEndpoint));
+    const handlerFunctions = internalHandlers.default ? internalHandlers.default : internalHandlers;
+
+    handlerMethods.filter(isMethod).forEach((key) => {
+      endpointMiddleware[endpoint][MethodsToExpress[key]](
+        "/",
+        createExpressHandler(handlerFunctions[key])
+      );
+    });
+  };
 
   /**
    * Prepare the development server by loading all the endpoints and refreshing the routes.
    */
-  await loadAllEndpoints().then(refreshRouter);
+  await Promise.all(endpoints.map(loadEndpoint)).then(refreshRouter);
 
   app.listen(config.port, () => {
     consola.log(`🚀 Express server listening at http://localhost:${config.port}`);
@@ -241,7 +242,9 @@ export async function startRootDevServer(config: Required<AntConfig>) {
 
   watcher.on("change", async (path) => {
     const endpoint = searchForPackageRoot(path);
+
     console.log("endpoint changed: ", endpoint);
+
     await build(endpointBuildConfigs[endpoint]);
     await loadEndpoint(endpoint).then(refreshRouter);
   });
