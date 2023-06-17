@@ -2,17 +2,13 @@ import chalk from "chalk";
 import { consola } from "consola";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
-import { format } from "prettier";
-import { fileURLToPath } from "url";
+import { fileURLToPath as futp } from "url";
 
 import { getConfig } from "../../../config.js";
 
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
+const __dirname = futp(new URL(".", import.meta.url));
 
-const imports = `import { createErrorResult, createOKResult, type InternalHandler, zeroUUID } from "ant-stack"\n\n`;
-
-const handlers = (method: string) =>
-  `export const ${method}: InternalHandler = async (event) => {return createOKResult({}, zeroUUID);};`;
+const methodLines: Record<string, number> = { GET: 2, POST: 5, PUT: 8, DELETE: 11 };
 
 export async function interactiveCreate() {
   const config = await getConfig();
@@ -43,7 +39,7 @@ export async function interactiveCreate() {
       return;
     }
   }
-  const methods = await consola.prompt("What HTTP methods does it use?", {
+  const methods: string[] = await consola.prompt("What HTTP methods does it use?", {
     type: "multiselect",
     options: ["GET", "POST", "PUT", "DELETE"],
   });
@@ -51,17 +47,22 @@ export async function interactiveCreate() {
   mkdirSync(srcDir, { recursive: true });
   writeFileSync(
     join(srcDir, "..", "package.json"),
-    readFileSync(join(__dirname, "package.template.json"), { encoding: "utf-8" }).replace(
-      "$name",
-      `"api-${path.slice(1).replace(/\//g, "-")}"`
-    )
+    readFileSync(join(__dirname, "../src/cli/commands/create/package.template.json"), {
+      encoding: "utf-8",
+    }).replace("$name", `api-${path.slice(1).replace(/\//g, "-")}`)
   );
-  writeFileSync(
-    join(srcDir, "index.ts"),
-    format([imports, ...methods.map((method) => handlers(method))].join(""), {
-      parser: "babel",
-    })
-  );
+  const indexLines: (string | null)[] = readFileSync(
+    join(__dirname, "../src/cli/commands/create/index.template.ts"),
+    { encoding: "utf-8" }
+  ).split("\n");
+  for (const method of Object.keys(methodLines)) {
+    if (!methods.includes(method)) {
+      const i = methodLines[method];
+      indexLines[i] = indexLines[i + 1] = indexLines[i + 2] = null;
+    }
+  }
+  indexLines[indexLines.length - 2] = `export default { ${methods.join(", ")} };`;
+  writeFileSync(join(srcDir, "index.ts"), indexLines.filter((x) => x != null).join("\n"));
   consola.info(
     `Endpoint created! Don't forget to run ${chalk.bold(
       `${config.packageManager} install`
