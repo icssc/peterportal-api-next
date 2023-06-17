@@ -23,7 +23,7 @@ export async function interactiveCreate() {
   const config = await getConfig();
   consola.info(chalk("Creating a new endpoint."));
   let path = "",
-    success = false;
+  let success = false;
   while (!success) {
     path = await consola.prompt("What is the path of the endpoint?", { type: "text" });
     if (!(path.match(/\/[0-9A-Za-z]+/) && !path.endsWith("/"))) {
