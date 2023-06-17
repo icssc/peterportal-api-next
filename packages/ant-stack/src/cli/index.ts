@@ -3,7 +3,7 @@ import { cli, command } from "cleye";
 import { consola } from "consola";
 
 import { buildInternalHandler } from "./commands/build.js";
-import { interactiveCreate } from "./commands/create.js";
+import { interactiveCreate } from "./commands/create";
 import { startDevServer } from "./commands/dev.js";
 
 async function start() {
@@ -47,5 +47,5 @@ async function start() {
 start();
 
 export * from "./commands/build.js";
-export * from "./commands/create.js";
+export * from "./commands/create";
 export * from "./commands/dev.js";
