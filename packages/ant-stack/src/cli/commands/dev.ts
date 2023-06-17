@@ -107,6 +107,10 @@ export async function startLocalDevServer(config: Required<AntConfig>) {
   context(config.esbuild).then((ctx) => ctx.watch());
 }
 
+const isStringArray = (value: Array<unknown>): value is string[] => {
+  return value.every((v) => typeof v === "string");
+};
+
 /**
  * A root dev server serves all API routes from the {@link AntConfig['directory']}
  */
@@ -124,10 +128,20 @@ export async function startRootDevServer(config: Required<AntConfig>) {
    */
   const endpointBuildConfigs = endpoints.reduce((configs, endpoint) => {
     /**
-     * TODO: handle entryPoints as a {@type Record<string, string>}
+     * {@link BuildOptions.entryPoints} can be way too many different things !!
      */
     const entryPoints = Array.isArray(config.esbuild.entryPoints)
-      ? config.esbuild.entryPoints.map((entry) => normalize(`${endpoint}/${entry}`))
+      ? isStringArray(config.esbuild.entryPoints)
+        ? config.esbuild.entryPoints.map((entry) => normalize(`${endpoint}/${entry}`))
+        : config.esbuild.entryPoints.map((entry) => ({
+            in: normalize(`${endpoint}/${entry.in}`),
+            out: normalize(`${endpoint}/${entry.out}`),
+          }))
+      : typeof config.esbuild.entryPoints === "object"
+      ? Object.entries(config.esbuild.entryPoints).map(([key, value]) => ({
+          in: normalize(`${endpoint}/${key}`),
+          out: normalize(`${endpoint}/${value}`),
+        }))
       : [normalize(`${endpoint}/${config.esbuild.entryPoints}`)];
 
     const outdir = normalize(`${endpoint}/${config.esbuild.outdir}`);
@@ -151,6 +165,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
   //---------------------------------------------------------------------------------
   // Express development server.
   //---------------------------------------------------------------------------------
+
   const app = express();
 
   /**
