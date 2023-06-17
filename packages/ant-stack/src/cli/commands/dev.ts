@@ -5,8 +5,9 @@ import { consola } from "consola";
 import { context } from "esbuild";
 import express, { Router } from "express";
 
-import { getConfig } from "../../config.js";
+import { type AntConfig, getConfig } from "../../config.js";
 import { createExpressHandler, type InternalHandler } from "../../lambda-core/internal/handler.js";
+import { searchForWorkspaceRoot } from "../../utils/searchRoot.js";
 
 const MethodsToExpress = {
   DELETE: "delete",
@@ -27,6 +28,23 @@ const isMethod = (method: string): method is keyof typeof MethodsToExpress => {
  */
 export async function startDevServer() {
   const config = await getConfig();
+
+  const cwd = process.cwd();
+
+  const workspaceRoot = searchForWorkspaceRoot(cwd);
+
+  if (cwd === workspaceRoot) {
+    startRootDevServer(config);
+  } else {
+    startLocalDevServer(config);
+  }
+}
+
+/**
+ * A local Express dev server only serves the current endpoint from the root.
+ */
+export async function startLocalDevServer(config: Required<AntConfig>) {
+  consola.info(`Starting local dev server. Only the current endpoint will be served.`);
 
   const file = resolve(process.cwd(), `${config.esbuild.outdir}/index.js`);
 
@@ -83,4 +101,12 @@ export async function startDevServer() {
   });
 
   context(config.esbuild).then((ctx) => ctx.watch());
+}
+
+/**
+ * A root dev server serves all API routes from the {@link AntConfig['directory']}
+ */
+export async function startRootDevServer(config: Required<AntConfig>) {
+  consola.info(`Starting root dev server. All endpoints from ${config.directory} will be served.`);
+  consola.info(`🚀 Routes loaded from ${config.directory}`);
 }
