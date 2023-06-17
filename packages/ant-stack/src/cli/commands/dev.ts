@@ -1,5 +1,5 @@
 import { existsSync, readdirSync } from "node:fs";
-import { normalize, resolve } from "node:path";
+import { normalize, relative, resolve } from "node:path";
 
 import chalk from "chalk";
 import chokidar from "chokidar";
@@ -191,7 +191,9 @@ export async function startRootDevServer(config: Required<AntConfig>) {
     router = Router();
     endpoints.forEach((endpoint) => {
       consola.info(`🚀 Loading ${endpoint} from ${endpointBuildConfigs[endpoint].outdir}`);
-      router.use(`/${endpoint}`, (req, res, next) => endpointMiddleware[endpoint](req, res, next));
+      router.use(`/${relative(config.directory, endpoint)}`, (req, res, next) =>
+        endpointMiddleware[endpoint](req, res, next)
+      );
     });
   };
 
@@ -201,9 +203,19 @@ export async function startRootDevServer(config: Required<AntConfig>) {
   const loadEndpoint = async (endpoint: string) => {
     console.log("setting up router for ", endpoint);
     endpointMiddleware[endpoint] = Router();
-    endpointMiddleware[endpoint].get("/", (req, res) => {
-      res.send("Hello World!");
-    });
+
+    const file = resolve(endpoint, `${config.esbuild.outdir}/index.js`);
+
+    const internalHandlers = await import(`${file}?update=${Date.now()}`);
+
+    Object.keys(internalHandlers)
+      .filter(isMethod)
+      .forEach((key) => {
+        endpointMiddleware[endpoint][MethodsToExpress[key]](
+          "/",
+          createExpressHandler(internalHandlers[key])
+        );
+      });
   };
 
   /**
@@ -232,6 +244,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
   watcher.on("change", async (path) => {
     const endpoint = searchForPackageRoot(path);
     console.log("endpoint changed: ", endpoint);
-    console.log("esbuild config for endpoint: ", endpointBuildConfigs[endpoint]);
+    await build(endpointBuildConfigs[endpoint]);
+    await loadEndpoint(endpoint).then(refreshRouter);
   });
 }
