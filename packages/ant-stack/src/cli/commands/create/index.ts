@@ -8,7 +8,14 @@ import { getConfig } from "../../../config.js";
 
 const __dirname = futp(new URL(".", import.meta.url));
 
-const methodLines: Record<string, number> = { GET: 2, POST: 5, PUT: 8, DELETE: 11 };
+const imports =
+  'import { createErrorResult, createOKResult, type InternalHandler, zeroUUID } from "ant-stack";\n';
+
+const createHandlerTemplate = (httpMethod: string) => `\
+const ${httpMethod}: InternalHandler = async (event) => {
+  return createOKResult({}, zeroUUID);
+};
+`;
 
 export async function interactiveCreate() {
   const config = await getConfig();
@@ -51,18 +58,14 @@ export async function interactiveCreate() {
       encoding: "utf-8",
     }).replace("$name", `api-${path.slice(1).replace(/\//g, "-")}`)
   );
-  const indexLines: (string | null)[] = readFileSync(
-    join(__dirname, "../src/cli/commands/create/index.template.ts"),
-    { encoding: "utf-8" }
-  ).split("\n");
-  for (const method of Object.keys(methodLines)) {
-    if (!methods.includes(method)) {
-      const i = methodLines[method];
-      indexLines[i] = indexLines[i + 1] = indexLines[i + 2] = null;
-    }
-  }
-  indexLines[indexLines.length - 2] = `export default { ${methods.join(", ")} };`;
-  writeFileSync(join(srcDir, "index.ts"), indexLines.filter((x) => x != null).join("\n"));
+  writeFileSync(
+    join(srcDir, "index.ts"),
+    [
+      imports,
+      ...methods.map(createHandlerTemplate),
+      `export default { ${methods.join(", ")} };\n`,
+    ].join("\n")
+  );
   consola.info(
     `Endpoint created! Don't forget to run ${chalk.bold(
       `${config.packageManager} install`
