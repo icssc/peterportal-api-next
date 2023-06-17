@@ -45,6 +45,7 @@ export async function startDevServer() {
 
 /**
  * A local Express dev server only serves the current endpoint from the root route.
+ * Useful for quickly testing endpoints individually.
  * TODO: can probably merge this logic with {@link startRootDevServer}
  */
 export async function startLocalDevServer(config: Required<AntConfig>) {
@@ -120,7 +121,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
   const endpoints = findAllProjects(config.directory);
 
   //---------------------------------------------------------------------------------
-  // Build step.
+  // Build.
   //---------------------------------------------------------------------------------
 
   /**
@@ -232,12 +233,15 @@ export async function startRootDevServer(config: Required<AntConfig>) {
   });
 
   //---------------------------------------------------------------------------------
-  // File watcher ...
+  // Watch file changes.
   //---------------------------------------------------------------------------------
 
   const watcher = chokidar.watch(endpoints, {
-    // ignore dist directory and node_modules
-    ignored: /(^|[/\\])(dist|node_modules|\.git)/,
+    ignored: [
+      /(^|[/\\])\../, // dotfiles
+      /node_modules/, // node_modules
+      `**/${config.esbuild.outdir ?? "dist"}/**`, // build output directory
+    ],
   });
 
   watcher.on("change", async (path) => {
