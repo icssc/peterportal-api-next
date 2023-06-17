@@ -201,7 +201,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
    * Load a specific endpoint's middleware.
    */
   const loadEndpoint = async (endpoint: string) => {
-    console.log("setting up router for ", endpoint);
+    consola.info(`🚀 Setting up router for ${endpoint}`);
 
     endpointMiddleware[endpoint] = Router();
 
@@ -229,7 +229,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
   await Promise.all(endpoints.map(loadEndpoint)).then(refreshRouter);
 
   app.listen(config.port, () => {
-    consola.log(`🚀 Express server listening at http://localhost:${config.port}`);
+    consola.info(`🚀 Express server listening at http://localhost:${config.port}`);
   });
 
   //---------------------------------------------------------------------------------
