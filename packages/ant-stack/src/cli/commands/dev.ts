@@ -1,15 +1,16 @@
 import { existsSync, readdirSync } from "node:fs";
-import { resolve } from "node:path";
+import { normalize, resolve } from "node:path";
 
 import chalk from "chalk";
 import chokidar from "chokidar";
 import { consola } from "consola";
-import { context } from "esbuild";
+import { build, type BuildOptions, context } from "esbuild";
 import express, { Router } from "express";
 
 import { type AntConfig, getConfig } from "../../config.js";
 import { createExpressHandler, type InternalHandler } from "../../lambda-core/internal/handler.js";
 import { searchForWorkspaceRoot } from "../../utils/searchRoot.js";
+import { searchForPackageRoot } from "../../utils/searchRoot.js";
 
 const MethodsToExpress = {
   DELETE: "delete",
@@ -111,11 +112,6 @@ export async function startLocalDevServer(config: Required<AntConfig>) {
 export async function startRootDevServer(config: Required<AntConfig>) {
   consola.info(`Starting root dev server. All endpoints from ${config.directory} will be served.`);
 
-  /**
-   * 1) Find all endpoints.
-   */
-  config.directory;
-
   const getApiRoutes = (route = "", apiDir = ".", current: string[] = []): string[] => {
     if (existsSync(`${apiDir}/${route}/package.json`)) {
       current.push(`${apiDir}/${route}`);
@@ -133,12 +129,58 @@ export async function startRootDevServer(config: Required<AntConfig>) {
     getApiRoutes(dir, config.directory)
   );
 
+  /**
+   * Cache the build configs for each endpoint.
+   */
+  const endpointBuildConfigs: Record<string, BuildOptions> = {};
+
+  endpoints.forEach((endpoint) => {
+    consola.log("building for current endpoint: ", endpoint);
+
+    /**
+     * TODO: handle entryPoints as a {@type Record<string, string>}
+     */
+    const entryPoints = Array.isArray(config.esbuild.entryPoints)
+      ? config.esbuild.entryPoints.map((entry) => normalize(`${endpoint}/${entry}`))
+      : [normalize(`${endpoint}/${config.esbuild.entryPoints}`)];
+
+    const outdir = normalize(`${endpoint}/${config.esbuild.outdir}`);
+
+    endpointBuildConfigs[endpoint] = {
+      ...config.esbuild,
+      entryPoints,
+      outdir,
+      plugins: [
+        ...(config.esbuild.plugins ?? []),
+        {
+          name: "logger",
+          setup(build) {
+            build.onStart(() =>
+              consola.log(chalk.bgBlack.magenta(`Building temporary files to ${outdir}`))
+            );
+
+            build.onEnd(() => {
+              consola.log(chalk.bgBlack.magenta(`Built temporary files to ${outdir}`));
+            });
+          },
+        },
+      ],
+    };
+
+    build(endpointBuildConfigs[endpoint]);
+  });
+
   consola.log("commence watching the following endpoints", endpoints);
 
-  const watcher = chokidar.watch(endpoints);
+  const watcher = chokidar.watch(endpoints, {
+    // ignore dist directory and node_modules
+    ignored: /(^|[/\\])(dist|node_modules|\.git)/,
+  });
 
   watcher.on("change", (path) => {
-    console.log({ path });
+    const endpoint = searchForPackageRoot(path);
+    console.log("endpoint changed: ", endpoint);
+    console.log("esbuild config for endpoint: ", endpointBuildConfigs[endpoint]);
   });
 
   consola.info(`🚀 Routes loaded from ${config.directory}`);
