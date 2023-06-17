@@ -229,7 +229,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
   await Promise.all(endpoints.map(loadEndpoint)).then(refreshRouter);
 
   app.listen(config.port, () => {
-    consola.log(`🚀 Express server listening at http://localhost:${config.port}`);
+    consola.info(`🚀 Express server listening at http://localhost:${config.port}`);
   });
 
   //---------------------------------------------------------------------------------
