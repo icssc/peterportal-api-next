@@ -476,6 +476,22 @@ importers:
         specifier: ^4.9.4
         version: 4.9.5
 
+  apps/api/v1/rest/klein:
+    dependencies:
+      ant-stack:
+        specifier: '*'
+        version: link:../../../../../packages/ant-stack
+    devDependencies:
+      '@types/node':
+        specifier: '18'
+        version: 18.14.0
+      tsx:
+        specifier: '*'
+        version: 3.12.7
+      typescript:
+        specifier: ~5.0
+        version: 5.0.4
+
   apps/api/v1/rest/test:
     dependencies:
       ant-stack:
