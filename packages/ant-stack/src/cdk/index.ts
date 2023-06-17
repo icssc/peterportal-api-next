@@ -1,9 +1,9 @@
-import { existsSync, readdirSync } from "node:fs";
 import { relative } from "node:path";
 
 import * as cdk from "aws-cdk-lib";
 
 import { getConfig } from "../config.js";
+import { findAllProjects } from "../utils/searchProjects.js";
 import { type HandlerConfig, PeterPortalAPI_SST_Stack } from "./stack.js";
 
 function getStage(NODE_ENV = "development") {
@@ -26,18 +26,6 @@ function getStage(NODE_ENV = "development") {
   }
 }
 
-const getApiRoutes = (route = "", apiDir = ".", current: string[] = []): string[] => {
-  if (existsSync(`${apiDir}/${route}/package.json`)) {
-    current.push(`${apiDir}/${route}`);
-    return current;
-  }
-  const subRoutes = readdirSync(`${apiDir}/${route}`, { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory())
-    .map((dirent) => dirent.name);
-
-  return subRoutes.flatMap((subRoute) => getApiRoutes(`${route}/${subRoute}`, apiDir, current));
-};
-
 async function start() {
   const config = await getConfig();
 
@@ -52,14 +40,12 @@ async function start() {
   /**
    * Configs for all __unique__ Lambda routes.
    */
-  const handlerConfigs: HandlerConfig[] = readdirSync(config.directory)
-    .flatMap((route) =>
-      getApiRoutes(route, config.directory).map((apiRoute) => ({
-        route: relative(config.directory, apiRoute),
-        directory: apiRoute,
-        env: config.env,
-      }))
-    )
+  const handlerConfigs: HandlerConfig[] = findAllProjects(config.directory)
+    .map((apiRoute) => ({
+      route: relative(config.directory, apiRoute),
+      directory: apiRoute,
+      env: config.env,
+    }))
     .filter(
       (config, index, configs) => configs.findIndex((c) => c.route === config.route) === index
     );

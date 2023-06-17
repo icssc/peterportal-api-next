@@ -37,7 +37,7 @@ const ROOT_FILES = [
 
 // npm: https://docs.npmjs.com/cli/v7/using-npm/workspaces#installing-workspaces
 // yarn: https://classic.yarnpkg.com/en/docs/workspaces/#toc-how-to-use-it
-function hasWorkspacePackageJSON(root: string): boolean {
+export function hasWorkspacePackageJSON(root: string): boolean {
   const path = join(root, "package.json");
   if (!isFileReadable(path)) {
     return false;
@@ -46,11 +46,11 @@ function hasWorkspacePackageJSON(root: string): boolean {
   return !!content.workspaces;
 }
 
-function hasRootFile(root: string): boolean {
+export function hasRootFile(root: string): boolean {
   return ROOT_FILES.some((file) => fs.existsSync(join(root, file)));
 }
 
-function hasPackageJSON(root: string) {
+export function hasPackageJSON(root: string) {
   const path = join(root, "package.json");
   return fs.existsSync(path);
 }

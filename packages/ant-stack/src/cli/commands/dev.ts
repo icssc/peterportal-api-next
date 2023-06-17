@@ -1,4 +1,3 @@
-import { existsSync, readdirSync } from "node:fs";
 import { normalize, relative, resolve } from "node:path";
 
 import chalk from "chalk";
@@ -9,8 +8,9 @@ import express, { Router } from "express";
 
 import { type AntConfig, getConfig } from "../../config.js";
 import { createExpressHandler, type InternalHandler } from "../../lambda-core/internal/handler.js";
-import { searchForWorkspaceRoot } from "../../utils/searchRoot.js";
+import { findAllProjects } from "../../utils/searchProjects.js";
 import { searchForPackageRoot } from "../../utils/searchRoot.js";
+import { searchForWorkspaceRoot } from "../../utils/searchRoot.js";
 
 const MethodsToExpress = {
   DELETE: "delete",
@@ -27,7 +27,7 @@ const isMethod = (method: string): method is keyof typeof MethodsToExpress => {
 };
 
 /**
- * lol.
+ * Start a dev server.
  */
 export async function startDevServer() {
   const config = await getConfig();
@@ -44,7 +44,8 @@ export async function startDevServer() {
 }
 
 /**
- * A local Express dev server only serves the current endpoint from the root.
+ * A local Express dev server only serves the current endpoint from the root route.
+ * TODO: can probably merge this logic with {@link startRootDevServer}
  */
 export async function startLocalDevServer(config: Required<AntConfig>) {
   consola.info(`Starting local dev server. Only the current endpoint will be served.`);
@@ -107,30 +108,12 @@ export async function startLocalDevServer(config: Required<AntConfig>) {
 }
 
 /**
- * TODO: move to utils.
- */
-const getApiRoutes = (route = "", apiDir = ".", current: string[] = []): string[] => {
-  if (existsSync(`${apiDir}/${route}/package.json`)) {
-    current.push(`${apiDir}/${route}`);
-    return current;
-  }
-
-  const subRoutes = readdirSync(`${apiDir}/${route}`, { withFileTypes: true })
-    .filter((dirent) => dirent.isDirectory())
-    .map((dirent) => dirent.name);
-
-  return subRoutes.flatMap((subRoute) => getApiRoutes(`${route}/${subRoute}`, apiDir, current));
-};
-
-/**
  * A root dev server serves all API routes from the {@link AntConfig['directory']}
  */
 export async function startRootDevServer(config: Required<AntConfig>) {
   consola.info(`Starting root dev server. All endpoints from ${config.directory} will be served.`);
 
-  const endpoints = readdirSync(config.directory).flatMap((dir) =>
-    getApiRoutes(dir, config.directory)
-  );
+  const endpoints = findAllProjects(config.directory);
 
   //---------------------------------------------------------------------------------
   // Build step.
