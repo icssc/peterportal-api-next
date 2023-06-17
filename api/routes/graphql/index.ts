@@ -29,26 +29,35 @@ const graphqlServer = new ApolloServer({
   typeDefs: mergeTypeDefs(loadFilesSync(join(cwd, "schema/*.graphql"))),
 });
 
-export const expressHandlerFactory = () => {
+/**
+ * "The inferred type of ... cannot be named without a reference ..."
+ * @see https://github.com/microsoft/TypeScript/issues/42873
+ */
+export const expressHandlerFactory = (): ReturnType<typeof expressMiddleware> => {
   graphqlServer.start().catch(() => []);
   return expressMiddleware(graphqlServer);
 };
 
-export const lambdaHandler = startServerAndCreateLambdaHandler(
-  graphqlServer,
-  handlers.createAPIGatewayProxyEventRequestHandler(),
-  {
-    middleware: [
-      async () => {
-        return async (res) => {
-          res.headers = {
-            ...res.headers,
-            "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+/**
+ * "The inferred type of ... cannot be named without a reference ..."
+ * @see https://github.com/microsoft/TypeScript/issues/42873
+ */
+export const lambdaHandler: ReturnType<typeof startServerAndCreateLambdaHandler> =
+  startServerAndCreateLambdaHandler(
+    graphqlServer,
+    handlers.createAPIGatewayProxyEventRequestHandler(),
+    {
+      middleware: [
+        async () => {
+          return async (res) => {
+            res.headers = {
+              ...res.headers,
+              "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
+              "Access-Control-Allow-Origin": "*",
+              "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+            };
           };
-        };
-      },
-    ],
-  }
-);
+        },
+      ],
+    }
+  );

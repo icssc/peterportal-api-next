@@ -1,7 +1,8 @@
 {
-  "extends": "@tsconfig/docusaurus/tsconfig.json",
+  "extends": ["@tsconfig/docusaurus/tsconfig.json"],
   "compilerOptions": {
-    "baseUrl": "."
+    "baseUrl": ".",
+    "skipLibCheck": true
   },
   "exclude": ["cdk/"]
 }

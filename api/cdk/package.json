@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "cdk synth --all",
     "deploy": "cdk deploy --all --require-approval never",
     "destroy": "cdk destroy --all --force"
   },
@@ -13,12 +14,13 @@
     "api-route-grades": "*",
     "api-route-graphql": "*",
     "api-route-larc": "*",
-    "api-route-websoc": "*"
+    "api-route-websoc": "*",
+    "dotenv": "^16.1.0"
   },
   "devDependencies": {
     "@types/babel__traverse": "^7.18.3",
     "@types/node": "^18.11.10",
-    "aws-cdk": "^2.61.1",
+    "aws-cdk": "^2.81.0",
     "aws-cdk-lib": "^2.53.0",
     "constructs": "^10.1.176",
     "peterportal-api-next-types": "*",

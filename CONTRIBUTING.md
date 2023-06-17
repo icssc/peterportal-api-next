@@ -12,7 +12,11 @@ After installing `nvm` per the instructions in its repository, execute the follo
 $ nvm install lts/gallium
 ```
 
-This will install the correct version of Node.js (if it hasn't already been installed) and set it as the active version. Now we're ready to roll!
+This will install the correct version of Node.js (if it hasn't already been installed) and set it as the active version.
+
+You'll also need `pnpm`, which is a fast and space-efficient alternative to `npm`. Its
+installation instructions can be found [here](https://pnpm.io/installation). Once you have
+`pnpm` installed, you'll be ready to roll!
 
 ## Getting Started
 
@@ -21,7 +25,7 @@ Start off by creating a fork of the repository. If you are a member of the ICSSC
 ```shell
 $ cd peterportal-api-next
 $ nvm use
-$ npm i
+$ pnpm i
 ```
 
 These commands will install the dependencies and perform any necessary setup tasks for you to start developing.
@@ -33,7 +37,7 @@ Once you've made some changes to the code using your favorite text editor or IDE
 To use Commitizen, simply run the following command after staging your changes using `git add`:
 
 ```shell
-$ npm run commit
+$ pnpm commit
 ```
 
 Note that due to limitations of the Commitizen tool, you must run this command in the root of the repository.
