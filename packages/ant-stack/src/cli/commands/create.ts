@@ -28,7 +28,9 @@ export async function interactiveCreate() {
     path = await consola.prompt("What is the path of the endpoint?", { type: "text" });
     if (!(path.match(/\/[0-9A-Za-z]+/) && !path.endsWith("/"))) {
       consola.error(
-        "Malformed path provided. A well-formed path must consist entirely of path parts (one slash followed by at least one alphanumeric character), and must not end with a slash (e.g. /v1/rest/test)."
+        chalk.red(
+          "Malformed path provided. A well-formed path must consist entirely of path parts (one slash followed by at least one alphanumeric character), and must not end with a slash (e.g. /v1/rest/test)."
+        )
       );
       continue;
     }
@@ -42,7 +44,7 @@ export async function interactiveCreate() {
       { type: "confirm" }
     );
     if (!create) {
-      consola.error("Aborting.");
+      consola.error(chalk.red("Aborting."));
       return;
     }
   }
