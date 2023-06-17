@@ -1,6 +1,5 @@
 import fetch from 'cross-fetch';
 import cheerio from 'cheerio';
-import pLimit from 'p-limit';
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import winston from "winston";
@@ -8,13 +7,20 @@ import { Prerequisite, PrerequisiteTree } from 'peterportal-api-next-types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-export type CourseTree = {
+const PREREQ_URL = "https://www.reg.uci.edu/cob/prrqcgi"
+
+type DepartmentCourses = Array<{
+  dept: string;
+  courses: CourseList;
+}>
+
+type CourseTree = {
   courseId: string;
   courseTitle: string;
   prereqTree: PrerequisiteTree;
 }
 
-export type CourseList = Array<CourseTree>;
+type CourseList = Array<CourseTree>
 
 /**
  * Logger object to log info, errors, and warnings
@@ -34,10 +40,46 @@ const logger = winston.createLogger({
   ],
 });
 
-export async function parsePage(url: string): Promise<CourseList> {
+/**
+ * Scrape all course prerequisite data from the Registrar's website.
+ */
+export async function scrapeAllPrereqs(): Promise<DepartmentCourses> {
+  logger.info("Scraping all course prerequisite data");
+  const deptCourses: DepartmentCourses = [];
+  try {
+    const response = await (await fetch(PREREQ_URL)).text();
+    const $ = cheerio.load(response);
+    // Get all department options
+    const deptOptions = $("select[name='dept'] option");
+    for (const deptOption of deptOptions) {
+      const dept = $(deptOption).text().trim();
+      const url = new URL(PREREQ_URL);
+      const params = new URLSearchParams({
+        dept: dept,
+        action: "view_all"
+      });
+      url.search = params.toString();
+      const courses = await parsePage(url.href);
+      if (courses.length > 0) {
+        deptCourses.push({
+          dept: dept,
+          courses: courses
+        });
+      }
+    }
+  }
+  catch (error) {
+    logger.error("Failed to scrape prerequisite data", {error: error});
+  }
+  logger.info("Finished scraping all course prerequisite data", {data: deptCourses});
+  return deptCourses;
+}
+
+/**
+ * Parse course prerequisites from course page.
+ */
+async function parsePage(url: string): Promise<CourseList> {
   logger.info(`Parsing ${url}`);
-  const response = await fetch(url);
-  const data = await response.text();
   const courseList: CourseList = [];
   const fieldLabels = {
     Course: 0,
@@ -45,7 +87,8 @@ export async function parsePage(url: string): Promise<CourseList> {
     Prerequisite: 2
   }
   try {
-    const $ = cheerio.load(data);
+    const response = await (await fetch(url)).text();
+    const $ = cheerio.load(response);
     $("table tbody tr").each(function (this: cheerio.Element) {
       const entry = $(this).find("td");
       // Check if row entry is valid
@@ -149,7 +192,7 @@ function parseRequisite(requisite: string): Prerequisite | null {
     return createPrereq("course", courseCoreqMatch[1].trim(), undefined, true);
   }
   // Match courses (AP exams included) without minimum grade
-  const courseMatch = requisite.match(/^AP.*|^[A-Z0-9&\s]+\d\S*$/);
+  const courseMatch = requisite.match(/^AP.*|^[A-Z0-9&\/\s]+\d\S*$/);
   if (courseMatch) {
     if (requisite.startsWith("AP")) {
       return createPrereq("exam", requisite);
@@ -167,15 +210,9 @@ function parseAntiRequisite(requisite: string): Prerequisite | null {
     return createPrereq("exam", antiAPreqMatch[1].trim(), antiAPreqMatch[2].trim());
   }
   // Match antirequisites - courses with format "NO {course_ID}"
-  const antiCourseMatch = requisite.match(/^NO\s([A-Z0-9&\s]+\d\S*)$/);
+  const antiCourseMatch = requisite.match(/^NO\s([A-Z0-9&\/\s]+\d\S*)$/);
   if (antiCourseMatch) {
     return createPrereq("course", antiCourseMatch[1].trim());
   }
   return null;
 }
-
-
-const url = "https://www.reg.uci.edu/cob/prrqcgi?dept=I%26C+SCI&term=202392&action=view_all";
-
-parsePage(url).then(courses => {
-});

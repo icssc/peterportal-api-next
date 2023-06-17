@@ -7,18 +7,13 @@
   "type": "module",
   "main": "index.ts",
   "types": "index.ts",
-  "scripts": {
-  },
+  "scripts": {},
   "dependencies": {
     "@types/cheerio": "^0.22.31",
-    "@types/he": "^1.2.0",
     "cheerio": "^1.0.0-rc.12",
-    "he": "^1.2.0",
-    "p-limit": "^4.0.0",
     "winston": "^3.8.2"
   },
   "devDependencies": {
-    "@types/jest": "^29.4.0",
     "nodemon": "^2.0.20",
     "ts-node": "^10.9.1"
   }
