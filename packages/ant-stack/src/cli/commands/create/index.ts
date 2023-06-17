@@ -4,7 +4,7 @@ import { existsSync, mkdirSync, writeFileSync } from "fs";
 import { join } from "path";
 import { format } from "prettier";
 
-import { getConfig } from "../../config.js";
+import { getConfig } from "../../../config.js";
 
 const packageJson = (name: string) =>
   `{"name": "api-${name
