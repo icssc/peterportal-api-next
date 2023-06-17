@@ -1,18 +1,13 @@
 import chalk from "chalk";
 import { consola } from "consola";
-import { existsSync, mkdirSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { format } from "prettier";
+import { fileURLToPath } from "url";
 
 import { getConfig } from "../../../config.js";
 
-const packageJson = (name: string) =>
-  `{"name": "api-${name
-    .slice(1)
-    .replace(
-      /\//g,
-      "-"
-    )}","version": "0.0.0","type": "module","scripts":{"dev": "ant dev","build": "ant build","start": "node dist"},"dependencies": {"ant-stack": "*"},"devDependencies":{"@types/node": "18","tsx": "*","typescript": "~5.0"}}`;
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
 
 const imports = `import { createErrorResult, createOKResult, type InternalHandler, zeroUUID } from "ant-stack"\n\n`;
 
@@ -54,7 +49,13 @@ export async function interactiveCreate() {
   });
   consola.info(`Creating an endpoint at ${path} that supports ${methods.join(", ")}`);
   mkdirSync(srcDir, { recursive: true });
-  writeFileSync(join(srcDir, "..", "package.json"), format(packageJson(path), { parser: "json" }));
+  writeFileSync(
+    join(srcDir, "..", "package.json"),
+    readFileSync(join(__dirname, "package.template.json"), { encoding: "utf-8" }).replace(
+      "$name",
+      `"api-${path.slice(1).replace(/\//g, "-")}"`
+    )
+  );
   writeFileSync(
     join(srcDir, "index.ts"),
     format([imports, ...methods.map((method) => handlers(method))].join(""), {
