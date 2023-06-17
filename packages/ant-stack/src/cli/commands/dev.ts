@@ -1,6 +1,8 @@
+import { existsSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 
 import chalk from "chalk";
+import chokidar from "chokidar";
 import { consola } from "consola";
 import { context } from "esbuild";
 import express, { Router } from "express";
@@ -108,5 +110,36 @@ export async function startLocalDevServer(config: Required<AntConfig>) {
  */
 export async function startRootDevServer(config: Required<AntConfig>) {
   consola.info(`Starting root dev server. All endpoints from ${config.directory} will be served.`);
+
+  /**
+   * 1) Find all endpoints.
+   */
+  config.directory;
+
+  const getApiRoutes = (route = "", apiDir = ".", current: string[] = []): string[] => {
+    if (existsSync(`${apiDir}/${route}/package.json`)) {
+      current.push(`${apiDir}/${route}`);
+      return current;
+    }
+
+    const subRoutes = readdirSync(`${apiDir}/${route}`, { withFileTypes: true })
+      .filter((dirent) => dirent.isDirectory())
+      .map((dirent) => dirent.name);
+
+    return subRoutes.flatMap((subRoute) => getApiRoutes(`${route}/${subRoute}`, apiDir, current));
+  };
+
+  const endpoints = readdirSync(config.directory).flatMap((dir) =>
+    getApiRoutes(dir, config.directory)
+  );
+
+  consola.log("commence watching the following endpoints", endpoints);
+
+  const watcher = chokidar.watch(endpoints);
+
+  watcher.on("change", (path) => {
+    console.log({ path });
+  });
+
   consola.info(`🚀 Routes loaded from ${config.directory}`);
 }

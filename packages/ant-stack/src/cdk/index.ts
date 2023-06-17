@@ -31,7 +31,10 @@ const getApiRoutes = (route = "", apiDir = ".", current: string[] = []): string[
     current.push(`${apiDir}/${route}`);
     return current;
   }
-  const subRoutes = readdirSync(`${apiDir}/${route}`);
+  const subRoutes = readdirSync(`${apiDir}/${route}`, { withFileTypes: true })
+    .filter((dirent) => dirent.isDirectory())
+    .map((dirent) => dirent.name);
+
   return subRoutes.flatMap((subRoute) => getApiRoutes(`${route}/${subRoute}`, apiDir, current));
 };
 
