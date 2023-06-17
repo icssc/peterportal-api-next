@@ -17,7 +17,7 @@ const handlers = (method: string) =>
 export async function interactiveCreate() {
   const config = await getConfig();
   consola.info(chalk("Creating a new endpoint."));
-  let path = "",
+  let path = "";
   let success = false;
   while (!success) {
     path = await consola.prompt("What is the path of the endpoint?", { type: "text" });
