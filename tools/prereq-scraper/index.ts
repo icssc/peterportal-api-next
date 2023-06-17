@@ -4,7 +4,7 @@ import pLimit from 'p-limit';
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import winston from "winston";
-import { PrereqCourse, PrerequisiteTree } from 'peterportal-api-next-types';
+import { Prerequisite, PrerequisiteTree } from 'peterportal-api-next-types';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -16,7 +16,26 @@ export type CourseTree = {
 
 export type CourseList = Array<CourseTree>;
 
-async function parsePage(url: string): Promise<String> {
+/**
+ * Logger object to log info, errors, and warnings
+ */
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json(),
+    winston.format.prettyPrint()
+  ),
+  transports: [
+    new winston.transports.Console(),
+    new winston.transports.File({
+      filename: `${__dirname}/logs/${Date.now()}.log`,
+    }),
+  ],
+});
+
+export async function parsePage(url: string): Promise<CourseList> {
+  logger.info(`Parsing ${url}`);
   const response = await fetch(url);
   const data = await response.text();
   const courseList: CourseList = [];
@@ -37,49 +56,60 @@ async function parsePage(url: string): Promise<String> {
          // Check if entries have values
         if (!courseId || !courseTitle || !prereqList) return;
         // Some courses are formatted "{old_course} * {current_course} since {date}"
-        const matches = courseId.match(/\* ([A-Z&]+ [A-Z]+ \d+[A-Z]?) since/);
+        const matches = courseId.match(/\* ([&A-Z\d ]+) since/);
         if (matches) {
-          courseId = matches[1];
+          courseId = matches[1].trim();
         }
-        courseList.push({
-          courseId: courseId,
-          courseTitle: courseTitle,
-          prereqTree: buildTree(prereqList)
-        });
+        const prereqTree = buildTree(prereqList);
+        if (Object.keys(prereqTree).length > 0) {
+          courseList.push({
+            courseId: courseId,
+            courseTitle: courseTitle,
+            prereqTree: prereqTree
+          });
+        }
       }
       return true;
     });
   } catch (error) {
-    console.log(error);
+    logger.error(`Failed to parse ${url}`, {error: error});
   }
-  console.log(courseList);
-
-  return '1';
+  return courseList;
 }
-// ^AP.*|^[A-Z&\s]+(\d\S*)$
-
 
 function buildTree(prereqList: string): PrerequisiteTree {
-  const prereqTree: PrerequisiteTree = {AND: [], OR: [], NOT: []};
+  const prereqTree: PrerequisiteTree = {AND: [], NOT: []};
   const prereqs = prereqList.split(/AND/);
-  //console.log(prereqs);
   for (let prereq of prereqs) {
     prereq = prereq.trim();
     if (prereq[0] === "(") {  // Logical OR
-      prereq.slice(1, -1).trim()
+      const oreqs = prereq.slice(1, -1).trim().split(/OR/);
+      const oreqTree: PrerequisiteTree = {OR: []};
+      for (let oreq of oreqs) {
+        buildORLeaf(oreqTree, oreq.trim());
+      }
+      oreqTree.OR?.length === 0?delete oreqTree.OR:null;
+      oreqTree.OR?prereqTree.AND?.push(oreqTree):null;
     } else {  // Logical AND
-      console.log(prereq)
-      buildLeaf(prereqTree, prereq);
+      buildANDLeaf(prereqTree, prereq);
     }
   }
-  prereqTree.OR?.length === 0?delete prereqTree.OR:null;
   prereqTree.AND?.length === 0?delete prereqTree.AND:null;
   prereqTree.NOT?.length === 0?delete prereqTree.NOT:null;
   return prereqTree;
 }
 
-function buildLeaf(prereqTree: PrerequisiteTree, prereq: string) {
-  console.log(prereq)
+function buildORLeaf(prereqTree: PrerequisiteTree, prereq: string) {
+  var req: Prerequisite | null;
+  if (prereq.startsWith("NO")) {
+    req = parseAntiRequisite(prereq);
+  } else {
+    req = parseRequisite(prereq);
+  }
+  req?prereqTree.OR?.push(req):null;
+}
+
+function buildANDLeaf(prereqTree: PrerequisiteTree, prereq: string) {
   if (prereq.startsWith("NO")) {
     const req = parseAntiRequisite(prereq);
     req?prereqTree.NOT?.push(req):null;
@@ -89,58 +119,63 @@ function buildLeaf(prereqTree: PrerequisiteTree, prereq: string) {
   }
 }
 
-function parseRequisite(requisite: string): PrereqCourse |null {
-  const prereq: PrereqCourse = {courseId: ""};
+function createPrereq(type: string, req: string, grade?: string, coreq?: boolean): Prerequisite {
+  const prereq: Prerequisite = {type: ""};
+  prereq.type = type;
+  if (type === "course") {
+    prereq.courseId = req;
+  }
+  else {
+    prereq.examName = req;
+  }
+  grade?prereq.minGrade = grade:null;
+  coreq?prereq.coreq = coreq:null;
+  return prereq;
+}
+
+function parseRequisite(requisite: string): Prerequisite | null {
   // Match requisites with format "{course_ID} ( min {grade_type} = {grade} )"
-  const courseWithGradeMatch = requisite.match(/^([^()]+)\s+\( min [^\s]+ = ([^\s]{0,2}) \)$/);
-  if (courseWithGradeMatch) {
-    return {
-      courseId: courseWithGradeMatch[1].trim(),
-      minGrade: courseWithGradeMatch[2].trim()
+  const reqWithGradeMatch = requisite.match(/^([^()]+)\s+\( min ([^\s]+) = ([^\s]{1,2}) \)$/);
+  if (reqWithGradeMatch) {
+    if (reqWithGradeMatch[2].trim()==="grade") {
+      return createPrereq("course", reqWithGradeMatch[1].trim(), reqWithGradeMatch[3].trim());
+    } else {
+      return createPrereq("exam", reqWithGradeMatch[1].trim(), reqWithGradeMatch[3].trim());
     }
   }
   // Match courses that are coreq with format "{course_ID} ( coreq )"
   const courseCoreqMatch = requisite.match(/^([^()]+)\s+\( coreq \)$/);
   if (courseCoreqMatch) {
-    return {
-      courseId: courseCoreqMatch[1].trim(),
-      coreq: true
-    }
+    return createPrereq("course", courseCoreqMatch[1].trim(), undefined, true);
   }
   // Match courses (AP exams included) without minimum grade
-  const courseMatch = requisite.match(/^AP.*|^[A-Z0-9&\s]+(\d\S*)$/);
+  const courseMatch = requisite.match(/^AP.*|^[A-Z0-9&\s]+\d\S*$/);
   if (courseMatch) {
-    return {
-      courseId: courseMatch[1].trim()
+    if (requisite.startsWith("AP")) {
+      return createPrereq("exam", requisite);
+    } else {
+      return createPrereq("course", requisite);
     }
   }
   return null;
 }
   
-function parseAntiRequisite(requisite: string): PrereqCourse | null {
+function parseAntiRequisite(requisite: string): Prerequisite | null {
   // Match antirequisties - AP exams with format "NO AP {exam_name} score of {grade} or greater"
-  const antiAPreqMatch = requisite.match(/^NO\s(AP\s.+?)\sscore\sof\s(\d+)\sor\sgreater$/);
+  const antiAPreqMatch = requisite.match(/^NO\s(AP\s.+?)\sscore\sof\s(\d)\sor\sgreater$/);
   if (antiAPreqMatch) {
-    return {
-      courseId: antiAPreqMatch[1].trim(),
-      minGrade: antiAPreqMatch[2].trim()
-    }
+    return createPrereq("exam", antiAPreqMatch[1].trim(), antiAPreqMatch[2].trim());
   }
   // Match antirequisites - courses with format "NO {course_ID}"
-  const antiCourseMatch = requisite.match(/^NO\s[A-Z0-9&\s]+(\d\S*)$/);
+  const antiCourseMatch = requisite.match(/^NO\s([A-Z0-9&\s]+\d\S*)$/);
   if (antiCourseMatch) {
-    return {
-      courseId: antiCourseMatch[1].trim(),
-    }
+    return createPrereq("course", antiCourseMatch[1].trim());
   }
   return null;
 }
 
 
-const url = "https://www.reg.uci.edu/cob/prrqcgi?dept=MATH&term=202392&action=view_all";
+const url = "https://www.reg.uci.edu/cob/prrqcgi?dept=I%26C+SCI&term=202392&action=view_all";
 
 parsePage(url).then(courses => {
-  console.log(courses);
 });
-
-//parseRequisite("AP COMP SCI A ( min score = 3 )");
