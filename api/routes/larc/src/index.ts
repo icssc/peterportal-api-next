@@ -1,4 +1,4 @@
-import { createOKResult, RawHandler } from "api/core";
+import { createOKResult, RawHandler } from "api-core";
 import { createLambdaHandler } from "api-core";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import * as cheerio from "cheerio";

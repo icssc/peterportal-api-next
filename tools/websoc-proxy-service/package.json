@@ -9,13 +9,14 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "@libs/websoc-api-next": "*",
-    "api-core": "*"
+    "@libs/websoc-api-next": "workspace:*",
+    "api-core": "workspace:*",
+    "api-route-websoc": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^18.11.10",
     "esbuild": "^0.17.8",
-    "peterportal-api-next-types": "*",
+    "peterportal-api-next-types": "workspace:*",
     "typescript": "^4.9.4"
   }
 }

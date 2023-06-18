@@ -4,7 +4,7 @@
       "cache": false
     },
     "build": {
-      "dependsOn": ["^generate"],
+      "dependsOn": ["^build", "^generate"],
       "outputs": ["dist/**"]
     },
     "deploy": {

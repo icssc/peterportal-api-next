@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.338.0",
-    "@libs/db": "*",
-    "api-core": "*",
+    "@libs/db": "workspace:*",
+    "api-core": "workspace:*",
     "zod": "^3.21.4"
   },
   "devDependencies": {

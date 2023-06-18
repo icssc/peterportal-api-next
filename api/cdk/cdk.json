@@ -1,5 +1,5 @@
 {
-  "app": "tsx app.ts",
+  "app": "npx tsx app.ts",
   "context": {
     "@aws-cdk/aws-lambda:recognizeLayerVersion": true,
     "@aws-cdk/core:checkSecretUsage": true,
