@@ -12,7 +12,7 @@ const imports =
   'import { createErrorResult, createOKResult, type InternalHandler, zeroUUID } from "ant-stack";\n';
 
 const createHandlerTemplate = (httpMethod: string) => `\
-const ${httpMethod}: InternalHandler = async (event) => {
+export const ${httpMethod}: InternalHandler = async (event) => {
   return createOKResult({}, zeroUUID);
 };
 `;
@@ -60,11 +60,7 @@ export async function interactiveCreate() {
   );
   writeFileSync(
     join(srcDir, "index.ts"),
-    [
-      imports,
-      ...methods.map(createHandlerTemplate),
-      `export default { ${methods.join(", ")} };\n`,
-    ].join("\n")
+    [imports, ...methods.map(createHandlerTemplate)].join("\n")
   );
   consola.info(
     `Endpoint created! Don't forget to run ${chalk.bold(

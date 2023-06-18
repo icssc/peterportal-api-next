@@ -3,12 +3,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "ant dev",
-    "build": "ant build",
+    "dev": "pnpm exec ant-stack dev",
+    "build": "pnpm exec ant-stack build",
     "start": "node dist"
   },
   "dependencies": {
-    "ant-stack": "*"
+    "ant-stack": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "18",

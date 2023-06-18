@@ -1,10 +1,14 @@
-import { relative } from "node:path";
+import { join, relative } from "node:path";
+import { fileURLToPath as futp } from "node:url";
 
 import * as cdk from "aws-cdk-lib";
 
 import { getConfig } from "../config.js";
 import { findAllProjects } from "../utils/searchProjects.js";
-import { type HandlerConfig, PeterPortalAPI_SST_Stack } from "./stack.js";
+import { searchForWorkspaceRoot } from "../utils/searchRoot";
+import { AntStack, type HandlerConfig } from "./stack.js";
+
+const __dirname = futp(new URL(".", import.meta.url));
 
 function getStage(NODE_ENV = "development") {
   switch (NODE_ENV) {
@@ -18,8 +22,7 @@ function getStage(NODE_ENV = "development") {
     }
 
     case "development":
-      return "dev";
-    // throw new Error("Cannot deploy stack in development environment. Stop.");
+      throw new Error("Cannot deploy stack in development environment. Stop.");
 
     default:
       throw new Error("Invalid environment specified. Stop.");
@@ -33,6 +36,8 @@ async function start() {
    * TODO: schema validation.
    */
   config.env ??= {};
+  delete config.env.env;
+  delete config.env.envSchema;
   config.env.stage = getStage(config.env.NODE_ENV);
 
   const app = new cdk.App(config.aws.appProps);
@@ -40,9 +45,11 @@ async function start() {
   /**
    * Configs for all __unique__ Lambda routes.
    */
-  const handlerConfigs: HandlerConfig[] = findAllProjects(config.directory)
+  const handlerConfigs: HandlerConfig[] = findAllProjects(
+    join(searchForWorkspaceRoot(__dirname), config.directory)
+  )
     .map((apiRoute) => ({
-      route: relative(config.directory, apiRoute),
+      route: relative(join(searchForWorkspaceRoot(__dirname), config.directory), apiRoute),
       directory: apiRoute,
       env: config.env,
     }))
@@ -50,9 +57,11 @@ async function start() {
       (config, index, configs) => configs.findIndex((c) => c.route === config.route) === index
     );
 
-  const stack = new PeterPortalAPI_SST_Stack(app, config);
+  console.log(handlerConfigs);
 
-  Promise.all(handlerConfigs.map((handlerConfig) => stack.addRoute(handlerConfig)));
+  const stack = new AntStack(app, config);
+
+  await Promise.all(handlerConfigs.map((handlerConfig) => stack.addRoute(handlerConfig)));
 }
 
 start();

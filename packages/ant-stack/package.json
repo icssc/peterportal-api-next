@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup",
+    "deploy": "cdk deploy --all --require-approval never",
     "start:cli": "node dist/cli"
   },
   "main": "dist/lambda-core.js",
@@ -43,7 +44,7 @@
     }
   },
   "bin": {
-    "ant": "./dist/cli.js"
+    "ant-stack": "./dist/cli.js"
   },
   "dependencies": {
     "arktype": "^1.0.14-alpha",

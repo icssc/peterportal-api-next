@@ -7,14 +7,16 @@ import { interactiveCreate } from "./commands/create";
 import { startDevServer } from "./commands/dev.js";
 
 async function start() {
-  consola.log(chalk("🐜 ant :: the AntStack command-line tool"));
+  consola.log(chalk("🐜 ant-stack CLI"));
 
   const argv = cli({
-    name: "ant",
-
+    name: "ant-stack",
     version: "0.1.0",
-
     commands: [
+      command({
+        name: "build",
+      }),
+
       command({
         name: "create",
       }),
@@ -22,22 +24,16 @@ async function start() {
       command({
         name: "dev",
       }),
-
-      command({
-        name: "build",
-      }),
     ],
   });
 
   switch (argv.command) {
-    case "create": {
-      return await interactiveCreate();
-    }
-
     case "build": {
       return await buildInternalHandler();
     }
-
+    case "create": {
+      return await interactiveCreate();
+    }
     case "dev": {
       return await startDevServer();
     }
@@ -45,7 +41,3 @@ async function start() {
 }
 
 start();
-
-export * from "./commands/build.js";
-export * from "./commands/create";
-export * from "./commands/dev.js";

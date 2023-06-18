@@ -45,22 +45,17 @@ jobs:
           version: 8
           run_install: false
 
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - uses: actions/cache@v3
-        name: Setup pnpm cache
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Build AntStack
+        run: pnpm build --filter="ant-stack"
+
+      - name: Install dependencies (again)
+        run: pnpm install --frozen-lockfile
+
+      - name: Build assets
+        run: pnpm build
 
       - name: Wait for API stack to stabilize
         uses: ./.github/actions/stabilize-stack
@@ -77,7 +72,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
       - name: Deploy stacks
-        run: pnpm run deploy --filter="api-cdk" --filter="docs-cdk"
+        run: pnpm run deploy --filter="ant-stack" --filter="docs-cdk"
 
       - name: Comment staging URLs
         uses: marocchino/sticky-pull-request-comment@v2
