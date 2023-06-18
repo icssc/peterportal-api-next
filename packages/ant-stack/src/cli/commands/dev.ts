@@ -1,12 +1,16 @@
-import { resolve } from "node:path";
+import { normalize, relative, resolve } from "node:path";
 
 import chalk from "chalk";
+import chokidar from "chokidar";
 import { consola } from "consola";
-import { context } from "esbuild";
+import { build, type BuildOptions, context } from "esbuild";
 import express, { Router } from "express";
 
-import { getConfig } from "../../config.js";
+import { type AntConfig, getConfig } from "../../config.js";
 import { createExpressHandler, type InternalHandler } from "../../lambda-core/internal/handler.js";
+import { findAllProjects } from "../../utils/searchProjects.js";
+import { searchForPackageRoot } from "../../utils/searchRoot.js";
+import { searchForWorkspaceRoot } from "../../utils/searchRoot.js";
 
 const MethodsToExpress = {
   DELETE: "delete",
@@ -23,10 +27,29 @@ const isMethod = (method: string): method is keyof typeof MethodsToExpress => {
 };
 
 /**
- * lol.
+ * Start a dev server.
  */
 export async function startDevServer() {
   const config = await getConfig();
+
+  const cwd = process.cwd();
+
+  const workspaceRoot = searchForWorkspaceRoot(cwd);
+
+  if (cwd === workspaceRoot) {
+    startRootDevServer(config);
+  } else {
+    startLocalDevServer(config);
+  }
+}
+
+/**
+ * A local Express dev server only serves the current endpoint from the root route.
+ * Useful for quickly testing endpoints individually.
+ * TODO: can probably merge this logic with {@link startRootDevServer}
+ */
+export async function startLocalDevServer(config: Required<AntConfig>) {
+  consola.info(`Starting local dev server. Only the current endpoint will be served.`);
 
   const file = resolve(process.cwd(), `${config.esbuild.outdir}/index.js`);
 
@@ -83,4 +106,150 @@ export async function startDevServer() {
   });
 
   context(config.esbuild).then((ctx) => ctx.watch());
+}
+
+const isStringArray = (value: Array<unknown>): value is string[] => {
+  return value.every((v) => typeof v === "string");
+};
+
+/**
+ * A root dev server serves all API routes from the {@link AntConfig['directory']}
+ */
+export async function startRootDevServer(config: Required<AntConfig>) {
+  consola.info(`Starting root dev server. All endpoints from ${config.directory} will be served.`);
+
+  const endpoints = findAllProjects(config.directory);
+
+  //---------------------------------------------------------------------------------
+  // Build.
+  //---------------------------------------------------------------------------------
+
+  /**
+   * Cache the build configs for each endpoint.
+   */
+  const endpointBuildConfigs = endpoints.reduce((configs, endpoint) => {
+    /**
+     * {@link BuildOptions.entryPoints} can be way too many different things !!
+     */
+    const entryPoints = Array.isArray(config.esbuild.entryPoints)
+      ? isStringArray(config.esbuild.entryPoints)
+        ? config.esbuild.entryPoints.map((entry) => normalize(`${endpoint}/${entry}`))
+        : config.esbuild.entryPoints.map((entry) => ({
+            in: normalize(`${endpoint}/${entry.in}`),
+            out: normalize(`${endpoint}/${entry.out}`),
+          }))
+      : typeof config.esbuild.entryPoints === "object"
+      ? Object.entries(config.esbuild.entryPoints).map(([key, value]) => ({
+          in: normalize(`${endpoint}/${key}`),
+          out: normalize(`${endpoint}/${value}`),
+        }))
+      : [normalize(`${endpoint}/${config.esbuild.entryPoints}`)];
+
+    const outdir = normalize(`${endpoint}/${config.esbuild.outdir}`);
+
+    configs[endpoint] = { ...config.esbuild, entryPoints, outdir };
+
+    return configs;
+  }, {} as Record<string, BuildOptions>);
+
+  /**
+   * Build all endpoints.
+   */
+  await Promise.all(
+    endpoints.map(async (endpoint) => {
+      consola.info(`🚀 Building ${endpoint} to ${endpointBuildConfigs[endpoint].outdir}`);
+      await build(endpointBuildConfigs[endpoint]);
+      consola.info(`🚀 Done building ${endpoint} to ${endpointBuildConfigs[endpoint].outdir}`);
+    })
+  );
+
+  //---------------------------------------------------------------------------------
+  // Express development server.
+  //---------------------------------------------------------------------------------
+
+  const app = express();
+
+  /**
+   * Mutable global router can be hot-swapped when routes change.
+   * app.use ( global router .use (endpoint router ) )
+   * To update the routes, re-assign the global router, and load all endpoint routes into the new router.
+   */
+  let router = Router();
+
+  app.use((req, res, next) => router(req, res, next));
+
+  /**
+   * Express will assign middleware based on endpoints.
+   */
+  const endpointMiddleware: Record<string, Router> = {};
+
+  /**
+   * Replace the global router with a fresh one and reload all endpoints.
+   */
+  const refreshRouter = () => {
+    router = Router();
+    endpoints.forEach((endpoint) => {
+      consola.info(`🚀 Loading ${endpoint} from ${endpointBuildConfigs[endpoint].outdir}`);
+
+      router.use(`/${relative(config.directory, endpoint)}`, (req, res, next) =>
+        endpointMiddleware[endpoint](req, res, next)
+      );
+    });
+  };
+
+  /**
+   * Load a specific endpoint's middleware.
+   */
+  const loadEndpoint = async (endpoint: string) => {
+    consola.info(`🚀 Setting up router for ${endpoint}`);
+
+    endpointMiddleware[endpoint] = Router();
+
+    const file = resolve(endpoint, `${config.esbuild.outdir}/index.js`);
+
+    const internalHandlers = await import(`${file}?update=${Date.now()}`);
+
+    const handlerMethods = internalHandlers.default
+      ? Object.keys(internalHandlers.default)
+      : Object.keys(internalHandlers);
+
+    const handlerFunctions = internalHandlers.default ? internalHandlers.default : internalHandlers;
+
+    handlerMethods.filter(isMethod).forEach((key) => {
+      endpointMiddleware[endpoint][MethodsToExpress[key]](
+        "/",
+        createExpressHandler(handlerFunctions[key])
+      );
+    });
+  };
+
+  /**
+   * Prepare the development server by loading all the endpoints and refreshing the routes.
+   */
+  await Promise.all(endpoints.map(loadEndpoint)).then(refreshRouter);
+
+  app.listen(config.port, () => {
+    consola.info(`🚀 Express server listening at http://localhost:${config.port}`);
+  });
+
+  //---------------------------------------------------------------------------------
+  // Watch file changes.
+  //---------------------------------------------------------------------------------
+
+  const watcher = chokidar.watch(endpoints, {
+    ignored: [
+      /(^|[/\\])\../, // dotfiles
+      /node_modules/, // node_modules
+      `**/${config.esbuild.outdir ?? "dist"}/**`, // build output directory
+    ],
+  });
+
+  watcher.on("change", async (path) => {
+    const endpoint = searchForPackageRoot(path);
+
+    console.log("endpoint changed: ", endpoint);
+
+    await build(endpointBuildConfigs[endpoint]);
+    await loadEndpoint(endpoint).then(refreshRouter);
+  });
 }

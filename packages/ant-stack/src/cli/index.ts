@@ -1,14 +1,13 @@
 import chalk from "chalk";
 import { cli, command } from "cleye";
 import { consola } from "consola";
-import { defu } from "defu";
 
 import { buildInternalHandler } from "./commands/build.js";
-import { automaticCreate, CreateOptions, interactiveCreate } from "./commands/create.js";
+import { interactiveCreate } from "./commands/create";
 import { startDevServer } from "./commands/dev.js";
 
 async function start() {
-  consola.log(chalk.green.bgRedBright(`ant - AntStack's CLI tool`));
+  consola.log(chalk("🐜 ant :: the AntStack command-line tool"));
 
   const argv = cli({
     name: "ant",
@@ -18,17 +17,6 @@ async function start() {
     commands: [
       command({
         name: "create",
-        parameters: ["[endpoint]"],
-        flags: {
-          interactive: {
-            type: Boolean,
-            alias: "i",
-            description: "Interactively create a new endpoint",
-          },
-          methods: {
-            type: [String],
-          },
-        },
       }),
 
       command({
@@ -43,18 +31,7 @@ async function start() {
 
   switch (argv.command) {
     case "create": {
-      if (argv.flags.interactive) {
-        return await interactiveCreate();
-      }
-
-      const createOptions = CreateOptions(defu(argv.flags, argv._));
-
-      if (!createOptions.data) {
-        consola.error(chalk.redBright(createOptions.problems));
-        return;
-      }
-
-      return await automaticCreate(createOptions.data);
+      return await interactiveCreate();
     }
 
     case "build": {
@@ -70,5 +47,5 @@ async function start() {
 start();
 
 export * from "./commands/build.js";
-export * from "./commands/create.js";
+export * from "./commands/create";
 export * from "./commands/dev.js";

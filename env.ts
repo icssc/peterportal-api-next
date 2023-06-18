@@ -20,7 +20,6 @@ config({ path: resolve(__dirname, ".env") });
 export const envSchema = type(
   {
     DATABASE_URL: "string",
-    DATABASE_URL_SCRAPER: "string",
     NODE_ENV: "string",
   },
   { keys: "distilled" }

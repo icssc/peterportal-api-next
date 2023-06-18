@@ -4,7 +4,7 @@
  * import { defineConfig } from 'peterportal-api-sst'
  * export default defineConfig({ ... })
  */
-import type { defineConfig, PPA_SST_Config } from "peterportal-api-sst/config";
+import type { AntConfig, defineConfig } from "ant-stack/config";
 import type { loadConfig } from "unconfig";
 
 import env from "./env.js";
@@ -21,15 +21,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 `;
 
-export const indir = "./src";
-export const outdir = "./dist";
+export const inDir = "./src";
+export const outDir = "./dist";
 export const entryFileName = "index";
 
 /**
  * Just using types is a lot faster!!
  */
-const config: PPA_SST_Config = {
-  port: 3000,
+const config: AntConfig = {
+  packageManager: "pnpm",
+  port: 8080,
   aws: {
     id: "peterportal-api-sst",
     stage: "dev",
@@ -38,8 +39,8 @@ const config: PPA_SST_Config = {
   env,
   directory: "apps/api",
   esbuild: {
-    entryPoints: [`${indir}/${entryFileName}.ts`],
-    outdir,
+    entryPoints: [`${inDir}/${entryFileName}.ts`],
+    outdir: outDir,
     platform: "node",
     format: "esm",
     target: "esnext",

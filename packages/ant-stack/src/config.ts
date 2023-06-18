@@ -60,6 +60,11 @@ interface AntRuntime {
  */
 export interface AntConfig {
   /**
+   * The package manager used by the project.
+   */
+  packageManager: "npm" | "yarn" | "pnpm";
+
+  /**
    * Directory to recursively find API routes.
    */
   directory: string;

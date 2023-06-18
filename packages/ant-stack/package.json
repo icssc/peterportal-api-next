@@ -49,6 +49,7 @@
     "arktype": "^1.0.14-alpha",
     "aws-cdk-lib": "^2.53.0",
     "chalk": "^4.1.2",
+    "chokidar": "^3.5.3",
     "cleye": "^1.3.2",
     "consola": "^3.1.0",
     "constructs": "^10.1.176",
