@@ -51,6 +51,15 @@ jobs:
       - name: Build AntStack
         run: pnpm build --filter="ant-stack"
 
+      - name: Install dependencies (again)
+        run: pnpm install --frozen-lockfile
+
+      - name: PATH sanity check
+        run: echo $PATH
+
+      - name: .bin sanity check
+        run: file ./node_modules/.bin/ant-stack
+
       - name: Build assets
         run: pnpm build
 
