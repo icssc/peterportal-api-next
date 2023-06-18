@@ -47,13 +47,16 @@ async function start() {
     join(searchForWorkspaceRoot(__dirname), config.directory)
   )
     .map((apiRoute) => ({
-      route: relative(config.directory, apiRoute),
+      route: relative(join(searchForWorkspaceRoot(__dirname), config.directory), apiRoute),
       directory: apiRoute,
       env: config.env,
     }))
     .filter(
       (config, index, configs) => configs.findIndex((c) => c.route === config.route) === index
     );
+
+  console.log(handlerConfigs);
+
   const stack = new AntStack(app, config);
 
   await Promise.all(handlerConfigs.map((handlerConfig) => stack.addRoute(handlerConfig)));
