@@ -114,9 +114,11 @@ export class AntStack extends Stack {
       resource = resource.getResource(route) ?? resource.addResource(route);
     });
 
-    const internalHandlers: Record<string, InternalHandler> = await import(
-      `${handlerConfig.directory}/dist/index.js`
-    );
+    const internalHandlers: Record<string, InternalHandler> = (
+      await import(`${handlerConfig.directory}/dist/index.js`)
+    ).default;
+
+    console.log(internalHandlers);
 
     Object.keys(internalHandlers)
       .filter(isHttpMethod)
