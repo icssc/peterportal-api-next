@@ -27,7 +27,7 @@ export interface HandlerConfig {
   env?: Record<string, string>;
 }
 
-export class PeterPortalAPI_SST_Stack extends cdk.Stack {
+export class AntStack extends cdk.Stack {
   api: cdk.aws_apigateway.RestApi;
 
   config: AntConfig;

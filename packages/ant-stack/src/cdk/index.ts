@@ -4,7 +4,7 @@ import * as cdk from "aws-cdk-lib";
 
 import { getConfig } from "../config.js";
 import { findAllProjects } from "../utils/searchProjects.js";
-import { type HandlerConfig, PeterPortalAPI_SST_Stack } from "./stack.js";
+import { AntStack, type HandlerConfig } from "./stack.js";
 
 function getStage(NODE_ENV = "development") {
   switch (NODE_ENV) {
@@ -50,7 +50,7 @@ async function start() {
       (config, index, configs) => configs.findIndex((c) => c.route === config.route) === index
     );
 
-  const stack = new PeterPortalAPI_SST_Stack(app, config);
+  const stack = new AntStack(app, config);
 
   Promise.all(handlerConfigs.map((handlerConfig) => stack.addRoute(handlerConfig)));
 }
