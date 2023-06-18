@@ -54,15 +54,6 @@ jobs:
       - name: Install dependencies (again)
         run: pnpm install --frozen-lockfile
 
-      - name: PATH sanity check
-        run: echo $PATH
-
-      - name: .bin sanity check
-        run: file ./node_modules/.bin/ant-stack
-
-      - name: Build assets
-        run: pnpm build
-
       - name: Wait for API stack to stabilize
         uses: ./.github/actions/stabilize-stack
         with:
@@ -77,11 +68,8 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Deploy API stack
-        run: pnpm run ants:deploy
-
       - name: Deploy docs stack
-        run: pnpm run deploy --filter="docs-cdk"
+        run: pnpm run deploy --filter="ant-stack" --filter="docs-cdk"
 
       - name: Comment staging URLs
         uses: marocchino/sticky-pull-request-comment@v2
