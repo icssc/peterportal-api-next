@@ -4,6 +4,8 @@ import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 import lambda, { Architecture, Code, Runtime } from "aws-cdk-lib/aws-lambda";
+import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import type { Construct } from "constructs";
 
 import type { AntConfig } from "../config.js";
@@ -40,11 +42,12 @@ export class AntStack extends Stack {
   constructor(scope: Construct, config: AntConfig) {
     super(scope, `${config.aws.id}-${config.env.stage}`, config.aws.stackProps);
 
-    const recordName = `${config.aws.stage === "prod" ? "" : `${config.aws.stage}.`}api-next`;
+    const recordName = `${config.env.stage === "prod" ? "" : `${config.env.stage}.`}api-next`;
+    const zoneName = "peterportal.org";
 
     this.config = config;
 
-    this.api = new RestApi(this, `${config.aws.id}-${config.aws.stage}`, {
+    this.api = new RestApi(this, `${config.aws.id}-${config.env.stage}`, {
       defaultCorsPreflightOptions: {
         allowOrigins: ["*"],
         allowHeaders: ["Apollo-Require-Preflight", "Content-Type"],
@@ -61,10 +64,10 @@ export class AntStack extends Stack {
       disableExecuteApiEndpoint: true,
       endpointTypes: [EndpointType.EDGE],
       minimumCompressionSize: 128 * 1024, // 128 KiB
-      restApiName: `${config.aws.id}-${config.aws.stage}`,
+      restApiName: `${config.aws.id}-${config.env.stage}`,
     });
 
-    this.api.addGatewayResponse(`${config.aws.id}-${config.aws.stage}-5xx`, {
+    this.api.addGatewayResponse(`${config.aws.id}-${config.env.stage}-5xx`, {
       type: ResponseType.DEFAULT_5XX,
       statusCode: "500",
       templates: {
@@ -78,7 +81,7 @@ export class AntStack extends Stack {
       },
     });
 
-    this.api.addGatewayResponse(`${config.aws.id}-${config.aws.stage}-404`, {
+    this.api.addGatewayResponse(`${config.aws.id}-${config.env.stage}-404`, {
       type: ResponseType.MISSING_AUTHENTICATION_TOKEN,
       statusCode: "404",
       templates: {
@@ -92,14 +95,14 @@ export class AntStack extends Stack {
       },
     });
 
-    // new cdk.aws_route53.ARecord(this, `${id}-a-record-${stage}`, {
-    //   zone: cdk.aws_route53.HostedZone.fromHostedZoneAttributes(this, "${id}-hosted-zone", {
-    //     zoneName,
-    //     hostedZoneId,
-    //   }),
-    //   recordName,
-    //   target: cdk.aws_route53.RecordTarget.fromAlias(new cdk.aws_route53_targets.ApiGateway(this.api)),
-    // });
+    new ARecord(this, `${config.aws.id}-${config.env.stage}-a-record`, {
+      zone: HostedZone.fromHostedZoneAttributes(this, "peterportal-hosted-zone", {
+        zoneName,
+        hostedZoneId: process.env.HOSTED_ZONE_ID ?? "",
+      }),
+      recordName,
+      target: RecordTarget.fromAlias(new ApiGateway(this.api)),
+    });
   }
 
   /**
@@ -121,7 +124,7 @@ export class AntStack extends Stack {
       .forEach((httpMethod) => {
         const route = handlerConfig.route.replace(/\//g, "-");
 
-        const functionName = `${this.config.aws.id}-${this.config.aws.stage}-${route}-${httpMethod}`;
+        const functionName = `${this.config.aws.id}-${this.config.env.stage}-${route}-${httpMethod}`;
 
         const handler = new lambda.Function(this, `${functionName}-handler`, {
           functionName,
@@ -134,7 +137,7 @@ export class AntStack extends Stack {
             httpMethod
           )}`,
           architecture: Architecture.ARM_64,
-          environment: { ...handlerConfig.env, ...this.config.env, stage: this.config.aws.stage },
+          environment: { ...handlerConfig.env, ...this.config.env, stage: this.config.env.stage },
           timeout: Duration.seconds(15),
           memorySize: 512,
         });
