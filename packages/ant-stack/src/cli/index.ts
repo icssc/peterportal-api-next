@@ -8,10 +8,10 @@ import { deploy } from "./commands/deploy";
 import { startDevServer } from "./commands/dev.js";
 
 async function start() {
-  consola.log(chalk("🐜 ants :: the AntStack command-line tool"));
+  consola.log(chalk("🐜 The ant-stack command-line tool"));
 
   const argv = cli({
-    name: "ants",
+    name: "ant-stack",
     version: "0.1.0",
     commands: [
       command({

@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx ants dev",
-    "build": "npx ants build",
+    "dev": "ant-stack dev",
+    "build": "ant-stack build",
     "start": "node dist"
   },
   "dependencies": {
