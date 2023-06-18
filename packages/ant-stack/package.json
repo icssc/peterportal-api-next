@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup",
-    "deploy": "cdk deploy src/cdk",
+    "deploy": "cdk deploy",
     "start:cli": "node dist/cli"
   },
   "main": "dist/lambda-core.js",

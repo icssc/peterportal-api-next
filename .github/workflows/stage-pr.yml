@@ -68,7 +68,7 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Deploy docs stack
+      - name: Deploy stacks
         run: pnpm run deploy --filter="ant-stack" --filter="docs-cdk"
 
       - name: Comment staging URLs
