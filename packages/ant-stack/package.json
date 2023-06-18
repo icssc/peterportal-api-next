@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "build": "tsup",
-    "deploy": "cdk deploy",
+    "deploy": "cdk deploy --all --require-approval never",
     "start:cli": "node dist/cli"
   },
   "main": "dist/lambda-core.js",

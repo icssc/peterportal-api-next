@@ -1,10 +1,14 @@
-import { relative } from "node:path";
+import { join, relative } from "node:path";
+import { fileURLToPath as futp } from "node:url";
 
 import * as cdk from "aws-cdk-lib";
 
 import { getConfig } from "../config.js";
 import { findAllProjects } from "../utils/searchProjects.js";
+import { searchForWorkspaceRoot } from "../utils/searchRoot";
 import { AntStack, type HandlerConfig } from "./stack.js";
+
+const __dirname = futp(new URL(".", import.meta.url));
 
 function getStage(NODE_ENV = "development") {
   switch (NODE_ENV) {
@@ -39,7 +43,9 @@ async function start() {
   /**
    * Configs for all __unique__ Lambda routes.
    */
-  const handlerConfigs: HandlerConfig[] = findAllProjects(config.directory)
+  const handlerConfigs: HandlerConfig[] = findAllProjects(
+    join(searchForWorkspaceRoot(__dirname), config.directory)
+  )
     .map((apiRoute) => ({
       route: relative(config.directory, apiRoute),
       directory: apiRoute,

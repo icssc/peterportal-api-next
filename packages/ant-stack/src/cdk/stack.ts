@@ -1,6 +1,3 @@
-import { join } from "node:path";
-import { fileURLToPath as futp } from "node:url";
-
 import { Duration, Stack } from "aws-cdk-lib";
 import { EndpointType, LambdaIntegration, ResponseType, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
@@ -11,9 +8,6 @@ import type { Construct } from "constructs";
 
 import type { AntConfig } from "../config.js";
 import { type InternalHandler, isHttpMethod, warmerRequestBody } from "../lambda-core";
-import { searchForWorkspaceRoot } from "../utils/searchRoot";
-
-const __dirname = futp(new URL(".", import.meta.url));
 
 export interface HandlerConfig {
   /**
@@ -44,7 +38,7 @@ export class AntStack extends Stack {
   config: AntConfig;
 
   constructor(scope: Construct, config: AntConfig) {
-    super(scope, `${config.aws.id}-${config.aws.stage}`, config.aws.stackProps);
+    super(scope, `${config.aws.id}-${config.env.stage}`, config.aws.stackProps);
 
     const recordName = `${config.aws.stage === "prod" ? "" : `${config.aws.stage}.`}api-next`;
 
@@ -119,7 +113,7 @@ export class AntStack extends Stack {
     });
 
     const internalHandlers: Record<string, InternalHandler> = await import(
-      `${join(searchForWorkspaceRoot(__dirname), handlerConfig.directory)}/dist/index.js`
+      `${handlerConfig.directory}/dist/index.js`
     );
 
     Object.keys(internalHandlers)

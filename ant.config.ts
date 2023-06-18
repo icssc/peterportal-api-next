@@ -33,7 +33,6 @@ const config: AntConfig = {
   port: 8080,
   aws: {
     id: "peterportal-api-next",
-    stage: "dev",
     zoneName: "peterportal.org",
   },
   env,
