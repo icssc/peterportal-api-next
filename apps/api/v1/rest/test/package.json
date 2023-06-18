@@ -8,7 +8,7 @@
     "start": "node dist"
   },
   "dependencies": {
-    "ant-stack": "*"
+    "ant-stack": "workspace:^"
   },
   "devDependencies": {
     "@types/node": "18",

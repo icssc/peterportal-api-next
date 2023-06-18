@@ -479,7 +479,7 @@ importers:
   apps/api/v1/rest/klein:
     dependencies:
       ant-stack:
-        specifier: '*'
+        specifier: workspace:^
         version: link:../../../../../packages/ant-stack
     devDependencies:
       '@types/node':
@@ -495,7 +495,7 @@ importers:
   apps/api/v1/rest/test:
     dependencies:
       ant-stack:
-        specifier: '*'
+        specifier: workspace:^
         version: link:../../../../../packages/ant-stack
     devDependencies:
       '@types/node':
