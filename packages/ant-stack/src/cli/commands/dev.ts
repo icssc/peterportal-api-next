@@ -116,7 +116,9 @@ const isStringArray = (value: Array<unknown>): value is string[] => {
  * A root dev server serves all API routes from the {@link AntConfig['directory']}
  */
 export async function startRootDevServer(config: Required<AntConfig>) {
-  consola.info(`Starting root dev server. All endpoints from ${config.directory} will be served.`);
+  consola.info(
+    `🎏 Starting root dev server. All endpoints from ${config.directory} will be served.`
+  );
 
   const endpoints = findAllProjects(config.directory);
 
@@ -143,7 +145,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
           in: normalize(`${endpoint}/${key}`),
           out: normalize(`${endpoint}/${value}`),
         }))
-      : [normalize(`${endpoint}/${config.esbuild.entryPoints}`)];
+      : config.esbuild.entryPoints;
 
     const outdir = normalize(`${endpoint}/${config.esbuild.outdir}`);
 
@@ -157,9 +159,9 @@ export async function startRootDevServer(config: Required<AntConfig>) {
    */
   await Promise.all(
     endpoints.map(async (endpoint) => {
-      consola.info(`🚀 Building ${endpoint} to ${endpointBuildConfigs[endpoint].outdir}`);
+      consola.info(`🔨 Building ${endpoint} to ${endpointBuildConfigs[endpoint].outdir}`);
       await build(endpointBuildConfigs[endpoint]);
-      consola.info(`🚀 Done building ${endpoint} to ${endpointBuildConfigs[endpoint].outdir}`);
+      consola.info(`✅ Done building ${endpoint} to ${endpointBuildConfigs[endpoint].outdir}`);
     })
   );
 
@@ -188,8 +190,9 @@ export async function startRootDevServer(config: Required<AntConfig>) {
    */
   const refreshRouter = () => {
     router = Router();
+
     endpoints.forEach((endpoint) => {
-      consola.info(`🚀 Loading ${endpoint} from ${endpointBuildConfigs[endpoint].outdir}`);
+      consola.info(`🔄 Loading ${endpoint} from ${endpointBuildConfigs[endpoint].outdir}`);
 
       router.use(`/${relative(config.directory, endpoint)}`, (req, res, next) =>
         endpointMiddleware[endpoint](req, res, next)
@@ -201,7 +204,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
    * Load a specific endpoint's middleware.
    */
   const loadEndpoint = async (endpoint: string) => {
-    consola.info(`🚀 Setting up router for ${endpoint}`);
+    consola.info(`⚙  Setting up router for ${endpoint}`);
 
     endpointMiddleware[endpoint] = Router();
 
@@ -229,7 +232,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
   await Promise.all(endpoints.map(loadEndpoint)).then(refreshRouter);
 
   app.listen(config.port, () => {
-    consola.info(`🚀 Express server listening at http://localhost:${config.port}`);
+    consola.info(`🎉 Express server listening at http://localhost:${config.port}`);
   });
 
   //---------------------------------------------------------------------------------
@@ -247,7 +250,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
   watcher.on("change", async (path) => {
     const endpoint = searchForPackageRoot(path);
 
-    console.log("endpoint changed: ", endpoint);
+    console.log("✨ endpoint changed: ", endpoint);
 
     await build(endpointBuildConfigs[endpoint]);
     await loadEndpoint(endpoint).then(refreshRouter);
