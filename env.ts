@@ -26,3 +26,5 @@ export const envSchema = type(
 );
 
 export const env = envSchema.assert({ ...process.env });
+
+export default env;

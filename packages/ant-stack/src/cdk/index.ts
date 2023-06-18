@@ -36,6 +36,8 @@ async function start() {
    * TODO: schema validation.
    */
   config.env ??= {};
+  delete config.env.env;
+  delete config.env.envSchema;
   config.env.stage = getStage(config.env.NODE_ENV);
 
   const app = new cdk.App(config.aws.appProps);
