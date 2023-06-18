@@ -32,7 +32,7 @@ const config: AntConfig = {
   packageManager: "pnpm",
   port: 8080,
   aws: {
-    id: "peterportal-api-sst",
+    id: "peterportal-api-next",
     stage: "dev",
     zoneName: "peterportal.org",
   },

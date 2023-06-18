@@ -1,12 +1,14 @@
 import { relative } from "node:path";
 
-import * as cdk from "aws-cdk-lib";
+import { CloudFormationClient, UpdateStackCommand } from "@aws-sdk/client-cloudformation";
+import { App } from "aws-cdk-lib";
+import { consola } from "consola";
 
-import { getConfig } from "../config.js";
-import { findAllProjects } from "../utils/searchProjects.js";
+import { getConfig } from "../../../config.js";
+import { findAllProjects } from "../../../utils/searchProjects.js";
 import { AntStack, type HandlerConfig } from "./stack.js";
 
-function getStage(NODE_ENV = "development") {
+function getStage(NODE_ENV: string) {
   switch (NODE_ENV) {
     case "production":
       return "prod";
@@ -18,15 +20,14 @@ function getStage(NODE_ENV = "development") {
     }
 
     case "development":
-      return "dev";
-    // throw new Error("Cannot deploy stack in development environment. Stop.");
+      throw new Error("Cannot deploy stack in development environment. Stop.");
 
     default:
       throw new Error("Invalid environment specified. Stop.");
   }
 }
 
-async function start() {
+export async function deploy() {
   const config = await getConfig();
 
   /**
@@ -35,7 +36,7 @@ async function start() {
   config.env ??= {};
   config.env.stage = getStage(config.env.NODE_ENV);
 
-  const app = new cdk.App(config.aws.appProps);
+  const app = new App(config.aws.appProps);
 
   /**
    * Configs for all __unique__ Lambda routes.
@@ -52,7 +53,16 @@ async function start() {
 
   const stack = new AntStack(app, config);
 
-  Promise.all(handlerConfigs.map((handlerConfig) => stack.addRoute(handlerConfig)));
-}
+  await Promise.all(handlerConfigs.map((handlerConfig) => stack.addRoute(handlerConfig)));
 
-start();
+  const cloudAssembly = app.synth();
+  const cfnTemplate = cloudAssembly.getStackByName(stack.stackName).template;
+  const cfnClient = new CloudFormationClient({});
+  const response = await cfnClient.send(
+    new UpdateStackCommand({
+      StackName: stack.stackName,
+      TemplateBody: cfnTemplate,
+    })
+  );
+  consola.info(response);
+}

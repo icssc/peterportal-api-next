@@ -62,6 +62,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build assets
+        run: pnpm build
+
       - name: Wait for API stack to stabilize
         uses: ./.github/actions/stabilize-stack
         with:
@@ -76,8 +79,11 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Deploy stacks
-        run: pnpm run deploy --filter="api-cdk" --filter="docs-cdk"
+      - name: Deploy API stack
+        run: pnpm run ant:deploy
+
+      - name: Deploy docs stack
+        run: pnpm run deploy --filter="docs-cdk"
 
       - name: Comment staging URLs
         uses: marocchino/sticky-pull-request-comment@v2

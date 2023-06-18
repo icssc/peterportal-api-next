@@ -1,8 +1,19 @@
-import * as cdk from "aws-cdk-lib";
+import { join } from "node:path";
+import { fileURLToPath as futp } from "node:url";
+
+import { Duration, Stack } from "aws-cdk-lib";
+import { EndpointType, LambdaIntegration, ResponseType, RestApi } from "aws-cdk-lib/aws-apigateway";
+import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
+import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
+import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import lambda, { Architecture, Code, Runtime } from "aws-cdk-lib/aws-lambda";
 import type { Construct } from "constructs";
 
-import type { AntConfig } from "../config.js";
-import { type InternalHandler, isHttpMethod, warmerRequestBody } from "../lambda-core/index.js";
+import type { AntConfig } from "../../../config.js";
+import { type InternalHandler, isHttpMethod, warmerRequestBody } from "../../../lambda-core";
+import { searchForWorkspaceRoot } from "../../../utils/searchRoot";
+
+const __dirname = futp(new URL(".", import.meta.url));
 
 export interface HandlerConfig {
   /**
@@ -27,8 +38,8 @@ export interface HandlerConfig {
   env?: Record<string, string>;
 }
 
-export class AntStack extends cdk.Stack {
-  api: cdk.aws_apigateway.RestApi;
+export class AntStack extends Stack {
+  api: RestApi;
 
   config: AntConfig;
 
@@ -39,7 +50,7 @@ export class AntStack extends cdk.Stack {
 
     this.config = config;
 
-    this.api = new cdk.aws_apigateway.RestApi(this, `${config.aws.id}-${config.aws.stage}`, {
+    this.api = new RestApi(this, `${config.aws.id}-${config.aws.stage}`, {
       defaultCorsPreflightOptions: {
         allowOrigins: ["*"],
         allowHeaders: ["Apollo-Require-Preflight", "Content-Type"],
@@ -47,20 +58,20 @@ export class AntStack extends cdk.Stack {
       },
       domainName: {
         domainName: `${recordName}.${config.aws.zoneName}`,
-        certificate: cdk.aws_certificatemanager.Certificate.fromCertificateArn(
+        certificate: Certificate.fromCertificateArn(
           this,
           "peterportal-cert",
-          config.env?.certificateArn
+          config.env?.certificateArn ?? ""
         ),
       },
       disableExecuteApiEndpoint: true,
-      endpointTypes: [cdk.aws_apigateway.EndpointType.EDGE],
+      endpointTypes: [EndpointType.EDGE],
       minimumCompressionSize: 128 * 1024, // 128 KiB
       restApiName: `${config.aws.id}-${config.aws.stage}`,
     });
 
     this.api.addGatewayResponse(`${config.aws.id}-${config.aws.stage}-5xx`, {
-      type: cdk.aws_apigateway.ResponseType.DEFAULT_5XX,
+      type: ResponseType.DEFAULT_5XX,
       statusCode: "500",
       templates: {
         "application/json": JSON.stringify({
@@ -74,7 +85,7 @@ export class AntStack extends cdk.Stack {
     });
 
     this.api.addGatewayResponse(`${config.aws.id}-${config.aws.stage}-404`, {
-      type: cdk.aws_apigateway.ResponseType.MISSING_AUTHENTICATION_TOKEN,
+      type: ResponseType.MISSING_AUTHENTICATION_TOKEN,
       statusCode: "404",
       templates: {
         "application/json": JSON.stringify({
@@ -108,7 +119,7 @@ export class AntStack extends cdk.Stack {
     });
 
     const internalHandlers: Record<string, InternalHandler> = await import(
-      `${handlerConfig.directory}/src/index`
+      `${join(searchForWorkspaceRoot(__dirname), handlerConfig.directory)}/dist/index.js`
     );
 
     Object.keys(internalHandlers)
@@ -118,35 +129,35 @@ export class AntStack extends cdk.Stack {
 
         const functionName = `${this.config.aws.id}-${this.config.aws.stage}-${route}-${httpMethod}`;
 
-        const handler = new cdk.aws_lambda.Function(this, `${functionName}-handler`, {
+        const handler = new lambda.Function(this, `${functionName}-handler`, {
           functionName,
-          runtime: cdk.aws_lambda.Runtime.NODEJS_18_X,
-          code: cdk.aws_lambda.Code.fromAsset(handlerConfig.directory, {
+          runtime: Runtime.NODEJS_18_X,
+          code: Code.fromAsset(handlerConfig.directory, {
             exclude: handlerConfig.exclude ?? ["node_modules"],
           }),
           handler: `${this.config.esbuild.outdir}/${this.config.runtime.nodeRuntimeFile.replace(
             "js",
             httpMethod
           )}`,
-          architecture: cdk.aws_lambda.Architecture.ARM_64,
+          architecture: Architecture.ARM_64,
           environment: { ...handlerConfig.env, ...this.config.env, stage: this.config.aws.stage },
-          timeout: cdk.Duration.seconds(15),
+          timeout: Duration.seconds(15),
           memorySize: 512,
         });
 
-        const lambdaIntegration = new cdk.aws_apigateway.LambdaIntegration(handler);
+        const lambdaIntegration = new LambdaIntegration(handler);
 
         resource.addMethod(httpMethod, lambdaIntegration);
 
-        const warmingTarget = new cdk.aws_events_targets.LambdaFunction(handler, {
-          event: cdk.aws_events.RuleTargetInput.fromObject({ body: warmerRequestBody }),
+        const warmingTarget = new LambdaFunction(handler, {
+          event: RuleTargetInput.fromObject({ body: warmerRequestBody }),
         });
 
         const ruleName = `${functionName}-warming-rule`;
 
-        const warmingRule = new cdk.aws_events.Rule(this, ruleName, {
+        const warmingRule = new Rule(this, ruleName, {
           ruleName,
-          schedule: cdk.aws_events.Schedule.rate(cdk.Duration.minutes(5)),
+          schedule: Schedule.rate(Duration.minutes(5)),
         });
 
         warmingRule.addTarget(warmingTarget);
