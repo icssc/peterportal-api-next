@@ -1,16 +1,13 @@
 import { normalize, relative, resolve } from 'node:path'
-
-import chalk from 'chalk'
 import chokidar from 'chokidar'
 import { consola } from 'consola'
-import { build, type BuildOptions, context } from 'esbuild'
 import express, { Router } from 'express'
-
+import { build, type BuildOptions } from 'esbuild'
 import { type AntConfig, getConfig } from '../../config.js'
-import { createExpressHandler, type InternalHandler } from '../../lambda-core/internal/handler.js'
 import { findAllProjects } from '../../utils/searchProjects.js'
 import { searchForPackageRoot } from '../../utils/searchRoot.js'
 import { searchForWorkspaceRoot } from '../../utils/searchRoot.js'
+import { createExpressHandler } from '../../lambda-core/internal/handler.js'
 
 const MethodsToExpress = {
   DELETE: 'delete',
@@ -22,8 +19,44 @@ const MethodsToExpress = {
   OPTIONS: 'options',
 } as const
 
-const isMethod = (method: string): method is keyof typeof MethodsToExpress => {
+function isMethod(method: string): method is keyof typeof MethodsToExpress {
   return method in MethodsToExpress
+}
+
+function isStringArray(value: Array<unknown>): value is string[] {
+  return value.every((v) => typeof v === 'string')
+}
+
+/**
+ * Dynamically import an entry point file with handlers, and create a new {@link Router} with them.
+ */
+async function loadEndpoint(endpoint: string, config: Required<AntConfig>) {
+  consola.info(`⚙  Setting up router for ${endpoint}`)
+
+  const endpointRouter = Router()
+
+  const file = resolve(endpoint, `${config.esbuild.outdir}/index.js`)
+
+  /**
+   * @link https://ar.al/2021/02/22/cache-busting-in-node.js-dynamic-esm-imports/
+   * Invalidate the ESM cache by appending a random string, that ensures the module is re-imported.
+   */
+  const internalHandlers = await import(`${file}?update=${Date.now()}`)
+
+  const handlerMethods = internalHandlers.default
+    ? Object.keys(internalHandlers.default)
+    : Object.keys(internalHandlers)
+
+  const handlerFunctions = internalHandlers.default ? internalHandlers.default : internalHandlers
+
+  /**
+   * Populate the router with the exported handler functions converted to Express handlers.
+   */
+  handlerMethods.filter(isMethod).forEach((key) => {
+    endpointRouter[MethodsToExpress[key]]('/', createExpressHandler(handlerFunctions[key]))
+  })
+
+  return endpointRouter
 }
 
 /**
@@ -31,9 +64,7 @@ const isMethod = (method: string): method is keyof typeof MethodsToExpress => {
  */
 export async function startDevServer() {
   const config = await getConfig()
-
   const cwd = process.cwd()
-
   const workspaceRoot = searchForWorkspaceRoot(cwd)
 
   if (cwd === workspaceRoot) {
@@ -46,89 +77,47 @@ export async function startDevServer() {
 /**
  * A local Express dev server only serves the current endpoint from the root route.
  * Useful for quickly testing endpoints individually.
- * TODO: can probably merge this logic with {@link startRootDevServer}
  */
 export async function startLocalDevServer(config: Required<AntConfig>) {
-  consola.info(`Starting local dev server. Only the current endpoint will be served.`)
+  consola.info(`🎏 Starting local dev server. Only the current endpoint will be served.`)
 
-  const file = resolve(process.cwd(), `${config.esbuild.outdir}/index.js`)
-
-  let internalHandlers: Record<string, InternalHandler>
+  const cwd = process.cwd()
 
   const app = express()
 
-  let router = Router()
-
-  config.esbuild.plugins ??= []
-
-  config.esbuild.plugins.push({
-    name: 'very-epic-and-genius-live-reload-express-strat',
-    setup(build) {
-      build.onStart(() =>
-        consola.log(chalk.bgBlack.magenta(`Building temporary files to ${config.esbuild.outdir}`))
-      )
-
-      build.onEnd(async () => {
-        /**
-         * Create a new, empty router.
-         */
-        router = Router()
-
-        /**
-         * @link https://ar.al/2021/02/22/cache-busting-in-node.js-dynamic-esm-imports/
-         * Invalidate the ESM cache by appending a dynamic string,
-         * ensuring that it's re-imported and the router is refreshed with new routes.
-         */
-        internalHandlers = await import(`${file}?update=${Date.now()}`)
-
-        /**
-         * Populate the new router with the new handlers.
-         */
-        Object.keys(internalHandlers)
-          .filter(isMethod)
-          .forEach((key) => {
-            router[MethodsToExpress[key]]('/', createExpressHandler(internalHandlers[key]))
-          })
-
-        consola.info(`🚀 Routes reloaded at http://localhost:${config.port}`)
-      })
-    },
-  })
+  await build(config.esbuild)
 
   /**
    * @link https://github.com/expressjs/express/issues/2596
-   * Using a mutable router allows us to dynamically swap in new routers after building.
+   * Re-assigning a new router effectively refreshes all the routes.
    */
+  let router = await loadEndpoint(cwd, config)
+
   app.use((req, res, next) => router(req, res, next))
 
   app.listen(config.port, () => {
     consola.log(`🚀 Express server listening at http://localhost:${config.port}`)
   })
 
-  context(config.esbuild).then((ctx) => ctx.watch())
-}
+  const watcher = chokidar.watch(cwd, {
+    ignored: [/node_modules/, `**/${config.esbuild.outdir ?? 'dist'}/**`],
+  })
 
-const isStringArray = (value: Array<unknown>): value is string[] => {
-  return value.every((v) => typeof v === 'string')
+  watcher.on('change', async () => {
+    console.log('✨ endpoint changed 👉 rebuilding ...')
+    await build(config.esbuild)
+    router = await loadEndpoint(cwd, config)
+  })
 }
 
 /**
  * A root dev server serves all API routes from the {@link AntConfig['directory']}
  */
 export async function startRootDevServer(config: Required<AntConfig>) {
-  consola.info(
-    `🎏 Starting root dev server. All endpoints from ${config.directory} will be served.`
-  )
+  consola.info(`🎏 Starting root dev server. Endpoints from ${config.directory} will be served.`)
 
   const endpoints = findAllProjects(config.directory)
 
-  //---------------------------------------------------------------------------------
-  // Build.
-  //---------------------------------------------------------------------------------
-
-  /**
-   * Cache the build configs for each endpoint.
-   */
   const endpointBuildConfigs = endpoints.reduce((configs, endpoint) => {
     /**
      * {@link BuildOptions.entryPoints} can be way too many different things !!
@@ -154,9 +143,6 @@ export async function startRootDevServer(config: Required<AntConfig>) {
     return configs
   }, {} as Record<string, BuildOptions>)
 
-  /**
-   * Build all endpoints.
-   */
   await Promise.all(
     endpoints.map(async (endpoint) => {
       consola.info(`🔨 Building ${endpoint} to ${endpointBuildConfigs[endpoint].outdir}`)
@@ -165,94 +151,48 @@ export async function startRootDevServer(config: Required<AntConfig>) {
     })
   )
 
-  //---------------------------------------------------------------------------------
-  // Express development server.
-  //---------------------------------------------------------------------------------
-
   const app = express()
 
   /**
-   * Mutable global router can be hot-swapped when routes change.
-   * app.use ( global router .use (endpoint router ) )
-   * To update the routes, re-assign the global router, and load all endpoint routes into the new router.
+   * @link https://github.com/expressjs/express/issues/2596
+   * Re-assigning a new router effectively refreshes all the routes.
+   * Here, we also have to create routers for each endpoint and refresh them individually as needed.
    */
   let router = Router()
 
-  app.use((req, res, next) => router(req, res, next))
+  const endpointMiddlewares: Record<string, Router> = {}
 
-  /**
-   * Express will assign middleware based on endpoints.
-   */
-  const endpointMiddleware: Record<string, Router> = {}
+  await Promise.all(
+    endpoints.map(async (endpoint) => {
+      endpointMiddlewares[endpoint] = await loadEndpoint(endpoint, config)
+    })
+  )
 
-  /**
-   * Replace the global router with a fresh one and reload all endpoints.
-   */
   const refreshRouter = () => {
     router = Router()
-
     endpoints.forEach((endpoint) => {
       consola.info(`🔄 Loading ${endpoint} from ${endpointBuildConfigs[endpoint].outdir}`)
-
-      router.use(`/${relative(config.directory, endpoint)}`, (req, res, next) =>
-        endpointMiddleware[endpoint](req, res, next)
-      )
+      router.use(`/${relative(config.directory, endpoint)}`, endpointMiddlewares[endpoint])
     })
   }
 
-  /**
-   * Load a specific endpoint's middleware.
-   */
-  const loadEndpoint = async (endpoint: string) => {
-    consola.info(`⚙  Setting up router for ${endpoint}`)
+  refreshRouter()
 
-    endpointMiddleware[endpoint] = Router()
-
-    const file = resolve(endpoint, `${config.esbuild.outdir}/index.js`)
-
-    const internalHandlers = await import(`${file}?update=${Date.now()}`)
-
-    const handlerMethods = internalHandlers.default
-      ? Object.keys(internalHandlers.default)
-      : Object.keys(internalHandlers)
-
-    const handlerFunctions = internalHandlers.default ? internalHandlers.default : internalHandlers
-
-    handlerMethods.filter(isMethod).forEach((key) => {
-      endpointMiddleware[endpoint][MethodsToExpress[key]](
-        '/',
-        createExpressHandler(handlerFunctions[key])
-      )
-    })
-  }
-
-  /**
-   * Prepare the development server by loading all the endpoints and refreshing the routes.
-   */
-  await Promise.all(endpoints.map(loadEndpoint)).then(refreshRouter)
+  app.use((req, res, next) => router(req, res, next))
 
   app.listen(config.port, () => {
     consola.info(`🎉 Express server listening at http://localhost:${config.port}`)
   })
 
-  //---------------------------------------------------------------------------------
-  // Watch file changes.
-  //---------------------------------------------------------------------------------
-
   const watcher = chokidar.watch(endpoints, {
-    ignored: [
-      /(^|[/\\])\../, // dotfiles
-      /node_modules/, // node_modules
-      `**/${config.esbuild.outdir ?? 'dist'}/**`, // build output directory
-    ],
+    ignored: [/node_modules/, `**/${config.esbuild.outdir ?? 'dist'}/**`],
   })
 
   watcher.on('change', async (path) => {
     const endpoint = searchForPackageRoot(path)
-
     console.log('✨ endpoint changed: ', endpoint)
-
     await build(endpointBuildConfigs[endpoint])
-    await loadEndpoint(endpoint).then(refreshRouter)
+    endpointMiddlewares[endpoint] = await loadEndpoint(endpoint, config)
+    refreshRouter()
   })
 }

@@ -102,7 +102,7 @@ interface EntryFileConfig {
  */
 const createHandlerTemplate = (httpMethod: string) => `\
 const ${httpMethod}: InternalHandler = async (event) => {
-  return createOKResult({ event }, zeroUUID);
+  return createOKResult({ params: event.params }, zeroUUID);
 };\
 `
 
