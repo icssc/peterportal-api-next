@@ -1,20 +1,20 @@
-import type { AppProps, StackProps } from 'aws-cdk-lib'
-import type { BuildOptions } from 'esbuild'
-import { loadConfig } from 'unconfig'
+import type { AppProps, StackProps } from "aws-cdk-lib";
+import type { BuildOptions } from "esbuild";
+import { loadConfig } from "unconfig";
 
 /**
  * AntStack's AWS configuration.
  */
 interface AntAWS {
-  id: string
+  id: string;
 
-  stage: string
+  stage: string;
 
-  zoneName: string
+  zoneName: string;
 
-  appProps?: AppProps
+  appProps?: AppProps;
 
-  stackProps?: StackProps
+  stackProps?: StackProps;
 }
 
 /**
@@ -25,7 +25,7 @@ interface AntRuntime {
    * The name of the built file with all the handlers for the route.
    * @example dist/index.js
    */
-  entryFile: string
+  entryFile: string;
 
   /**
    * What to name the imported handles from the built entry file.
@@ -33,26 +33,26 @@ interface AntRuntime {
    * @example entryHandlersName = InternalHandlers
    * import * as InternalHandlers from './<entryFile>'
    */
-  entryHandlersName: string
+  entryHandlersName: string;
 
   /**
    * Name of lambda-core file. Contains all the necessary runtime code/helpers.
    * @example lambdaCoreFile = 'lambda-core.js'
    * import { createNodeHandler } from './lambda-core.js'
    */
-  lambdaCoreFile: string
+  lambdaCoreFile: string;
 
   /**
    * Name of dynamically generated script for AWS Lambda's NodeJS runtime.
    * @example 'lambda-node-runtime.js'
    */
-  nodeRuntimeFile: string
+  nodeRuntimeFile: string;
 
   /**
    * Name of dynamically generated script for AWS Lambda's Bun runtime.
    * @example 'lambda-bun-runtime.js'
    */
-  bunRuntimeFile: string
+  bunRuntimeFile: string;
 }
 
 /**
@@ -62,54 +62,54 @@ export interface AntConfig {
   /**
    * The package manager used by the project.
    */
-  packageManager: 'npm' | 'yarn' | 'pnpm'
+  packageManager: "npm" | "yarn" | "pnpm";
 
   /**
    * Directory to recursively find API routes.
    */
-  directory: string
+  directory: string;
 
   /**
    * Port to start the Express development server on.
    */
-  port: number | string
+  port: number | string;
 
   /**
    * Esbuild options.
    */
-  esbuild: BuildOptions
+  esbuild: BuildOptions;
 
   /**
    * Options for dynamically generating the different AWS Lambda runtime scripts.
    */
-  runtime: AntRuntime
+  runtime: AntRuntime;
 
   /**
    * AWS configuration.
    */
-  aws: AntAWS
+  aws: AntAWS;
 
   /**
    * Environment variables.
    */
-  env: Record<string, string>
+  env: Record<string, string>;
 }
 
 /**
  * Helper function to create configuration with type information in the input.
  * FIXME: this is very slow when used with {@link loadConfig} !
  */
-export const defineConfig = (config: AntConfig) => config
+export const defineConfig = (config: AntConfig) => config;
 
 export async function getConfig() {
   const loadedConfig = await loadConfig<Required<AntConfig>>({
     sources: [
       {
-        files: ['ant.config'],
-        extensions: ['ts', 'js'],
+        files: ["ant.config"],
+        extensions: ["ts", "js"],
       },
     ],
-  })
+  });
 
-  return loadedConfig.config
+  return loadedConfig.config;
 }

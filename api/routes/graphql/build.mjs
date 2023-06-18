@@ -1,44 +1,44 @@
-import { cp, mkdir, rm } from 'fs/promises'
-import { dirname, join } from 'path'
-import { fileURLToPath } from 'url'
-import { build } from 'esbuild'
+import { cp, mkdir, rm } from "fs/promises";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+import { build } from "esbuild";
 
-const __dirname = dirname(fileURLToPath(import.meta.url))
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function buildApp() {
   await build({
     bundle: true,
-    entryPoints: [join(__dirname, 'index.ts')],
-    logLevel: 'info',
+    entryPoints: [join(__dirname, "index.ts")],
+    logLevel: "info",
     minify: true,
-    outfile: join(__dirname, 'dist/index.cjs'),
-    platform: 'node',
+    outfile: join(__dirname, "dist/index.cjs"),
+    platform: "node",
     plugins: [
       {
-        name: 'clean',
+        name: "clean",
         setup(build) {
           build.onStart(async () => {
-            await rm(join(__dirname, 'dist/'), {
+            await rm(join(__dirname, "dist/"), {
               recursive: true,
               force: true,
-            })
-            await mkdir(join(__dirname, 'dist/'))
-          })
+            });
+            await mkdir(join(__dirname, "dist/"));
+          });
         },
       },
       {
-        name: 'copy',
+        name: "copy",
         setup(build) {
           build.onEnd(async () => {
-            await cp(join(__dirname, 'schema/'), join(__dirname, 'dist/schema/'), {
+            await cp(join(__dirname, "schema/"), join(__dirname, "dist/schema/"), {
               recursive: true,
-            })
-          })
+            });
+          });
         },
       },
     ],
-    target: 'node16',
-  })
+    target: "node16",
+  });
 }
 
-buildApp()
+buildApp();

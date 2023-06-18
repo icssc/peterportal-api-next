@@ -1,4 +1,4 @@
-import { Quarter } from './constants'
+import { Quarter } from "./constants";
 
 /**
  * A section which has grades data associated with it.
@@ -7,32 +7,32 @@ export type GradeSection = {
   /**
    * The year the section was offered.
    */
-  year: string
+  year: string;
   /**
    * The quarter the section was offered.
    */
-  quarter: Quarter
+  quarter: Quarter;
   /**
    * The department code.
    */
-  department: string
+  department: string;
   /**
    * The course number the section belongs to.
    */
-  courseNumber: string
+  courseNumber: string;
   /**
    * The numeric part of the course number.
    */
-  courseNumeric: number
+  courseNumeric: number;
   /**
    * The section code of the section.
    */
-  sectionCode: string
+  sectionCode: string;
   /**
    * The shortened name(s) of the instructor(s) who taught the section.
    */
-  instructors: string[]
-}
+  instructors: string[];
+};
 
 /**
  * The distribution of grades within a section or among all queried sections.
@@ -41,46 +41,46 @@ export type GradeDistribution = {
   /**
    * How many students attained an A+/A/A-.
    */
-  gradeACount: number
+  gradeACount: number;
   /**
    * How many students attained a B+/B/B-.
    */
-  gradeBCount: number
+  gradeBCount: number;
   /**
    * How many students attained a C+/C/C-.
    */
-  gradeCCount: number
+  gradeCCount: number;
   /**
    * How many students attained a D+/D/D-.
    */
-  gradeDCount: number
+  gradeDCount: number;
   /**
    * How many students attained an F.
    */
-  gradeFCount: number
+  gradeFCount: number;
   /**
    * How many students attained a P.
    */
-  gradePCount: number
+  gradePCount: number;
   /**
    * How many students attained an NP.
    */
-  gradeNPCount: number
+  gradeNPCount: number;
   /**
    * How many students attained a W.
    */
-  gradeWCount: number
+  gradeWCount: number;
   /**
    * The average GPA of all assigned grades in the object.
    */
-  averageGPA: number
-}
+  averageGPA: number;
+};
 
 /**
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/grades/raw``.
  */
-export type GradesRaw = (GradeSection & GradeDistribution)[]
+export type GradesRaw = (GradeSection & GradeDistribution)[];
 
 /**
  * An object that represents aggregate grades statistics for a given query.
@@ -91,12 +91,12 @@ export type GradesAggregate = {
   /**
    * The list of sections in the query.
    */
-  sectionList: GradeSection[]
+  sectionList: GradeSection[];
   /**
    * The combined grades distribution of all sections in the query.
    */
-  gradeDistribution: GradeDistribution
-}
+  gradeDistribution: GradeDistribution;
+};
 
 /**
  * The type of the payload returned on a successful response from querying
@@ -106,21 +106,21 @@ export type GradesOptions = {
   /**
    * The list of years that matched the given filters.
    */
-  years: string[]
+  years: string[];
   /**
    * The list of departments that matched the given filters.
    */
-  departments: string[]
+  departments: string[];
   /**
    * The list of course numbers that matched the given filters.
    */
-  courseNumbers: string[]
+  courseNumbers: string[];
   /**
    * The list of section codes that matched the given filters.
    */
-  sectionCodes: string[]
+  sectionCodes: string[];
   /**
    * The list of instructors that matched the given filters.
    */
-  instructors: string[]
-}
+  instructors: string[];
+};

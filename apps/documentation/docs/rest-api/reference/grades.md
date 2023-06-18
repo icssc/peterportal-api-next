@@ -94,22 +94,22 @@ curl "https://api-next.peterportal.org/v1/rest/grades/raw?year=2022&quarter=Fall
 ```typescript
 // https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
 type GradesRaw = {
-  year: string
-  quarter: string
-  department: string
-  courseNumber: string
-  sectionCode: string
-  instructors: string[]
-  gradeACount: number
-  gradeBCount: number
-  gradeCCount: number
-  gradeDCount: number
-  gradeFCount: number
-  gradePCount: number
-  gradeNPCount: number
-  gradeWCount: number
-  averageGPA: number
-}[]
+  year: string;
+  quarter: string;
+  department: string;
+  courseNumber: string;
+  sectionCode: string;
+  instructors: string[];
+  gradeACount: number;
+  gradeBCount: number;
+  gradeCCount: number;
+  gradeDCount: number;
+  gradeFCount: number;
+  gradePCount: number;
+  gradeNPCount: number;
+  gradeWCount: number;
+  averageGPA: number;
+}[];
 ```
 
 </TabItem>
@@ -177,25 +177,25 @@ curl "https://api-next.peterportal.org/v1/rest/grades/aggregate?year=2022&quarte
 // https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
 type GradesAggregate = {
   sectionList: {
-    year: string
-    quarter: string
-    department: string
-    courseNumber: string
-    sectionCode: string
-    instructors: string[]
-  }[]
+    year: string;
+    quarter: string;
+    department: string;
+    courseNumber: string;
+    sectionCode: string;
+    instructors: string[];
+  }[];
   gradeDistribution: {
-    gradeACount: number
-    gradeBCount: number
-    gradeCCount: number
-    gradeDCount: number
-    gradeFCount: number
-    gradePCount: number
-    gradeNPCount: number
-    gradeWCount: number
-    averageGPA: number
-  }
-}
+    gradeACount: number;
+    gradeBCount: number;
+    gradeCCount: number;
+    gradeDCount: number;
+    gradeFCount: number;
+    gradePCount: number;
+    gradeNPCount: number;
+    gradeWCount: number;
+    averageGPA: number;
+  };
+};
 ```
 
 </TabItem>
@@ -259,12 +259,12 @@ curl "https://api-next.peterportal.org/v1/rest/grades/options?department=COMPSCI
 ```typescript
 // https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
 type GradesOptions = {
-  years: string[]
-  departments: string[]
-  courseNumbers: string[]
-  sectionCodes: string[]
-  instructors: string[]
-}
+  years: string[];
+  departments: string[];
+  courseNumbers: string[];
+  sectionCodes: string[];
+  instructors: string[];
+};
 ```
 
 </TabItem>

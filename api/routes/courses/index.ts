@@ -1,25 +1,25 @@
-import { PrismaClient } from '@libs/db'
-import type { LambdaHandler, RawHandler } from 'api-core'
-import { createErrorResult, createLambdaHandler, createOKResult } from 'api-core'
-import { Course } from 'peterportal-api-next-types'
+import { PrismaClient } from "@libs/db";
+import type { LambdaHandler, RawHandler } from "api-core";
+import { createErrorResult, createLambdaHandler, createOKResult } from "api-core";
+import { Course } from "peterportal-api-next-types";
 
-import { normalizeCourse } from './lib'
+import { normalizeCourse } from "./lib";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
 export const rawHandler: RawHandler = async (request) => {
-  const { method, path, params, requestId } = request.getParams()
+  const { method, path, params, requestId } = request.getParams();
   if (request.isWarmerRequest()) {
     try {
-      await prisma.$connect()
-      return createOKResult('Warmed', requestId)
+      await prisma.$connect();
+      return createOKResult("Warmed", requestId);
     } catch (e) {
-      createErrorResult(500, e, requestId)
+      createErrorResult(500, e, requestId);
     }
   }
   switch (method) {
-    case 'HEAD':
-    case 'GET':
+    case "HEAD":
+    case "GET":
       if (params?.id) {
         try {
           return createOKResult<Course>(
@@ -29,18 +29,18 @@ export const rawHandler: RawHandler = async (request) => {
               })
             ),
             requestId
-          )
+          );
         } catch {
-          return createErrorResult(404, `Course ${params.id} not found`, requestId)
+          return createErrorResult(404, `Course ${params.id} not found`, requestId);
         }
       } else {
         // TODO implement arbitrary filtering
-        return createErrorResult(400, 'Course number not provided', requestId)
+        return createErrorResult(400, "Course number not provided", requestId);
       }
     default:
-      return createErrorResult(400, `Cannot ${method} ${path}`, requestId)
+      return createErrorResult(400, `Cannot ${method} ${path}`, requestId);
   }
-}
+};
 
 export const lambdaHandler: LambdaHandler = async (event, context) =>
-  createLambdaHandler(rawHandler)(event, context)
+  createLambdaHandler(rawHandler)(event, context);

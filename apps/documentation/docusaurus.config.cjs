@@ -1,33 +1,33 @@
 // @ts-check
 
-const lightCodeTheme = require('prism-react-renderer/themes/github')
-const darkCodeTheme = require('prism-react-renderer/themes/dracula')
+const lightCodeTheme = require("prism-react-renderer/themes/github");
+const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 
 /** @type {import('@docusaurus/types').Config} */
 const config = {
-  title: 'PeterPortal API Docs',
-  tagline: 'An API that provides easy access to public data from UC Irvine',
-  favicon: 'img/favicon.png',
-  url: 'https://docs.api-next.peterportal.org',
-  baseUrl: '/',
+  title: "PeterPortal API Docs",
+  tagline: "An API that provides easy access to public data from UC Irvine",
+  favicon: "img/favicon.png",
+  url: "https://docs.api-next.peterportal.org",
+  baseUrl: "/",
   i18n: {
-    defaultLocale: 'en',
-    locales: ['en'],
+    defaultLocale: "en",
+    locales: ["en"],
   },
 
   presets: [
     [
-      'classic',
+      "classic",
       /** @type {import('@docusaurus/preset-classic').Options} */
       ({
         docs: {
-          sidebarPath: require.resolve('./sidebars.cjs'),
-          editUrl: 'https://github.com/icssc/peterportal-api-next/tree/documentation/docs/',
+          sidebarPath: require.resolve("./sidebars.cjs"),
+          editUrl: "https://github.com/icssc/peterportal-api-next/tree/documentation/docs/",
           showLastUpdateTime: true,
-          remarkPlugins: [[require('@docusaurus/remark-plugin-npm2yarn'), { sync: true }]],
+          remarkPlugins: [[require("@docusaurus/remark-plugin-npm2yarn"), { sync: true }]],
         },
         theme: {
-          customCss: require.resolve('./src/css/custom.css'),
+          customCss: require.resolve("./src/css/custom.css"),
         },
       }),
     ],
@@ -35,7 +35,7 @@ const config = {
 
   plugins: [
     [
-      'docusaurus-plugin-dotenv',
+      "docusaurus-plugin-dotenv",
       {
         systemvars: true,
         silent: true,
@@ -47,50 +47,50 @@ const config = {
     /** @type {import('@docusaurus/preset-classic').ThemeConfig} */
     ({
       navbar: {
-        title: 'PeterPortal API',
+        title: "PeterPortal API",
         logo: {
-          alt: 'PeterPortal Logo',
-          src: 'img/favicon.png',
+          alt: "PeterPortal Logo",
+          src: "img/favicon.png",
         },
         items: [
           {
-            type: 'doc',
-            docId: 'getting-started',
-            position: 'left',
-            label: 'Docs',
+            type: "doc",
+            docId: "getting-started",
+            position: "left",
+            label: "Docs",
           },
           {
-            position: 'left',
-            label: 'Sandbox',
-            href: '/sandbox',
+            position: "left",
+            label: "Sandbox",
+            href: "/sandbox",
           },
           {
-            href: 'https://github.com/icssc/peterportal-api-next',
-            className: 'header-github-link',
-            'aria-label': 'GitHub repository',
-            position: 'right',
+            href: "https://github.com/icssc/peterportal-api-next",
+            className: "header-github-link",
+            "aria-label": "GitHub repository",
+            position: "right",
           },
         ],
       },
       footer: {
         logo: {
-          src: 'img/icssc.png',
-          alt: 'ICS Student Council Logo',
-          href: 'https://icssc.club',
+          src: "img/icssc.png",
+          alt: "ICS Student Council Logo",
+          href: "https://icssc.club",
         },
-        style: 'dark',
+        style: "dark",
         links: [
           {
-            label: 'Discord',
-            href: 'https://discord.gg/Zu8KZHERtJ',
+            label: "Discord",
+            href: "https://discord.gg/Zu8KZHERtJ",
           },
           {
-            label: 'Fellowship',
-            href: 'https://fellowship.icssc.club',
+            label: "Fellowship",
+            href: "https://fellowship.icssc.club",
           },
           {
-            label: 'GitHub',
-            href: 'https://github.com/icssc',
+            label: "GitHub",
+            href: "https://github.com/icssc",
           },
         ],
         copyright: `Copyright © ${new Date().getFullYear()} ICSSC Projects. Built with Docusaurus.`,
@@ -100,6 +100,6 @@ const config = {
         darkTheme: darkCodeTheme,
       },
     }),
-}
+};
 
-module.exports = config
+module.exports = config;

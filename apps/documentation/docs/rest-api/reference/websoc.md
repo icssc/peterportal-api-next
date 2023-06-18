@@ -194,49 +194,49 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
 // https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/websoc.ts
 type WebsocAPIResponse = {
   schools: {
-    schoolName: string
-    schoolComment: string
+    schoolName: string;
+    schoolComment: string;
     departments: {
-      deptName: string
-      deptCode: string
-      deptComment: string
+      deptName: string;
+      deptCode: string;
+      deptComment: string;
       courses: {
-        deptCode: string
-        courseNumber: string
-        courseTitle: string
-        courseComment: string
-        prerequisiteLink: string
+        deptCode: string;
+        courseNumber: string;
+        courseTitle: string;
+        courseComment: string;
+        prerequisiteLink: string;
         sections: {
-          sectionCode: string
-          sectionType: string
-          sectionNum: string
-          units: string
-          instructors: string[]
+          sectionCode: string;
+          sectionType: string;
+          sectionNum: string;
+          units: string;
+          instructors: string[];
           meetings: {
-            days: string
-            time: string
-            bldg: string[]
-          }[]
-          finalExam: string
-          maxCapacity: string
+            days: string;
+            time: string;
+            bldg: string[];
+          }[];
+          finalExam: string;
+          maxCapacity: string;
           numCurrentlyEnrolled: {
-            totalEnrolled: string
-            sectionEnrolled: string
-          }
-          numOnWaitlist: string
-          numWaitlistCap: string
-          numRequested: string
-          numNewOnlyReserved: string
-          restrictions: string
-          status: 'OPEN' | 'Waitl' | 'FULL' | 'NewOnly'
-          sectionComment: string
-        }[]
-      }[]
-      sectionCodeRangeComments: string[]
-      courseNumberRangeComments: string[]
-    }[]
-  }[]
-}
+            totalEnrolled: string;
+            sectionEnrolled: string;
+          };
+          numOnWaitlist: string;
+          numWaitlistCap: string;
+          numRequested: string;
+          numNewOnlyReserved: string;
+          restrictions: string;
+          status: "OPEN" | "Waitl" | "FULL" | "NewOnly";
+          sectionComment: string;
+        }[];
+      }[];
+      sectionCodeRangeComments: string[];
+      courseNumberRangeComments: string[];
+    }[];
+  }[];
+};
 ```
 
 </TabItem>

@@ -1,17 +1,17 @@
-import clsx from 'clsx'
-import React from 'react'
-import Layout from '@theme/Layout'
-import Link from '@docusaurus/Link'
-import Heading from '@theme/Heading'
-import useDocusaurusContext from '@docusaurus/useDocusaurusContext'
+import clsx from "clsx";
+import React from "react";
+import Layout from "@theme/Layout";
+import Link from "@docusaurus/Link";
+import Heading from "@theme/Heading";
+import useDocusaurusContext from "@docusaurus/useDocusaurusContext";
 
-import styles from './index.module.css'
+import styles from "./index.module.css";
 
 function HomepageHeader() {
-  const { siteConfig } = useDocusaurusContext()
+  const { siteConfig } = useDocusaurusContext();
 
   return (
-    <header className={clsx('hero hero--primary', styles.banner)}>
+    <header className={clsx("hero hero--primary", styles.banner)}>
       <div className="container">
         <Heading as="h1" className="hero__title">
           PeterPortal API
@@ -19,7 +19,7 @@ function HomepageHeader() {
         <p className="hero__subtitle">{siteConfig.tagline}</p>
         <div className={styles.buttons}>
           <Link
-            className={clsx('button button--secondary button--lg', styles.gettingStartedButton)}
+            className={clsx("button button--secondary button--lg", styles.gettingStartedButton)}
             to="/docs/getting-started"
           >
             Get Started
@@ -27,7 +27,7 @@ function HomepageHeader() {
         </div>
       </div>
     </header>
-  )
+  );
 }
 
 export default function Home() {
@@ -35,5 +35,5 @@ export default function Home() {
     <Layout>
       <HomepageHeader />
     </Layout>
-  )
+  );
 }

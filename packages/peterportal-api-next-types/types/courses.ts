@@ -1,4 +1,4 @@
-import { CourseLevel, GECategory } from './constants'
+import { CourseLevel, GECategory } from "./constants";
 
 /**
  * An object representing a prerequisite tree for a course.
@@ -7,12 +7,12 @@ export type PrerequisiteTree = {
   /**
    * All of these courses must have been taken before this course can be taken.
    */
-  AND?: Array<string | PrerequisiteTree>
+  AND?: Array<string | PrerequisiteTree>;
   /**
    * One of these courses must have been taken before this course can be taken.
    */
-  OR?: Array<string | PrerequisiteTree>
-}
+  OR?: Array<string | PrerequisiteTree>;
+};
 
 /**
  * An object that represents a course.
@@ -24,105 +24,105 @@ export type Course = {
   /**
    * The course ID.
    */
-  id: string
+  id: string;
   /**
    * The department code that the course belongs to.
    */
-  department: string
+  department: string;
   /**
    * The course number of the course.
    */
-  courseNumber: string
+  courseNumber: string;
   /**
    * The numeric part of the course number.
    */
-  courseNumeric: number
+  courseNumeric: number;
   /**
    * The school that the course belongs to.
    */
-  school: string
+  school: string;
   /**
    * The title of the course.
    */
-  title: string
+  title: string;
   /**
    * The level of the course.
    */
-  courseLevel: CourseLevel
+  courseLevel: CourseLevel;
   /**
    * The minimum number of units that can be earned by taking the course.
    */
-  minUnits: number
+  minUnits: number;
   /**
    * The maximum number of units that can be earned by taking the course.
    */
-  maxUnits: number
+  maxUnits: number;
   /**
    * The course description.
    */
-  description: string
+  description: string;
   /**
    * The name of the department that the course belongs to.
    */
-  departmentName: string
+  departmentName: string;
   /**
    * The UCINetIDs of all instructors who have taught this course in the past.
    */
-  instructorHistory: string[]
+  instructorHistory: string[];
   /**
    * The prerequisite tree object for the course.
    */
-  prerequisiteTree: PrerequisiteTree
+  prerequisiteTree: PrerequisiteTree;
   /**
    * The list of prerequisites for the course.
    */
-  prerequisiteList: string[]
+  prerequisiteList: string[];
   /**
    * The catalogue's prerequisite text for the course.
    */
-  prerequisiteText: string
+  prerequisiteText: string;
   /**
    * The courses for which this course is a prerequisite.
    */
-  prerequisiteFor: string[]
+  prerequisiteFor: string[];
   /**
    * The repeat policy for this course.
    */
-  repeatability: string
+  repeatability: string;
   /**
    * The grading option(s) available for this course.
    */
-  gradingOption: string
+  gradingOption: string;
   /**
    * The course(s) with which this course is concurrent.
    */
-  concurrent: string
+  concurrent: string;
   /**
    * The course(s) that are the same as this course.
    */
-  sameAs: string
+  sameAs: string;
   /**
    * The enrollment restriction(s) placed on this course.
    */
-  restriction: string
+  restriction: string;
   /**
    * The course(s) with which this course overlaps.
    */
-  overlap: string
+  overlap: string;
   /**
    * The corequisites for this course.
    */
-  corequisites: string
+  corequisites: string;
   /**
    * The list of GE categories that this course fulfills.
    */
-  geList: GECategory[]
+  geList: GECategory[];
   /**
    * The catalogue's GE text for this course.
    */
-  geText: string
+  geText: string;
   /**
    * The list of terms in which this course was offered.
    */
-  terms: string[]
-}
+  terms: string[];
+};

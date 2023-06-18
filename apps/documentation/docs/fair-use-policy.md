@@ -31,24 +31,24 @@ The following is a non-exhaustive list of code snippets for doing so using vario
 <summary>Code</summary>
 
 ```js
-import fetch from 'cross-fetch' // ESM import
+import fetch from "cross-fetch"; // ESM import
 // const fetch = require("cross-fetch"); // CJS import
 
 const res = await fetch(
-  'https://api-next.peterportal.org/v1/rest/websoc' +
+  "https://api-next.peterportal.org/v1/rest/websoc" +
     new URLSearchParams({
-      year: '2023',
-      quarter: 'Spring',
-      department: 'COMPSCI',
+      year: "2023",
+      quarter: "Spring",
+      department: "COMPSCI",
     }),
   {
     headers: {
-      Referer: 'https://panteate.github.io/awesome-project',
+      Referer: "https://panteate.github.io/awesome-project",
       // other headers
     },
     // other options
   }
-)
+);
 ```
 
 </details>
@@ -59,21 +59,21 @@ const res = await fetch(
 <summary>Code</summary>
 
 ```js
-import axios from 'axios' // ESM import
+import axios from "axios"; // ESM import
 // const axios = require("axios"); // CJS import
 
-const res = await axios.get('https://api-next.peterportal.org/v1/rest/websoc', {
+const res = await axios.get("https://api-next.peterportal.org/v1/rest/websoc", {
   params: {
-    year: '2023',
-    quarter: 'Spring',
-    department: 'COMPSCI',
+    year: "2023",
+    quarter: "Spring",
+    department: "COMPSCI",
   },
   headers: {
-    Referer: 'https://panteate.github.io/awesome-project',
+    Referer: "https://panteate.github.io/awesome-project",
     // other headers
   },
   // other options
-})
+});
 ```
 
 </details>

@@ -1,7 +1,7 @@
-import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from 'aws-lambda'
-import type { RequestHandler } from 'express'
+import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
+import type { RequestHandler } from "express";
 
-import { logger } from '../logger.js'
+import { logger } from "../logger.js";
 import {
   type BunRequest,
   type InternalRequest,
@@ -9,13 +9,13 @@ import {
   transformBunRequest,
   transformExpressRequest,
   transformNodeRequest,
-} from './request.js'
+} from "./request.js";
 
 /**
  * A runtime-agnostic handler function.
  * Can be transformed into runtime specific handlers with the provided helper functions.
  */
-export type InternalHandler = (request: InternalRequest) => Promise<APIGatewayProxyResult>
+export type InternalHandler = (request: InternalRequest) => Promise<APIGatewayProxyResult>;
 
 /**
  * Create an Express handler for a route from an {@link InternalHandler}.
@@ -23,18 +23,18 @@ export type InternalHandler = (request: InternalRequest) => Promise<APIGatewayPr
  */
 export function createExpressHandler(handler: InternalHandler): RequestHandler {
   const expressHandler: RequestHandler = async (req, res) => {
-    const request = transformExpressRequest(req)
+    const request = transformExpressRequest(req);
 
-    logger.info(`Request: ${JSON.stringify(request.params)}`)
+    logger.info(`Request: ${JSON.stringify(request.params)}`);
 
-    const result = await handler(request)
+    const result = await handler(request);
 
-    res.status(result.statusCode)
-    res.set(result.headers)
-    res.send(JSON.parse(result.body))
-  }
+    res.status(result.statusCode);
+    res.set(result.headers);
+    res.send(JSON.parse(result.body));
+  };
 
-  return expressHandler
+  return expressHandler;
 }
 
 /**
@@ -42,14 +42,14 @@ export function createExpressHandler(handler: InternalHandler): RequestHandler {
  */
 export function createNodeHandler(handler: InternalHandler) {
   const nodeHandler = async (event: APIGatewayProxyEvent, context: Context) => {
-    const request = transformNodeRequest(event, context)
+    const request = transformNodeRequest(event, context);
 
-    logger.info(`Request: ${JSON.stringify(request.params)}`)
+    logger.info(`Request: ${JSON.stringify(request.params)}`);
 
-    return handler(request)
-  }
+    return handler(request);
+  };
 
-  return nodeHandler
+  return nodeHandler;
 }
 
 /**
@@ -57,18 +57,18 @@ export function createNodeHandler(handler: InternalHandler) {
  */
 export function createBunHandler(handler: InternalHandler) {
   const lambdaHandler = async (event: BunRequest) => {
-    const request = transformBunRequest(event)
+    const request = transformBunRequest(event);
 
-    logger.info(`Request: ${JSON.stringify(request.params)}`)
+    logger.info(`Request: ${JSON.stringify(request.params)}`);
 
-    const response = await handler(request)
+    const response = await handler(request);
 
-    const status = response.statusCode
+    const status = response.statusCode;
 
-    const headers = normalizeRecord(response.headers)
+    const headers = normalizeRecord(response.headers);
 
-    return new Response(response.body, { status, headers })
-  }
+    return new Response(response.body, { status, headers });
+  };
 
-  return lambdaHandler
+  return lambdaHandler;
 }
