@@ -4,8 +4,8 @@ const config = {
   parserOptions: {
     project: [
       './tsconfig.json',
-      './documentation/tsconfig.json',
-      'documentation/cdk/tsconfig.json',
+      './apps/documentation/tsconfig.json',
+      './apps/documentation/cdk/tsconfig.json',
     ],
   },
   plugins: ['react', 'react-hooks', 'import', 'jsx-a11y', '@typescript-eslint/eslint-plugin'],

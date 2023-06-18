@@ -2,8 +2,6 @@ packages:
   - libs/*
   - tools/*
   - api/**/*
-  - apps/**/*
-  - apps/**/*
+  - apps/api/*
   - packages/*
-  - documentation
-  - documentation/cdk
+  - apps/documentation/**/*
