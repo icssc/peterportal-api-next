@@ -1,7 +1,8 @@
-import { build } from "esbuild";
 import { cp, mkdir, rm } from "fs/promises";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+
+import { build } from "esbuild";
 
 // ESM hack for __dirname
 const cwd = dirname(fileURLToPath(import.meta.url));
@@ -46,15 +47,15 @@ async function buildApp() {
         name: "copy",
         setup(build) {
           build.onEnd(async () => {
-            await Promise.all(
-              camaroDeps.map((module) =>
-                cp(
-                  join(cwd, `../../node_modules/${module}`),
-                  join(cwd, `dist/node_modules/${module}`),
-                  { recursive: true }
-                )
-              )
-            );
+            // await Promise.all(
+            //   camaroDeps.map((module) =>
+            //     cp(
+            //       join(cwd, `../../node_modules/${module}`),
+            //       join(cwd, `dist/node_modules/${module}`),
+            //       { recursive: true }
+            //     )
+            //   )
+            // );
           });
         },
       },
