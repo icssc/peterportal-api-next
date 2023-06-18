@@ -80,7 +80,7 @@ jobs:
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
       - name: Deploy API stack
-        run: pnpm run ant:deploy
+        run: pnpm run ants:deploy
 
       - name: Deploy docs stack
         run: pnpm run deploy --filter="docs-cdk"

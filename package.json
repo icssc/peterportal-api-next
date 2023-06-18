@@ -6,8 +6,8 @@
   "type": "module",
   "scripts": {
     "postinstall": "husky install",
-    "ant:dev": "dotenv -c development -- ant dev",
-    "ant:deploy": "npx ant deploy",
+    "ants:dev": "dotenv -c development -- ants dev",
+    "ants:deploy": "ants deploy",
     "build": "turbo run build",
     "dev": "dotenv -c development -- turbo run dev",
     "deploy": "turbo run deploy",

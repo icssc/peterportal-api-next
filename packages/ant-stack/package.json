@@ -43,7 +43,7 @@
     }
   },
   "bin": {
-    "ant": "./dist/cli.js"
+    "ants": "./dist/cli.js"
   },
   "dependencies": {
     "arktype": "^1.0.14-alpha",
