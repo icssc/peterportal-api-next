@@ -1,10 +1,10 @@
-import { load } from "cheerio";
-import fetch from "cross-fetch";
-import { QuarterDates, quarters } from "peterportal-api-next-types";
+import { load } from 'cheerio'
+import fetch from 'cross-fetch'
+import { QuarterDates, quarters } from 'peterportal-api-next-types'
 
 /* region Constants */
 
-const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 /* region Helper functions */
 
@@ -17,15 +17,15 @@ const addSingleDateRow = (
   offset = 0
 ): void => {
   for (const [idx, date] of data[index].entries()) {
-    const currYear = idx == offset ? parseInt(year) : parseInt(year) + 1;
-    const [month, day] = date.split(" ");
+    const currYear = idx == offset ? parseInt(year) : parseInt(year) + 1
+    const [month, day] = date.split(' ')
     record[`${currYear} ${quarters[idx + offset]}`][key] = new Date(
       currYear,
       months.indexOf(month),
       parseInt(day)
-    );
+    )
   }
-};
+}
 
 const addMultipleDateRow = (
   data: string[][],
@@ -37,28 +37,28 @@ const addMultipleDateRow = (
   offset = 0
 ): void => {
   for (const [idx, date] of data[index].entries()) {
-    const currYear = idx == offset ? parseInt(year) : parseInt(year) + 1;
-    const start = date.split("–")[0];
-    let end = date.split("–")[1];
-    if (end === undefined) end = start;
-    const [startMonth, startDay] = start.split(" ");
-    let [endMonth, endDay] = end.split(" ");
+    const currYear = idx == offset ? parseInt(year) : parseInt(year) + 1
+    const start = date.split('–')[0]
+    let end = date.split('–')[1]
+    if (end === undefined) end = start
+    const [startMonth, startDay] = start.split(' ')
+    let [endMonth, endDay] = end.split(' ')
     if (endDay === undefined) {
-      endDay = endMonth;
-      endMonth = startMonth;
+      endDay = endMonth
+      endMonth = startMonth
     }
     record[`${currYear} ${quarters[idx + offset]}`][keyStart] = new Date(
       currYear,
       months.indexOf(startMonth),
       parseInt(startDay)
-    );
+    )
     record[`${currYear} ${quarters[idx + offset]}`][keyEnd] = new Date(
       currYear,
       months.indexOf(endMonth),
       parseInt(endDay)
-    );
+    )
   }
-};
+}
 
 /* endregion */
 
@@ -66,81 +66,81 @@ const addMultipleDateRow = (
 
 // Returns relevant date data for each term in the given academic year.
 export const getTermDateData = async (year: string): Promise<Record<string, QuarterDates>> => {
-  if (year.length !== 4 || isNaN(parseInt(year))) throw new Error("Error: Invalid year provided.");
-  const shortYear = year.slice(2);
+  if (year.length !== 4 || isNaN(parseInt(year))) throw new Error('Error: Invalid year provided.')
+  const shortYear = year.slice(2)
   const response = await fetch(
     `https://www.reg.uci.edu/calendars/quarterly/${year}-${
       parseInt(year, 10) + 1
     }/quarterly${shortYear}-${parseInt(shortYear, 10) + 1}.html`
-  );
-  if (response.status === 404) return {};
-  const quarterData: string[][] = [];
-  const summerSessionData: string[][] = [];
-  const $ = load(await response.text());
-  const $table = $("table.calendartable");
+  )
+  if (response.status === 404) return {}
+  const quarterData: string[][] = []
+  const summerSessionData: string[][] = []
+  const $ = load(await response.text())
+  const $table = $('table.calendartable')
   $table
     .eq(2)
-    .find("tr")
+    .find('tr')
     .each(function () {
       quarterData.push(
         $(this)
           .text()
-          .split("\n")
+          .split('\n')
           .map((x) => x.trim())
           .filter((x) => x.length)
           .slice(1)
-      );
-    });
+      )
+    })
   $table
     .eq(4)
-    .find("tr")
+    .find('tr')
     .each(function () {
       summerSessionData.push(
         $(this)
           .text()
-          .split("\n")
+          .split('\n')
           .map((x) => x.trim())
           .filter((x) => x.length)
           .slice(1)
-      );
-    });
+      )
+    })
   const ret = quarters
     .map((x, i) => `${i == 0 ? year : parseInt(year) + 1} ${x}`)
     .reduce((p, c) => {
-      p[c] = {};
-      return p;
-    }, {} as Record<string, Partial<QuarterDates>>);
-  addSingleDateRow(quarterData, 2, "instructionStart", ret, year);
-  addSingleDateRow(quarterData, 17, "instructionEnd", ret, year);
-  addMultipleDateRow(quarterData, 18, "finalsStart", "finalsEnd", ret, year);
+      p[c] = {}
+      return p
+    }, {} as Record<string, Partial<QuarterDates>>)
+  addSingleDateRow(quarterData, 2, 'instructionStart', ret, year)
+  addSingleDateRow(quarterData, 17, 'instructionEnd', ret, year)
+  addMultipleDateRow(quarterData, 18, 'finalsStart', 'finalsEnd', ret, year)
   addSingleDateRow(
     summerSessionData,
     // Before the 2021-22 academic year, Juneteenth was either not observed or observed during one of the Summer Sessions.
     // This change accounts for the difference in table row numbering caused by this change.
     2 + Number(parseInt(year, 10) > 2020),
-    "instructionStart",
+    'instructionStart',
     ret,
     year,
     3
-  );
-  addSingleDateRow(summerSessionData, 6, "instructionEnd", ret, year, 3);
-  addMultipleDateRow(summerSessionData, 7, "finalsStart", "finalsEnd", ret, year, 3);
-  console.log(ret);
+  )
+  addSingleDateRow(summerSessionData, 6, 'instructionEnd', ret, year, 3)
+  addMultipleDateRow(summerSessionData, 7, 'finalsStart', 'finalsEnd', ret, year, 3)
+  console.log(ret)
   // Normalize all terms to start on a Monday, or a Thursday if it is Fall.
   for (const key in ret) {
-    if (key.includes("Fall")) {
-      (ret[key] as QuarterDates).instructionStart.setDate(
+    if (key.includes('Fall')) {
+      ;(ret[key] as QuarterDates).instructionStart.setDate(
         (ret[key] as QuarterDates).instructionStart.getDate() -
           ((ret[key] as QuarterDates).instructionStart.getDay() - 4)
-      );
+      )
     } else {
-      (ret[key] as QuarterDates).instructionStart.setDate(
+      ;(ret[key] as QuarterDates).instructionStart.setDate(
         (ret[key] as QuarterDates).instructionStart.getDate() -
           ((ret[key] as QuarterDates).instructionStart.getDay() - 1)
-      );
+      )
     }
   }
-  return ret as Record<string, QuarterDates>;
-};
+  return ret as Record<string, QuarterDates>
+}
 
 /* endregion */

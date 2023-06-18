@@ -1,49 +1,50 @@
-import { Duration, Stack, StackProps } from "aws-cdk-lib";
-import { EndpointType, LambdaIntegration, ResponseType, RestApi } from "aws-cdk-lib/aws-apigateway";
-import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
-import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
-import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
-import * as lambda from "aws-cdk-lib/aws-lambda";
-import { Code, Function, FunctionProps, Runtime } from "aws-cdk-lib/aws-lambda";
-import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
-import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
-import { Construct } from "constructs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
+import { Duration, Stack, StackProps } from 'aws-cdk-lib'
+import { EndpointType, LambdaIntegration, ResponseType, RestApi } from 'aws-cdk-lib/aws-apigateway'
+import { Certificate } from 'aws-cdk-lib/aws-certificatemanager'
+import { Rule, RuleTargetInput, Schedule } from 'aws-cdk-lib/aws-events'
+import { LambdaFunction } from 'aws-cdk-lib/aws-events-targets'
+import * as lambda from 'aws-cdk-lib/aws-lambda'
+import { Code, Function, FunctionProps, Runtime } from 'aws-cdk-lib/aws-lambda'
+import { ARecord, HostedZone, RecordTarget } from 'aws-cdk-lib/aws-route53'
+import { ApiGateway } from 'aws-cdk-lib/aws-route53-targets'
+import { Construct } from 'constructs'
 
 export class ApiStack extends Stack {
-  private api: RestApi;
-  private readonly props: StackProps;
-  private readonly env: Record<string, string>;
-  private readonly functions: Record<string, lambda.Function> = {};
-  private readonly integrations: Record<string, LambdaIntegration> = {};
-  private readonly rules: Record<string, Rule> = {};
+  private api: RestApi
+  private readonly props: StackProps
+  private readonly env: Record<string, string>
+  private readonly functions: Record<string, lambda.Function> = {}
+  private readonly integrations: Record<string, LambdaIntegration> = {}
+  private readonly rules: Record<string, Rule> = {}
 
   constructor(scope: Construct, id: string) {
-    if (!process.env.CERTIFICATE_ARN) throw new Error("Certificate ARN not provided. Stop.");
-    if (!process.env.DATABASE_URL) throw new Error("Database URL not provided. Stop.");
-    if (!process.env.HOSTED_ZONE_ID) throw new Error("Hosted Zone ID not provided. Stop.");
+    if (!process.env.CERTIFICATE_ARN) throw new Error('Certificate ARN not provided. Stop.')
+    if (!process.env.DATABASE_URL) throw new Error('Database URL not provided. Stop.')
+    if (!process.env.HOSTED_ZONE_ID) throw new Error('Hosted Zone ID not provided. Stop.')
 
-    let stage: string;
+    let stage: string
+
     switch (process.env.NODE_ENV) {
-      case "production":
-        stage = "prod";
-        break;
-      case "staging":
+      case 'production':
+        stage = 'prod'
+        break
+      case 'staging':
         if (!process.env.PR_NUM)
-          throw new Error("Running in staging environment but no PR number specified. Stop.");
-        stage = `staging-${process.env.PR_NUM}`;
-        break;
-      case "development":
-        throw new Error("Cannot deploy stack in development environment. Stop.");
+          throw new Error('Running in staging environment but no PR number specified. Stop.')
+        stage = `staging-${process.env.PR_NUM}`
+        break
+      case 'development':
+        throw new Error('Cannot deploy stack in development environment. Stop.')
       default:
-        throw new Error("Invalid environment specified. Stop.");
+        throw new Error('Invalid environment specified. Stop.')
     }
 
     const props: StackProps = {
-      env: { region: "us-east-1" },
+      env: { region: 'us-east-1' },
       terminationProtection: /*stage === "prod"*/ false,
-    };
+    }
 
     const env = {
       certificateArn: process.env.CERTIFICATE_ARN,
@@ -51,13 +52,71 @@ export class ApiStack extends Stack {
       hostedZoneId: process.env.HOSTED_ZONE_ID,
       nodeEnv: process.env.NODE_ENV,
       stage,
-    };
-    super(scope, `${id}-${stage}`, props);
+    }
 
-    this.props = props;
-    this.env = env;
+    super(scope, `${id}-${stage}`, props)
 
-    this.setupAPI();
+    this.props = props
+    this.env = env
+
+    const { certificateArn, hostedZoneId } = this.env
+    const recordName = `${stage === 'prod' ? '' : `${stage}.`}api-next`
+    const zoneName = 'peterportal.org'
+
+    const api = new RestApi(this, `peterportal-api-next-${stage}`, {
+      defaultCorsPreflightOptions: {
+        allowOrigins: ['*'],
+        allowHeaders: ['Apollo-Require-Preflight', 'Content-Type'],
+        allowMethods: ['GET', 'HEAD', 'POST'],
+      },
+      disableExecuteApiEndpoint: true,
+      domainName: {
+        domainName: `${recordName}.${zoneName}`,
+        certificate: Certificate.fromCertificateArn(this, 'peterportal-cert', certificateArn),
+      },
+      endpointTypes: [EndpointType.EDGE],
+      minimumCompressionSize: 128 * 1024, // 128 KiB
+      restApiName: `peterportal-api-next-${stage}`,
+    })
+
+    new ARecord(this, `peterportal-api-next-a-record-${stage}`, {
+      zone: HostedZone.fromHostedZoneAttributes(this, 'peterportal-hosted-zone', {
+        zoneName,
+        hostedZoneId,
+      }),
+      recordName,
+      target: RecordTarget.fromAlias(new ApiGateway(api)),
+    })
+
+    api.addGatewayResponse(`peterportal-api-next-${stage}-5xx`, {
+      type: ResponseType.DEFAULT_5XX,
+      statusCode: '500',
+      templates: {
+        'application/json': JSON.stringify({
+          timestamp: '$context.requestTime',
+          requestId: '$context.requestId',
+          statusCode: 500,
+          error: 'Internal Server Error',
+          message: 'An unknown error has occurred. Please try again.',
+        }),
+      },
+    })
+
+    api.addGatewayResponse(`peterportal-api-next-${stage}-404`, {
+      type: ResponseType.MISSING_AUTHENTICATION_TOKEN,
+      statusCode: '404',
+      templates: {
+        'application/json': JSON.stringify({
+          timestamp: '$context.requestTime',
+          requestId: '$context.requestId',
+          statusCode: 404,
+          error: 'Not Found',
+          message: 'The requested resource could not be found.',
+        }),
+      },
+    })
+
+    this.api = api
   }
 
   /**
@@ -67,13 +126,13 @@ export class ApiStack extends Stack {
    * @param props Any props to pass to the Lambda handler.
    */
   public addRoute(path: string, name: string, props?: Partial<FunctionProps>): void {
-    let resource = this.api.root;
-    for (const pathPart of path.slice(1).split("/")) {
-      resource = resource.getResource(pathPart) ?? resource.addResource(pathPart);
+    let resource = this.api.root
+    for (const pathPart of path.slice(1).split('/')) {
+      resource = resource.getResource(pathPart) ?? resource.addResource(pathPart)
     }
-    const functionName = `peterportal-api-next-${this.env.stage}-${name}-handler`;
+    const functionName = `peterportal-api-next-${this.env.stage}-${name}-handler`
     resource.addMethod(
-      "ANY",
+      'ANY',
       this.integrations[functionName] ??
         (this.integrations[functionName] = new LambdaIntegration(
           (this.functions[functionName] = new Function(this, functionName, {
@@ -93,79 +152,18 @@ export class ApiStack extends Stack {
             ...props,
           }))
         ))
-    );
-    const ruleName = `peterportal-api-next-${this.env.stage}-${name}-warming-rule`;
+    )
+    const ruleName = `peterportal-api-next-${this.env.stage}-${name}-warming-rule`
     if (!this.rules[ruleName]) {
       this.rules[ruleName] = new Rule(this, ruleName, {
         ruleName,
         schedule: Schedule.rate(Duration.minutes(5)),
-      });
+      })
       this.rules[ruleName].addTarget(
         new LambdaFunction(this.functions[functionName], {
           event: RuleTargetInput.fromObject({ body: '{"warmer":"true"}' }),
         })
-      );
+      )
     }
-  }
-
-  private setupAPI(): void {
-    const { certificateArn, hostedZoneId, stage } = this.env;
-    const recordName = `${stage === "prod" ? "" : `${stage}.`}api-next`;
-    const zoneName = "peterportal.org";
-
-    const api = new RestApi(this, `peterportal-api-next-${stage}`, {
-      defaultCorsPreflightOptions: {
-        allowOrigins: ["*"],
-        allowHeaders: ["Apollo-Require-Preflight", "Content-Type"],
-        allowMethods: ["GET", "HEAD", "POST"],
-      },
-      disableExecuteApiEndpoint: true,
-      domainName: {
-        domainName: `${recordName}.${zoneName}`,
-        certificate: Certificate.fromCertificateArn(this, "peterportal-cert", certificateArn),
-      },
-      endpointTypes: [EndpointType.EDGE],
-      minimumCompressionSize: 128 * 1024, // 128 KiB
-      restApiName: `peterportal-api-next-${stage}`,
-    });
-
-    new ARecord(this, `peterportal-api-next-a-record-${stage}`, {
-      zone: HostedZone.fromHostedZoneAttributes(this, "peterportal-hosted-zone", {
-        zoneName,
-        hostedZoneId,
-      }),
-      recordName,
-      target: RecordTarget.fromAlias(new ApiGateway(api)),
-    });
-
-    api.addGatewayResponse(`peterportal-api-next-${stage}-5xx`, {
-      type: ResponseType.DEFAULT_5XX,
-      statusCode: "500",
-      templates: {
-        "application/json": JSON.stringify({
-          timestamp: "$context.requestTime",
-          requestId: "$context.requestId",
-          statusCode: 500,
-          error: "Internal Server Error",
-          message: "An unknown error has occurred. Please try again.",
-        }),
-      },
-    });
-
-    api.addGatewayResponse(`peterportal-api-next-${stage}-404`, {
-      type: ResponseType.MISSING_AUTHENTICATION_TOKEN,
-      statusCode: "404",
-      templates: {
-        "application/json": JSON.stringify({
-          timestamp: "$context.requestTime",
-          requestId: "$context.requestId",
-          statusCode: 404,
-          error: "Not Found",
-          message: "The requested resource could not be found.",
-        }),
-      },
-    });
-
-    this.api = api;
   }
 }

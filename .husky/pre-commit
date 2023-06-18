@@ -3,9 +3,10 @@
 
 if git diff --cached --name-only --diff-filter=ACM | grep ts &>/dev/null; then
   echo "Checking for TypeScript errors..."
-  npx --no -- tsc -p . --noEmit
-  npx --no -- tsc -p docs --noEmit
-  npx --no -- tsc -p docs/cdk --noEmit
+  npx tsc -p . --noEmit
+  npx tsc -p documentation --noEmit
+  npx tsc -p documentation/cdk --noEmit
   echo "...none found."
 fi
-npx --no -- lint-staged
+
+npx lint-staged

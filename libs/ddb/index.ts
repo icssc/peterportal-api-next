@@ -1,4 +1,4 @@
-import { DynamoDB, DynamoDBClientConfig } from "@aws-sdk/client-dynamodb";
+import { DynamoDB, DynamoDBClientConfig } from '@aws-sdk/client-dynamodb'
 import {
   DynamoDBDocumentClient,
   GetCommand,
@@ -8,18 +8,18 @@ import {
   QueryCommand,
   QueryCommandOutput,
   TranslateConfig,
-} from "@aws-sdk/lib-dynamodb";
+} from '@aws-sdk/lib-dynamodb'
 
 export type Key = {
-  name: string;
-  value: string | number | boolean;
-};
+  name: string
+  value: string | number | boolean
+}
 
-export type SortKey = Key & { cmp: "=" | "<" | "<=" | ">" | ">=" };
+export type SortKey = Key & { cmp: '=' | '<' | '<=' | '>' | '>=' }
 
 export class DDBDocClient {
-  private readonly client: DynamoDB;
-  private readonly documentClient: DynamoDBDocumentClient;
+  private readonly client: DynamoDB
+  private readonly documentClient: DynamoDBDocumentClient
   constructor(
     configuration: DynamoDBClientConfig = {
       region: process.env.AWS_REGION,
@@ -35,8 +35,8 @@ export class DDBDocClient {
       },
     }
   ) {
-    this.client = new DynamoDB(configuration);
-    this.documentClient = DynamoDBDocumentClient.from(this.client, translateConfig);
+    this.client = new DynamoDB(configuration)
+    this.documentClient = DynamoDBDocumentClient.from(this.client, translateConfig)
   }
 
   public async get(tableName: string, key?: Record<string, unknown>): Promise<GetCommandOutput> {
@@ -45,10 +45,10 @@ export class DDBDocClient {
         TableName: tableName,
         Key: key,
       })
-    );
+    )
   }
   public async put(tableName: string, item: Record<string, unknown>): Promise<PutCommandOutput> {
-    return this.documentClient.send(new PutCommand({ TableName: tableName, Item: item }));
+    return this.documentClient.send(new PutCommand({ TableName: tableName, Item: item }))
   }
   public async query(
     tableName: string,
@@ -59,13 +59,13 @@ export class DDBDocClient {
       new QueryCommand({
         TableName: tableName,
         ExpressionAttributeValues: {
-          ":pkv": partitionKey.value,
-          ":skv": sortKey?.value,
+          ':pkv': partitionKey.value,
+          ':skv': sortKey?.value,
         },
         KeyConditionExpression: `${partitionKey.name} = :pkv${
-          sortKey ? ` AND ${sortKey.name} ${sortKey.cmp} :skv` : ""
+          sortKey ? ` AND ${sortKey.name} ${sortKey.cmp} :skv` : ''
         }`,
       })
-    );
+    )
   }
 }

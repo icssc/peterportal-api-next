@@ -1,6 +1,6 @@
-import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
-import { Prisma } from "@libs/db";
-import { WebsocAPIOptions } from "@libs/websoc-api-next";
+import { InvokeCommand, LambdaClient } from '@aws-sdk/client-lambda'
+import { Prisma } from '@libs/db'
+import { WebsocAPIOptions } from '@libs/websoc-api-next'
 import type {
   Department,
   WebsocAPIResponse,
@@ -9,26 +9,26 @@ import type {
   WebsocSchool,
   WebsocSection,
   WebsocSectionMeeting,
-} from "peterportal-api-next-types";
+} from 'peterportal-api-next-types'
 
-import type { Query } from "./schema";
+import type { Query } from './schema'
 
 /**
  * Section that also contains all relevant Websoc metadata.
  */
 type EnhancedSection = {
-  school: WebsocSchool;
-  department: WebsocDepartment;
-  course: WebsocCourse;
-  section: WebsocSection;
-};
+  school: WebsocSchool
+  department: WebsocDepartment
+  course: WebsocCourse
+  section: WebsocSection
+}
 
 /**
  * Returns the lexicographical ordering of two elements.
  * @param a The left hand side of the comparison.
  * @param b The right hand side of the comparison.
  */
-const lexOrd = (a: string, b: string): number => (a === b ? 0 : a > b ? 1 : -1);
+const lexOrd = (a: string, b: string): number => (a === b ? 0 : a > b ? 1 : -1)
 
 /**
  * Get unique array of meetings.
@@ -36,28 +36,28 @@ const lexOrd = (a: string, b: string): number => (a === b ? 0 : a > b ? 1 : -1);
 const getUniqueMeetings = (meetings: WebsocSectionMeeting[]) =>
   meetings.reduce((acc, meeting) => {
     if (!acc.find((m) => m.days === meeting.days && m.time === meeting.time)) {
-      acc.push(meeting);
+      acc.push(meeting)
     }
-    return acc;
-  }, [] as WebsocSectionMeeting[]);
+    return acc
+  }, [] as WebsocSectionMeeting[])
 
 /**
  * type guard that asserts that the settled promise was fulfilled
  */
 export const fulfilled = <T>(value: PromiseSettledResult<T>): value is PromiseFulfilledResult<T> =>
-  value.status === "fulfilled";
+  value.status === 'fulfilled'
 
 /**
  * type guard that asserts input is defined
  */
-export const notNull = <T>(x: T): x is NonNullable<T> => x != null;
+export const notNull = <T>(x: T): x is NonNullable<T> => x != null
 
 /**
  * Sleep for the given number of milliseconds.
  * @param duration Duration in ms.
  */
 export const sleep = async (duration: number) =>
-  new Promise((resolve) => setTimeout(resolve, duration));
+  new Promise((resolve) => setTimeout(resolve, duration))
 
 /**
  * Given all parent data about a section, isolate relevant data.
@@ -67,24 +67,24 @@ function isolateSection(data: EnhancedSection) {
   const section = {
     ...data.section,
     meetings: getUniqueMeetings(data.section.meetings),
-  };
+  }
 
   const course = {
     ...data.course,
     sections: [section],
-  };
+  }
 
   const department = {
     ...data.department,
     courses: [course],
-  };
+  }
 
   const school = {
     ...data.school,
     departments: [department],
-  };
+  }
 
-  return { school, department, course, section };
+  return { school, department, course, section }
 }
 
 /**
@@ -101,7 +101,7 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
         )
       )
     )
-  );
+  )
 
   /**
    * for each section:
@@ -109,42 +109,42 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
    * append the corresponding structure of the section
    */
   const schools = allSections.reduce((acc, section) => {
-    const foundSchool = acc.find((s) => s.schoolName === section.school.schoolName);
+    const foundSchool = acc.find((s) => s.schoolName === section.school.schoolName)
     if (!foundSchool) {
-      acc.push(section.school);
-      return acc;
+      acc.push(section.school)
+      return acc
     }
 
     const foundDept = foundSchool.departments.find(
       (d) => d.deptCode === section.department.deptCode
-    );
+    )
     if (!foundDept) {
-      foundSchool.departments.push(section.department);
-      return acc;
+      foundSchool.departments.push(section.department)
+      return acc
     }
 
     const foundCourse = foundDept.courses.find(
       (c) =>
         c.courseNumber === section.course.courseNumber &&
         c.courseTitle === section.course.courseTitle
-    );
+    )
     if (!foundCourse) {
-      foundDept.courses.push(section.course);
-      return acc;
+      foundDept.courses.push(section.course)
+      return acc
     }
 
     const foundSection = foundCourse.sections.find(
       (s) => s.sectionCode === section.section.sectionCode
-    );
+    )
     if (!foundSection) {
-      foundCourse.sections.push(section.section);
-      return acc;
+      foundCourse.sections.push(section.section)
+      return acc
     }
 
-    return acc;
-  }, [] as WebsocSchool[]);
+    return acc
+  }, [] as WebsocSchool[])
 
-  return { schools };
+  return { schools }
 }
 
 /**
@@ -152,8 +152,8 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
  * @param time The time string to parse.
  */
 function minutesSinceMidnight(time: string): number {
-  const [hour, minute] = time.split(":");
-  return (parseInt(hour, 10) % 12) * 60 + parseInt(minute, 10) + (minute.includes("pm") ? 720 : 0);
+  const [hour, minute] = time.split(':')
+  return (parseInt(hour, 10) % 12) * 60 + parseInt(minute, 10) + (minute.includes('pm') ? 720 : 0)
 }
 
 /**
@@ -164,35 +164,35 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
   const AND: Prisma.WebsocSectionWhereInput[] = [
     { year: parsedQuery.year },
     { quarter: parsedQuery.quarter },
-  ];
+  ]
 
-  const OR: Prisma.WebsocSectionWhereInput[] = [];
+  const OR: Prisma.WebsocSectionWhereInput[] = []
 
-  if (parsedQuery.ge && parsedQuery.ge !== "ANY") {
+  if (parsedQuery.ge && parsedQuery.ge !== 'ANY') {
     AND.push({
       geCategories: {
         array_contains: parsedQuery.ge,
       },
-    });
+    })
   }
 
   if (parsedQuery.department) {
-    AND.push({ department: parsedQuery.department });
+    AND.push({ department: parsedQuery.department })
   }
 
   if (parsedQuery.courseNumber) {
     OR.push(
       ...parsedQuery.courseNumber.map((n) =>
-        n.includes("-")
+        n.includes('-')
           ? {
               courseNumeric: {
-                gte: parseInt(n.split("-")[0].replace(/\D/g, "")),
-                lte: parseInt(n.split("-")[1].replace(/\D/g, "")),
+                gte: parseInt(n.split('-')[0].replace(/\D/g, '')),
+                lte: parseInt(n.split('-')[1].replace(/\D/g, '')),
               },
             }
           : { courseNumber: n }
       )
-    );
+    )
   }
 
   if (parsedQuery.instructorName) {
@@ -204,7 +204,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
           },
         },
       },
-    });
+    })
   }
 
   if (parsedQuery.courseTitle) {
@@ -212,11 +212,11 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
       courseTitle: {
         contains: parsedQuery.courseTitle,
       },
-    });
+    })
   }
 
-  if (parsedQuery.sectionType && parsedQuery.sectionType !== "ANY") {
-    AND.push({ sectionType: parsedQuery.sectionType });
+  if (parsedQuery.sectionType && parsedQuery.sectionType !== 'ANY') {
+    AND.push({ sectionType: parsedQuery.sectionType })
   }
 
   if (parsedQuery.startTime) {
@@ -228,7 +228,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
           },
         },
       },
-    });
+    })
   }
 
   if (parsedQuery.endTime) {
@@ -241,25 +241,25 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
           },
         },
       },
-    });
+    })
   }
 
-  if (parsedQuery.division && parsedQuery.division !== "ANY") {
+  if (parsedQuery.division && parsedQuery.division !== 'ANY') {
     switch (parsedQuery.division) {
-      case "Graduate":
-        AND.push({ courseNumeric: { gte: 200 } });
-        break;
-      case "UpperDiv":
-        AND.push({ courseNumeric: { gte: 100, lte: 199 } });
-        break;
-      case "LowerDiv":
-        AND.push({ courseNumeric: { gte: 0, lte: 99 } });
+      case 'Graduate':
+        AND.push({ courseNumeric: { gte: 200 } })
+        break
+      case 'UpperDiv':
+        AND.push({ courseNumeric: { gte: 100, lte: 199 } })
+        break
+      case 'LowerDiv':
+        AND.push({ courseNumeric: { gte: 0, lte: 99 } })
     }
   }
 
   if (parsedQuery.days) {
     AND.push(
-      ...["Su", "M", "Tu", "W", "Th", "F", "Sa"]
+      ...['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa']
         .filter((x) => parsedQuery.days?.includes(x))
         .map((x) => ({
           meetings: {
@@ -270,34 +270,34 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
             },
           },
         }))
-    );
+    )
   }
 
-  if (parsedQuery.fullCourses && parsedQuery.fullCourses !== "ANY") {
+  if (parsedQuery.fullCourses && parsedQuery.fullCourses !== 'ANY') {
     switch (parsedQuery.fullCourses) {
-      case "FullOnly":
-        AND.push({ sectionFull: true, waitlistFull: true });
-        break;
-      case "OverEnrolled":
-        AND.push({ overEnrolled: true });
-        break;
-      case "SkipFull":
-        AND.push({ sectionFull: true, waitlistFull: false });
-        break;
-      case "SkipFullWaitlist":
-        AND.push({ sectionFull: false, waitlistFull: false });
+      case 'FullOnly':
+        AND.push({ sectionFull: true, waitlistFull: true })
+        break
+      case 'OverEnrolled':
+        AND.push({ overEnrolled: true })
+        break
+      case 'SkipFull':
+        AND.push({ sectionFull: true, waitlistFull: false })
+        break
+      case 'SkipFullWaitlist':
+        AND.push({ sectionFull: false, waitlistFull: false })
     }
   }
 
   switch (parsedQuery.cancelledCourses) {
     case undefined:
-      AND.push({ cancelled: false });
-      break;
-    case "Exclude":
-      AND.push({ cancelled: false });
-      break;
-    case "Only":
-      AND.push({ cancelled: true });
+      AND.push({ cancelled: false })
+      break
+    case 'Exclude':
+      AND.push({ cancelled: false })
+      break
+    case 'Only':
+      AND.push({ cancelled: true })
   }
 
   if (parsedQuery.building) {
@@ -313,28 +313,28 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
           },
         },
       },
-    });
+    })
   }
 
   if (parsedQuery.sectionCodes) {
     OR.push(
       ...parsedQuery.sectionCodes.map((code) => ({
-        sectionCode: code.includes("-")
+        sectionCode: code.includes('-')
           ? {
-              gte: parseInt(code.split("-")[0], 10),
-              lte: parseInt(code.split("-")[1], 10),
+              gte: parseInt(code.split('-')[0], 10),
+              lte: parseInt(code.split('-')[1], 10),
             }
           : parseInt(code),
       }))
-    );
+    )
   }
 
   if (parsedQuery.units) {
     OR.push(
       ...parsedQuery.units.map((u) => ({
-        units: u === "VAR" ? { contains: "-" } : { startsWith: parseFloat(u).toString() },
+        units: u === 'VAR' ? { contains: '-' } : { startsWith: parseFloat(u).toString() },
       }))
-    );
+    )
   }
 
   return {
@@ -344,7 +344,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
      * if OR non-empty, then use it; otherwise undefined means "ignore this field"
      */
     OR: OR.length ? OR : undefined,
-  };
+  }
 }
 
 /**
@@ -362,17 +362,17 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
     ...baseQuery
   } = {
     ...query,
-    instructorName: query.instructorName ?? "",
-    sectionCodes: query.sectionCodes?.join(","),
-    building: query.building ?? "",
-    room: query.room ?? "",
-    courseNumber: query.courseNumber?.join(","),
-    days: query.days?.join(""),
-  };
+    instructorName: query.instructorName ?? '',
+    sectionCodes: query.sectionCodes?.join(','),
+    building: query.building ?? '',
+    room: query.room ?? '',
+    courseNumber: query.courseNumber?.join(','),
+    days: query.days?.join(''),
+  }
 
-  let queries: WebsocAPIOptions[] = [baseQuery];
+  let queries: WebsocAPIOptions[] = [baseQuery]
   if (query.units?.length)
-    queries = query.units.flatMap((units) => queries.map((q) => ({ ...q, units })));
+    queries = query.units.flatMap((units) => queries.map((q) => ({ ...q, units })))
   if (query.sectionCodes?.length)
     queries = query.sectionCodes
       .map((_, i) => (i % 5 === 0 ? i : null))
@@ -380,10 +380,10 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
       .flatMap((k) =>
         queries.map((q) => ({
           ...q,
-          sectionCodes: query.sectionCodes?.slice(k, k + 5).join(",") || "",
+          sectionCodes: query.sectionCodes?.slice(k, k + 5).join(',') || '',
         }))
-      );
-  return queries;
+      )
+  return queries
 }
 
 /**
@@ -400,18 +400,18 @@ export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
     schools.departments.forEach((department) => {
       department.courses.forEach((course) =>
         course.sections.sort((a, b) => parseInt(a.sectionCode, 10) - parseInt(b.sectionCode, 10))
-      );
+      )
       department.courses.sort((a, b) => {
         const numOrd =
-          parseInt(a.courseNumber.replace(/\D/g, ""), 10) -
-          parseInt(b.courseNumber.replace(/\D/g, ""), 10);
-        return numOrd ? numOrd : lexOrd(a.courseNumber, b.courseNumber);
-      });
-    });
-    schools.departments.sort((a, b) => lexOrd(a.deptCode, b.deptCode));
-  });
-  response.schools.sort((a, b) => lexOrd(a.schoolName, b.schoolName));
-  return response;
+          parseInt(a.courseNumber.replace(/\D/g, ''), 10) -
+          parseInt(b.courseNumber.replace(/\D/g, ''), 10)
+        return numOrd ? numOrd : lexOrd(a.courseNumber, b.courseNumber)
+      })
+    })
+    schools.departments.sort((a, b) => lexOrd(a.deptCode, b.deptCode))
+  })
+  response.schools.sort((a, b) => lexOrd(a.schoolName, b.schoolName))
+  return response
 }
 
 /**
@@ -425,11 +425,11 @@ export async function invokeProxyService(
 ): Promise<unknown> {
   const res = await client.send(
     new InvokeCommand({
-      FunctionName: "peterportal-api-next-prod-websoc-proxy-service",
+      FunctionName: 'peterportal-api-next-prod-websoc-proxy-service',
       Payload: new TextEncoder().encode(JSON.stringify({ body: JSON.stringify(body) })),
     })
-  );
-  const payload = JSON.parse(Buffer.from(res.Payload ?? []).toString());
-  console.log(payload.body);
-  return JSON.parse(payload.body);
+  )
+  const payload = JSON.parse(Buffer.from(res.Payload ?? []).toString())
+  console.log(payload.body)
+  return JSON.parse(payload.body)
 }

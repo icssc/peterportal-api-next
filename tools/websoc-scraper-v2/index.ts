@@ -1,6 +1,6 @@
-import { PrismaClient } from "@libs/db";
-import { getTermDateData } from "@libs/registrar-api";
-import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
+import { PrismaClient } from '@libs/db'
+import { getTermDateData } from '@libs/registrar-api'
+import { callWebSocAPI, getDepts, getTerms } from '@libs/websoc-api-next'
 import type {
   GE,
   Quarter,
@@ -11,24 +11,24 @@ import type {
   WebsocSchool,
   WebsocSection,
   WebsocSectionMeeting,
-} from "peterportal-api-next-types";
-import { geCodes, sectionTypes } from "peterportal-api-next-types";
-import { createLogger, format, transports } from "winston";
+} from 'peterportal-api-next-types'
+import { geCodes, sectionTypes } from 'peterportal-api-next-types'
+import { createLogger, format, transports } from 'winston'
 
 /**
  * An entry that contains the term name and the term object.
  */
-type TermEntry = [string, Term];
+type TermEntry = [string, Term]
 
 /**
  * Section that also contains all relevant WebSoc metadata.
  */
 type EnhancedSection = {
-  school: WebsocSchool;
-  department: WebsocDepartment;
-  course: WebsocCourse;
-  section: WebsocSection;
-};
+  school: WebsocSchool
+  department: WebsocDepartment
+  course: WebsocCourse
+  section: WebsocSection
+}
 
 /**
  * Object that contains all relevant data for a term.
@@ -37,51 +37,51 @@ type ScrapedTerm = {
   /**
    * All ``WebsocAPIResponses`` returned by querying a department.
    */
-  department: Record<string, WebsocAPIResponse>;
+  department: Record<string, WebsocAPIResponse>
   /**
    * All ``WebsocAPIResponses`` returned by querying a GE category.
    */
-  ge: Record<string, WebsocAPIResponse>;
-};
+  ge: Record<string, WebsocAPIResponse>
+}
 
 /**
  * An instructor object that can be inserted directly into Prisma.
  */
 type ProcessedInstructor = {
-  year: string;
-  quarter: Quarter;
-  sectionCode: number;
-  timestamp: Date;
-  name: string;
-};
+  year: string
+  quarter: Quarter
+  sectionCode: number
+  timestamp: Date
+  name: string
+}
 
 /**
  * A meeting object that can be inserted directly into Prisma.
  */
 type ProcessedMeeting = {
-  year: string;
-  quarter: Quarter;
-  sectionCode: number;
-  timestamp: Date;
-  days: string[];
-  daysString: string;
-  startTime: number;
-  endTime: number;
-};
+  year: string
+  quarter: Quarter
+  sectionCode: number
+  timestamp: Date
+  days: string[]
+  daysString: string
+  startTime: number
+  endTime: number
+}
 
 /**
  * A meeting building object that can be inserted directly into Prisma.
  */
 type ProcessedMeetingBuilding = {
-  year: string;
-  quarter: Quarter;
-  sectionCode: number;
-  timestamp: Date;
-  daysString: string;
-  startTime: number;
-  endTime: number;
-  bldg: string;
-};
+  year: string
+  quarter: Quarter
+  sectionCode: number
+  timestamp: Date
+  daysString: string
+  startTime: number
+  endTime: number
+  bldg: string
+}
 
 /**
  * A section object containing additional metadata.
@@ -91,60 +91,60 @@ type ProcessedSection = {
    * Contains the instructors and meetings associated with this section.
    */
   meta: {
-    instructors: ProcessedInstructor[];
-    meetings: ProcessedMeeting[];
-    buildings: ProcessedMeetingBuilding[];
-  };
+    instructors: ProcessedInstructor[]
+    meetings: ProcessedMeeting[]
+    buildings: ProcessedMeetingBuilding[]
+  }
   /**
    * The section object that can be inserted directly into Prisma.
    */
   data: {
-    year: string;
-    quarter: Quarter;
-    sectionCode: number;
-    timestamp: Date;
-    geCategories: GE[];
-    department: string;
-    courseNumber: string;
-    courseNumeric: number;
-    courseTitle: string;
-    sectionType: (typeof sectionTypes)[number];
-    units: string;
-    maxCapacity: number;
-    sectionFull: boolean;
-    waitlistFull: boolean;
-    overEnrolled: boolean;
-    cancelled: boolean;
-    data: object;
-  };
-};
+    year: string
+    quarter: Quarter
+    sectionCode: number
+    timestamp: Date
+    geCategories: GE[]
+    department: string
+    courseNumber: string
+    courseNumeric: number
+    courseTitle: string
+    sectionType: (typeof sectionTypes)[number]
+    units: string
+    maxCapacity: number
+    sectionFull: boolean
+    waitlistFull: boolean
+    overEnrolled: boolean
+    cancelled: boolean
+    data: object
+  }
+}
 
 /**
  * The duration to sleep between requests.
  * Default: 500 ms
  */
-const REQUEST_SLEEP_DURATION = 500;
+const REQUEST_SLEEP_DURATION = 500
 
 /**
  * The duration to sleep between scraping runs, or if rate-limited.
  * Default: 3 minutes in ms
  */
-const SLEEP_DURATION = 3 * 60 * 1000;
+const SLEEP_DURATION = 3 * 60 * 1000
 
 /**
  * The duration to sleep when an error is caught.
  * Default: 30 minutes in ms
  */
-const ERROR_SLEEP_DURATION = 30 * 60 * 1000;
+const ERROR_SLEEP_DURATION = 30 * 60 * 1000
 
-const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
+const days = ['Su', 'M', 'Tu', 'W', 'Th', 'F', 'Sa']
 
-const prisma = new PrismaClient();
+const prisma = new PrismaClient()
 
 const logger = createLogger({
-  level: "debug",
+  level: 'debug',
   format:
-    process.env.NODE_ENV === "development"
+    process.env.NODE_ENV === 'development'
       ? format.combine(
           format.colorize({ all: true }),
           format.timestamp(),
@@ -153,13 +153,13 @@ const logger = createLogger({
       : format.printf((info) => `[${info.level}] ${info.message}`),
   transports: [new transports.Console()],
   exitOnError: false,
-});
+})
 
 /**
  * Sleep for the given number of milliseconds.
  * @param duration Duration in ms.
  */
-const sleep = async (duration: number) => new Promise((resolve) => setTimeout(resolve, duration));
+const sleep = async (duration: number) => new Promise((resolve) => setTimeout(resolve, duration))
 
 /**
  * Get all terms that are to be scraped on a daily basis.
@@ -168,9 +168,9 @@ const sleep = async (duration: number) => new Promise((resolve) => setTimeout(re
 async function getTermsToScrape(date: Date) {
   const termDateData = await Promise.all(
     [-1, 0, 1].map((x) => getTermDateData((date.getFullYear() + x).toString()))
-  );
-  const quarterDates = termDateData.reduce((p, c) => Object.assign(p, c), {});
-  const terms = await getTerms();
+  )
+  const quarterDates = termDateData.reduce((p, c) => Object.assign(p, c), {})
+  const terms = await getTerms()
   const termEntries = terms
     .map((term) => term.shortName)
     .filter((term) => Object.keys(quarterDates).includes(term))
@@ -178,11 +178,11 @@ async function getTermsToScrape(date: Date) {
     .map((term) => {
       const termEntry: TermEntry = [
         term,
-        { year: term.split(" ")[0], quarter: term.split(" ")[1] as Quarter },
-      ];
-      return termEntry;
-    });
-  return Object.fromEntries(termEntries);
+        { year: term.split(' ')[0], quarter: term.split(' ')[1] as Quarter },
+      ]
+      return termEntry
+    })
+  return Object.fromEntries(termEntries)
 }
 
 /**
@@ -191,10 +191,10 @@ async function getTermsToScrape(date: Date) {
 const getUniqueMeetings = (meetings: WebsocSectionMeeting[]) =>
   meetings.reduce((acc, meeting) => {
     if (!acc.find((m) => m.days === meeting.days && m.time === meeting.time)) {
-      acc.push(meeting);
+      acc.push(meeting)
     }
-    return acc;
-  }, [] as WebsocSectionMeeting[]);
+    return acc
+  }, [] as WebsocSectionMeeting[])
 
 /**
  * Given all parent data about a section, isolate relevant data.
@@ -204,49 +204,49 @@ function isolateSection(data: EnhancedSection): WebsocAPIResponse {
   const section = {
     ...data.section,
     meetings: getUniqueMeetings(data.section.meetings),
-  };
+  }
 
   const course = {
     ...data.course,
     sections: [section],
-  };
+  }
 
   const department = {
     ...data.department,
     courses: [course],
-  };
+  }
 
   const school = {
     ...data.school,
     departments: [department],
-  };
+  }
 
-  return { schools: [school] };
+  return { schools: [school] }
 }
 
 function courseNumberToNumeric(courseNumber: string) {
-  const n = parseInt(courseNumber.replace(/\D/g, ""), 10);
-  return isNaN(n) ? 0 : n;
+  const n = parseInt(courseNumber.replace(/\D/g, ''), 10)
+  return isNaN(n) ? 0 : n
 }
 
 function parseStartAndEndTimes(time: string) {
-  let startTime = -1;
-  let endTime = -1;
-  if (time !== "TBA") {
+  let startTime = -1
+  let endTime = -1
+  if (time !== 'TBA') {
     const [startTimeString, endTimeString] = time
       .trim()
-      .split("-")
-      .map((x) => x.trim());
-    const [startTimeHour, startTimeMinute] = startTimeString.split(":");
-    startTime = (parseInt(startTimeHour, 10) % 12) * 60 + parseInt(startTimeMinute, 10);
-    const [endTimeHour, endTimeMinute] = endTimeString.split(":");
-    endTime = (parseInt(endTimeHour, 10) % 12) * 60 + parseInt(endTimeMinute, 10);
-    if (endTimeMinute.includes("p")) {
-      startTime += 12 * 60;
-      endTime += 12 * 60;
+      .split('-')
+      .map((x) => x.trim())
+    const [startTimeHour, startTimeMinute] = startTimeString.split(':')
+    startTime = (parseInt(startTimeHour, 10) % 12) * 60 + parseInt(startTimeMinute, 10)
+    const [endTimeHour, endTimeMinute] = endTimeString.split(':')
+    endTime = (parseInt(endTimeHour, 10) % 12) * 60 + parseInt(endTimeMinute, 10)
+    if (endTimeMinute.includes('p')) {
+      startTime += 12 * 60
+      endTime += 12 * 60
     }
   }
-  return { startTime, endTime };
+  return { startTime, endTime }
 }
 
 /**
@@ -257,12 +257,12 @@ function parseStartAndEndTimes(time: string) {
  * from printing the same memory usage twice.
  */
 function forceGC() {
-  logger.debug("Memory usage:");
-  logger.debug(JSON.stringify(process.memoryUsage()));
-  logger.debug("Forcing garbage collection");
-  global.gc?.();
-  logger.debug("Memory usage:");
-  logger.debug(JSON.stringify(process.memoryUsage()));
+  logger.debug('Memory usage:')
+  logger.debug(JSON.stringify(process.memoryUsage()))
+  logger.debug('Forcing garbage collection')
+  global.gc?.()
+  logger.debug('Memory usage:')
+  logger.debug(JSON.stringify(process.memoryUsage()))
 }
 
 /**
@@ -271,13 +271,13 @@ function forceGC() {
  * @param term The parameters of the term to scrape.
  */
 async function scrape(name: string, term: Term) {
-  forceGC();
-  logger.info(`Scraping term ${name}`);
+  forceGC()
+  logger.info(`Scraping term ${name}`)
 
-  const depts = await getDepts();
+  const depts = await getDepts()
 
   /** All departments to scrape. */
-  const deptCodes = depts.map((dept) => dept.deptValue).filter((deptValue) => deptValue !== "ALL");
+  const deptCodes = depts.map((dept) => dept.deptValue).filter((deptValue) => deptValue !== 'ALL')
 
   /** The data structure that holds all scraped data. */
   const results: Record<string, ScrapedTerm> = {
@@ -285,58 +285,58 @@ async function scrape(name: string, term: Term) {
       department: {},
       ge: {},
     },
-  };
+  }
 
   for (const department of deptCodes) {
-    logger.info(`Scraping ${department}`);
-    let done = false;
+    logger.info(`Scraping ${department}`)
+    let done = false
     while (!done) {
       try {
         results[name].department[department] = await callWebSocAPI(term, {
           department,
-        });
-        done = true;
+        })
+        done = true
       } catch (e) {
         if (e instanceof Error) {
-          logger.error(`${e.name}: ${e.message}`);
-          logger.error(e.stack);
+          logger.error(`${e.name}: ${e.message}`)
+          logger.error(e.stack)
         } else {
-          logger.error(e);
+          logger.error(e)
         }
-        logger.info("Rate limited, sleeping for 3 minutes");
-        await sleep(SLEEP_DURATION);
+        logger.info('Rate limited, sleeping for 3 minutes')
+        await sleep(SLEEP_DURATION)
       }
     }
-    await sleep(REQUEST_SLEEP_DURATION);
+    await sleep(REQUEST_SLEEP_DURATION)
   }
 
   for (const ge of geCodes) {
-    logger.info(`Scraping ${ge}`);
-    let done = false;
+    logger.info(`Scraping ${ge}`)
+    let done = false
     while (!done) {
       try {
-        results[name].ge[ge] = await callWebSocAPI(term, { ge });
-        done = true;
+        results[name].ge[ge] = await callWebSocAPI(term, { ge })
+        done = true
       } catch (e) {
         if (e instanceof Error) {
-          logger.error(`${e.name}: ${e.message}`);
-          logger.error(e.stack);
+          logger.error(`${e.name}: ${e.message}`)
+          logger.error(e.stack)
         } else {
-          logger.error(e);
+          logger.error(e)
         }
-        logger.info("Rate limited, sleeping for 3 minutes");
-        await sleep(SLEEP_DURATION);
+        logger.info('Rate limited, sleeping for 3 minutes')
+        await sleep(SLEEP_DURATION)
       }
     }
-    await sleep(REQUEST_SLEEP_DURATION);
+    await sleep(REQUEST_SLEEP_DURATION)
   }
 
   /** The timestamp for this scraping run. */
-  const timestamp = new Date();
+  const timestamp = new Date()
 
-  const res: Record<string, ProcessedSection> = {};
+  const res: Record<string, ProcessedSection> = {}
 
-  logger.info("Processing all sections");
+  logger.info('Processing all sections')
 
   for (const [term, data] of Object.entries(results)) {
     for (const response of Object.values(data.department)) {
@@ -344,8 +344,8 @@ async function scrape(name: string, term: Term) {
         for (const department of school.departments) {
           for (const course of department.courses) {
             for (const section of course.sections) {
-              const [year, quarter] = term.split(" ") as [string, Quarter];
-              const sectionCode = parseInt(section.sectionCode, 10);
+              const [year, quarter] = term.split(' ') as [string, Quarter]
+              const sectionCode = parseInt(section.sectionCode, 10)
               res[`${term} ${section.sectionCode}`] = {
                 meta: {
                   instructors: section.instructors.map((name) => ({
@@ -386,18 +386,18 @@ async function scrape(name: string, term: Term) {
                   courseNumber: course.courseNumber,
                   courseNumeric: courseNumberToNumeric(course.courseNumber),
                   courseTitle: course.courseTitle,
-                  sectionType: section.sectionType as ProcessedSection["data"]["sectionType"],
+                  sectionType: section.sectionType as ProcessedSection['data']['sectionType'],
                   units: section.units,
                   maxCapacity: parseInt(section.maxCapacity, 10),
-                  sectionFull: section.status === "FULL" || section.status === "Waitl",
-                  waitlistFull: section.status === "FULL",
+                  sectionFull: section.status === 'FULL' || section.status === 'Waitl',
+                  waitlistFull: section.status === 'FULL',
                   overEnrolled:
                     parseInt(section.numCurrentlyEnrolled.totalEnrolled, 10) >
                     parseInt(section.maxCapacity, 10),
-                  cancelled: section.sectionComment.includes("***  CANCELLED  ***"),
+                  cancelled: section.sectionComment.includes('***  CANCELLED  ***'),
                   data: isolateSection({ school, department, course, section }),
                 },
-              };
+              }
             }
           }
         }
@@ -409,32 +409,32 @@ async function scrape(name: string, term: Term) {
           department.courses.forEach((course) => {
             course.sections.forEach((section) => {
               if (res[`${term} ${section.sectionCode}`]) {
-                res[`${term} ${section.sectionCode}`].data.geCategories.push(geCategory as GE);
+                res[`${term} ${section.sectionCode}`].data.geCategories.push(geCategory as GE)
               }
-            });
-          });
-        });
-      });
-    });
+            })
+          })
+        })
+      })
+    })
   }
 
-  logger.info(`Processed ${Object.keys(res).length} sections`);
+  logger.info(`Processed ${Object.keys(res).length} sections`)
 
-  let connected = false;
+  let connected = false
   while (!connected) {
     try {
-      await prisma.$connect();
-      connected = true;
+      await prisma.$connect()
+      connected = true
     } catch (e) {
-      logger.error(`Failed to connect to database`);
+      logger.error(`Failed to connect to database`)
       if (e instanceof Error) {
-        logger.error(e.message);
-        logger.error(e.stack);
+        logger.error(e.message)
+        logger.error(e.stack)
       } else {
-        logger.error(e);
+        logger.error(e)
       }
-      logger.info("Sleeping for 3 minutes");
-      await sleep(SLEEP_DURATION);
+      logger.info('Sleeping for 3 minutes')
+      await sleep(SLEEP_DURATION)
     }
   }
 
@@ -452,12 +452,12 @@ async function scrape(name: string, term: Term) {
       prisma.websocSectionMeetingBuilding.createMany({
         data: Object.values(res).flatMap((d) => d.meta.buildings),
       }),
-    ]);
+    ])
 
-  logger.info(`Inserted ${sectionsCreated.count} sections`);
-  logger.info(`Inserted ${instructorsCreated.count} instructors`);
-  logger.info(`Inserted ${meetingsCreated.count} meetings`);
-  logger.info(`Inserted ${buildingsCreated.count} buildings`);
+  logger.info(`Inserted ${sectionsCreated.count} sections`)
+  logger.info(`Inserted ${instructorsCreated.count} instructors`)
+  logger.info(`Inserted ${meetingsCreated.count} meetings`)
+  logger.info(`Inserted ${buildingsCreated.count} buildings`)
 
   const params = {
     where: {
@@ -465,7 +465,7 @@ async function scrape(name: string, term: Term) {
       quarter: term.quarter,
       timestamp: { lt: timestamp },
     },
-  };
+  }
 
   const [instructorsDeleted, buildingsDeleted, meetingsDeleted, sectionsDeleted] =
     await prisma.$transaction([
@@ -473,15 +473,15 @@ async function scrape(name: string, term: Term) {
       prisma.websocSectionMeetingBuilding.deleteMany(params),
       prisma.websocSectionMeeting.deleteMany(params),
       prisma.websocSection.deleteMany(params),
-    ]);
+    ])
 
-  logger.info(`Removed ${instructorsDeleted.count} instructors`);
-  logger.info(`Removed ${buildingsDeleted.count} buildings`);
-  logger.info(`Removed ${meetingsDeleted.count} meetings`);
-  logger.info(`Removed ${sectionsDeleted.count} sections`);
-  logger.info("Sleeping for 3 minutes");
+  logger.info(`Removed ${instructorsDeleted.count} instructors`)
+  logger.info(`Removed ${buildingsDeleted.count} buildings`)
+  logger.info(`Removed ${meetingsDeleted.count} meetings`)
+  logger.info(`Removed ${sectionsDeleted.count} sections`)
+  logger.info('Sleeping for 3 minutes')
 
-  await sleep(SLEEP_DURATION);
+  await sleep(SLEEP_DURATION)
 }
 
 /**
@@ -489,20 +489,20 @@ async function scrape(name: string, term: Term) {
  */
 async function main() {
   try {
-    logger.info("websoc-scraper-v2 starting");
-    const now = new Date();
-    const termsInScope = await getTermsToScrape(now);
-    for (const [name, term] of Object.entries(termsInScope)) await scrape(name, term);
+    logger.info('websoc-scraper-v2 starting')
+    const now = new Date()
+    const termsInScope = await getTermsToScrape(now)
+    for (const [name, term] of Object.entries(termsInScope)) await scrape(name, term)
   } catch (e) {
     if (e instanceof Error) {
-      logger.error(e.message);
-      logger.error(e.stack);
+      logger.error(e.message)
+      logger.error(e.stack)
     } else {
-      logger.error(e);
+      logger.error(e)
     }
-    logger.info("Sleeping for 30 minutes");
-    await sleep(ERROR_SLEEP_DURATION);
+    logger.info('Sleeping for 30 minutes')
+    await sleep(ERROR_SLEEP_DURATION)
   }
 }
 
-main().then(() => []);
+main().then(() => [])

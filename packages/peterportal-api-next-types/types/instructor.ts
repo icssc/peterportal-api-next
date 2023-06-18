@@ -8,40 +8,40 @@ export type Instructor = {
   /**
    * The instructor's UCINetID.
    */
-  ucinetid: string;
+  ucinetid: string
   /**
    * The full name of the instructor.
    */
-  instructorName: string;
+  instructorName: string
   /**
    * The shortened name (or WebSoc name; e.g. ``SHINDLER, M.``) of the instructor.
    */
-  shortenedName: string;
+  shortenedName: string
   /**
    * The instructor's title.
    */
-  title: string;
+  title: string
   /**
    * The department to which the instructor belongs.
    */
-  department: string;
+  department: string
   /**
    * The school(s) associated with the instructor.
    */
-  schools: string[];
+  schools: string[]
   /**
    * The department(s) related to the instructor.
    */
-  relatedDepartments: string[];
+  relatedDepartments: string[]
   /**
    * Course(s) this instructor has taught in the past.
    */
-  courseHistory: string[];
-};
+  courseHistory: string[]
+}
 
 /**
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/instructors``.
  * @alpha
  */
-export type Instructors = Instructor[];
+export type Instructors = Instructor[]

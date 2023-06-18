@@ -1,44 +1,37 @@
 /** @type {import('eslint').Linter.Config} */
-module.exports = {
-  root: true,
-  env: { es2020: true, node: true },
+const config = {
+  parser: '@typescript-eslint/parser',
   parserOptions: {
-    sourceType: "module",
+    project: [
+      './tsconfig.json',
+      './documentation/tsconfig.json',
+      'documentation/cdk/tsconfig.json',
+    ],
   },
-  plugins: ["import", "simple-import-sort"],
-  extends: ["eslint:recommended", "turbo", "prettier"],
-  rules: {
-    "prefer-const": "error",
-    "simple-import-sort/imports": "error",
-    "simple-import-sort/exports": "error",
-    "import/first": "error",
-    "import/newline-after-import": "error",
-  },
-  overrides: [
-    {
-      files: ["**/*.ts", "**/*.tsx"],
-      env: { es2020: true, node: true },
-      parser: "@typescript-eslint/parser",
-      plugins: ["import", "simple-import-sort", "@typescript-eslint"],
-      extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended", "turbo", "prettier"],
-      rules: {
-        "prefer-const": "error",
-        "simple-import-sort/imports": "error",
-        "simple-import-sort/exports": "error",
-        "import/first": "error",
-        "import/newline-after-import": "error",
-      },
-      settings: {
-        "import/parsers": {
-          "@typescript-eslint/parser": [".ts", ".tsx"],
-        },
-        "import/resolver": {
-          typescript: {
-            alwaysTryTypes: true,
-            project: "./tsconfig.json",
-          },
-        },
-      },
-    },
+  plugins: ['react', 'react-hooks', 'import', 'jsx-a11y', '@typescript-eslint/eslint-plugin'],
+  extends: [
+    'eslint:recommended',
+    'plugin:react/jsx-runtime',
+    'plugin:react/recommended',
+    'plugin:jsx-a11y/recommended',
+    'plugin:react-hooks/recommended',
+    'plugin:@typescript-eslint/recommended',
+    'plugin:@typescript-eslint/eslint-recommended',
+    'prettier',
   ],
-};
+  rules: {
+    'import/order': 'error',
+  },
+  settings: {
+    react: {
+      version: 'detect',
+    },
+  },
+  env: {
+    node: true,
+    es2021: true,
+  },
+  ignorePatterns: ['*.config.*', '*.cjs'],
+}
+
+module.exports = config

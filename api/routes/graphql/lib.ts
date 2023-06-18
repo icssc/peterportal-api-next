@@ -1,9 +1,9 @@
-import fetch from "cross-fetch";
-import { GraphQLError } from "graphql/error";
-import type { RawResponse } from "peterportal-api-next-types";
-import { isErrorResponse } from "peterportal-api-next-types";
-import type { ParsedUrlQueryInput } from "querystring";
-import { encode } from "querystring";
+import type { ParsedUrlQueryInput } from 'querystring'
+import { encode } from 'querystring'
+import fetch from 'cross-fetch'
+import { GraphQLError } from 'graphql/error'
+import type { RawResponse } from 'peterportal-api-next-types'
+import { isErrorResponse } from 'peterportal-api-next-types'
 
 /**
  * Returns a resolver function for a specific GraphQL field that queries the
@@ -23,16 +23,16 @@ export const restResolverFactory =
   (path: string, transform: (args: ParsedUrlQueryInput) => ParsedUrlQueryInput = (args) => args) =>
   async (_: never, args: ParsedUrlQueryInput): Promise<unknown> => {
     const baseUrl =
-      process.env.NODE_ENV === "development"
+      process.env.NODE_ENV === 'development'
         ? `http://localhost:${process.env.API_PORT || 8080}`
         : `https://${
-            process.env.STAGE === "prod" ? "" : `${process.env.STAGE}.`
-          }api-next.peterportal.org`;
-    const res = await fetch(`${baseUrl}${path}?${encode(transform(args))}`);
-    const json: RawResponse<unknown> = await res.json();
+            process.env.STAGE === 'prod' ? '' : `${process.env.STAGE}.`
+          }api-next.peterportal.org`
+    const res = await fetch(`${baseUrl}${path}?${encode(transform(args))}`)
+    const json: RawResponse<unknown> = await res.json()
     if (isErrorResponse(json))
       throw new GraphQLError(json.message, {
-        extensions: { code: json.error.toUpperCase().replace(" ", "_") },
-      });
-    return json.payload;
-  };
+        extensions: { code: json.error.toUpperCase().replace(' ', '_') },
+      })
+    return json.payload
+  }

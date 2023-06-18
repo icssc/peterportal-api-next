@@ -1,17 +1,17 @@
-import type { APIGatewayProxyResult } from "aws-lambda";
-import type { ErrorResponse, Response } from "peterportal-api-next-types";
+import type { APIGatewayProxyResult } from 'aws-lambda'
+import type { ErrorResponse, Response } from 'peterportal-api-next-types'
 
-import { httpErrorCodes, months } from "../constants.js";
-import { logger } from "../logger.js";
+import { httpErrorCodes, months } from '../constants.js'
+import { logger } from '../logger.js'
 
 /**
  * Common response headers.
  */
 const headers = {
-  "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-};
+  'Access-Control-Allow-Headers': 'Apollo-Require-Preflight, Content-Type',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+}
 
 /**
  * Helper function for converting a ``Date`` object to a CLF date string.
@@ -23,14 +23,14 @@ const headers = {
  * @param date The ``Date`` object to convert.
  */
 export function createTimestamp(date: Date = new Date()): string {
-  const day = date.getUTCDate().toString().padStart(2, "0");
-  const month = months[date.getUTCMonth()];
-  const year = date.getUTCFullYear();
-  const hours = date.getUTCHours().toString().padStart(2, "0");
-  const minutes = date.getUTCMinutes().toString().padStart(2, "0");
-  const seconds = date.getUTCSeconds().toString().padStart(2, "0");
+  const day = date.getUTCDate().toString().padStart(2, '0')
+  const month = months[date.getUTCMonth()]
+  const year = date.getUTCFullYear()
+  const hours = date.getUTCHours().toString().padStart(2, '0')
+  const minutes = date.getUTCMinutes().toString().padStart(2, '0')
+  const seconds = date.getUTCSeconds().toString().padStart(2, '0')
 
-  return `${day}/${month}/${year}:${hours}:${minutes}:${seconds} +0000`;
+  return `${day}/${month}/${year}:${hours}:${minutes}:${seconds} +0000`
 }
 
 /**
@@ -39,15 +39,15 @@ export function createTimestamp(date: Date = new Date()): string {
  * @param requestId The request ID associated with the request.
  */
 export function createOKResult<T>(payload: T, requestId: string): APIGatewayProxyResult {
-  const statusCode = 200;
+  const statusCode = 200
 
-  const timestamp = createTimestamp();
+  const timestamp = createTimestamp()
 
-  const body: Response<T> = { statusCode, timestamp, requestId, payload };
+  const body: Response<T> = { statusCode, timestamp, requestId, payload }
 
-  logger.info("200 OK");
+  logger.info('200 OK')
 
-  return { statusCode, body: JSON.stringify(body), headers };
+  return { statusCode, body: JSON.stringify(body), headers }
 }
 
 /**
@@ -63,20 +63,20 @@ export function createErrorResult(
   e: unknown,
   requestId: string
 ): APIGatewayProxyResult {
-  const timestamp = createTimestamp();
+  const timestamp = createTimestamp()
 
   const message =
     e instanceof Error
       ? `${e.name}: ${e.message}`
-      : typeof e === "string"
+      : typeof e === 'string'
       ? e
-      : "An unknown error has occurred. Please try again.";
+      : 'An unknown error has occurred. Please try again.'
 
-  const error = httpErrorCodes[statusCode as keyof typeof httpErrorCodes];
+  const error = httpErrorCodes[statusCode as keyof typeof httpErrorCodes]
 
-  const body: ErrorResponse = { timestamp, requestId, statusCode, error, message };
+  const body: ErrorResponse = { timestamp, requestId, statusCode, error, message }
 
-  logger.error(`${body.statusCode} ${body.error}: ${body.message}`);
+  logger.error(`${body.statusCode} ${body.error}: ${body.message}`)
 
-  return { statusCode, body: JSON.stringify(body), headers };
+  return { statusCode, body: JSON.stringify(body), headers }
 }

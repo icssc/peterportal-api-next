@@ -7,17 +7,17 @@ export type QuarterDates = {
   /**
    * When instruction begins for the given quarter.
    */
-  instructionStart: Date;
+  instructionStart: Date
   /**
    * When instruction ends for the given quarter.
    */
-  instructionEnd: Date;
+  instructionEnd: Date
   /**
    * When finals begin for the given quarter.
    */
-  finalsStart: Date;
+  finalsStart: Date
   /**
    * When finals end for the given quarter.
    */
-  finalsEnd: Date;
-};
+  finalsEnd: Date
+}

@@ -1,0 +1,18 @@
+{
+  "name": "api-v1-rest-larc",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "ant dev",
+    "build": "ant build",
+    "start": "node dist"
+  },
+  "dependencies": {
+    "ant-stack": "*"
+  },
+  "devDependencies": {
+    "@types/node": "18",
+    "tsx": "*",
+    "typescript": "~5.0"
+  }
+}

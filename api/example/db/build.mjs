@@ -1,46 +1,45 @@
-import { build } from "esbuild";
-import { chmod, copyFile, mkdir, rm } from "fs/promises";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
-
-(async () => {
-  const cwd = dirname(fileURLToPath(import.meta.url));
+import { chmod, copyFile, mkdir, rm } from 'fs/promises'
+import { dirname, join } from 'path'
+import { fileURLToPath } from 'url'
+import { build } from 'esbuild'
+;(async () => {
+  const cwd = dirname(fileURLToPath(import.meta.url))
   /** @type {import("esbuild").BuildOptions} */
   const options = {
     bundle: true,
-    entryPoints: [join(cwd, "index.ts")],
-    logLevel: "info",
+    entryPoints: [join(cwd, 'index.ts')],
+    logLevel: 'info',
     minify: true,
-    outfile: join(cwd, "dist/index.cjs"),
-    platform: "node",
+    outfile: join(cwd, 'dist/index.cjs'),
+    platform: 'node',
     plugins: [
       {
-        name: "clean",
+        name: 'clean',
         setup(build) {
           build.onStart(async () => {
-            await rm(join(cwd, "dist/"), { recursive: true, force: true });
-            await mkdir(join(cwd, "dist/"));
-          });
+            await rm(join(cwd, 'dist/'), { recursive: true, force: true })
+            await mkdir(join(cwd, 'dist/'))
+          })
         },
       },
       {
-        name: "copy",
+        name: 'copy',
         setup(build) {
           build.onEnd(async () => {
             await copyFile(
-              join(cwd, "../../../node_modules/prisma/libquery_engine-rhel-openssl-1.0.x.so.node"),
-              join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node")
-            );
+              join(cwd, '../../../node_modules/prisma/libquery_engine-rhel-openssl-1.0.x.so.node'),
+              join(cwd, 'dist/libquery_engine-rhel-openssl-1.0.x.so.node')
+            )
             await copyFile(
-              join(cwd, "../../../node_modules/@libs/db/prisma/schema.prisma"),
-              join(cwd, "dist/schema.prisma")
-            );
-            await chmod(join(cwd, "dist/libquery_engine-rhel-openssl-1.0.x.so.node"), 0o755);
-          });
+              join(cwd, '../../../node_modules/@libs/db/prisma/schema.prisma'),
+              join(cwd, 'dist/schema.prisma')
+            )
+            await chmod(join(cwd, 'dist/libquery_engine-rhel-openssl-1.0.x.so.node'), 0o755)
+          })
         },
       },
     ],
-    target: "node16",
-  };
-  await build(options);
-})();
+    target: 'node16',
+  }
+  await build(options)
+})()
