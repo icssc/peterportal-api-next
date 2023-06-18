@@ -43,7 +43,6 @@ export class AntStack extends Stack {
     super(scope, `${config.aws.id}-${config.env.stage}`, config.aws.stackProps);
 
     const recordName = `${config.env.stage === "prod" ? "" : `${config.env.stage}.`}api-next`;
-    const zoneName = "peterportal.org";
 
     this.config = config;
 
@@ -58,7 +57,7 @@ export class AntStack extends Stack {
         certificate: Certificate.fromCertificateArn(
           this,
           "peterportal-cert",
-          config.env?.certificateArn ?? ""
+          process.env.CERTIFICATE_ARN ?? ""
         ),
       },
       disableExecuteApiEndpoint: true,
@@ -97,7 +96,7 @@ export class AntStack extends Stack {
 
     new ARecord(this, `${config.aws.id}-${config.env.stage}-a-record`, {
       zone: HostedZone.fromHostedZoneAttributes(this, "peterportal-hosted-zone", {
-        zoneName,
+        zoneName: config.aws.zoneName,
         hostedZoneId: process.env.HOSTED_ZONE_ID ?? "",
       }),
       recordName,
