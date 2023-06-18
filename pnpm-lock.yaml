@@ -683,6 +683,9 @@ importers:
       arktype:
         specifier: ^1.0.14-alpha
         version: 1.0.14-alpha
+      aws-cdk:
+        specifier: ^2.81.0
+        version: 2.81.0
       aws-cdk-lib:
         specifier: ^2.53.0
         version: 2.53.0(constructs@10.1.176)
@@ -7695,7 +7698,6 @@ packages:
     hasBin: true
     optionalDependencies:
       fsevents: 2.3.2
-    dev: true
 
   /aws-lambda@1.0.7:
     resolution: {integrity: sha512-9GNFMRrEMG5y3Jvv+V4azWvc+qNWdWLTjDdhf/zgMlz8haaaLWv0xeAIWxz9PuWUBawsVxy0zZotjCdR3Xq+2w==}
