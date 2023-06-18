@@ -154,7 +154,6 @@ export class AntStack extends Stack {
         const ruleName = `${functionName}-warming-rule`;
 
         const warmingRule = new Rule(this, ruleName, {
-          ruleName,
           schedule: Schedule.rate(Duration.minutes(5)),
         });
 
