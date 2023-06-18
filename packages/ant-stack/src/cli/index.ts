@@ -7,7 +7,7 @@ import { interactiveCreate } from "./commands/create";
 import { startDevServer } from "./commands/dev.js";
 
 async function start() {
-  consola.log(chalk("🐜 The ant-stack command-line tool"));
+  consola.log(chalk("🐜 ant-stack CLI"));
 
   const argv = cli({
     name: "ant-stack",
