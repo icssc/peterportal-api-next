@@ -20,6 +20,7 @@
     "forceConsistentCasingInFileNames": true
   },
   "include": [
+    "*.ts",
     "api/**/*",
     "libs/**/*",
     "apps/**/*",
