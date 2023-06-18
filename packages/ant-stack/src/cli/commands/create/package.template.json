@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx ant-stack dev",
-    "build": "npx ant-stack build",
+    "dev": "pnpm exec ant-stack dev",
+    "build": "pnpm exec ant-stack build",
     "start": "node dist"
   },
   "dependencies": {
