@@ -9,10 +9,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const PREREQ_URL = "https://www.reg.uci.edu/cob/prrqcgi"
 
-type DepartmentCourses = Array<{
-  dept: string;
-  courses: CourseList;
-}>
+type DepartmentCourses = {
+  [dept: string]: CourseList;
+}
 
 type CourseTree = {
   courseId: string;
@@ -45,7 +44,7 @@ const logger = winston.createLogger({
  */
 export async function scrapeAllPrereqs(): Promise<DepartmentCourses> {
   logger.info("Scraping all course prerequisite data");
-  const deptCourses: DepartmentCourses = [];
+  const deptCourses: DepartmentCourses = {};
   try {
     const response = await (await fetch(PREREQ_URL)).text();
     const $ = cheerio.load(response);
@@ -61,10 +60,7 @@ export async function scrapeAllPrereqs(): Promise<DepartmentCourses> {
       url.search = params.toString();
       const courses = await parsePage(url.href);
       if (courses.length > 0) {
-        deptCourses.push({
-          dept: dept,
-          courses: courses
-        });
+        deptCourses[dept] = courses;
       }
     }
   }
