@@ -1,25 +1,25 @@
-import fetch from 'cross-fetch';
-import cheerio from 'cheerio';
+import fetch from "cross-fetch";
+import cheerio from "cheerio";
 import { dirname } from "path";
 import { fileURLToPath } from "url";
 import winston from "winston";
-import { Prerequisite, PrerequisiteTree } from 'peterportal-api-next-types';
+import { Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const PREREQ_URL = "https://www.reg.uci.edu/cob/prrqcgi"
+const PREREQ_URL = "https://www.reg.uci.edu/cob/prrqcgi";
 
 type DepartmentCourses = {
   [dept: string]: CourseList;
-}
+};
 
 type CourseTree = {
   courseId: string;
   courseTitle: string;
   prereqTree: PrerequisiteTree;
-}
+};
 
-type CourseList = Array<CourseTree>
+type CourseList = Array<CourseTree>;
 
 /**
  * Logger object to log info, errors, and warnings
@@ -55,7 +55,7 @@ export async function scrapeAllPrereqs(): Promise<DepartmentCourses> {
       const url = new URL(PREREQ_URL);
       const params = new URLSearchParams({
         dept: dept,
-        action: "view_all"
+        action: "view_all",
       });
       url.search = params.toString();
       const courses = await parsePage(url.href);
@@ -63,11 +63,10 @@ export async function scrapeAllPrereqs(): Promise<DepartmentCourses> {
         deptCourses[dept] = courses;
       }
     }
+  } catch (error) {
+    logger.error("Failed to scrape prerequisite data", { error: error });
   }
-  catch (error) {
-    logger.error("Failed to scrape prerequisite data", {error: error});
-  }
-  logger.info("Finished scraping all course prerequisite data", {data: deptCourses});
+  logger.info("Finished scraping all course prerequisite data", { data: deptCourses });
   return deptCourses;
 }
 
@@ -80,8 +79,8 @@ async function parsePage(url: string): Promise<CourseList> {
   const fieldLabels = {
     Course: 0,
     Title: 1,
-    Prerequisite: 2
-  }
+    Prerequisite: 2,
+  };
   try {
     const response = await (await fetch(url)).text();
     const $ = cheerio.load(response);
@@ -92,7 +91,7 @@ async function parsePage(url: string): Promise<CourseList> {
         let courseId = $(entry[fieldLabels.Course]).text().replace(/\s+/g, " ").trim();
         const courseTitle = $(entry[fieldLabels.Title]).text().replace(/\s+/g, " ").trim();
         const prereqList = $(entry[fieldLabels.Prerequisite]).text().replace(/\s+/g, " ").trim();
-         // Check if entries have values
+        // Check if entries have values
         if (!courseId || !courseTitle || !prereqList) return;
         // Some courses are formatted "{old_course} * {current_course} since {date}"
         const matches = courseId.match(/\* ([&A-Z\d ]+) since/);
@@ -104,37 +103,39 @@ async function parsePage(url: string): Promise<CourseList> {
           courseList.push({
             courseId: courseId,
             courseTitle: courseTitle,
-            prereqTree: prereqTree
+            prereqTree: prereqTree,
           });
         }
       }
       return true;
     });
   } catch (error) {
-    logger.error(`Failed to parse ${url}`, {error: error});
+    logger.error(`Failed to parse ${url}`, { error: error });
   }
   return courseList;
 }
 
 function buildTree(prereqList: string): PrerequisiteTree {
-  const prereqTree: PrerequisiteTree = {AND: [], NOT: []};
+  const prereqTree: PrerequisiteTree = { AND: [], NOT: [] };
   const prereqs = prereqList.split(/AND/);
   for (let prereq of prereqs) {
     prereq = prereq.trim();
-    if (prereq[0] === "(") {  // Logical OR
+    if (prereq[0] === "(") {
+      // Logical OR
       const oreqs = prereq.slice(1, -1).trim().split(/OR/);
-      const oreqTree: PrerequisiteTree = {OR: []};
+      const oreqTree: PrerequisiteTree = { OR: [] };
       for (let oreq of oreqs) {
         buildORLeaf(oreqTree, oreq.trim());
       }
-      oreqTree.OR?.length === 0?delete oreqTree.OR:null;
-      oreqTree.OR?prereqTree.AND?.push(oreqTree):null;
-    } else {  // Logical AND
+      oreqTree.OR?.length === 0 ? delete oreqTree.OR : null;
+      oreqTree.OR ? prereqTree.AND?.push(oreqTree) : null;
+    } else {
+      // Logical AND
       buildANDLeaf(prereqTree, prereq);
     }
   }
-  prereqTree.AND?.length === 0?delete prereqTree.AND:null;
-  prereqTree.NOT?.length === 0?delete prereqTree.NOT:null;
+  prereqTree.AND?.length === 0 ? delete prereqTree.AND : null;
+  prereqTree.NOT?.length === 0 ? delete prereqTree.NOT : null;
   return prereqTree;
 }
 
@@ -145,30 +146,29 @@ function buildORLeaf(prereqTree: PrerequisiteTree, prereq: string) {
   } else {
     req = parseRequisite(prereq);
   }
-  req?prereqTree.OR?.push(req):null;
+  req ? prereqTree.OR?.push(req) : null;
 }
 
 function buildANDLeaf(prereqTree: PrerequisiteTree, prereq: string) {
   if (prereq.startsWith("NO")) {
     const req = parseAntiRequisite(prereq);
-    req?prereqTree.NOT?.push(req):null;
+    req ? prereqTree.NOT?.push(req) : null;
   } else {
     const req = parseRequisite(prereq);
-    req?prereqTree.AND?.push(req):null;
+    req ? prereqTree.AND?.push(req) : null;
   }
 }
 
 function createPrereq(type: string, req: string, grade?: string, coreq?: boolean): Prerequisite {
-  const prereq: Prerequisite = {type: ""};
+  const prereq: Prerequisite = { type: "" };
   prereq.type = type;
   if (type === "course") {
     prereq.courseId = req;
-  }
-  else {
+  } else {
     prereq.examName = req;
   }
-  grade?prereq.minGrade = grade:null;
-  coreq?prereq.coreq = coreq:null;
+  grade ? (prereq.minGrade = grade) : null;
+  coreq ? (prereq.coreq = coreq) : null;
   return prereq;
 }
 
@@ -176,7 +176,7 @@ function parseRequisite(requisite: string): Prerequisite | null {
   // Match requisites with format "{course_ID} ( min {grade_type} = {grade} )"
   const reqWithGradeMatch = requisite.match(/^([^()]+)\s+\( min ([^\s]+) = ([^\s]{1,2}) \)$/);
   if (reqWithGradeMatch) {
-    if (reqWithGradeMatch[2].trim()==="grade") {
+    if (reqWithGradeMatch[2].trim() === "grade") {
       return createPrereq("course", reqWithGradeMatch[1].trim(), reqWithGradeMatch[3].trim());
     } else {
       return createPrereq("exam", reqWithGradeMatch[1].trim(), reqWithGradeMatch[3].trim());
@@ -198,7 +198,7 @@ function parseRequisite(requisite: string): Prerequisite | null {
   }
   return null;
 }
-  
+
 function parseAntiRequisite(requisite: string): Prerequisite | null {
   // Match antirequisties - AP exams with format "NO AP {exam_name} score of {grade} or greater"
   const antiAPreqMatch = requisite.match(/^NO\s(AP\s.+?)\sscore\sof\s(\d)\sor\sgreater$/);
