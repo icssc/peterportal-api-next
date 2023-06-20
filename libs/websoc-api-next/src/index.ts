@@ -170,6 +170,7 @@ const getCodedDiv = (div: Division): string => {
       return "2xx";
   }
 };
+
 /* endregion */
 
 /* region Exported functions */
