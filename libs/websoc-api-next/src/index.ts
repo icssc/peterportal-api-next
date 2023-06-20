@@ -1,7 +1,6 @@
-import { transform } from "camaro";
 import { load } from "cheerio";
 import fetch from "cross-fetch";
-import {
+import type {
   CancelledCourses,
   Department,
   Division,
@@ -13,6 +12,7 @@ import {
   WebsocAPIResponse,
   WebsocSectionMeeting,
 } from "peterportal-api-next-types";
+import { transform } from '@ap0nia/camaro'
 
 /* region Constants */
 
