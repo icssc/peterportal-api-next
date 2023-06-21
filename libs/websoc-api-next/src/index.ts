@@ -1,7 +1,7 @@
-import { transform } from "camaro";
+import { transform } from "@ap0nia/camaro";
 import { load } from "cheerio";
 import fetch from "cross-fetch";
-import {
+import type {
   CancelledCourses,
   Department,
   Division,
@@ -170,6 +170,7 @@ const getCodedDiv = (div: Division): string => {
       return "2xx";
   }
 };
+
 /* endregion */
 
 /* region Exported functions */

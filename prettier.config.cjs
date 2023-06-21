@@ -4,6 +4,8 @@
  */
 
 /** @type {import('prettier').Config} */
-module.exports = {
+const config = {
   printWidth: 100,
 };
+
+module.exports = config;

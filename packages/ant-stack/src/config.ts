@@ -8,9 +8,9 @@ import { loadConfig } from "unconfig";
 interface AntAWS {
   id: string;
 
-  stage: string;
-
   zoneName: string;
+
+  stage?: string;
 
   appProps?: AppProps;
 

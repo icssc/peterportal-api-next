@@ -1,7 +1,8 @@
-import { PrismaClient } from "@libs/db";
-import { type CastingContext, parse, type Parser } from "csv-parse";
 import fs from "fs";
 import { resolve } from "path";
+
+import { PrismaClient } from "@libs/db";
+import { type CastingContext, parse, type Parser } from "csv-parse";
 import type { Quarter } from "peterportal-api-next-types";
 
 import { __dirname, dataColumns, handleError, logger } from "./gradesUpdaterUtil";

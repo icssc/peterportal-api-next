@@ -1,3 +1,6 @@
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import {
@@ -7,8 +10,6 @@ import {
 import { handlers, startServerAndCreateLambdaHandler } from "@as-integrations/aws-lambda";
 import { loadFilesSync } from "@graphql-tools/load-files";
 import { mergeTypeDefs } from "@graphql-tools/merge";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
 
 import resolvers from "./resolvers";
 

@@ -19,13 +19,13 @@
   "devDependencies": {
     "@commitlint/cli": "^17.6.3",
     "@commitlint/config-conventional": "^17.6.3",
-    "@libs/db": "workspace:^",
+    "@libs/db": "workspace:*",
     "@libs/registrar-api": "workspace:*",
-    "@libs/websoc-api-next": "workspace:^",
+    "@libs/websoc-api-next": "workspace:*",
     "@prisma/client": "^4.14.0",
     "@typescript-eslint/eslint-plugin": "^5.59.7",
     "@typescript-eslint/parser": "^5.59.7",
-    "ant-stack": "workspace:^",
+    "ant-stack": "workspace:*",
     "arktype": "1.0.14-alpha",
     "cz-conventional-changelog": "^3.3.0",
     "dotenv": "^16.0.3",
@@ -33,7 +33,6 @@
     "eslint-config-prettier": "^8.8.0",
     "eslint-config-turbo": "^1.9.9",
     "eslint-plugin-import": "^2.27.5",
-    "eslint-plugin-simple-import-sort": "^10.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
     "prettier": "^2.8.8",
@@ -53,15 +52,6 @@
     "commitizen": {
       "path": "cz-conventional-changelog"
     }
-  },
-  "lint-staged": {
-    "*.?(c|m){js,ts}?(x)": [
-      "eslint --quiet --fix",
-      "prettier --write"
-    ],
-    "*.{css,graphql,json,md,prisma,sql,yaml,yml}": [
-      "prettier --write"
-    ]
   },
   "packageManager": "pnpm@8.5.0",
   "engines": {

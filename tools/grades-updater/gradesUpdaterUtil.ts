@@ -1,6 +1,7 @@
 import { dirname } from "path";
-import type { Quarter } from "peterportal-api-next-types";
 import { fileURLToPath } from "url";
+
+import type { Quarter } from "peterportal-api-next-types";
 import winston, { type Logger } from "winston";
 import type Transport from "winston-transport";
 

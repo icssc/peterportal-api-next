@@ -1,4 +1,4 @@
-import { build } from "esbuild";
+import { defineConfig } from "tsup";
 
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1491470829
@@ -12,20 +12,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 `;
 
-async function buildApp() {
-  await build({
-    entryPoints: {
-      index: "src/index.ts",
-    },
-    outdir: "dist",
-    bundle: true,
-    minify: true,
-    format: "esm",
-    platform: "node",
-    target: "node16",
-    logLevel: "info",
-    banner: { js },
-  });
-}
-
-buildApp();
+export default defineConfig({
+  entry: ["src/index.ts"],
+  bundle: true,
+  external: ["esbuild"],
+  noExternal: [/(.*)/],
+  format: ["esm"],
+  banner(ctx) {
+    return ctx.format === "esm" ? { js } : undefined;
+  },
+});

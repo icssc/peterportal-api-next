@@ -1,37 +1,32 @@
 {
   "compilerOptions": {
-    "alwaysStrict": true,
     "baseUrl": ".",
-    "composite": false,
+    "strict": true,
+    "outDir": "dist",
+    "target": "ES2020",
+    "module": "ES2020",
     "declaration": true,
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
     "declarationMap": true,
     "esModuleInterop": true,
-    "experimentalDecorators": true,
-    "forceConsistentCasingInFileNames": true,
     "inlineSourceMap": true,
-    "inlineSources": false,
     "isolatedModules": true,
-    "module": "ES2020",
     "moduleResolution": "Node",
-    "noFallthroughCasesInSwitch": false,
-    "noImplicitAny": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "outDir": "dist",
-    "paths": {
-      "@libs/*": ["libs/*"],
-      "peterportal-api-next-types": ["packages/peterportal-api-next-types"]
-    },
-    "preserveWatchOutput": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "strictNullChecks": true,
-    "strictPropertyInitialization": false,
-    "target": "ES2020"
+    "noImplicitReturns": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true
   },
-  "exclude": ["build/", "**/cdk.out/**/*", "dist/", "node_modules/"],
-  "include": ["api/**/*", "libs/**/*", "packages/**/*", "tools/**/*"]
+  "include": ["*.ts", "api/**/*", "libs/**/*", "apps/**/*", "tools/**/*", "packages/**/*"],
+  "exclude": [
+    "**/dist/",
+    "build/",
+    "node_modules/",
+    "**/cdk.out/**/*",
+    "apps/docs/**/*",
+    "**/*.template.ts",
+    "api/example/**/*"
+  ]
 }
