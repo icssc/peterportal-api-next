@@ -1,3 +1,6 @@
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
 import { Duration, Stack, StackProps } from "aws-cdk-lib";
 import { EndpointType, LambdaIntegration, ResponseType, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
@@ -8,12 +11,9 @@ import { Code, Function, FunctionProps, Runtime } from "aws-cdk-lib/aws-lambda";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { Construct } from "constructs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
 
 export class ApiStack extends Stack {
   private api: RestApi;
-  private readonly props: StackProps;
   private readonly env: Record<string, string>;
   private readonly functions: Record<string, lambda.Function> = {};
   private readonly integrations: Record<string, LambdaIntegration> = {};
@@ -54,10 +54,8 @@ export class ApiStack extends Stack {
     };
     super(scope, `${id}-${stage}`, props);
 
-    this.props = props;
+    this.api = this.setupAPI();
     this.env = env;
-
-    this.setupAPI();
   }
 
   /**
@@ -108,7 +106,7 @@ export class ApiStack extends Stack {
     }
   }
 
-  private setupAPI(): void {
+  private setupAPI(): RestApi {
     const { certificateArn, hostedZoneId, stage } = this.env;
     const recordName = `${stage === "prod" ? "" : `${stage}.`}api-next`;
     const zoneName = "peterportal.org";
@@ -166,6 +164,6 @@ export class ApiStack extends Stack {
       },
     });
 
-    this.api = api;
+    return api;
   }
 }

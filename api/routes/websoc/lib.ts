@@ -2,7 +2,6 @@ import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { Prisma } from "@libs/db";
 import { WebsocAPIOptions } from "@libs/websoc-api-next";
 import type {
-  Department,
   WebsocAPIResponse,
   WebsocCourse,
   WebsocDepartment,
