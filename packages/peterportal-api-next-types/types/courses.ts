@@ -24,7 +24,7 @@ export type Prerequisite = {
    * If requisite is a coreguisite.
    */
   coreq?: boolean;
-}
+};
 
 /**
  * An object representing a prerequisite tree for a course.

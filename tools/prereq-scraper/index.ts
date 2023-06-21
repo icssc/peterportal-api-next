@@ -1,9 +1,9 @@
-import fetch from "cross-fetch";
 import cheerio from "cheerio";
+import fetch from "cross-fetch";
 import { dirname } from "path";
+import { Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
 import { fileURLToPath } from "url";
 import winston from "winston";
-import { Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -124,7 +124,7 @@ function buildTree(prereqList: string): PrerequisiteTree {
       // Logical OR
       const oreqs = prereq.slice(1, -1).trim().split(/OR/);
       const oreqTree: PrerequisiteTree = { OR: [] };
-      for (let oreq of oreqs) {
+      for (const oreq of oreqs) {
         buildORLeaf(oreqTree, oreq.trim());
       }
       oreqTree.OR?.length === 0 ? delete oreqTree.OR : null;
@@ -140,7 +140,7 @@ function buildTree(prereqList: string): PrerequisiteTree {
 }
 
 function buildORLeaf(prereqTree: PrerequisiteTree, prereq: string) {
-  var req: Prerequisite | null;
+  let req: Prerequisite | null;
   if (prereq.startsWith("NO")) {
     req = parseAntiRequisite(prereq);
   } else {
@@ -188,7 +188,7 @@ function parseRequisite(requisite: string): Prerequisite | null {
     return createPrereq("course", courseCoreqMatch[1].trim(), undefined, true);
   }
   // Match courses (AP exams included) without minimum grade
-  const courseMatch = requisite.match(/^AP.*|^[A-Z0-9&\/\s]+\d\S*$/);
+  const courseMatch = requisite.match(/^AP.*|^[A-Z0-9&/\s]+\d\S*$/);
   if (courseMatch) {
     if (requisite.startsWith("AP")) {
       return createPrereq("exam", requisite);
@@ -206,7 +206,7 @@ function parseAntiRequisite(requisite: string): Prerequisite | null {
     return createPrereq("exam", antiAPreqMatch[1].trim(), antiAPreqMatch[2].trim());
   }
   // Match antirequisites - courses with format "NO {course_ID}"
-  const antiCourseMatch = requisite.match(/^NO\s([A-Z0-9&\/\s]+\d\S*)$/);
+  const antiCourseMatch = requisite.match(/^NO\s([A-Z0-9&/\s]+\d\S*)$/);
   if (antiCourseMatch) {
     return createPrereq("course", antiCourseMatch[1].trim());
   }
