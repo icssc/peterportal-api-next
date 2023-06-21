@@ -800,6 +800,25 @@ importers:
         specifier: ^3.12.3
         version: 3.12.7
 
+  tools/prereq-scraper:
+    dependencies:
+      '@types/cheerio':
+        specifier: ^0.22.31
+        version: 0.22.31
+      cheerio:
+        specifier: ^1.0.0-rc.12
+        version: 1.0.0-rc.12
+      winston:
+        specifier: ^3.8.2
+        version: 3.8.2
+    devDependencies:
+      nodemon:
+        specifier: ^2.0.20
+        version: 2.0.20
+      ts-node:
+        specifier: ^10.9.1
+        version: 10.9.1(@types/node@18.14.0)(typescript@5.0.4)
+
   tools/websoc-proxy-service:
     dependencies:
       '@libs/websoc-api-next':
@@ -6806,6 +6825,12 @@ packages:
 
   /@types/bonjour@3.5.10:
     resolution: {integrity: sha512-p7ienRMiS41Nu2/igbJxxLDWrSZ0WxM8UQgCeO9KhoVF7cOVFkrKsiDr1EsJIla8vV3oEEjGcz11jc5yimhzZw==}
+    dependencies:
+      '@types/node': 18.14.0
+    dev: false
+
+  /@types/cheerio@0.22.31:
+    resolution: {integrity: sha512-Kt7Cdjjdi2XWSfrZ53v4Of0wG3ZcmaegFXjMmz9tfNrZSkzzo36G0AL1YqSdcIA78Etjt6E609pt5h1xnQkPUw==}
     dependencies:
       '@types/node': 18.14.0
     dev: false
