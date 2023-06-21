@@ -1,13 +1,4 @@
 #!/usr/bin/env bash
 . "$(dirname -- "$0")/_/husky.sh"
 
-# TODO: migrate type-checking to CI/CD
-if git diff --cached --name-only --diff-filter=ACM | grep ts &>/dev/null; then
-  echo "Checking for TypeScript errors..."
-  npx tsc -p . --noEmit
-  npx tsc -p apps/docs --noEmit
-  npx tsc -p apps/docs/cdk --noEmit
-  echo "...none found."
-fi
-
 npx lint-staged
