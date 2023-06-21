@@ -517,7 +517,7 @@ importers:
         specifier: ~5.0
         version: 5.0.4
 
-  apps/documentation:
+  apps/docs:
     dependencies:
       '@apollo/sandbox':
         specifier: ^2.0.0
@@ -578,7 +578,7 @@ importers:
         specifier: ^4.9.5
         version: 4.9.5
 
-  apps/documentation/cdk:
+  apps/docs/cdk:
     dependencies:
       docs:
         specifier: '*'

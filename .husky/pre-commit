@@ -5,8 +5,8 @@
 if git diff --cached --name-only --diff-filter=ACM | grep ts &>/dev/null; then
   echo "Checking for TypeScript errors..."
   npx tsc -p . --noEmit
-  npx tsc -p apps/documentation --noEmit
-  npx tsc -p apps/documentation/cdk --noEmit
+  npx tsc -p apps/docs --noEmit
+  npx tsc -p apps/docs/cdk --noEmit
   echo "...none found."
 fi
 

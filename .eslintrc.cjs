@@ -3,11 +3,7 @@ const config = {
   root: true,
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    project: [
-      "./tsconfig.json",
-      "./apps/documentation/tsconfig.json",
-      "./apps/documentation/cdk/tsconfig.json",
-    ],
+    project: ["./tsconfig.json", "./apps/docs/tsconfig.json", "./apps/docs/cdk/tsconfig.json"],
     sourceType: "module",
   },
   plugins: ["import", "@typescript-eslint"],
