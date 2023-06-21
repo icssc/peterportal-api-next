@@ -27,6 +27,6 @@
     "**/cdk.out/**/*",
     "apps/documentation/**/*",
     "**/*.template.ts",
-    "**/example/**"
+    "api/example/**/*"
   ]
 }

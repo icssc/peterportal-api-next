@@ -1,3 +1,6 @@
+import path from "path";
+import { fileURLToPath } from "url";
+
 import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import {
@@ -13,8 +16,6 @@ import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Construct } from "constructs";
-import path from "path";
-import { fileURLToPath } from "url";
 
 export class DocsStack extends Stack {
   constructor(scope: Construct, id: string) {

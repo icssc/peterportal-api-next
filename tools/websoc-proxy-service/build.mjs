@@ -15,12 +15,12 @@ const __dirname = path.dirname(__filename);
 async function buildApp() {
   await build({
     entryPoints: {
-      "index": "src/index.ts"
+      index: "src/index.ts",
     },
     outdir: "dist",
     bundle: true,
     minify: true,
-    format: 'esm',
+    format: "esm",
     platform: "node",
     target: "node16",
     logLevel: "info",

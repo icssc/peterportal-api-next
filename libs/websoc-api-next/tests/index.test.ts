@@ -1,4 +1,5 @@
 import { describe, expect, test } from "vitest";
+
 import { callWebSocAPI, getDepts, getTerms } from "../src/index.js";
 
 describe("websoc-api-next tests", () => {

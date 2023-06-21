@@ -1,4 +1,4 @@
-import { defineConfig } from 'tsup'
+import { defineConfig } from "tsup";
 
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1491470829
@@ -13,12 +13,12 @@ const __dirname = path.dirname(__filename);
 `;
 
 export default defineConfig({
-  entry: ['src/index.ts'],
+  entry: ["src/index.ts"],
   bundle: true,
-  external: ['esbuild'],
+  external: ["esbuild"],
   noExternal: [/(.*)/],
-  format: ['esm'],
+  format: ["esm"],
   banner(ctx) {
-    return ctx.format === 'esm' ? { js } : undefined
-  }
-})
+    return ctx.format === "esm" ? { js } : undefined;
+  },
+});

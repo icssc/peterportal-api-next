@@ -1,8 +1,9 @@
-import chalk from "chalk";
-import { consola } from "consola";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import { fileURLToPath as futp } from "url";
+
+import chalk from "chalk";
+import { consola } from "consola";
 
 import { getConfig } from "../../../config.js";
 

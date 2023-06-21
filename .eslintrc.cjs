@@ -16,7 +16,7 @@ const config = {
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
     "turbo",
-    "prettier"
+    "prettier",
   ],
   rules: {
     "import/first": "error",
@@ -24,16 +24,16 @@ const config = {
     "import/order": [
       "error",
       {
-        "alphabetize": { "order": "asc" },
+        alphabetize: { order: "asc" },
         "newlines-between": "always",
-      }
-    ]
+      },
+    ],
   },
   ignorePatterns: ["*.config.*", "*.cjs"],
   env: {
     es2020: true,
-    node: true
+    node: true,
   },
 };
 
-module.exports = config
+module.exports = config;

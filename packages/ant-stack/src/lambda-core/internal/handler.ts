@@ -2,6 +2,7 @@ import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-l
 import type { RequestHandler } from "express";
 
 import { logger } from "../logger.js";
+
 import {
   type BunRequest,
   type InternalRequest,

@@ -1,9 +1,10 @@
+import type { ParsedUrlQueryInput } from "querystring";
+import { encode } from "querystring";
+
 import fetch from "cross-fetch";
 import { GraphQLError } from "graphql/error";
 import type { RawResponse } from "peterportal-api-next-types";
 import { isErrorResponse } from "peterportal-api-next-types";
-import type { ParsedUrlQueryInput } from "querystring";
-import { encode } from "querystring";
 
 /**
  * Returns a resolver function for a specific GraphQL field that queries the

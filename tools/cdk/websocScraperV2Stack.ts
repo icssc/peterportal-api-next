@@ -1,3 +1,6 @@
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
 import type { StackProps } from "aws-cdk-lib";
 import { RemovalPolicy, Stack } from "aws-cdk-lib";
 import { SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
@@ -10,8 +13,6 @@ import {
 } from "aws-cdk-lib/aws-ecs";
 import { LogGroup } from "aws-cdk-lib/aws-logs";
 import type { Construct } from "constructs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
 
 export class WebsocScraperV2Stack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps) {
