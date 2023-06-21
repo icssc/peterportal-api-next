@@ -9,9 +9,9 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "@libs/db": "*",
-    "@libs/websoc-api-next": "*",
-    "api-core": "*",
+    "@aws-sdk/client-lambda": "^3.338.0",
+    "@libs/db": "workspace:*",
+    "api-core": "workspace:*",
     "zod": "^3.21.4"
   },
   "devDependencies": {

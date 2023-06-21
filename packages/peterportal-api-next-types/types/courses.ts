@@ -1,17 +1,47 @@
 import { CourseLevel, GECategory } from "./constants";
 
 /**
+ * An object representing a course prerequisite.
+ */
+export type Prerequisite = {
+  /**
+   * Type of requisite. {course, exam}
+   */
+  type: string;
+  /**
+   * The course ID of the requisite.
+   */
+  courseId?: string;
+  /**
+   * The exam of the requisite.
+   */
+  examName?: string;
+  /**
+   * The minimum grade required for this requisite.
+   */
+  minGrade?: string;
+  /**
+   * If requisite is a coreguisite.
+   */
+  coreq?: boolean;
+};
+
+/**
  * An object representing a prerequisite tree for a course.
  */
 export type PrerequisiteTree = {
   /**
    * All of these courses must have been taken before this course can be taken.
    */
-  AND?: string[];
+  AND?: Array<Prerequisite | PrerequisiteTree>;
   /**
    * One of these courses must have been taken before this course can be taken.
    */
-  OR?: string[];
+  OR?: Array<Prerequisite | PrerequisiteTree>;
+  /**
+   * These courses must not have been taken before this course can be taken.
+   */
+  NOT?: Array<Prerequisite | PrerequisiteTree>;
 };
 
 /**
@@ -52,11 +82,11 @@ export type Course = {
   /**
    * The minimum number of units that can be earned by taking the course.
    */
-  minUnits: string;
+  minUnits: number;
   /**
    * The maximum number of units that can be earned by taking the course.
    */
-  maxUnits: string;
+  maxUnits: number;
   /**
    * The course description.
    */
@@ -112,7 +142,7 @@ export type Course = {
   /**
    * The corequisites for this course.
    */
-  corequisite: string;
+  corequisites: string;
   /**
    * The list of GE categories that this course fulfills.
    */

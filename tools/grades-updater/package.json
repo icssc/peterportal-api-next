@@ -12,7 +12,8 @@
     "@libs/db": "*",
     "csv-parse": "^5.3.5",
     "csv-stringify": "^6.2.4",
-    "winston": "^3.8.2"
+    "winston": "^3.8.2",
+    "winston-transport": "^4.5.0"
   },
   "devDependencies": {
     "@types/node": "^18.14.0",

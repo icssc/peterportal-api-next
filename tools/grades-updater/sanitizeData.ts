@@ -7,7 +7,7 @@ import { EOL } from "os";
 import { basename, resolve } from "path";
 import type { Quarter, WebsocAPIResponse, WebsocSection } from "peterportal-api-next-types";
 
-import { type Grade, __dirname, dataColumns, handleError, logger } from "./gradesUpdaterUtil";
+import { __dirname, dataColumns, type Grade, handleError, logger } from "./gradesUpdaterUtil";
 
 export interface RawGrade {
   year: string;

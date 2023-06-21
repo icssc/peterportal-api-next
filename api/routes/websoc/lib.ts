@@ -1,6 +1,8 @@
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { Prisma } from "@libs/db";
 import { WebsocAPIOptions } from "@libs/websoc-api-next";
 import type {
+  Department,
   WebsocAPIResponse,
   WebsocCourse,
   WebsocDepartment,
@@ -151,7 +153,7 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
  */
 function minutesSinceMidnight(time: string): number {
   const [hour, minute] = time.split(":");
-  return parseInt(hour, 10) * 60 + parseInt(minute, 10) + (minute.includes("pm") ? 720 : 0);
+  return (parseInt(hour, 10) % 12) * 60 + parseInt(minute, 10) + (minute.includes("pm") ? 720 : 0);
 }
 
 /**
@@ -234,6 +236,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
       meetings: {
         every: {
           endTime: {
+            gte: 0,
             lte: minutesSinceMidnight(parsedQuery.endTime),
           },
         },
@@ -366,30 +369,21 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
     courseNumber: query.courseNumber?.join(","),
     days: query.days?.join(""),
   };
-  if (query.units && query.sectionCodes) {
-    if (query.units.length === 1 && query.sectionCodes.length < 6) {
-      return [
-        {
-          ...baseQuery,
-          units: query.units[0],
-          sectionCodes: query.sectionCodes.join(","),
-        },
-      ];
-    }
 
-    const keys = query.sectionCodes.map((_, i) => (i % 5 === 0 ? i : null)).filter(notNull);
-
-    return query.units
-      .map((units) => ({ ...baseQuery, units }))
-      .flatMap((copiedQuery) =>
-        keys.map((k) => ({
-          ...copiedQuery,
-          sectionCodes: query.sectionCodes?.slice(k * 5, (k + 1) * 5).join(",") || "",
+  let queries: WebsocAPIOptions[] = [baseQuery];
+  if (query.units?.length)
+    queries = query.units.flatMap((units) => queries.map((q) => ({ ...q, units })));
+  if (query.sectionCodes?.length)
+    queries = query.sectionCodes
+      .map((_, i) => (i % 5 === 0 ? i : null))
+      .filter(notNull)
+      .flatMap((k) =>
+        queries.map((q) => ({
+          ...q,
+          sectionCodes: query.sectionCodes?.slice(k, k + 5).join(",") || "",
         }))
       );
-  } else {
-    return [baseQuery];
-  }
+  return queries;
 }
 
 /**
@@ -418,4 +412,24 @@ export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
   });
   response.schools.sort((a, b) => lexOrd(a.schoolName, b.schoolName));
   return response;
+}
+
+/**
+ * Wraps the Lambda client to invoke the WebSoc proxy service.
+ * @param client The Lambda Client to use.
+ * @param body The body to send to the proxy service.
+ */
+export async function invokeProxyService(
+  client: LambdaClient,
+  body: Record<string, unknown>
+): Promise<unknown> {
+  const res = await client.send(
+    new InvokeCommand({
+      FunctionName: "peterportal-api-next-prod-websoc-proxy-service",
+      Payload: new TextEncoder().encode(JSON.stringify({ body: JSON.stringify(body) })),
+    })
+  );
+  const payload = JSON.parse(Buffer.from(res.Payload ?? []).toString());
+  console.log(payload.body);
+  return JSON.parse(payload.body);
 }
