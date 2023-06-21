@@ -54,8 +54,8 @@ export class ApiStack extends Stack {
     };
     super(scope, `${id}-${stage}`, props);
 
-    this.api = this.setupAPI();
     this.env = env;
+    this.api = this.setupAPI();
   }
 
   /**

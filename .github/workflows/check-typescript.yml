@@ -1,0 +1,9 @@
+name: Check for TypeScript errors
+on:
+  pull_request_target:
+jobs:
+  check-typescript:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run TypeScript type checking
+        run: npx tsc -p . --noEmit && npx tsc -p apps/docs --noEmit && npx tsc -p apps/docs/cdk --noEmit
