@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "postinstall": "husky install",
-    "ants:dev": "dotenv -c development -- pnpm exec ant-stack dev",
+    "ant:dev": "dotenv -c development -- pnpm exec ant-stack dev",
+    "ant:create": "dotenv -c development -- pnpm exec ant-stack create",
     "build": "turbo run build",
     "dev": "dotenv -c development -- turbo run dev",
     "deploy": "turbo run deploy",
