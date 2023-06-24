@@ -81,7 +81,7 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
   $table
     .eq(2)
     .find("tr")
-    .each(function () {
+    .each(function (this: cheerio.Cheerio) {
       quarterData.push(
         $(this)
           .text()
@@ -94,7 +94,7 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
   $table
     .eq(4)
     .find("tr")
-    .each(function () {
+    .each(function (this: cheerio.Cheerio) {
       summerSessionData.push(
         $(this)
           .text()
