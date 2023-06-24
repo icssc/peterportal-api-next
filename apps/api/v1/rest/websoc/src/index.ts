@@ -29,7 +29,6 @@ export const GET: InternalHandler = async (request) => {
         prisma = new PrismaClient();
       }
       await prisma.$connect();
-
       return createOKResult("Warmed", requestId);
     } catch (e) {
       createErrorResult(500, e, requestId);

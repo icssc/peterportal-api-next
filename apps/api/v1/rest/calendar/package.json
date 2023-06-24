@@ -1,5 +1,5 @@
 {
-  "name": "api-v1-rest-websoc",
+  "name": "api-v1-rest-calendar",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -9,12 +9,12 @@
     "build": "pnpm exec ant-stack build"
   },
   "dependencies": {
-    "@aws-sdk/client-lambda": "^3.338.0",
     "@libs/db": "workspace:*",
+    "peterportal-api-next-types": "workspace:1.0.0-beta.1",
+    "winston": "^3.8.2",
     "zod": "^3.21.4"
   },
   "devDependencies": {
-    "peterportal-api-next-types": "workspace:1.0.0-beta.1",
     "typescript": "^5.0.4"
   }
 }
