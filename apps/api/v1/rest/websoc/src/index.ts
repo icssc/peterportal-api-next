@@ -15,14 +15,21 @@ import {
 } from "./lib";
 import { QuerySchema } from "./schema";
 
-const prisma = new PrismaClient();
+let prisma: PrismaClient;
 const lambda = new LambdaClient({});
 
 export const GET: InternalHandler = async (request) => {
   const { params, query, requestId } = request;
+  if (!prisma) {
+    prisma = new PrismaClient();
+  }
   if (request.isWarmerRequest) {
     try {
+      if (!prisma) {
+        prisma = new PrismaClient();
+      }
       await prisma.$connect();
+
       return createOKResult("Warmed", requestId);
     } catch (e) {
       createErrorResult(500, e, requestId);
