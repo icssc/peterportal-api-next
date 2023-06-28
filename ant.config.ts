@@ -8,7 +8,7 @@ import type { AntConfig, defineConfig } from "ant-stack/config";
 import type { loadConfig } from "unconfig";
 
 import env from "./env.js";
-import { dirname, join } from "path";
+import { dirname, join, resolve } from "path";
 import { fileURLToPath } from "url";
 import { chmod, copyFile, mkdir, readdir, rm } from "fs/promises";
 
@@ -77,6 +77,7 @@ const config: AntConfig = {
         setup(build) {
           build.onStart(async () => {
             await rm(outDir, { recursive: true, force: true });
+            console.log(resolve(outDir));
             await mkdir(outDir);
             const queryEngines = (await readdir(join(cwd, prismaClientDir))).filter((x) =>
               x.endsWith(prismaQueryEngineExt)

@@ -231,7 +231,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
    */
   await Promise.all(endpoints.map(loadEndpoint)).then(refreshRouter);
 
-  app.listen(config.port, () => {
+  const server = app.listen(config.port, () => {
     consola.info(`🎉 Express server listening at http://localhost:${config.port}`);
   });
 
@@ -254,5 +254,18 @@ export async function startRootDevServer(config: Required<AntConfig>) {
 
     await build(endpointBuildConfigs[endpoint]);
     await loadEndpoint(endpoint).then(refreshRouter);
+  });
+
+  process.on("SIGINT", () => {
+    consola.info("🛑 Caught SIGINT, exiting gracefully.");
+    server.close(() => {
+      process.exit(0);
+    });
+  });
+  process.on("SIGTERM", () => {
+    consola.info("🛑 Caught SIGTERM, exiting gracefully.");
+    server.close(() => {
+      process.exit(0);
+    });
   });
 }
