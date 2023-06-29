@@ -17,6 +17,7 @@ export default defineConfig({
     cli: "src/cli/index.ts",
     config: "src/config.ts",
     "lambda-core": "src/lambda-core/index.ts",
+    utils: "src/utils/index.ts",
   },
   bundle: true,
   format: "esm",

@@ -1,9 +1,31 @@
 name: Check for TypeScript errors
 on:
-  pull_request_target:
+  pull_request:
 jobs:
   check-typescript:
     runs-on: ubuntu-latest
+
     steps:
+      - name: Check out codebase
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        id: pnpm-install
+        with:
+          version: 8
+          run_install: false
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build AntStack
+        run: pnpm build --filter="ant-stack"
+
       - name: Run TypeScript type checking
         run: npx tsc -p . --noEmit && npx tsc -p apps/docs --noEmit && npx tsc -p apps/docs/cdk --noEmit

@@ -38,11 +38,13 @@ const ROOT_FILES = [
 // npm: https://docs.npmjs.com/cli/v7/using-npm/workspaces#installing-workspaces
 // yarn: https://classic.yarnpkg.com/en/docs/workspaces/#toc-how-to-use-it
 export function hasWorkspacePackageJSON(root: string): boolean {
-  const path = join(root, "package.json");
-  if (!isFileReadable(path)) {
+  const currentDirectoryPackageJson = join(root, "package.json");
+
+  if (!isFileReadable(currentDirectoryPackageJson)) {
     return false;
   }
-  const content = JSON.parse(fs.readFileSync(path, "utf-8")) || {};
+
+  const content = JSON.parse(fs.readFileSync(currentDirectoryPackageJson, "utf-8")) || {};
   return !!content.workspaces;
 }
 
@@ -51,8 +53,8 @@ export function hasRootFile(root: string): boolean {
 }
 
 export function hasPackageJSON(root: string) {
-  const path = join(root, "package.json");
-  return fs.existsSync(path);
+  const currentDirectoryPackageJson = join(root, "package.json");
+  return fs.existsSync(currentDirectoryPackageJson);
 }
 
 /**

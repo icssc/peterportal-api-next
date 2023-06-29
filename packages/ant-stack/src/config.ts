@@ -109,6 +109,7 @@ export async function getConfig() {
         extensions: ["ts", "js"],
       },
     ],
+    merge: true,
   });
 
   return loadedConfig.config;
