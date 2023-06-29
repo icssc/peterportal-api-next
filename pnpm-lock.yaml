@@ -519,6 +519,9 @@ importers:
         specifier: ^3.21.4
         version: 3.21.4
     devDependencies:
+      '@libs/build-tools':
+        specifier: workspace:*
+        version: link:../../../../../libs/build-tools
       peterportal-api-next-types:
         specifier: workspace:1.0.0-beta.1
         version: link:../../../../../packages/peterportal-api-next-types
