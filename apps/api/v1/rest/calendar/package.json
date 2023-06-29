@@ -15,6 +15,7 @@
     "zod": "^3.21.4"
   },
   "devDependencies": {
+    "@libs/build-tools": "workspace:*",
     "typescript": "^5.0.4"
   }
 }

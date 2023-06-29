@@ -96,6 +96,11 @@ export interface AntConfig {
 }
 
 /**
+ * Stub for the root AntStack config. Useful for customizing route build behavior.
+ */
+export type AntConfigStub = Partial<AntConfig>;
+
+/**
  * Helper function to create configuration with type information in the input.
  * FIXME: this is very slow when used with {@link loadConfig} !
  */
