@@ -31,6 +31,11 @@
       "types": "./dist/config.d.ts",
       "import": "./dist/config.js",
       "default": "./dist/config.js"
+    },
+    "./utils": {
+      "types": "./dist/utils.d.ts",
+      "import": "./dist/utils.js",
+      "default": "./dist/utils.js"
     }
   },
   "typesVersions": {
@@ -40,6 +45,9 @@
       ],
       "config": [
         "./dist/config.d.ts"
+      ],
+      "utils": [
+        "./dist/utils.d.ts"
       ]
     }
   },
