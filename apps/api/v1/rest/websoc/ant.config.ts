@@ -16,9 +16,6 @@ const prismaSchema = "./node_modules/@libs/db/prisma/schema.prisma";
 
 const outDir = resolve(cwd, "./dist");
 
-/**
- * TODO: add a `AntConfigSub` variant that allows partial configuration of a root config.
- */
 const config: AntConfigStub = {
   esbuild: {
     plugins: [
