@@ -1,17 +1,19 @@
-import { normalize, relative, resolve } from "node:path";
+import { relative, resolve } from "node:path";
 
-import chalk from "chalk";
 import chokidar from "chokidar";
 import { consola } from "consola";
-import { build, type BuildOptions, context } from "esbuild";
+import { build, type BuildOptions } from "esbuild";
 import express, { Router } from "express";
 
-import { type AntConfig, getConfig } from "../../config.js";
-import { createExpressHandler, type InternalHandler } from "../../lambda-core/internal/handler.js";
+import { getConfig } from "../../config.js";
+import { createExpressHandler } from "../../lambda-core/internal/handler.js";
 import { findAllProjects } from "../../utils/searchProjects.js";
 import { searchForPackageRoot } from "../../utils/searchRoot.js";
 import { searchForWorkspaceRoot } from "../../utils/searchRoot.js";
 
+/**
+ * Translates the HTTP verbs exported by the lambda-core into Express methods.
+ */
 const MethodsToExpress = {
   DELETE: "delete",
   GET: "get",
@@ -22,9 +24,19 @@ const MethodsToExpress = {
   OPTIONS: "options",
 } as const;
 
-const isMethod = (method: string): method is keyof typeof MethodsToExpress => {
+/**
+ * TODO: move to some location for "express-adapter" related stuff?
+ */
+function isMethod(method: string): method is keyof typeof MethodsToExpress {
   return method in MethodsToExpress;
-};
+}
+
+/**
+ * TODO: move to utils.
+ */
+function isStringArray(value: Array<unknown>): value is string[] {
+  return value.every((v) => typeof v === "string");
+}
 
 /**
  * Start a dev server.
@@ -37,88 +49,16 @@ export async function startDevServer() {
   const workspaceRoot = searchForWorkspaceRoot(cwd);
 
   if (cwd === workspaceRoot) {
-    startRootDevServer(config);
+    consola.info(
+      `🎏 Starting root dev server. All endpoints from ${config.directory} will be served.`
+    );
   } else {
-    startLocalDevServer(config);
+    const endpoint = relative(`${workspaceRoot}/${config.directory}`, cwd);
+    consola.info(
+      `🎏 Starting local dev server. Only the current endpoint, ${endpoint} will be served at the "/" route.`
+    );
+    config.directory = resolve(process.cwd());
   }
-}
-
-/**
- * A local Express dev server only serves the current endpoint from the root route.
- * Useful for quickly testing endpoints individually.
- * TODO: can probably merge this logic with {@link startRootDevServer}
- */
-export async function startLocalDevServer(config: Required<AntConfig>) {
-  consola.info(`Starting local dev server. Only the current endpoint will be served.`);
-
-  const file = resolve(process.cwd(), `${config.esbuild.outdir}/index.js`);
-
-  let internalHandlers: Record<string, InternalHandler>;
-
-  const app = express();
-
-  let router = Router();
-
-  config.esbuild.plugins ??= [];
-
-  config.esbuild.plugins.push({
-    name: "very-epic-and-genius-live-reload-express-strat",
-    setup(build) {
-      build.onStart(() =>
-        consola.log(chalk.bgBlack.magenta(`Building temporary files to ${config.esbuild.outdir}`))
-      );
-
-      build.onEnd(async () => {
-        /**
-         * Create a new, empty router.
-         */
-        router = Router();
-
-        /**
-         * @link https://ar.al/2021/02/22/cache-busting-in-node.js-dynamic-esm-imports/
-         * Invalidate the ESM cache by appending a dynamic string,
-         * ensuring that it's re-imported and the router is refreshed with new routes.
-         */
-        internalHandlers = await import(`${file}?update=${Date.now()}`);
-
-        /**
-         * Populate the new router with the new handlers.
-         */
-        Object.keys(internalHandlers)
-          .filter(isMethod)
-          .forEach((key) => {
-            router[MethodsToExpress[key]]("/", createExpressHandler(internalHandlers[key]));
-          });
-
-        consola.info(`🚀 Routes reloaded at http://localhost:${config.port}`);
-      });
-    },
-  });
-
-  /**
-   * @link https://github.com/expressjs/express/issues/2596
-   * Using a mutable router allows us to dynamically swap in new routers after building.
-   */
-  app.use((req, res, next) => router(req, res, next));
-
-  app.listen(config.port, () => {
-    consola.log(`🚀 Express server listening at http://localhost:${config.port}`);
-  });
-
-  context(config.esbuild).then((ctx) => ctx.watch());
-}
-
-const isStringArray = (value: Array<unknown>): value is string[] => {
-  return value.every((v) => typeof v === "string");
-};
-
-/**
- * A root dev server serves all API routes from the {@link AntConfig['directory']}
- */
-export async function startRootDevServer(config: Required<AntConfig>) {
-  consola.info(
-    `🎏 Starting root dev server. All endpoints from ${config.directory} will be served.`
-  );
 
   const endpoints = findAllProjects(config.directory);
 
@@ -135,19 +75,19 @@ export async function startRootDevServer(config: Required<AntConfig>) {
      */
     const entryPoints = Array.isArray(config.esbuild.entryPoints)
       ? isStringArray(config.esbuild.entryPoints)
-        ? config.esbuild.entryPoints.map((entry) => normalize(`${endpoint}/${entry}`))
+        ? config.esbuild.entryPoints.map((entry) => `${endpoint}/${entry}`)
         : config.esbuild.entryPoints.map((entry) => ({
-            in: normalize(`${endpoint}/${entry.in}`),
-            out: normalize(`${endpoint}/${entry.out}`),
+            in: `${endpoint}/${entry.in}`,
+            out: `${endpoint}/${entry.out}`,
           }))
       : typeof config.esbuild.entryPoints === "object"
       ? Object.entries(config.esbuild.entryPoints).map(([key, value]) => ({
-          in: normalize(`${endpoint}/${key}`),
-          out: normalize(`${endpoint}/${value}`),
+          in: `${endpoint}/${key}`,
+          out: `${endpoint}/${value}`,
         }))
       : config.esbuild.entryPoints;
 
-    const outdir = normalize(`${endpoint}/${config.esbuild.outdir}`);
+    const outdir = resolve(`${endpoint}/${config.esbuild.outdir}`);
 
     configs[endpoint] = { ...config.esbuild, entryPoints, outdir };
 
@@ -192,11 +132,11 @@ export async function startRootDevServer(config: Required<AntConfig>) {
     router = Router();
 
     endpoints.forEach((endpoint) => {
-      consola.info(`🔄 Loading ${endpoint} from ${endpointBuildConfigs[endpoint].outdir}`);
+      const api = `/${relative(config.directory, endpoint)}`;
 
-      router.use(`/${relative(config.directory, endpoint)}`, (req, res, next) =>
-        endpointMiddleware[endpoint](req, res, next)
-      );
+      consola.info(`🔄 Loading ${api} from ${endpointBuildConfigs[endpoint].outdir}`);
+
+      router.use(api, (req, res, next) => endpointMiddleware[endpoint](req, res, next));
     });
   };
 
@@ -212,11 +152,9 @@ export async function startRootDevServer(config: Required<AntConfig>) {
 
     const internalHandlers = await import(`${file}?update=${Date.now()}`);
 
-    const handlerMethods = internalHandlers.default
-      ? Object.keys(internalHandlers.default)
-      : Object.keys(internalHandlers);
+    const handlerFunctions = internalHandlers.default ?? internalHandlers;
 
-    const handlerFunctions = internalHandlers.default ? internalHandlers.default : internalHandlers;
+    const handlerMethods = Object.keys(handlerFunctions);
 
     handlerMethods.filter(isMethod).forEach((key) => {
       endpointMiddleware[endpoint][MethodsToExpress[key]](
@@ -231,7 +169,7 @@ export async function startRootDevServer(config: Required<AntConfig>) {
    */
   await Promise.all(endpoints.map(loadEndpoint)).then(refreshRouter);
 
-  const server = app.listen(config.port, () => {
+  app.listen(config.port, () => {
     consola.info(`🎉 Express server listening at http://localhost:${config.port}`);
   });
 
@@ -250,22 +188,9 @@ export async function startRootDevServer(config: Required<AntConfig>) {
   watcher.on("change", async (path) => {
     const endpoint = searchForPackageRoot(path);
 
-    console.log("✨ endpoint changed: ", endpoint);
+    consola.success("✨ endpoint changed: ", endpoint);
 
     await build(endpointBuildConfigs[endpoint]);
     await loadEndpoint(endpoint).then(refreshRouter);
-  });
-
-  process.on("SIGINT", () => {
-    consola.info("🛑 Caught SIGINT, exiting gracefully.");
-    server.close(() => {
-      process.exit(0);
-    });
-  });
-  process.on("SIGTERM", () => {
-    consola.info("🛑 Caught SIGTERM, exiting gracefully.");
-    server.close(() => {
-      process.exit(0);
-    });
   });
 }
