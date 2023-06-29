@@ -1,9 +1,10 @@
 name: Check for TypeScript errors
 on:
-  pull_request_target:
+  pull_request:
 jobs:
   check-typescript:
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out codebase
         uses: actions/checkout@v3
@@ -24,8 +25,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build AntStack
-        run:
-          pnpm build --filter="ant-stack"
+        run: pnpm build --filter="ant-stack"
 
-          # - name: Run TypeScript type checking
-          #   run: npx tsc -p . --noEmit && npx tsc -p apps/docs --noEmit && npx tsc -p apps/docs/cdk --noEmit
+      - name: Run TypeScript type checking
+        run: npx tsc -p . --noEmit && npx tsc -p apps/docs --noEmit && npx tsc -p apps/docs/cdk --noEmit
