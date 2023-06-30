@@ -14,6 +14,7 @@
     "winston": "^3.8.2"
   },
   "devDependencies": {
+    "peterportal-api-next-types": "workspace:^1.0.0-beta.1",
     "nodemon": "^2.0.20",
     "ts-node": "^10.9.1"
   }

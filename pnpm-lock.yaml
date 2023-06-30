@@ -848,6 +848,9 @@ importers:
       nodemon:
         specifier: ^2.0.20
         version: 2.0.20
+      peterportal-api-next-types:
+        specifier: workspace:^1.0.0-beta.1
+        version: link:../../packages/peterportal-api-next-types
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@20.2.5)(typescript@4.9.5)
