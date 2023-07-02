@@ -162,9 +162,13 @@ function buildANDLeaf(prereqTree: PrerequisiteTree, prereq: string) {
   }
 }
 
-function createPrereq(type: string, req: string, grade?: string, coreq?: boolean): Prerequisite {
-  const prereq: Prerequisite = { type: "" };
-  prereq.type = type;
+function createPrereq(
+  type: "course" | "exam",
+  req: string,
+  grade?: string,
+  coreq?: boolean
+): Prerequisite {
+  const prereq: Prerequisite = { type };
   if (type === "course") {
     prereq.courseId = req;
   } else {
