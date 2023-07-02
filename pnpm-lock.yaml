@@ -831,7 +831,7 @@ importers:
         specifier: ^3.12.3
         version: 3.12.7
 
-  tools/instructorScraper:
+  tools/instructor-scraper:
     dependencies:
       '@types/cheerio':
         specifier: ^0.22.31

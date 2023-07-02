@@ -4,11 +4,10 @@ import fs from "fs";
 import he from "he";
 import pLimit from "p-limit";
 import { dirname } from "path";
+import type { Instructor } from "peterportal-api-next-types";
 import stringSimilarity from "string-similarity";
 import { fileURLToPath } from "url";
 import winston, { log } from "winston";
-import type { Instructor } from "peterportal-api-next-types";
-
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -91,11 +90,7 @@ async function getAllInstructors(
   year_threshold: number = YEAR_THRESHOLD
 ): Promise<InstructorsData> {
   const currentYear = new Date().getFullYear();
-  logger.info(
-    `Scraping instructor data from ${
-      currentYear - year_threshold
-    } to ${currentYear}`
-  );
+  logger.info(`Scraping instructor data from ${currentYear - year_threshold} to ${currentYear}`);
   const limit = pLimit(concurrency_limit);
   const startTime = new Date().getTime();
   const instructorsInfo: InstructorsInfo = {};
@@ -136,10 +131,7 @@ async function getAllInstructors(
       // Instructor referenced in multiple faculty pages
       else {
         instructorsDict[name].schools.push(facultyLinks[link]);
-        facultyCourses[i].forEach(
-          instructorsDict[name].courses.add,
-          instructorsDict[name].courses
-        );
+        facultyCourses[i].forEach(instructorsDict[name].courses.add, instructorsDict[name].courses);
       }
     });
   });
@@ -149,24 +141,14 @@ async function getAllInstructors(
     const related_departments = Array.from(instructorsDict[name].courses);
     // Append promise for each instructor - the number of promises that run at the same is determined by concurrency_limit
     instructorPromises.push(
-      limit(() =>
-        getInstructor(
-          name,
-          schools,
-          related_departments,
-          attempts,
-          year_threshold
-        )
-      )
+      limit(() => getInstructor(name, schools, related_departments, attempts, year_threshold))
     );
     instructorsLog["instructors_found"][name] = {
       schools: schools,
       related_departments: related_departments,
     };
   });
-  logger.info(
-    `Retrieved ${Object.keys(instructorsDict).length} instructor names`
-  );
+  logger.info(`Retrieved ${Object.keys(instructorsDict).length} instructor names`);
   const instructors = await Promise.all(instructorPromises);
   // Store results and log
   instructors.forEach((instructorResult) => {
@@ -240,10 +222,7 @@ async function getInstructor(
     shortenedName: "",
     courseHistory: {},
   };
-  const [directory_status, directoryInfo] = await getDirectoryInfo(
-    instructorName,
-    attempts
-  );
+  const [directory_status, directoryInfo] = await getDirectoryInfo(instructorName, attempts);
   let status = directory_status;
   if (status !== "FOUND") {
     return [status, instructorObject];
@@ -298,10 +277,7 @@ async function getFaculty(
       const departmentLinks: string[][] = [];
       $(".levelone li a").each(function (this: cheerio.Element) {
         const departmentURL = $(this).attr("href");
-        departmentLinks.push([
-          CATALOGUE_BASE_URL + departmentURL + "#faculty",
-          schoolName,
-        ]);
+        departmentLinks.push([CATALOGUE_BASE_URL + departmentURL + "#faculty", schoolName]);
       });
       const departmentLinksPromises = departmentLinks.map((x) =>
         getFaculty(x[0], x[1], false, attempts - 1)
@@ -329,9 +305,7 @@ async function getFaculty(
  *      {'http://catalogue.uci.edu/clairetrevorschoolofthearts/#faculty':'Claire Trevor School of the Arts',
  *      'http://catalogue.uci.edu/thehenrysamuelischoolofengineering/departmentofbiomedicalengineering/#faculty':'The Henry Samueli School of Engineering', ...}
  */
-async function getFacultyLinks(
-  attempts: number
-): Promise<{ [faculty_link: string]: string }> {
+async function getFacultyLinks(attempts: number): Promise<{ [faculty_link: string]: string }> {
   const result: { [faculty_link: string]: string } = {};
   try {
     // Get links to all schools and store them into an array
@@ -341,15 +315,10 @@ async function getFacultyLinks(
     $("#textcontainer h4 a").each(function (this: cheerio.Element) {
       const schoolURL = $(this).attr("href");
       const schoolName = $(this).text();
-      schoolLinks.push([
-        CATALOGUE_BASE_URL + schoolURL + "#faculty",
-        schoolName,
-      ]);
+      schoolLinks.push([CATALOGUE_BASE_URL + schoolURL + "#faculty", schoolName]);
     });
     // Asynchronously call getFaculty on each link
-    const schoolLinksPromises = schoolLinks.map((x) =>
-      getFaculty(x[0], x[1], true, attempts)
-    );
+    const schoolLinksPromises = schoolLinks.map((x) => getFaculty(x[0], x[1], true, attempts));
     const schoolLinksResults = await Promise.all(schoolLinksPromises);
     schoolLinksResults.forEach((schoolURLs) => {
       for (const schoolName in schoolURLs) {
@@ -374,10 +343,7 @@ async function getFacultyLinks(
  * @param attempts - Number of times the function will be called again if request fails
  * @returns {string[]} A list of instructor names
  */
-async function getInstructorNames(
-  facultyLink: string,
-  attempts: number
-): Promise<string[]> {
+async function getInstructorNames(facultyLink: string, attempts: number): Promise<string[]> {
   const result: string[] = [];
   try {
     const response = await (await fetch(facultyLink)).text();
@@ -407,26 +373,17 @@ async function getInstructorNames(
  * Example:
  *      ["COMPSCI","IN4MATX","I&C SCI","SWE","STATS"] - http://catalogue.uci.edu/donaldbrenschoolofinformationandcomputersciences/#faculty
  */
-async function getDepartmentCourses(
-  facultyLink: string,
-  attempts: number
-): Promise<string[]> {
+async function getDepartmentCourses(facultyLink: string, attempts: number): Promise<string[]> {
   const departmentCourses: string[] = [];
   try {
     const courseUrl = facultyLink.replace("#faculty", "#courseinventory");
     const response = await (await fetch(courseUrl)).text();
     const $ = cheerio.load(response);
-    $("#courseinventorycontainer .courses").each(function (
-      this: cheerio.Element
-    ) {
+    $("#courseinventorycontainer .courses").each(function (this: cheerio.Element) {
       if ($(this).find("h3").length == 0) {
         return;
       }
-      const courseTitle = $(this)
-        .find(".courseblocktitle")
-        .text()
-        .trim()
-        .normalize("NFKD"); // I&C SCI 31. Introduction to Programming. 4 Units.
+      const courseTitle = $(this).find(".courseblocktitle").text().trim().normalize("NFKD"); // I&C SCI 31. Introduction to Programming. 4 Units.
       const courseID = courseTitle.substring(0, courseTitle.indexOf(".")); // I&C SCI 31
       const course = courseID.substring(0, courseID.lastIndexOf(" ")); // I&C SCI
       departmentCourses.push(course);
@@ -519,11 +476,7 @@ async function getDirectoryInfo(
     }
     const nameSplit = name.split(" ");
     // Try parts surrounding middle initial
-    if (
-      Object.keys(response).length === 0 &&
-      nameSplit.length > 2 &&
-      nameSplit[1].length === 1
-    ) {
+    if (Object.keys(response).length === 0 && nameSplit.length > 2 && nameSplit[1].length === 1) {
       data.set("uciKey", nameSplit[0] + " " + nameSplit[2]);
       response = await fetch(URL_TO_DIRECTORY, {
         method: "POST",
@@ -542,10 +495,7 @@ async function getDirectoryInfo(
     }
     // Try first and last part of name but shorter first name
     if (Object.keys(response).length === 0 && nameSplit[0].length > 7) {
-      data.set(
-        "uciKey",
-        nameSplit[0].slice(0, 5) + " " + nameSplit[nameSplit.length - 1]
-      );
+      data.set("uciKey", nameSplit[0].slice(0, 5) + " " + nameSplit[nameSplit.length - 1]);
       response = await fetch(URL_TO_DIRECTORY, {
         method: "POST",
         headers: headers,
@@ -553,11 +503,7 @@ async function getDirectoryInfo(
       }).then((res) => res.json());
     }
     // Try name without last part
-    if (
-      Object.keys(response).length == 0 &&
-      nameSplit.length > 2 &&
-      nameSplit[1].length > 1
-    ) {
+    if (Object.keys(response).length == 0 && nameSplit.length > 2 && nameSplit[1].length > 1) {
       data.set("uciKey", nameSplit.slice(0, -1).join(" "));
       response = await fetch(URL_TO_DIRECTORY, {
         method: "POST",
@@ -759,9 +705,7 @@ async function fetchHistoryPage(
         warning.text().startsWith("Too many result")
       ) {
         return "HISTORY_NOT_FOUND";
-      } else if (
-        warning.text().trim().endsWith("connection to database is down.")
-      ) {
+      } else if (warning.text().trim().endsWith("connection to database is down.")) {
         throw new Error("HISTORY_FAILED"); // This mean database is die
       }
     }
@@ -840,9 +784,7 @@ async function parseHistoryPage(
           // Get course id if dept is related
           const deptValue = $(entry[fieldLabels["dept"]]).text().trim();
           if (relatedDepartmentsSet.has(deptValue)) {
-            const courseId = `${deptValue} ${$(entry[fieldLabels["courseNo"]])
-              .text()
-              .trim()}`;
+            const courseId = `${deptValue} ${$(entry[fieldLabels["courseNo"]]).text().trim()}`;
             if (courseId in courseHistory) {
               courseHistory[courseId].add(qtrValue);
             } else {
