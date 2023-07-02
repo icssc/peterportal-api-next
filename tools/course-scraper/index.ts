@@ -1,6 +1,10 @@
 import cheerio from "cheerio";
 import fetch from "cross-fetch";
-import fs from "fs";
+import fs, { readFileSync } from "fs";
+import { dirname, join } from "path";
+import { fileURLToPath } from "url";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 // scrape links
 const CATALOGUE_BASE_URL = "https://catalogue.uci.edu";
@@ -99,22 +103,9 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
 
   console.log("Mapping Departments to Schools...");
   // some need to be hard coded (These are mentioned in All Courses but not listed in their respective school catalogue)
-  const mapping: { [key: string]: string } = {
-    FIN: "The Paul Merage School of Business",
-    ARMN: "School of Humanities",
-    BSEMD: "School of Biological Sciences",
-    ECPS: "The Henry Samueli School of Engineering",
-    BANA: "The Paul Merage School of Business",
-    SPPS: "School of Social Sciences",
-    UCDC: "Unaffiliated",
-    ROTC: "Unaffiliated",
-    "NET SYS": "Donald Bren School of Information and Computer Sciences",
-    "UNI STU": "Unaffiliated",
-    "UNI AFF": "Unaffiliated",
-    GDIM: "Donald Bren School of Information and Computer Sciences",
-    DATA: "Donald Bren School of Information and Computer Sciences",
-    EHS: "Unaffiliated",
-  };
+  const mapping: Record<string, string> = JSON.parse(
+    readFileSync("./missingDepartments.json", { encoding: "utf8" })
+  );
   const response = await fetch(URL_TO_ALL_SCHOOLS);
   const $ = cheerio.load(await response.text());
   const schoolLinks: string[] = [];
@@ -474,44 +465,33 @@ async function parseCourses(
     await getAllCourses(classURL, JSON_data, departmentToSchoolMapping);
   }
 }
-
-// directory holding all the JSON file
-const path = "./";
 // whether to print out info
 const debug = true;
-// whether to use cached data instead of rescraping (for faster development/testing for prerequisite/professor)
-const cache = false;
 // debugging information
 const noSchoolDepartment = new Set();
 
 // store the data
-let json_data = {};
+const json_data = {};
 let departmentToSchoolMapping = {};
 
 async function main() {
-  // If we are caching it, just get all the info from the already written json file
-  if (cache) {
-    json_data = JSON.parse(fs.readFileSync(path + COURSES_DATA_NAME, "utf8"));
-  }
   // scrape data if not using cache option
-  if (!cache) {
-    // maps department code to school
-    departmentToSchoolMapping = await getDepartmentToSchoolMapping();
-    console.log(departmentToSchoolMapping);
-    await parseCourses(departmentToSchoolMapping, json_data);
-    fs.writeFileSync(path + COURSES_DATA_NAME, JSON.stringify(json_data)); //is this a correct translation?
-    console.log("Successfully parsed all course URLs!");
-    // write data to index into elasticSearch
-    writeJsonData(json_data);
-    if (noSchoolDepartment.size === 0) {
-      console.log("SUCCESS! ALL DEPARTMENTS HAVE A SCHOOL!");
-    } else {
-      console.log(
-        "FAILED!",
-        noSchoolDepartment,
-        "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT AT getDepartmentToSchoolMapping"
-      );
-    }
+  // maps department code to school
+  departmentToSchoolMapping = await getDepartmentToSchoolMapping();
+  console.log(departmentToSchoolMapping);
+  await parseCourses(departmentToSchoolMapping, json_data);
+  fs.writeFileSync(join(__dirname, COURSES_DATA_NAME), JSON.stringify(json_data)); //is this a correct translation?
+  console.log("Successfully parsed all course URLs!");
+  // write data to index into elasticSearch
+  writeJsonData(json_data);
+  if (noSchoolDepartment.size === 0) {
+    console.log("SUCCESS! ALL DEPARTMENTS HAVE A SCHOOL!");
+  } else {
+    console.log(
+      "FAILED!",
+      noSchoolDepartment,
+      "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT AT getDepartmentToSchoolMapping"
+    );
   }
 }
 
