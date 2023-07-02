@@ -471,7 +471,7 @@ const debug = true;
 const noSchoolDepartment = new Set();
 
 // store the data
-const json_data = {};
+let json_data = {};
 let departmentToSchoolMapping = {};
 
 async function main() {
@@ -480,6 +480,16 @@ async function main() {
   departmentToSchoolMapping = await getDepartmentToSchoolMapping();
   console.log(departmentToSchoolMapping);
   await parseCourses(departmentToSchoolMapping, json_data);
+  json_data = Object.fromEntries(
+    Object.entries(json_data).map((x) => {
+      x[0] = x[0].replace(" ", "");
+      delete (x[1] as { id?: string }).id;
+      (x[1] as { title: string }).title = (x[1] as { title: string }).title
+        .split(".  ")[0]
+        .replace("  ", " ");
+      return x;
+    })
+  );
   fs.writeFileSync(join(__dirname, COURSES_DATA_NAME), JSON.stringify(json_data)); //is this a correct translation?
   console.log("Successfully parsed all course URLs!");
   // write data to index into elasticSearch
