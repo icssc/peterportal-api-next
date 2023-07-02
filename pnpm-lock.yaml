@@ -606,12 +606,12 @@ importers:
   libs/db:
     dependencies:
       '@prisma/client':
-        specifier: ^4.14.0
-        version: 4.14.0(prisma@4.14.0)
+        specifier: ^4.16.2
+        version: 4.16.2(prisma@4.16.2)
     devDependencies:
       prisma:
-        specifier: ^4.14.0
-        version: 4.14.0
+        specifier: ^4.16.2
+        version: 4.16.2
 
   libs/ddb:
     dependencies:
@@ -892,6 +892,25 @@ importers:
       ts-node:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@18.14.0)(typescript@5.0.4)
+
+  tools/unified-cip-scraper:
+    dependencies:
+      '@libs/db':
+        specifier: workspace:^
+        version: link:../../libs/db
+      course-scraper:
+        specifier: workspace:^
+        version: link:../course-scraper
+      instructor-scraper:
+        specifier: workspace:^
+        version: link:../instructor-scraper
+      prereq-scraper:
+        specifier: workspace:^
+        version: link:../prereq-scraper
+    devDependencies:
+      peterportal-api-next-types:
+        specifier: workspace:1.0.0-beta.1
+        version: link:../../packages/peterportal-api-next-types
 
   tools/websoc-proxy-service:
     dependencies:
@@ -6568,12 +6587,37 @@ packages:
     dependencies:
       '@prisma/engines-version': 4.14.0-67.d9a4c5988f480fa576d43970d5a23641aa77bc9c
       prisma: 4.14.0
+    dev: true
+
+  /@prisma/client@4.16.2(prisma@4.16.2):
+    resolution: {integrity: sha512-qCoEyxv1ZrQ4bKy39GnylE8Zq31IRmm8bNhNbZx7bF2cU5aiCCnSa93J2imF88MBjn7J9eUQneNxUQVJdl/rPQ==}
+    engines: {node: '>=14.17'}
+    requiresBuild: true
+    peerDependencies:
+      prisma: '*'
+    peerDependenciesMeta:
+      prisma:
+        optional: true
+    dependencies:
+      '@prisma/engines-version': 4.16.1-1.4bc8b6e1b66cb932731fb1bdbbc550d1e010de81
+      prisma: 4.16.2
+    dev: false
 
   /@prisma/engines-version@4.14.0-67.d9a4c5988f480fa576d43970d5a23641aa77bc9c:
     resolution: {integrity: sha512-3jum8/YSudeSN0zGW5qkpz+wAN2V/NYCQ+BPjvHYDfWatLWlQkqy99toX0GysDeaUoBIJg1vaz2yKqiA3CFcQw==}
+    dev: true
+
+  /@prisma/engines-version@4.16.1-1.4bc8b6e1b66cb932731fb1bdbbc550d1e010de81:
+    resolution: {integrity: sha512-q617EUWfRIDTriWADZ4YiWRZXCa/WuhNgLTVd+HqWLffjMSPzyM5uOWoauX91wvQClSKZU4pzI4JJLQ9Kl62Qg==}
+    dev: false
 
   /@prisma/engines@4.14.0:
     resolution: {integrity: sha512-PDNlhP/1vyTgmNyiucGqGCdXIp7HIkkvKO50si3y3PcceeHvqtiKPaH1iJdz63jCWMVMbj2MElSxXPOeBvEVIQ==}
+    requiresBuild: true
+    dev: true
+
+  /@prisma/engines@4.16.2:
+    resolution: {integrity: sha512-vx1nxVvN4QeT/cepQce68deh/Turxy5Mr+4L4zClFuK1GlxN3+ivxfuv+ej/gvidWn1cE1uAhW7ALLNlYbRUAw==}
     requiresBuild: true
 
   /@protobufjs/aspromise@1.1.2:
@@ -13592,6 +13636,15 @@ packages:
     requiresBuild: true
     dependencies:
       '@prisma/engines': 4.14.0
+    dev: true
+
+  /prisma@4.16.2:
+    resolution: {integrity: sha512-SYCsBvDf0/7XSJyf2cHTLjLeTLVXYfqp7pG5eEVafFLeT0u/hLFz/9W196nDRGUOo1JfPatAEb+uEnTQImQC1g==}
+    engines: {node: '>=14.17'}
+    hasBin: true
+    requiresBuild: true
+    dependencies:
+      '@prisma/engines': 4.16.2
 
   /prismjs@1.29.0:
     resolution: {integrity: sha512-Kx/1w86q/epKcmte75LNrEoT+lX8pBpavuAbvJWRXar7Hz8jrtF+e3vY751p0R8H9HdArwaCTNDDzHg/ScJK1Q==}

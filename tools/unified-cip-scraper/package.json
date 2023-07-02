@@ -1,0 +1,19 @@
+{
+  "name": "unified-cip-scraper",
+  "version": "0.1.0",
+  "description": "",
+  "license": "MIT",
+  "author": "",
+  "type": "module",
+  "main": "index.ts",
+  "types": "index.ts",
+  "dependencies": {
+    "@libs/db": "workspace:^",
+    "course-scraper": "workspace:^",
+    "instructor-scraper": "workspace:^",
+    "prereq-scraper": "workspace:^"
+  },
+  "devDependencies": {
+    "peterportal-api-next-types": "workspace:1.0.0-beta.1"
+  }
+}
