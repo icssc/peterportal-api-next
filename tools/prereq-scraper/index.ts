@@ -43,7 +43,7 @@ const logger = winston.createLogger({
 /**
  * Scrape all course prerequisite data from the Registrar's website.
  */
-export async function scrapeAllPrereqs(): Promise<DepartmentCourses> {
+export async function getAllPrereqs(): Promise<DepartmentCourses> {
   logger.info("Scraping all course prerequisite data");
   const deptCourses: DepartmentCourses = {};
   try {
@@ -215,7 +215,7 @@ function parseAntiRequisite(requisite: string): Prerequisite | null {
 }
 
 async function main() {
-  const prereqs = await scrapeAllPrereqs();
+  const prereqs = await getAllPrereqs();
   writeFileSync("./prerequisites.json", JSON.stringify(prereqs));
 }
 
