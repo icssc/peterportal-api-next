@@ -1,5 +1,6 @@
 import cheerio from "cheerio";
 import fetch from "cross-fetch";
+import { writeFileSync } from "fs";
 import { dirname } from "path";
 import { Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
 import { fileURLToPath } from "url";
@@ -212,3 +213,10 @@ function parseAntiRequisite(requisite: string): Prerequisite | null {
   }
   return null;
 }
+
+async function main() {
+  const prereqs = await scrapeAllPrereqs();
+  writeFileSync("./prerequisites.json", JSON.stringify(prereqs));
+}
+
+main();
