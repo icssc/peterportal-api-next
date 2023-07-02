@@ -1,9 +1,9 @@
 import cheerio from "cheerio";
 import fetch from "cross-fetch";
-import { writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync } from "fs";
 import he from "he";
 import pLimit from "p-limit";
-import { dirname } from "path";
+import { dirname, join } from "path";
 import type { Instructor } from "peterportal-api-next-types";
 import stringSimilarity from "string-similarity";
 import { fileURLToPath } from "url";
@@ -84,11 +84,13 @@ function sleep(ms: number) {
  * @param year_threshold - Number of years to look back when scraping instructor's course history
  * @returns {InstructorsData} Object containing instructors info and stats regarding retrieval
  */
-export async function getAllInstructors(
-  concurrency_limit = 100,
+export async function getInstructors(
+  concurrency_limit = 1,
   attempts = 5,
   year_threshold: number = YEAR_THRESHOLD
 ): Promise<InstructorsData> {
+  if (existsSync(join(__dirname, "instructors.json")))
+    return JSON.parse(readFileSync(join(__dirname, "instructors.json"), { encoding: "utf8" }));
   const currentYear = new Date().getFullYear();
   logger.info(`Scraping instructor data from ${currentYear - year_threshold} to ${currentYear}`);
   const limit = pLimit(concurrency_limit);
@@ -667,7 +669,7 @@ async function getCourseHistory(
   // Convert sets to lists
   const courseHistoryListed: { [key: string]: string[] } = {};
   for (const courseId in courseHistory) {
-    courseHistoryListed[courseId] = Array.from(courseHistory[courseId]);
+    courseHistoryListed[courseId.replace(" ", "")] = Array.from(courseHistory[courseId]);
   }
   if (status == "FOUND" && Object.keys(courseHistoryListed).length == 0) {
     status = "HISTORY_NOT_FOUND";
@@ -806,7 +808,7 @@ async function parseHistoryPage(
 }
 
 async function main() {
-  const instructors = await getAllInstructors();
+  const instructors = await getInstructors();
   writeFileSync("./instructors.json", JSON.stringify(instructors));
 }
 

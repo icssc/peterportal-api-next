@@ -1,7 +1,7 @@
 import cheerio from "cheerio";
 import fetch from "cross-fetch";
-import { writeFileSync } from "fs";
-import { dirname } from "path";
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
 import { Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
 import { fileURLToPath } from "url";
 import winston from "winston";
@@ -43,7 +43,9 @@ const logger = winston.createLogger({
 /**
  * Scrape all course prerequisite data from the Registrar's website.
  */
-export async function getAllPrereqs(): Promise<DepartmentCourses> {
+export async function getPrereqs(): Promise<DepartmentCourses> {
+  if (existsSync(join(__dirname, "prerequisites.json")))
+    return JSON.parse(readFileSync(join(__dirname, "prerequisites.json"), { encoding: "utf8" }));
   logger.info("Scraping all course prerequisite data");
   const deptCourses: DepartmentCourses = {};
   try {
@@ -215,7 +217,7 @@ function parseAntiRequisite(requisite: string): Prerequisite | null {
 }
 
 async function main() {
-  const prereqs = await getAllPrereqs();
+  const prereqs = await getPrereqs();
   writeFileSync("./prerequisites.json", JSON.stringify(prereqs));
 }
 

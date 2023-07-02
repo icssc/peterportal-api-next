@@ -1,6 +1,6 @@
 import cheerio from "cheerio";
 import fetch from "cross-fetch";
-import fs, { readFileSync } from "fs";
+import fs, { existsSync, readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -12,7 +12,7 @@ const URL_TO_ALL_COURSES: string = CATALOGUE_BASE_URL + "/allcourses/";
 const URL_TO_ALL_SCHOOLS: string = CATALOGUE_BASE_URL + "/schoolsandprograms/";
 
 // output file names
-const COURSES_DATA_NAME = "course_data.json";
+const COURSES_DATA_NAME = "courses.json";
 
 // references
 const GE_DICTIONARY: Record<string, string> = {
@@ -441,7 +441,7 @@ export async function parseCourseBody(
  * @param filename the file to write the result to
  * @returns {void}: writes the json_data to a json file
  */
-function writeJsonData(json_data: Record<string, unknown>, filename = "./course_data.json"): void {
+function writeJsonData(json_data: Record<string, unknown>, filename = "./courses.json"): void {
   console.log(`\nWriting JSON to ${filename}...`);
   //const bar = new ProgressBar(Object.keys(json_data).length, debug);
   // Maybe delete the existing data?
@@ -449,7 +449,7 @@ function writeJsonData(json_data: Record<string, unknown>, filename = "./course_
     if (error) {
       console.error("Error writing to file " + filename, error);
     } else {
-      console.log("Exported instructors data to", filename + "course_data.json");
+      console.log("Exported instructors data to", filename + "courses.json");
     }
   });
 }
@@ -470,7 +470,9 @@ const debug = true;
 // debugging information
 const noSchoolDepartment = new Set();
 
-export async function getAllCourseInfo() {
+export async function getCourses() {
+  if (existsSync(join(__dirname, "courses.json")))
+    return JSON.parse(readFileSync(join(__dirname, "courses.json"), { encoding: "utf8" }));
   const json_data = {};
   const departmentToSchoolMapping = await getDepartmentToSchoolMapping();
   await parseCourses(departmentToSchoolMapping, json_data);
@@ -489,7 +491,7 @@ export async function getAllCourseInfo() {
 
 async function main() {
   try {
-    const data = await getAllCourseInfo();
+    const data = await getCourses();
     fs.writeFileSync(join(__dirname, COURSES_DATA_NAME), JSON.stringify(data));
   } catch {
     console.log(
