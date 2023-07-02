@@ -1,20 +1,20 @@
-import * as cheerio from "cheerio";
+import cheerio from "cheerio";
 import fetch from "cross-fetch";
-import fs from "fs";
+import { writeFileSync } from "fs";
 import he from "he";
 import pLimit from "p-limit";
 import { dirname } from "path";
 import type { Instructor } from "peterportal-api-next-types";
 import stringSimilarity from "string-similarity";
 import { fileURLToPath } from "url";
-import winston, { log } from "winston";
+import winston from "winston";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
-const CATALOGUE_BASE_URL = "http://catalogue.uci.edu";
-const URL_TO_ALL_SCHOOLS = "http://catalogue.uci.edu/schoolsandprograms/";
+const CATALOGUE_BASE_URL = "https://catalogue.uci.edu";
+const URL_TO_ALL_SCHOOLS = "https://catalogue.uci.edu/schoolsandprograms/";
 const URL_TO_DIRECTORY = "https://directory.uci.edu/";
-const URL_TO_INSTRUCT_HISTORY = "http://www.reg.uci.edu/perl/InstructHist";
+const URL_TO_INSTRUCT_HISTORY = "https://www.reg.uci.edu/perl/InstructHist";
 
 const YEAR_THRESHOLD = 20; // Number of years to look back when grabbing course history
 
@@ -73,7 +73,7 @@ function sleep(ms: number) {
  * Get information of all instructors listed in the UCI catalogue page.
  *
  * The speed of this scraper largely depends on concurrency_limit and year_threshold. UCI websites run on boomer servers and will
- * die with too many concurrent calls so we bottleneck. If a request fails we retry up to the number of attempts.
+ * die with too many concurrent calls, so we bottleneck. If a request fails we retry up to the number of attempts.
  *
  * Recommended parameters:
  * concurrency_limit <= 100;  Going more than 100 will likely result in more failed requests
@@ -85,8 +85,8 @@ function sleep(ms: number) {
  * @returns {InstructorsData} Object containing instructors info and stats regarding retrieval
  */
 async function getAllInstructors(
-  concurrency_limit: number,
-  attempts: number,
+  concurrency_limit = 100,
+  attempts = 5,
   year_threshold: number = YEAR_THRESHOLD
 ): Promise<InstructorsData> {
   const currentYear = new Date().getFullYear();
@@ -202,7 +202,7 @@ async function getAllInstructors(
  * @param relatedDepartments - Departments related to the instructor
  * @param attempts - Number of attempts to make a request if fail
  * @param year_threshold - number of years to look back when scraping instructor's course history
- * @returns {InstructorObject} Object containg the instructor's data
+ * @returns {[string, Instructor]} Object containg the instructor's data
  */
 async function getInstructor(
   instructorName: string,
@@ -466,8 +466,8 @@ async function getDirectoryInfo(
       }).then((res) => res.json());
     }
     // Try prepending all single characters to the next word "Alexander W Thornton" -> "Alexander WThornton"
-    if (Object.keys(response).length === 0 && /(\b\w{1})\s(\w+)/g.test(name)) {
-      data.set("uciKey", name.replace(/(\b\w{1})\s(\w+)/g, "$1$2"));
+    if (Object.keys(response).length === 0 && /(\b\w)\s(\w+)/g.test(name)) {
+      data.set("uciKey", name.replace(/(\b\w)\s(\w+)/g, "$1$2"));
       response = await fetch(URL_TO_DIRECTORY, {
         method: "POST",
         headers: headers,
@@ -518,7 +518,7 @@ async function getDirectoryInfo(
     }
     // Multiple results, need to find best match
     else if (Object.keys(response).length > 1) {
-      // Retrieve names with highest match score
+      // Retrieve names with the highest match score
       const nameResults = [strToTitleCase(response[0][1]["Name"])];
       for (let i = 1; i < Object.keys(response).length; i++) {
         if (response[i][0] == response[0][0]) {
@@ -574,10 +574,7 @@ async function getDirectoryInfo(
  */
 function strToTitleCase(str: string): string {
   const strArray = str.toLocaleLowerCase().split(" ");
-  const titleCaseStr = strArray
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-  return titleCaseStr;
+  return strArray.map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(" ");
 }
 
 /**
@@ -609,7 +606,7 @@ async function getCourseHistory(
   const nameCounts: { [key: string]: number } = {};
   let page: string;
   let continueParsing: boolean;
-  let status: string;
+  let status = "";
   const name = instructorName.replace(/\./g, "").split(" "); // Remove '.' and split => ['Alexander W Thornton']
   let shortenedName = `${name[name.length - 1]}, ${name[0][0]}.`; // Join last name and first initial           => 'Thornton, A.'
   const params = {
@@ -660,10 +657,12 @@ async function getCourseHistory(
     if (Object.keys(nameCounts).length > 0) {
       shortenedName = Object.keys(nameCounts).reduce((a, b) =>
         nameCounts[a] > nameCounts[b] ? a : b
-      ); // Get name with greatest count
+      ); // Get name with the greatest count
     }
-  } catch (error: any) {
-    status = error.message;
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      status = error.message;
+    }
   }
   // Convert sets to lists
   const courseHistoryListed: { [key: string]: string[] } = {};
@@ -706,7 +705,7 @@ async function fetchHistoryPage(
       ) {
         return "HISTORY_NOT_FOUND";
       } else if (warning.text().trim().endsWith("connection to database is down.")) {
-        throw new Error("HISTORY_FAILED"); // This mean database is die
+        throw new Error("HISTORY_FAILED"); // This means database ded
       }
     }
     return response;
@@ -723,8 +722,8 @@ async function fetchHistoryPage(
 }
 
 /**
- * Parse the instructor history page and returns true if entries are valid. This is used to determine whether
- * or not we want to continue parsing as there may be more pages of entries.
+ * Parse the instructor history page and returns true if entries are valid. This is used to determine
+ * whether we want to continue parsing as there may be more pages of entries.
  *
  * @param instructorHistoryPage - HTML string of an instructor history page
  * @param year_threshold - number of years to look back when scraping instructor's course history
@@ -807,5 +806,8 @@ async function parseHistoryPage(
 }
 
 async function main() {
-  // TODO: Upload data to prisma
+  const instructors = await getAllInstructors();
+  writeFileSync("./instructors.json", JSON.stringify(instructors));
 }
+
+main();
