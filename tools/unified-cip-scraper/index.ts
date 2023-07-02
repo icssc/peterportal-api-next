@@ -2,7 +2,7 @@ import type { PrismaPromise } from "@libs/db";
 import { PrismaClient } from "@libs/db";
 import { getCourses } from "course-scraper";
 import { getInstructors } from "instructor-scraper";
-import type { Instructor, PrerequisiteTree } from "peterportal-api-next-types";
+import type { Instructor, Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
 import { courseLevels, divisionCodes } from "peterportal-api-next-types";
 import { getPrereqs } from "prereq-scraper";
 
@@ -43,13 +43,64 @@ const termMapping: Record<string, string> = {
 
 const prisma = new PrismaClient();
 
+const isPrereq = (obj: Prerequisite | PrerequisiteTree): obj is Prerequisite => "type" in obj;
+
+const prereqToString = (prereq: Prerequisite) => {
+  switch (prereq.type) {
+    case "course":
+      return prereq.courseId ?? "";
+    case "exam":
+      return prereq.examName ?? "";
+  }
+};
+
+const prereqTreeToString = (tree: PrerequisiteTree): string => {
+  if (tree.AND) {
+    return `(${tree.AND.map((x) => (isPrereq(x) ? prereqToString(x) : prereqTreeToString(x))).join(
+      " AND "
+    )})`;
+  }
+  if (tree.OR) {
+    return `(${tree.OR.map((x) => (isPrereq(x) ? prereqToString(x) : prereqTreeToString(x))).join(
+      " OR "
+    )})`;
+  }
+  if (tree.NOT) {
+    return `(${tree.NOT.map((x) =>
+      isPrereq(x) ? `NOT ${prereqToString(x)}` : `NOT ${prereqTreeToString(x)}`
+    ).join(" AND ")})`;
+  }
+  return "";
+};
+
+const prereqTreeToList = (tree: PrerequisiteTree): string[] => {
+  if (tree.AND) {
+    return tree.AND.flatMap((x) => (isPrereq(x) ? prereqToString(x) : prereqTreeToList(x)));
+  }
+  if (tree.OR) {
+    return tree.OR.flatMap((x) => (isPrereq(x) ? prereqToString(x) : prereqTreeToList(x)));
+  }
+  return [];
+};
+
 const transformTerm = (term: string) => {
   const year = parseInt(term.slice(1), 10);
   return `${(year >= 89 ? 1900 : 2000) + year} ${termMapping[term[0]]}`;
 };
 
+const sortTerms = (a: string, b: string) => {
+  const quarterOrder = ["Winter", "Spring", "Summer1", "Summer10wk", "Summer2", "Fall"];
+  if (a.substring(0, 4) > b.substring(0, 4)) return -1;
+  if (a.substring(0, 4) < b.substring(0, 4)) return 1;
+  return quarterOrder.indexOf(b.substring(5)) - quarterOrder.indexOf(a.substring(5));
+};
+
 const upsertCourses =
-  (instructorInfo: Record<string, Instructor>, prereqInfo: Record<string, PrerequisiteTree>) =>
+  (
+    instructorInfo: Record<string, Instructor>,
+    prereqInfo: Record<string, PrerequisiteTree>,
+    prereqLists: Record<string, string[]>
+  ) =>
   ([
     id,
     {
@@ -72,6 +123,7 @@ const upsertCourses =
       ge_text,
     },
   ]: [string, ScrapedCourse]): PrismaPromise<unknown> => {
+    const courseId = `${department} ${number}`;
     const course = {
       id,
       department,
@@ -86,12 +138,12 @@ const upsertCourses =
       description,
       departmentName: department_name,
       instructorHistory: Object.values(instructorInfo)
-        .filter((x) => Object.keys(x.courseHistory ?? {}).includes(id))
+        .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
         .map((x) => x.ucinetid),
-      prerequisiteTree: prereqInfo[id] ?? {},
-      prerequisiteList: [],
-      prerequisiteText: "",
-      prerequisiteFor: [],
+      prerequisiteTree: prereqInfo[courseId] ?? {},
+      prerequisiteList: prereqLists[courseId],
+      prerequisiteText: prereqTreeToString(prereqInfo[courseId] ?? {}).slice(1, -1),
+      prerequisiteFor: Object.keys(prereqLists).filter((x) => prereqLists[x].includes(courseId)),
       repeatability,
       gradingOption: grading_option,
       concurrent,
@@ -104,11 +156,12 @@ const upsertCourses =
       terms: Array.from(
         new Set(
           Object.values(instructorInfo)
-            .filter((x) => Object.keys(x.courseHistory ?? {}).includes(id))
-            .map((x) => x.courseHistory[id])
-            .flat()
+            .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
+            .flatMap((x) => x.courseHistory[courseId])
         )
-      ).map(transformTerm),
+      )
+        .map(transformTerm)
+        .sort(sortTerms),
     };
     return prisma.course.upsert({
       where: { id },
@@ -125,8 +178,14 @@ async function main() {
       .flat()
       .map(({ courseId, prereqTree }) => [courseId, prereqTree])
   );
+  const prereqLists = Object.fromEntries(
+    Object.entries(prereqInfo).map(([courseId, prereqTree]) => [
+      courseId,
+      prereqTreeToList(prereqTree ?? {}),
+    ])
+  );
   await prisma.$transaction(
-    Object.entries(courseInfo).map(upsertCourses(instructorInfo, prereqInfo))
+    Object.entries(courseInfo).map(upsertCourses(instructorInfo, prereqInfo, prereqLists))
   );
 }
 
