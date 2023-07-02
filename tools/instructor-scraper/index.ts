@@ -84,7 +84,7 @@ function sleep(ms: number) {
  * @param year_threshold - Number of years to look back when scraping instructor's course history
  * @returns {InstructorsData} Object containing instructors info and stats regarding retrieval
  */
-async function getAllInstructors(
+export async function getAllInstructors(
   concurrency_limit = 100,
   attempts = 5,
   year_threshold: number = YEAR_THRESHOLD
