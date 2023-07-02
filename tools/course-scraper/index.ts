@@ -500,7 +500,7 @@ async function main() {
     console.log(
       "FAILED!",
       noSchoolDepartment,
-      "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT AT getDepartmentToSchoolMapping"
+      "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT IN missingDepartments.json"
     );
   }
 }
