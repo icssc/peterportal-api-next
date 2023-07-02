@@ -470,17 +470,12 @@ const debug = true;
 // debugging information
 const noSchoolDepartment = new Set();
 
-// store the data
-let json_data = {};
-let departmentToSchoolMapping = {};
-
-async function main() {
-  // scrape data if not using cache option
-  // maps department code to school
-  departmentToSchoolMapping = await getDepartmentToSchoolMapping();
-  console.log(departmentToSchoolMapping);
+export async function getAllCourseInfo() {
+  const json_data = {};
+  const departmentToSchoolMapping = await getDepartmentToSchoolMapping();
   await parseCourses(departmentToSchoolMapping, json_data);
-  json_data = Object.fromEntries(
+  if (noSchoolDepartment.size > 0) throw new Error();
+  return Object.fromEntries(
     Object.entries(json_data).map((x) => {
       x[0] = x[0].replace(" ", "");
       delete (x[1] as { id?: string }).id;
@@ -490,13 +485,13 @@ async function main() {
       return x;
     })
   );
-  fs.writeFileSync(join(__dirname, COURSES_DATA_NAME), JSON.stringify(json_data)); //is this a correct translation?
-  console.log("Successfully parsed all course URLs!");
-  // write data to index into elasticSearch
-  writeJsonData(json_data);
-  if (noSchoolDepartment.size === 0) {
-    console.log("SUCCESS! ALL DEPARTMENTS HAVE A SCHOOL!");
-  } else {
+}
+
+async function main() {
+  try {
+    const data = await getAllCourseInfo();
+    fs.writeFileSync(join(__dirname, COURSES_DATA_NAME), JSON.stringify(data));
+  } catch {
     console.log(
       "FAILED!",
       noSchoolDepartment,
