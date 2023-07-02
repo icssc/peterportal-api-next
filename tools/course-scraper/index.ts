@@ -1,19 +1,17 @@
-import axios from "axios";
 import cheerio from "cheerio";
+import fetch from "cross-fetch";
 import fs from "fs";
 
 // scrape links
-const CATALOGUE_BASE_URL = "http://catalogue.uci.edu";
+const CATALOGUE_BASE_URL = "https://catalogue.uci.edu";
 const URL_TO_ALL_COURSES: string = CATALOGUE_BASE_URL + "/allcourses/";
 const URL_TO_ALL_SCHOOLS: string = CATALOGUE_BASE_URL + "/schoolsandprograms/";
 
 // output file names
 const COURSES_DATA_NAME = "course_data.json";
-const SPECIAL_REQS_NAME = "special_reqs.txt";
-const SCHOOL_LIST_NAME = "school_list.txt";
 
 // references
-const GE_DICTIONARY: { [key: string]: string } = {
+const GE_DICTIONARY: Record<string, string> = {
   Ia: "GE Ia: Lower Division Writing",
   Ib: "GE Ib: Upper Division Writing",
   II: "GE II: Science and Technology",
@@ -26,34 +24,10 @@ const GE_DICTIONARY: { [key: string]: string } = {
   VIII: "GE VIII: International/Global Issues",
 };
 
-// allow non-digit prerequisite tokens if they contain one of these words
-// Example: Allow CHEM 1A to have "CHEM 1P or SAT Mathematics"
-const SPECIAL_PREREQUISITE_WHITE_LIST = ["SAT ", "ACT ", "AP "];
-// tokenize these separately because they contain 'and' or 'or'
-const PRETOKENIZE = ["AP Physics C: Electricity and Magnetism"];
-
 /**
  * @param ms milliseconds to sleep for
  */
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-/**
- * @param {string} str: the total string that will have substrings of it replaced
- * @param {string} find: all substrings of str that match find will be replaced with replace
- * @param {string} replace: the string that will replace all substrings of str that match find
- * @returns {string}: a string with all substrings of str that match find replaced with replace
- */
-function replaceAllSubString(str: string, find: string, replace: string): string {
-  return str.replace(new RegExp(escapeRegExp(find), "g"), replace);
-}
-
-/**
- * @param string string that will have meta characters escaped
- * @returns escaped string
- */
-function escapeRegExp(string: string): string {
-  return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
-}
 
 /**
  * @param {string} s: string to normalize (usually parsed from cheerio object)
@@ -74,8 +48,8 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
    * @param {string} school: school name
    */
   async function findSchoolNameFromDepartmentPage(departmentUrl: string, school: string) {
-    const response = await axios.get(departmentUrl);
-    const $ = cheerio.load(response.data);
+    const response = await fetch(departmentUrl);
+    const $ = cheerio.load(await response.text());
     // if this department has the "Courses" tab
     const departmentCourses = $("#courseinventorytab");
     if (departmentCourses.text() != "") {
@@ -90,8 +64,8 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
    * @param {string} schoolURL: URL to a school page
    */
   async function findSchoolName(schoolURL: string) {
-    const response = await axios.get(schoolURL);
-    const $ = cheerio.load(response.data);
+    const response = await fetch(schoolURL);
+    const $ = cheerio.load(await response.text());
     // get school name
     const school: string = normalizeString($("#contentarea > h1").text());
     if (debug) {
@@ -141,8 +115,8 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
     DATA: "Donald Bren School of Information and Computer Sciences",
     EHS: "Unaffiliated",
   };
-  const response = await axios.get(URL_TO_ALL_SCHOOLS);
-  const $ = cheerio.load(response.data);
+  const response = await fetch(URL_TO_ALL_SCHOOLS);
+  const $ = cheerio.load(await response.text());
   const schoolLinks: string[] = [];
   // look through all the lis in the sidebar
   $("#textcontainer > h4").each((i, lis) => {
@@ -168,16 +142,14 @@ export async function mapCoursePageToSchool(
   school: string,
   courseURL: string
 ) {
-  const response = await axios.get(courseURL);
-  const $ = cheerio.load(response.data);
+  const response = await fetch(courseURL);
+  const $ = cheerio.load(await response.text());
   // get all the departments under this school
   const courseBlocks: cheerio.Element[] = [];
   $("#courseinventorycontainer > .courses").each(async (i, schoolDepartment: cheerio.Element) => {
     // if department is not empty (why tf is Chemical Engr and Materials Science empty)
-    let department: string = $(schoolDepartment).find("h3").text();
+    const department: string = $(schoolDepartment).find("h3").text();
     if (department != "") {
-      // get the department name
-      department = normalizeString(department);
       // extract the first department code
       courseBlocks.push($(schoolDepartment).find("div")[0]);
     }
@@ -207,8 +179,8 @@ export async function getAllCourseURLS(): Promise<string[]> {
   // store all URLS in list
   const courseURLS: string[] = [];
   // access the course website to parse info
-  const response = await axios.get(URL_TO_ALL_COURSES);
-  const $ = cheerio.load(response.data);
+  const response = await fetch(URL_TO_ALL_COURSES);
+  const $ = cheerio.load(await response.text());
   // get all the unordered lists
   $("#atozindex > ul").each((i, letterLists) => {
     // get all the list items
@@ -234,9 +206,10 @@ export async function getAllCourses(
   json_data: { [key: string]: Record<string, unknown> },
   departmentToSchoolMapping: { [key: string]: string }
 ) {
-  const response = await axios.get(courseURL);
+  const response = await fetch(courseURL);
 
-  const $ = cheerio.load(response.data);
+  const responseText = await response.text();
+  const $ = cheerio.load(responseText);
   // department name
   let department: string = normalizeString($("#contentarea > h1").text());
   if (debug) {
@@ -244,7 +217,7 @@ export async function getAllCourses(
   }
   // strip off department id
   department = department.slice(0, department.indexOf("(")).trim();
-  $("#courseinventorycontainer > .courses").each(async (i: any, course: cheerio.Element) => {
+  $("#courseinventorycontainer > .courses").each(async (i: number, course: cheerio.Element) => {
     // if page is empty for some reason??? (http://catalogue.uci.edu/allcourses/cbems/)
     if ($(course).find("h3").text().length == 0) {
       return;
@@ -252,7 +225,7 @@ export async function getAllCourses(
     //const courseBlocks: cheerio.Element[] = [];
     $(course)
       .find("div > .courseblock")
-      .each(async (j: any, courseBlock: any) => {
+      .each(async (j: number, courseBlock: cheerio.Element) => {
         // course identification
         //courseBlocks.push(courseBlock);
         let courseInfo;
@@ -292,7 +265,7 @@ export async function getAllCourses(
         }
         // Examples at https://github.com/icssc-projects/PeterPortal/wiki/Course-Search
         // store class data into object
-        const classInforamtion: { [key: string]: any } = {
+        const classInforamtion = {
           id: courseID.replace(" ", ""),
           department: id_department,
           number: id_number,
@@ -327,7 +300,7 @@ export async function getAllCourses(
         // stores dictionaries in json_data to add dependencies later
         json_data[courseID] = classInforamtion;
         // populates the dic with simple information
-        parseCourseBody(courseBody, response, classInforamtion);
+        await parseCourseBody(courseBody, responseText, classInforamtion);
 
         // try to parse prerequisite
         if (courseBody.length > 1) {
@@ -358,11 +331,11 @@ export async function getCourseInfo(
   courseBlock: cheerio.Element,
   courseURL: string
 ): Promise<string[]> {
-  const response = await axios.get(courseURL);
-  const $ = cheerio.load(response.data);
+  const response = await fetch(courseURL);
+  const $ = cheerio.load(await response.text());
   // Regex filed into three categories (id, name, units) each representing an element in the return array
   const courseInfoPatternWithUnits =
-    /(?<id>.*[0-9]+[^.]*)\.[ ]+(?<name>.*)\.[ ]+(?<units>\d*\.?\d.*Units?)\./;
+    /(?<id>.*[0-9]+[^.]*)\. +(?<name>.*)\. +(?<units>\d*\.?\d.*Units?)\./;
   const courseInfoPatternWithoutUnits = /(?<id>.*[0-9]+[^.]*)\. (?<name>.*)\./;
   const courseBlockString: string = normalizeString($(courseBlock).find("p").text().trim());
   if (courseBlockString.includes("Unit")) {
@@ -410,16 +383,16 @@ export function determineCourseLevel(id_number: string) {
 
 /**
  * @param {cheerio.Element} courseBody: a collection of ptags within a courseblock
- * @param {object} response: response object from axios request on courseURL
- * @param {dict} classInfo: a map to store parsed information
+ * @param {string} responseText: response text
+ * @param {Record<string, unknown>} classInfo: a map to store parsed information
  * @returns {void}: nothing, mutates the mapping passed in
  */
 export async function parseCourseBody(
   courseBody: object,
-  response: any,
-  classInfo: { [key: string]: any }
+  responseText: string,
+  classInfo: Record<string, unknown>
 ) {
-  const $ = cheerio.load(response.data);
+  const $ = cheerio.load(responseText);
   // iterate through each ptag for the course
   $(courseBody).each((i, ptag) => {
     let pTagText = normalizeString($(ptag).text().trim());
@@ -437,11 +410,17 @@ export async function parseCourseBody(
       let match: RegExpExecArray | null;
       while ((match = ges.exec(pTagText)) !== null) {
         // normalize IA and VA to Ia and Va
-        const extractedGE: string = match.groups!.type + match.groups!.subtype.toLowerCase();
+        const extractedGE: string =
+          (match.groups?.type ?? "") + match.groups?.subtype.toLowerCase();
         // normalize in full string also
-        pTagText = pTagText.replace(match.groups!.type + match.groups!.subtype, extractedGE);
+        pTagText = pTagText.replace(
+          (match.groups?.type ?? "") + match.groups?.subtype,
+          extractedGE
+        );
         // add to ge_types
-        classInfo["ge_list"].push(GE_DICTIONARY[extractedGE]);
+        if (classInfo["ge_list"] instanceof Array) {
+          classInfo["ge_list"].push(GE_DICTIONARY[extractedGE]);
+        }
         if (debug) {
           console.log(`${GE_DICTIONARY[extractedGE]} `);
         }
@@ -458,8 +437,8 @@ export async function parseCourseBody(
         `^${keyWord.replace("_", " ")}s?\\s?(with\\s)?(:\\s)?(?<value>.*)`,
         "i"
       ).exec(pTagText);
-      if (possibleMatch && classInfo[keyWord].length === 0) {
-        classInfo[keyWord] = possibleMatch.groups!.value;
+      if (possibleMatch && (classInfo[keyWord] as []).length === 0) {
+        classInfo[keyWord] = possibleMatch.groups?.value;
         break;
       }
     }
@@ -468,78 +447,10 @@ export async function parseCourseBody(
 
 /**
  * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
- * @returns {void}: sets the prerequisite info based on the prerequisite database instead of the catalogue
- */
-function setReliablePrerequisites(json_data: { [key: string]: any }): void {
-  console.log("\nSetting Reliable Prerequisites...");
-  // const prerequisite_data = JSON.parse(
-  // fs.readFileSync(prerequisiteScraper.PREREQUISITE_DATA_NAME, "utf-8")
-  // );
-  const reqsReplaced = [];
-  // go through each prerequisite course
-  //for (const courseID in prerequisite_data) {
-  // if course exists in catalogue and prerequisite list is more detailed
-  //     if (courseID in json_data && prerequisite_data[courseID]["prerequisiteList"].length > json_data[courseID]["prerequisite_list"].length) {
-  //         reqsReplaced.push(courseID);
-  //         // rewrite the prerequisite data
-  //         json_data[courseID]["prerequisite_tree"] = prerequisite_data[courseID]["prerequisiteJSON"];
-  //         json_data[courseID]["prerequisite_list"] = prerequisite_data[courseID]["prerequisiteList"];
-  //         json_data[courseID]["prerequisite_text"] = prerequisite_data[courseID]["fullReqs"];
-  //     }
-  // }
-  // console.log(Replaced ${reqsReplaced.length} course prerequisites!);
-  // console.log("Done!");
-}
-
-/**
- * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
- * @returns {void}: sets the dependencies for courses
- */
-function setDependencies(json_data: { [key: string]: any }): void {
-  console.log("\nSetting Course Dependencies...");
-  // go through each prerequisiteList to add dependencies
-  for (const courseID in json_data) {
-    // iterate prerequisiteList
-    for (const prerequisite of json_data[courseID]["prerequisite_list"]) {
-      const trimmedPrereq = prerequisite.replaceAllSubString(" ", "");
-      // prereq needs to exist as a class
-      if (trimmedPrereq in json_data) {
-        const readableCourseID =
-          json_data[courseID]["department"] + " " + json_data[courseID]["number"];
-        json_data[trimmedPrereq]["prerequisite_for"].push(readableCourseID);
-      }
-    }
-  }
-  console.log("Finished Setting Course Dependencies!");
-}
-
-/**
- * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
- * @returns {void}: sets the professorHistory for courses
- */
-function setProfessorHistory(json_data: { [key: string]: any }): void {
-  // console.log("\nSetting Professor History...");
-  // // collection of professor information generated from professorScraper.py
-  // const professor_data = require(professorScraper.PROFESSOR_DATA_NAME); NEED Professor Scraper??
-  // // go through each professor data values
-  // for (const professor of Object.values(professor_data)) {
-  //     // go through each course that professor has taught
-  //     for (const courseID of professor["course_history"]) {
-  //         const trimmedCourseID = courseID.replaceAllSubString(" ", "");
-  //         // course needs to exist as a class
-  //         if (trimmedCourseID in json_data) {
-  //             json_data[trimmedCourseID]["professor_history"].push(professor["ucinetid"]);
-  //         }
-  //     }
-  // }
-  // console.log("Done!");
-}
-
-/**
- * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
+ * @param filename the file to write the result to
  * @returns {void}: writes the json_data to a json file
  */
-function writeJsonData(json_data: { [key: string]: any }, filename = "./course_data.json"): void {
+function writeJsonData(json_data: Record<string, unknown>, filename = "./course_data.json"): void {
   console.log(`\nWriting JSON to ${filename}...`);
   //const bar = new ProgressBar(Object.keys(json_data).length, debug);
   // Maybe delete the existing data?
@@ -552,31 +463,9 @@ function writeJsonData(json_data: { [key: string]: any }, filename = "./course_d
   });
 }
 
-/**
- * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
- * @returns {void}: used to create the dictionary for aliases
- */
-function printAllDepartments(json_data: { [key: string]: any }): void {
-  const departments: { [key: string]: any[] } = {};
-  for (const c of Object.values(json_data)) {
-    const d = c["id_department"];
-    if (!(d in departments)) {
-      departments[d] = [];
-    }
-  }
-  console.log(
-    "{" +
-      Object.keys(departments)
-        .sort()
-        .map((k) => `${JSON.stringify(k)}: ${JSON.stringify(departments[k])},`)
-        .join("\n") +
-      "}"
-  );
-}
-
 async function parseCourses(
   departmentToSchoolMapping: { [key: string]: string },
-  JSON_data: { [key: string]: any }
+  JSON_data: Record<string, Record<string, unknown>>
 ) {
   const allCourseURLS = await getAllCourseURLS();
   console.log("\nParsing Each Course URL...");
@@ -586,8 +475,6 @@ async function parseCourses(
   }
 }
 
-// if name == main
-
 // directory holding all the JSON file
 const path = "./";
 // whether to print out info
@@ -595,56 +482,37 @@ const debug = true;
 // whether to use cached data instead of rescraping (for faster development/testing for prerequisite/professor)
 const cache = false;
 // debugging information
-const specialRequirements = new Set();
 const noSchoolDepartment = new Set();
 
 // store the data
 let json_data = {};
 let departmentToSchoolMapping = {};
-// If we are caching it, just get all the info from the already written json file
-if (cache) {
-  json_data = JSON.parse(fs.readFileSync(path + COURSES_DATA_NAME, "utf8"));
-}
-// scrape data if not using cache option
-if (!cache) {
-  // maps department code to school
-  departmentToSchoolMapping = getDepartmentToSchoolMapping();
-  parseCourses(departmentToSchoolMapping, json_data).then(() => {
+
+async function main() {
+  // If we are caching it, just get all the info from the already written json file
+  if (cache) {
+    json_data = JSON.parse(fs.readFileSync(path + COURSES_DATA_NAME, "utf8"));
+  }
+  // scrape data if not using cache option
+  if (!cache) {
+    // maps department code to school
+    departmentToSchoolMapping = await getDepartmentToSchoolMapping();
+    console.log(departmentToSchoolMapping);
+    await parseCourses(departmentToSchoolMapping, json_data);
     fs.writeFileSync(path + COURSES_DATA_NAME, JSON.stringify(json_data)); //is this a correct translation?
     console.log("Successfully parsed all course URLs!");
-
-    // set reliable prerequisites
-    setReliablePrerequisites(json_data);
-    // set dependencies between each course
-    setDependencies(json_data);
-    // set professor history
-    setProfessorHistory(json_data);
     // write data to index into elasticSearch
     writeJsonData(json_data);
-
-    // Debug information about school
-    const schoolFile = fs.createWriteStream(path + SCHOOL_LIST_NAME);
-    schoolFile.write("List of Schools:\n");
-    for (const school of Array.from(new Set(Object.values(departmentToSchoolMapping))).sort()) {
-      schoolFile.write(school + "\n");
+    if (noSchoolDepartment.size === 0) {
+      console.log("SUCCESS! ALL DEPARTMENTS HAVE A SCHOOL!");
+    } else {
+      console.log(
+        "FAILED!",
+        noSchoolDepartment,
+        "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT AT getDepartmentToSchoolMapping"
+      );
     }
-    schoolFile.close();
-    // if (noSchoolDepartment.size === 0) {
-    //   console.log("SUCCESS! ALL DEPARTMENTS HAVE A SCHOOL!");
-    // } else {
-    //   console.log(
-    //     "FAILED!",
-    //     noSchoolDepartment,
-    //     "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT AT getDepartmentToSchoolMapping"
-    //   );
-    // }
-
-    // Debug information about special requirements
-    const specialFile = fs.createWriteStream(SPECIAL_REQS_NAME);
-    specialFile.write("Special Requirements:\n");
-    for (const sReq of Array.from(specialRequirements).sort()) {
-      specialFile.write(sReq + "\n");
-    }
-    specialFile.close();
-  });
+  }
 }
+
+main();
