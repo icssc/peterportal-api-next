@@ -769,7 +769,7 @@ importers:
         specifier: ^4.9.4
         version: 4.9.5
 
-  tools/courseScraper:
+  tools/course-scraper:
     dependencies:
       axios:
         specifier: ^1.3.2
