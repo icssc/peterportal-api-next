@@ -1,8 +1,6 @@
-import axios, { all, AxiosInstance } from "axios";
+import axios from "axios";
 import cheerio from "cheerio";
 import fs from "fs";
-
-import { Node, nodify } from "./node";
 
 // scrape links
 const CATALOGUE_BASE_URL = "http://catalogue.uci.edu";
@@ -10,8 +8,6 @@ const URL_TO_ALL_COURSES: string = CATALOGUE_BASE_URL + "/allcourses/";
 const URL_TO_ALL_SCHOOLS: string = CATALOGUE_BASE_URL + "/schoolsandprograms/";
 
 // output file names
-const GENERATE_JSON_NAME = "all_courses.json";
-const DEPT_SCHOOL_MAP_NAME = "dept_school_map.json";
 const COURSES_DATA_NAME = "course_data.json";
 const SPECIAL_REQS_NAME = "special_reqs.txt";
 const SCHOOL_LIST_NAME = "school_list.txt";
@@ -471,93 +467,6 @@ export async function parseCourseBody(
 }
 
 /**
- *
- * @param {any} tag: the second p tag in the course block
- * @param {object} response: response object from axios request on courseURL
- * @param {dict} classInfo: a map to store parsed information
- * @returns {any}: a requirement Node if successfully parsed, None otherwise
- */
-export function parsePrerequisite(tag: any, response: any, classInfo: { [key: string]: unknown }) {
-  const $ = cheerio.load(response.data);
-  // sometimes prerequisites are in the same ptag as corequisites
-  const prereqRegex =
-    /((?<fullcoreqs>Corequisite:(?<coreqs>[^\n]*))\n)?(?<fullreqs>Prerequisite[^:]*:(?<reqs>.*))/;
-  const possibleReq: RegExpMatchArray | null = normalizeString($(tag).text().trim()).match(
-    prereqRegex
-  );
-  if (possibleReq) {
-    classInfo["corequisite"] = possibleReq.groups?.coreqs || "";
-    classInfo["prerequisite_text"] = possibleReq.groups?.reqs || "";
-    // only get the first sentence (following sentences are grade requirements like "at least C or better")
-    if (possibleReq.groups?.reqs) {
-      let rawReqs: string = normalizeString(possibleReq.groups.reqs.split(".")[0].trim());
-      for (const pretoken of PRETOKENIZE) {
-        if (rawReqs.includes(pretoken)) {
-          rawReqs = rawReqs.replace(pretoken, pretoken.replace(" and ", "/").replace(" or ", "/"));
-        }
-      }
-      // get all courses
-      const extractedReqs = rawReqs.replace(/\(|\)/g, "").split(/ and | or /);
-      // tokenized version: replace each class by an integer
-      let tokenizedReqs = rawReqs;
-      const special = false;
-      // if doesnt have a link to another course, probably a special requirement
-      if (!$(tag).find("a").text().length) {
-        if (debug) {
-          console.log("\t\tSPECIAL REQ NO LINK:", rawReqs);
-        }
-        specialRequirements.add(rawReqs);
-        return;
-      }
-      // if has a link, continue tokenizing
-      for (let i = 0; i < extractedReqs.length; i++) {
-        const courseRegex = /^([^a-z]+ )+[A-Z0-9]+$/;
-        // if doesnt match course code regex, its probably a special requirement unless whitelisted
-        if (
-          !courseRegex.test(extractedReqs[i].trim()) &&
-          !SPECIAL_PREREQUISITE_WHITE_LIST.some((exception) => extractedReqs[i].includes(exception))
-        ) {
-          if (debug) {
-            console.log("\t\tSPECIAL REQ BAD FORMAT:", rawReqs);
-          }
-          specialRequirements.add(rawReqs);
-          return;
-        }
-        // does the actual replacement
-        tokenizedReqs = tokenizedReqs.replace(extractedReqs[i].trim(), i.toString());
-      }
-      // place a space between parentheses to tokenize
-      // use helper function because .replace only replaces the first instance of a substring
-      tokenizedReqs = replaceAllSubString(tokenizedReqs, "(", " ( ");
-      tokenizedReqs = replaceAllSubString(tokenizedReqs, ")", " ) ");
-      const tokens = tokenizedReqs.split(/\s+/);
-
-      const node = nodify(
-        tokens,
-        extractedReqs,
-        classInfo["department"] + " " + classInfo["number"]
-      );
-
-      classInfo["prerequisite_tree"] = node.toString();
-      classInfo["prerequisite_list"] = extractedReqs;
-
-      if (debug) {
-        console.log("\t\tREQS:", rawReqs);
-        console.log("\t\tREQSTOKENS:", tokens);
-        console.log("\t\tNODE:", node);
-      }
-
-      return node;
-    }
-  } else {
-    if (debug) {
-      console.log("\t\tNOREQS");
-    }
-  }
-  return;
-}
-
-/**
  * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
  * @returns {void}: sets the prerequisite info based on the prerequisite database instead of the catalogue
  */
@@ -630,10 +539,7 @@ function setProfessorHistory(json_data: { [key: string]: any }): void {
  * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
  * @returns {void}: writes the json_data to a json file
  */
-function writeJsonData(
-  json_data: { [key: string]: any },
-  filename = "tools/courseScraper/course_data.json"
-): void {
+function writeJsonData(json_data: { [key: string]: any }, filename = "./course_data.json"): void {
   console.log(`\nWriting JSON to ${filename}...`);
   //const bar = new ProgressBar(Object.keys(json_data).length, debug);
   // Maybe delete the existing data?
@@ -668,21 +574,6 @@ function printAllDepartments(json_data: { [key: string]: any }): void {
   );
 }
 
-/**
- * @param {string} targetClass: the class to test requirements for
- * @param {string[]} takenClasses: the classes that have been taken
- * @param {boolean} expectedValue: the expected result
- * @returns {void}
- */
-function testRequirements(
-  targetClass: string,
-  takenClasses: string[],
-  expectedValue: boolean
-): void {
-  // console.log(`Target: ${targetClass}, Node: ${json_data[targetClass]["node"]}, Taken: ${takenClasses}`);
-  // console.log(`Expected: ${expectedValue}, Actual: ${json_data[targetClass]["node"].prereqsMet(takenClasses)}\n`);
-}
-
 async function parseCourses(
   departmentToSchoolMapping: { [key: string]: string },
   JSON_data: { [key: string]: any }
@@ -698,7 +589,7 @@ async function parseCourses(
 // if name == main
 
 // directory holding all the JSON file
-const path = "tools/courseScraper/";
+const path = "./";
 // whether to print out info
 const debug = true;
 // whether to use cached data instead of rescraping (for faster development/testing for prerequisite/professor)
@@ -707,7 +598,7 @@ const cache = false;
 const specialRequirements = new Set();
 const noSchoolDepartment = new Set();
 
-// store all of the data
+// store the data
 let json_data = {};
 let departmentToSchoolMapping = {};
 // If we are caching it, just get all the info from the already written json file
@@ -718,50 +609,42 @@ if (cache) {
 if (!cache) {
   // maps department code to school
   departmentToSchoolMapping = getDepartmentToSchoolMapping();
+  parseCourses(departmentToSchoolMapping, json_data).then(() => {
+    fs.writeFileSync(path + COURSES_DATA_NAME, JSON.stringify(json_data)); //is this a correct translation?
+    console.log("Successfully parsed all course URLs!");
 
-  // Check conflict files from requirementNode.py after Eddy finishes up functions
-  // const conflictFile = fs.createWriteStream(CONFLICT_PREREQ_NAME);
-  // conflictFile.write(
-  //   "Following courses have conflicting AND/OR logic in their prerequisites\n");
-  // conflictFile.close();
+    // set reliable prerequisites
+    setReliablePrerequisites(json_data);
+    // set dependencies between each course
+    setDependencies(json_data);
+    // set professor history
+    setProfessorHistory(json_data);
+    // write data to index into elasticSearch
+    writeJsonData(json_data);
 
-  parseCourses(departmentToSchoolMapping, json_data);
-  fs.writeFileSync(path + COURSES_DATA_NAME, JSON.stringify(json_data)); //is this a correct translation?
-  console.log("Successfully parsed all course URLs!");
-}
+    // Debug information about school
+    const schoolFile = fs.createWriteStream(path + SCHOOL_LIST_NAME);
+    schoolFile.write("List of Schools:\n");
+    for (const school of Array.from(new Set(Object.values(departmentToSchoolMapping))).sort()) {
+      schoolFile.write(school + "\n");
+    }
+    schoolFile.close();
+    // if (noSchoolDepartment.size === 0) {
+    //   console.log("SUCCESS! ALL DEPARTMENTS HAVE A SCHOOL!");
+    // } else {
+    //   console.log(
+    //     "FAILED!",
+    //     noSchoolDepartment,
+    //     "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT AT getDepartmentToSchoolMapping"
+    //   );
+    // }
 
-// set reliable prerequisites
-setReliablePrerequisites(json_data);
-// set dependencies between each course
-setDependencies(json_data);
-// set professor history
-setProfessorHistory(json_data);
-// write data to index into elasticSearch
-writeJsonData(json_data);
-
-if (!cache) {
-  // Debug information about school
-  const schoolFile = fs.createWriteStream(path + SCHOOL_LIST_NAME);
-  schoolFile.write("List of Schools:\n");
-  for (const school of Array.from(new Set(Object.values(departmentToSchoolMapping))).sort()) {
-    schoolFile.write(school + "\n");
-  }
-  schoolFile.close();
-  if (noSchoolDepartment.size === 0) {
-    console.log("SUCCESS! ALL DEPARTMENTS HAVE A SCHOOL!");
-  } else {
-    console.log(
-      "FAILED!",
-      noSchoolDepartment,
-      "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT AT getDepartmentToSchoolMapping"
-    );
-  }
-
-  // Debug information about special requirements
-  const specialFile = fs.createWriteStream(SPECIAL_REQS_NAME);
-  specialFile.write("Special Requirements:\n");
-  for (const sReq of Array.from(specialRequirements).sort()) {
-    specialFile.write(sReq + "\n");
-  }
-  specialFile.close();
+    // Debug information about special requirements
+    const specialFile = fs.createWriteStream(SPECIAL_REQS_NAME);
+    specialFile.write("Special Requirements:\n");
+    for (const sReq of Array.from(specialRequirements).sort()) {
+      specialFile.write(sReq + "\n");
+    }
+    specialFile.close();
+  });
 }
