@@ -5,5 +5,9 @@
 
 /** @type {import('prettier').Config} */
 module.exports = {
+  plugins: [
+    require.resolve("prettier-plugin-packagejson"),
+    require.resolve("prettier-plugin-prisma"),
+  ],
   printWidth: 100,
 };
