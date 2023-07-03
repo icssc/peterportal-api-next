@@ -3,7 +3,7 @@ import { getCourses } from "course-scraper";
 import { getInstructors } from "instructor-scraper";
 import { getPrereqs } from "prereq-scraper";
 
-import { type ScrapedCourse } from "./lib";
+import { type ScrapedCourse, upsertPrereqs } from "./lib";
 import { prereqTreeToList, upsertCourses } from "./lib";
 
 const prisma = new PrismaClient();
@@ -25,6 +25,7 @@ async function main() {
   await prisma.$transaction(
     Object.entries(courseInfo).map(upsertCourses(prisma, instructorInfo, prereqInfo))
   );
+  await prisma.$transaction(Object.entries(prereqLists).flatMap(upsertPrereqs(prisma)));
 }
 
 main();

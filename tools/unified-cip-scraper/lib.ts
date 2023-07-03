@@ -166,3 +166,16 @@ export const upsertCourses =
       update: course,
     });
   };
+
+export const upsertPrereqs =
+  (prisma: PrismaClient) =>
+  ([forCourseId, prereqList]: [string, string[]]): PrismaPromise<unknown>[] => {
+    return prereqList.map((courseId) => {
+      const idx = { courseId, forCourseId };
+      return prisma.coursePrereq.upsert({
+        where: { idx },
+        create: idx,
+        update: idx,
+      });
+    });
+  };
