@@ -167,15 +167,9 @@ export const upsertCourses =
     });
   };
 
-export const upsertPrereqs =
+export const deletePrereqs =
   (prisma: PrismaClient) =>
-  ([forCourseId, prereqList]: [string, string[]]): PrismaPromise<unknown>[] => {
-    return prereqList.map((courseId) => {
-      const idx = { courseId, forCourseId };
-      return prisma.coursePrereq.upsert({
-        where: { idx },
-        create: idx,
-        update: idx,
-      });
+  (forCourseId: string): PrismaPromise<unknown> =>
+    prisma.coursePrereq.deleteMany({
+      where: { forCourseId },
     });
-  };
