@@ -72,9 +72,9 @@ model Course {
   departmentName    String
   instructorHistory Json
   prerequisiteTree  Json
-  prerequisiteList  Json
+  prerequisiteList  Json?
   prerequisiteText  String      @db.Text
-  prerequisiteFor   Json
+  prerequisiteFor   Json?
   repeatability     String
   gradingOption     String
   concurrent        String
@@ -86,6 +86,26 @@ model Course {
   geText            String
   terms             Json
 }
+
+model CoursePrereq {
+  courseId    String
+  forCourseId String
+
+  @@id([courseId, forCourseId])
+  @@unique([courseId, forCourseId], name: "idx")
+}
+
+// model Instructor {
+//  ucinetid String @id
+//  name String
+//  shortenedName String
+//  title String
+//  email String
+//  department String
+//  schools Json
+//  relatedDepartments Json
+//  courseHistory Json
+// }
 
 model GradesInstructor {
   year        String

@@ -23,7 +23,7 @@ async function main() {
     ])
   );
   await prisma.$transaction(
-    Object.entries(courseInfo).map(upsertCourses(prisma, instructorInfo, prereqInfo, prereqLists))
+    Object.entries(courseInfo).map(upsertCourses(prisma, instructorInfo, prereqInfo))
   );
 }
 

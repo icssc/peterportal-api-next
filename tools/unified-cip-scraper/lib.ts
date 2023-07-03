@@ -98,8 +98,7 @@ export const upsertCourses =
   (
     prisma: PrismaClient,
     instructorInfo: Record<string, Instructor>,
-    prereqInfo: Record<string, PrerequisiteTree>,
-    prereqLists: Record<string, string[]>
+    prereqInfo: Record<string, PrerequisiteTree>
   ) =>
   ([
     id,
@@ -141,9 +140,7 @@ export const upsertCourses =
         .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
         .map((x) => x.ucinetid),
       prerequisiteTree: prereqInfo[courseId] ?? {},
-      prerequisiteList: prereqLists[courseId],
       prerequisiteText: prereqTreeToString(prereqInfo[courseId] ?? {}).slice(1, -1),
-      prerequisiteFor: Object.keys(prereqLists).filter((x) => prereqLists[x].includes(courseId)),
       repeatability,
       gradingOption: grading_option,
       concurrent,
