@@ -3,18 +3,6 @@
   "version": "0.1.0",
   "description": "A serverless stack for ants",
   "type": "module",
-  "scripts": {
-    "build": "tsup",
-    "start:cli": "node dist/cli"
-  },
-  "main": "dist/lambda-core.js",
-  "types": "dist/lambda-core.d.ts",
-  "module": "dist/lambda-core.js",
-  "files": [
-    "dist",
-    "src",
-    "README.md"
-  ],
   "exports": {
     ".": {
       "types": "./dist/lambda-core.d.ts",
@@ -32,6 +20,9 @@
       "default": "./dist/config.js"
     }
   },
+  "main": "dist/lambda-core.js",
+  "module": "dist/lambda-core.js",
+  "types": "dist/lambda-core.d.ts",
   "typesVersions": {
     "*": {
       "cli": [
@@ -44,6 +35,15 @@
   },
   "bin": {
     "ant": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "src",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "start:cli": "node dist/cli"
   },
   "dependencies": {
     "arktype": "^1.0.14-alpha",
