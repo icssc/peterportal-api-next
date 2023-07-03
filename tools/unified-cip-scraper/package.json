@@ -14,6 +14,6 @@
     "prereq-scraper": "workspace:^"
   },
   "devDependencies": {
-    "peterportal-api-next-types": "workspace:1.0.0-beta.1"
+    "peterportal-api-next-types": "workspace:^"
   }
 }
