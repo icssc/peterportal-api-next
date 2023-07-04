@@ -16,7 +16,7 @@ const URL_TO_ALL_SCHOOLS = "https://catalogue.uci.edu/schoolsandprograms/";
 const URL_TO_DIRECTORY = "https://directory.uci.edu/";
 const URL_TO_INSTRUCT_HISTORY = "https://www.reg.uci.edu/perl/InstructHist";
 
-const YEAR_THRESHOLD = 20; // Number of years to look back when grabbing course history
+const YEAR_THRESHOLD = 9; // Number of years to look back when grabbing course history
 
 type InstructorsData = {
   result: InstructorsInfo;
@@ -85,11 +85,11 @@ function sleep(ms: number) {
  * @returns {InstructorsData} Object containing instructors info and stats regarding retrieval
  */
 export async function getInstructors(
-  concurrency_limit = 1,
+  concurrency_limit = 16,
   attempts = 5,
   year_threshold: number = YEAR_THRESHOLD
 ): Promise<InstructorsData> {
-  if (existsSync(join(__dirname, "instructors.json")))
+  if (process.env["DEBUG"] && existsSync(join(__dirname, "instructors.json")))
     return JSON.parse(readFileSync(join(__dirname, "instructors.json"), { encoding: "utf8" }));
   const currentYear = new Date().getFullYear();
   logger.info(`Scraping instructor data from ${currentYear - year_threshold} to ${currentYear}`);
@@ -669,7 +669,7 @@ async function getCourseHistory(
   // Convert sets to lists
   const courseHistoryListed: { [key: string]: string[] } = {};
   for (const courseId in courseHistory) {
-    courseHistoryListed[courseId.replace(" ", "")] = Array.from(courseHistory[courseId]);
+    courseHistoryListed[courseId.replace(/ /g, "")] = Array.from(courseHistory[courseId]);
   }
   if (status == "FOUND" && Object.keys(courseHistoryListed).length == 0) {
     status = "HISTORY_NOT_FOUND";

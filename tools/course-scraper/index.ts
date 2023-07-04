@@ -471,7 +471,7 @@ const debug = true;
 const noSchoolDepartment = new Set();
 
 export async function getCourses() {
-  if (existsSync(join(__dirname, "courses.json")))
+  if (process.env["DEBUG"] && existsSync(join(__dirname, "courses.json")))
     return JSON.parse(readFileSync(join(__dirname, "courses.json"), { encoding: "utf8" }));
   const json_data = {};
   const departmentToSchoolMapping = await getDepartmentToSchoolMapping();
