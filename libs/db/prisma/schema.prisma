@@ -95,17 +95,25 @@ model CoursePrereq {
   @@unique([courseId, forCourseId], name: "idx")
 }
 
-// model Instructor {
-//  ucinetid String @id
-//  name String
-//  shortenedName String
-//  title String
-//  email String
-//  department String
-//  schools Json
-//  relatedDepartments Json
-//  courseHistory Json
-// }
+model CourseHistory {
+  ucinetid String
+  courseId String
+  term     String
+
+  @@id([ucinetid, courseId, term])
+  @@unique([ucinetid, courseId, term], name: "idx")
+}
+
+model Instructor {
+  ucinetid           String @id
+  name               String
+  shortenedName      String
+  title              String
+  email              String
+  department         String
+  schools            Json
+  relatedDepartments Json
+}
 
 model GradesInstructor {
   year        String
