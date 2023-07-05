@@ -7,13 +7,16 @@
   "type": "module",
   "main": "index.ts",
   "types": "index.ts",
+  "scripts": {
+    "build": "node build.mjs"
+  },
   "dependencies": {
-    "@libs/db": "workspace:^",
-    "course-scraper": "workspace:^",
-    "instructor-scraper": "workspace:^",
-    "prereq-scraper": "workspace:^"
+    "@libs/db": "*",
+    "course-scraper": "*",
+    "instructor-scraper": "*",
+    "prereq-scraper": "*"
   },
   "devDependencies": {
-    "peterportal-api-next-types": "workspace:^"
+    "peterportal-api-next-types": "*"
   }
 }

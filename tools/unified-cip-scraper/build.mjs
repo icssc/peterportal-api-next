@@ -5,11 +5,12 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const targetDir = "dist/";
-const sourceFiles = ["index.ts", "package.json"];
-const dependencies = ["@libs/db", "@libs/registrar-api", "@libs/websoc-api-next"];
+const sourceFiles = ["index.ts", "lib.ts", "package.json"];
+const dependencies = ["@libs/db"];
+const scrapers = ["course-scraper", "instructor-scraper", "prereq-scraper"];
 
 async function buildApp() {
-  console.log("🔨 Starting websoc-scraper-v2 build");
+  console.log("🔨 Starting unified-cip-scraper build");
   await rm(join(__dirname, "node_modules/"), { recursive: true, force: true });
   await rm(join(__dirname, targetDir), { recursive: true, force: true });
   await mkdir(join(__dirname, `${targetDir}node_modules`), { recursive: true });
@@ -28,7 +29,23 @@ async function buildApp() {
     )
   );
   await Promise.all(
+    scrapers.map((module) =>
+      cp(join(__dirname, `../${module}`), join(__dirname, `${targetDir}node_modules/${module}`), {
+        dereference: true,
+        recursive: true,
+      })
+    )
+  );
+  await Promise.all(
     dependencies.map((module) =>
+      rm(join(__dirname, `${targetDir}node_modules/${module}/node_modules`), {
+        recursive: true,
+        force: true,
+      })
+    )
+  );
+  await Promise.all(
+    scrapers.map((module) =>
       rm(join(__dirname, `${targetDir}node_modules/${module}/node_modules`), {
         recursive: true,
         force: true,

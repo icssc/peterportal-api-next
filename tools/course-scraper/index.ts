@@ -104,7 +104,7 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
   console.log("Mapping Departments to Schools...");
   // some need to be hard coded (These are mentioned in All Courses but not listed in their respective school catalogue)
   const mapping: Record<string, string> = JSON.parse(
-    readFileSync("./missingDepartments.json", { encoding: "utf8" })
+    readFileSync(join(__dirname, "missingDepartments.json"), { encoding: "utf8" })
   );
   const response = await fetch(URL_TO_ALL_SCHOOLS);
   const $ = cheerio.load(await response.text());
@@ -466,7 +466,7 @@ async function parseCourses(
   }
 }
 // whether to print out info
-const debug = true;
+const debug = false;
 // debugging information
 const noSchoolDepartment = new Set();
 
