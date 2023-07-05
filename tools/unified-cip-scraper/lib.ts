@@ -72,9 +72,14 @@ const prereqTreeToString = (tree: PrerequisiteTree): string => {
   return "";
 };
 
-const transformTerm = (term: string) => {
+export const transformTerm = (term: string) => {
   const year = parseInt(term.slice(1), 10);
-  return `${(year >= 89 ? 1900 : 2000) + year} ${termMapping[term[0]]}`;
+  /*
+   * UCI's instructor history goes back to 1965, presumably because it was founded in 1965.
+   * When this breaks then it probably means it's also broken, or they've changed their term format.
+   * Either way, not my problem at the moment.
+   */
+  return `${(year >= 65 ? 1900 : 2000) + year} ${termMapping[term[0]]}`;
 };
 
 const sortTerms = (a: string, b: string) => {
@@ -173,3 +178,15 @@ export const deletePrereqs =
     prisma.coursePrereq.deleteMany({
       where: { forCourseId },
     });
+
+export const deleteInstructorsAndHistory =
+  (prisma: PrismaClient) =>
+  (ucinetid: string): PrismaPromise<unknown>[] =>
+    [
+      prisma.courseHistory.deleteMany({
+        where: { ucinetid },
+      }),
+      prisma.instructor.deleteMany({
+        where: { ucinetid },
+      }),
+    ];
