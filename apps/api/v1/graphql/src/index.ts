@@ -1,7 +1,6 @@
 import path from "node:path";
 
 import { ApolloServer } from "@apollo/server";
-import { expressMiddleware } from "@apollo/server/express4";
 import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault,
@@ -21,18 +20,9 @@ const graphqlServer = new ApolloServer({
       ? ApolloServerPluginLandingPageLocalDefault()
       : ApolloServerPluginLandingPageProductionDefault({ footer: false }),
   ],
-  // resolvers,
+  resolvers: {},
   typeDefs: mergeTypeDefs(loadFilesSync(path.join(projectDirectory, "src", "graphql/*.graphql"))),
 });
-
-/**
- * "The inferred type of ... cannot be named without a reference ..."
- * @see https://github.com/microsoft/TypeScript/issues/42873
- */
-export function createGraphqlExpressMiddleware(): ReturnType<typeof expressMiddleware> {
-  graphqlServer.start().catch(() => []);
-  return expressMiddleware(graphqlServer);
-}
 
 /**
  * "The inferred type of ... cannot be named without a reference ..."
@@ -64,6 +54,7 @@ export const lambdaHandler: ReturnType<typeof startServerAndCreateLambdaHandler>
 const placeholder: any = {};
 
 export const ALL: InternalHandler = async (request) => {
+  graphqlServer.assertStarted;
   const lambdaHandlerResponse = await lambdaHandler(request, placeholder, placeholder);
   return createOKResult(lambdaHandlerResponse, request.requestId);
 };

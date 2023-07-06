@@ -6,6 +6,7 @@
     "@as-integrations/aws-lambda": "^2.0.1",
     "@graphql-tools/load-files": "^6.6.1",
     "@graphql-tools/merge": "^8.3.18",
+    "@graphql-tools/utils": "^10.0.3",
     "ant-stack": "workspace:*",
     "cross-fetch": "^3.1.5",
     "graphql": "^16.6.0",
