@@ -490,9 +490,9 @@ importers:
       '@libs/db':
         specifier: workspace:*
         version: link:../../../../../libs/db
-      peterportal-api-next-types:
-        specifier: workspace:1.0.0-beta.1
-        version: link:../../../../../packages/peterportal-api-next-types
+      ant-stack:
+        specifier: workspace:*
+        version: link:../../../../../packages/ant-stack
       winston:
         specifier: ^3.8.2
         version: 3.8.2
@@ -503,6 +503,9 @@ importers:
       '@libs/build-tools':
         specifier: workspace:*
         version: link:../../../../../libs/build-tools
+      peterportal-api-next-types:
+        specifier: workspace:*
+        version: link:../../../../../packages/peterportal-api-next-types
       typescript:
         specifier: ^5.0.4
         version: 5.0.4
@@ -515,6 +518,9 @@ importers:
       '@libs/db':
         specifier: workspace:*
         version: link:../../../../../libs/db
+      ant-stack:
+        specifier: workspace:*
+        version: link:../../../../../packages/ant-stack
       zod:
         specifier: ^3.21.4
         version: 3.21.4
@@ -523,7 +529,7 @@ importers:
         specifier: workspace:*
         version: link:../../../../../libs/build-tools
       peterportal-api-next-types:
-        specifier: workspace:1.0.0-beta.1
+        specifier: workspace:*
         version: link:../../../../../packages/peterportal-api-next-types
       typescript:
         specifier: ^5.0.4

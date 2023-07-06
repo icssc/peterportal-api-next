@@ -2,6 +2,8 @@ import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { Prisma } from "@libs/db";
 import { WebsocAPIOptions } from "@libs/websoc-api-next";
 import type {
+  Department,
+  TermData,
   WebsocAPIResponse,
   WebsocCourse,
   WebsocDepartment,
@@ -370,9 +372,12 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
   };
 
   let queries: WebsocAPIOptions[] = [baseQuery];
-  if (query.units?.length)
+
+  if (query.units?.length) {
     queries = query.units.flatMap((units) => queries.map((q) => ({ ...q, units })));
-  if (query.sectionCodes?.length)
+  }
+
+  if (query.sectionCodes?.length) {
     queries = query.sectionCodes
       .map((_, i) => (i % 5 === 0 ? i : null))
       .filter(notNull)
@@ -382,6 +387,7 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
           sectionCodes: query.sectionCodes?.slice(k, k + 5).join(",") || "",
         }))
       );
+  }
   return queries;
 }
 
@@ -409,7 +415,9 @@ export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
     });
     schools.departments.sort((a, b) => lexOrd(a.deptCode, b.deptCode));
   });
+
   response.schools.sort((a, b) => lexOrd(a.schoolName, b.schoolName));
+
   return response;
 }
 
@@ -418,10 +426,7 @@ export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
  * @param client The Lambda Client to use.
  * @param body The body to send to the proxy service.
  */
-export async function invokeProxyService(
-  client: LambdaClient,
-  body: Record<string, unknown>
-): Promise<unknown> {
+export async function invokeProxyService(client: LambdaClient, body: Record<string, unknown>) {
   const res = await client.send(
     new InvokeCommand({
       FunctionName: "peterportal-api-next-prod-websoc-proxy-service",
@@ -430,4 +435,27 @@ export async function invokeProxyService(
   );
   const payload = JSON.parse(Buffer.from(res.Payload ?? []).toString());
   return JSON.parse(payload.body);
+}
+
+export class PeterPortalApiLambdaClient {
+  constructor(private readonly client: LambdaClient) {}
+
+  private async invoke(body: Record<string, unknown>) {
+    return invokeProxyService(this.client, body);
+  }
+
+  async getDepts(body: Record<string, unknown>): Promise<Department[]> {
+    const invocationResponse = await this.invoke(body);
+    return invocationResponse.payload;
+  }
+
+  async getTerms(body: Record<string, unknown>): Promise<TermData[]> {
+    const invocationResponse = await this.invoke(body);
+    return invocationResponse.payload;
+  }
+
+  async getWebsoc(body: Record<string, unknown>): Promise<WebsocAPIResponse> {
+    const invocationResponse = await this.invoke(body);
+    return invocationResponse.payload;
+  }
 }

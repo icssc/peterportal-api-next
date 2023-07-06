@@ -38,12 +38,16 @@ const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
  * @param value String of combined days of the week (e.g. ``MWF``) or array of such strings.
  */
 function flattenDayStringsAndSplit(value: TransformInput): TransformOutput {
-  if (!value) return undefined;
+  if (!value) {
+    return undefined;
+  }
+
   const unique = new Set(
     Array.isArray(value)
       ? value.flatMap((x) => days.filter((y) => y.includes(x)))
       : days.filter((x) => value.includes(x))
   );
+
   return [...unique];
 }
 
