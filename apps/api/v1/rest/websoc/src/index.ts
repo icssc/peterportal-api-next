@@ -1,39 +1,39 @@
 import { LambdaClient } from "@aws-sdk/client-lambda";
 import { PrismaClient } from "@libs/db";
-import type { InternalHandler } from "ant-stack";
-import { createErrorResult, createOKResult } from "ant-stack";
-import type { Department, Response, TermData, WebsocAPIResponse } from "peterportal-api-next-types";
+import { createErrorResult, createOKResult, type InternalHandler } from "ant-stack";
+import type { WebsocAPIResponse } from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
 import {
   combineResponses,
   constructPrismaQuery,
-  invokeProxyService,
   normalizeQuery,
   notNull,
+  PeterPortalApiLambdaClient,
   sortResponse,
 } from "./lib";
 import { QuerySchema } from "./schema";
 
 let prisma: PrismaClient;
+
 const lambda = new LambdaClient({});
+
+const lambdaClient = new PeterPortalApiLambdaClient(lambda);
 
 export const GET: InternalHandler = async (request) => {
   const { params, query, requestId } = request;
-  if (!prisma) {
-    prisma = new PrismaClient();
-  }
+
+  prisma ??= new PrismaClient();
+
   if (request.isWarmerRequest) {
     try {
-      if (!prisma) {
-        prisma = new PrismaClient();
-      }
       await prisma.$connect();
       return createOKResult("Warmed", requestId);
-    } catch (e) {
-      createErrorResult(500, e, requestId);
+    } catch (error) {
+      createErrorResult(500, error, requestId);
     }
   }
+
   try {
     switch (params?.option) {
       case "terms": {
@@ -46,10 +46,11 @@ export const GET: InternalHandler = async (request) => {
             },
             orderBy: [{ year: "desc" }, { quarter: "desc" }],
           }),
-          ((await invokeProxyService(lambda, { function: "terms" })) as Response<TermData[]>)
-            .payload,
+          lambdaClient.getTerms({ function: "terms" }),
         ]);
+
         const shortNames = webSocTerms.map((x) => x.shortName);
+
         gradesTerms.forEach(({ year, quarter }) => {
           if (!shortNames.includes(`${year} ${quarter}`)) {
             let longName = year;
@@ -67,13 +68,16 @@ export const GET: InternalHandler = async (request) => {
                 longName += ` ${quarter} Quarter`;
                 break;
             }
+
             webSocTerms.push({
               shortName: `${year} ${quarter}`,
               longName: longName,
             });
           }
         });
+
         const quarterOrder = ["Winter", "Spring", "Summer1", "Summer10wk", "Summer2", "Fall"];
+
         webSocTerms.sort((a, b) => {
           if (a.shortName.substring(0, 4) > b.shortName.substring(0, 4)) return -1;
           if (a.shortName.substring(0, 4) < b.shortName.substring(0, 4)) return 1;
@@ -82,6 +86,7 @@ export const GET: InternalHandler = async (request) => {
             quarterOrder.indexOf(a.shortName.substring(5))
           );
         });
+
         return createOKResult(webSocTerms, requestId);
       }
 
@@ -93,11 +98,11 @@ export const GET: InternalHandler = async (request) => {
               department: true,
             },
           }),
-          ((await invokeProxyService(lambda, { function: "depts" })) as Response<Department[]>)
-            .payload,
+          lambdaClient.getDepts({ function: "depts" }),
         ]);
 
         const deptValues = webSocDepts.map((x) => x.deptValue);
+
         gradesDepts.forEach((element) => {
           if (!deptValues.includes(element.department)) {
             webSocDepts.push({
@@ -114,9 +119,11 @@ export const GET: InternalHandler = async (request) => {
           if (a.deptValue < b.deptValue) return -1;
           return 0;
         });
+
         return createOKResult(webSocDepts, requestId);
       }
     }
+
     const parsedQuery = QuerySchema.parse(query);
 
     if (parsedQuery.cache) {
@@ -151,11 +158,13 @@ export const GET: InternalHandler = async (request) => {
          */
         if (parsedQuery.includeCoCourses) {
           const courses: Record<string, string[]> = {};
+
           websocSections.forEach(({ department, courseNumber }) => {
             courses[department]
               ? courses[department].push(courseNumber)
               : (courses[department] = [courseNumber]);
           });
+
           const transactions = Object.entries(courses).map(([department, courseNumbers]) =>
             prisma.websocSection.findMany({
               where: {
@@ -166,41 +175,48 @@ export const GET: InternalHandler = async (request) => {
               distinct: ["year", "quarter", "sectionCode"],
             })
           );
+
           const responses = (await prisma.$transaction(transactions))
             .flat()
             .map((x) => x.data)
             .filter(notNull) as WebsocAPIResponse[];
+
           const combinedResponses = combineResponses(...responses);
+
           return createOKResult(sortResponse(combinedResponses), requestId);
         }
+
         const websocApiResponses = websocSections
           .map((x) => x.data)
           .filter(notNull) as WebsocAPIResponse[];
+
         const combinedResponses = combineResponses(...websocApiResponses);
+
         return createOKResult(sortResponse(combinedResponses), requestId);
       }
+
       /**
        * If this code is reached and the cacheOnly flag is set, return
        * an empty WebsocAPIResponse object. Otherwise, fall back to
        * querying WebSoc.
        */
-      if (parsedQuery.cacheOnly) return createOKResult({ schools: [] }, requestId);
+      if (parsedQuery.cacheOnly) {
+        return createOKResult({ schools: [] }, requestId);
+      }
     }
-    return createOKResult(
-      (
-        (await invokeProxyService(lambda, {
-          function: "websoc",
-          parsedQuery,
-          queries: normalizeQuery(parsedQuery),
-        })) as Response<WebsocAPIResponse>
-      ).payload,
-      requestId
-    );
-  } catch (e) {
-    if (e instanceof ZodError) {
-      const messages = e.issues.map((issue) => issue.message);
+
+    const websocResults = await lambdaClient.getWebsoc({
+      function: "websoc",
+      parsedQuery,
+      queries: normalizeQuery(parsedQuery),
+    });
+
+    return createOKResult(websocResults, requestId);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      const messages = error.issues.map((issue) => issue.message);
       return createErrorResult(400, messages.join("; "), requestId);
     }
-    return createErrorResult(400, e, requestId);
+    return createErrorResult(400, error, requestId);
   }
 };

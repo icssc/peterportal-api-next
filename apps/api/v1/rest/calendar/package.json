@@ -10,12 +10,13 @@
   },
   "dependencies": {
     "@libs/db": "workspace:*",
-    "peterportal-api-next-types": "workspace:1.0.0-beta.1",
+    "ant-stack": "workspace:*",
     "winston": "^3.8.2",
     "zod": "^3.21.4"
   },
   "devDependencies": {
     "@libs/build-tools": "workspace:*",
+    "peterportal-api-next-types": "workspace:*",
     "typescript": "^5.0.4"
   }
 }

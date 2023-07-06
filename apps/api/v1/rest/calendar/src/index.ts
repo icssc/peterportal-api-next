@@ -11,22 +11,21 @@ let prisma: PrismaClient;
 
 export const GET: InternalHandler = async (request) => {
   const { query, requestId } = request;
-  if (!prisma) {
-    prisma = new PrismaClient();
-  }
+
+  prisma ??= new PrismaClient();
+
   if (request.isWarmerRequest) {
     try {
-      if (!prisma) {
-        prisma = new PrismaClient();
-      }
       await prisma.$connect();
       return createOKResult("Warmed", requestId);
     } catch (e) {
       createErrorResult(500, e, requestId);
     }
   }
+
   try {
     const where = QuerySchema.parse(query);
+
     const res = await prisma.calendarTerm.findFirst({
       where,
       select: {
@@ -36,10 +35,15 @@ export const GET: InternalHandler = async (request) => {
         finalsEnd: true,
       },
     });
-    if (res) return createOKResult<QuarterDates>(res, requestId);
+
+    if (res) {
+      return createOKResult<QuarterDates>(res, requestId);
+    }
+
     const termDateData = await getTermDateData(
       where.quarter === "Fall" ? where.year : (parseInt(where.year) - 1).toString(10)
     );
+
     await prisma.calendarTerm.createMany({
       data: Object.entries(termDateData).map(([term, data]) => ({
         year: term.split(" ")[0],
@@ -47,18 +51,21 @@ export const GET: InternalHandler = async (request) => {
         ...data,
       })),
     });
-    if (!Object.keys(termDateData).length)
+
+    if (!Object.keys(termDateData).length) {
       return createErrorResult(
         400,
         `The requested term, ${where.year} ${where.quarter}, is currently unavailable.`,
         requestId
       );
+    }
+
     return createOKResult(termDateData[[where.year, where.quarter].join(" ")], requestId);
-  } catch (e) {
-    if (e instanceof ZodError) {
-      const messages = e.issues.map((issue) => issue.message);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      const messages = error.issues.map((issue) => issue.message);
       return createErrorResult(400, messages.join("; "), requestId);
     }
-    return createErrorResult(400, e, requestId);
+    return createErrorResult(400, error, requestId);
   }
 };

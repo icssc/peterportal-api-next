@@ -11,11 +11,12 @@
   "dependencies": {
     "@aws-sdk/client-lambda": "^3.338.0",
     "@libs/db": "workspace:*",
+    "ant-stack": "workspace:*",
     "zod": "^3.21.4"
   },
   "devDependencies": {
     "@libs/build-tools": "workspace:*",
-    "peterportal-api-next-types": "workspace:1.0.0-beta.1",
+    "peterportal-api-next-types": "workspace:*",
     "typescript": "^5.0.4"
   }
 }
