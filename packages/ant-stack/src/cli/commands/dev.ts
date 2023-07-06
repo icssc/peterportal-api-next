@@ -8,7 +8,7 @@ import express, { Router } from "express";
 import { getConfig } from "../../config.js";
 import { createExpressHandler } from "../../lambda-core/internal/handler.js";
 import { findAllProjects } from "../../utils/searchProjects.js";
-import { searchForPackageRoot } from "../../utils/searchRoot.js";
+import { getClosestProjectDirectory } from "../../utils/searchRoot.js";
 import { searchForWorkspaceRoot } from "../../utils/searchRoot.js";
 
 /**
@@ -186,7 +186,7 @@ export async function startDevServer() {
   });
 
   watcher.on("change", async (path) => {
-    const endpoint = searchForPackageRoot(path);
+    const endpoint = getClosestProjectDirectory(path);
 
     consola.success("✨ endpoint changed: ", endpoint);
 
