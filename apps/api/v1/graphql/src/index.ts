@@ -1,7 +1,7 @@
 import path from "node:path";
 import url from "node:url";
 
-import { ApolloServer, HTTPGraphQLRequest, HeaderMap } from "@apollo/server";
+import { ApolloServer, HTTPGraphQLRequest, HTTPGraphQLResponse, HeaderMap } from "@apollo/server";
 import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault,
@@ -68,9 +68,20 @@ export const ANY: InternalHandler = async (request) => {
   return {
     statusCode: resultStatusCode,
     headers: resultHeaders,
-    body:
-      httpGraphQLResponse.body.kind === "complete"
-        ? httpGraphQLResponse.body.string
-        : `` + httpGraphQLResponse.body.asyncIterator,
+    body: await transformBody(httpGraphQLResponse.body),
   };
 };
+
+async function transformBody(body: HTTPGraphQLResponse["body"]): Promise<string> {
+  if (body.kind === "complete") {
+    return body.string;
+  }
+
+  let transformedBody = "";
+
+  for await (const chunk of body.asyncIterator) {
+    transformedBody += chunk;
+  }
+
+  return transformedBody;
+}

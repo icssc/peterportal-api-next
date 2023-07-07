@@ -18,7 +18,7 @@ export function proxyRestApi(route: string): IFieldResolver<never, BaseContext> 
 
     const query = urlSearchParams.toString();
 
-    const data: RawResponse<unknown> = await fetch(`${baseUrl}${route}${query ? "?" + query : ""}`)
+    const data: RawResponse<unknown> = await fetch(`${baseUrl}/${route}${query ? "?" + query : ""}`)
       .then((res) => res.json())
       .catch((err) => {
         return {
