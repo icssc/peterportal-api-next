@@ -1,7 +1,9 @@
 import { relative, resolve } from "node:path";
 
+import bodyParser from "body-parser";
 import chokidar from "chokidar";
 import { consola } from "consola";
+import cors from "cors";
 import { build, type BuildOptions } from "esbuild";
 import express, { Router } from "express";
 
@@ -22,6 +24,7 @@ const MethodsToExpress = {
   POST: "post",
   PUT: "put",
   OPTIONS: "options",
+  ALL: "use",
 } as const;
 
 /**
@@ -110,6 +113,8 @@ export async function startDevServer() {
   //---------------------------------------------------------------------------------
 
   const app = express();
+
+  app.use(cors(), bodyParser.json());
 
   /**
    * Mutable global router can be hot-swapped when routes change.

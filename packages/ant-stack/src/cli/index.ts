@@ -4,6 +4,7 @@ import { consola } from "consola";
 
 import { buildInternalHandler } from "./commands/build.js";
 import { interactiveCreate } from "./commands/create";
+import { deploy } from "./commands/deploy.js";
 import { startDevServer } from "./commands/dev.js";
 
 async function start() {
@@ -24,6 +25,10 @@ async function start() {
       command({
         name: "dev",
       }),
+
+      command({
+        name: "deploy",
+      }),
     ],
   });
 
@@ -36,6 +41,9 @@ async function start() {
     }
     case "dev": {
       return await startDevServer();
+    }
+    case "deploy": {
+      return deploy();
     }
   }
 }

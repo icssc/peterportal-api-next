@@ -5,9 +5,7 @@ import { isErrorResponse, type RawResponse } from "peterportal-api-next-types";
 
 export const resolvers: ApolloServerOptions<BaseContext>["resolvers"] = {
   Query: {
-    rawGrades: proxyRestApi("/v1/rest/grades/raw"),
-    aggregateGrades: proxyRestApi("/v1/rest/grades/aggregate"),
-    gradesOptions: proxyRestApi("/v1/rest/grades/options"),
+    calendar: proxyRestApi("/v1/rest/calendar"),
     websoc: proxyRestApi("/v1/rest/websoc"),
   },
 };

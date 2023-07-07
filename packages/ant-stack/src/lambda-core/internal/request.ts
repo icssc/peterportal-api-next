@@ -36,7 +36,7 @@ export interface InternalRequest<T = unknown> {
   /**
    * Request path parameter(s).
    */
-  params: Record<string, string | undefined> | null;
+  params: Record<string, string> | null;
 
   /**
    * The absolute path of the request.
@@ -103,7 +103,7 @@ export function transformNodeRequest(event: APIGatewayProxyEvent, context: Conte
     body: event.body ? JSON.parse(event.body) : null,
     headers: normalizeRecord(event.headers),
     method: event.httpMethod,
-    params: event.pathParameters,
+    params: normalizeRecord(event.pathParameters ?? {}),
     path: event.path,
     query: normalizeRecord(event.multiValueQueryStringParameters ?? {}),
     requestId: context.awsRequestId,

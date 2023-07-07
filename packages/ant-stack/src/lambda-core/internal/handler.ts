@@ -32,7 +32,12 @@ export function createExpressHandler(handler: InternalHandler): RequestHandler {
 
     res.status(result.statusCode);
     res.set(result.headers);
-    res.send(JSON.parse(result.body));
+
+    try {
+      res.send(JSON.parse(result.body));
+    } catch {
+      res.send(result.body);
+    }
   };
 
   return expressHandler;
