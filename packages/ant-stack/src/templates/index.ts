@@ -1,16 +1,21 @@
-import { createErrorResult, createOKResult, type InternalHandler, zeroUUID } from "ant-stack";
+/**
+ * This file is not actually used. But is an example of an entry file.
+ */
 
-const GET: InternalHandler = async (event) => {
-  return createOKResult({}, zeroUUID);
-};
-const POST: InternalHandler = async (event) => {
-  return createOKResult({}, zeroUUID);
-};
-const PUT: InternalHandler = async (event) => {
-  return createOKResult({}, zeroUUID);
-};
-const DELETE: InternalHandler = async (event) => {
-  return createOKResult({}, zeroUUID);
+import { createOKResult, type InternalHandler, zeroUUID } from "ant-stack";
+
+export const GET: InternalHandler = async (event) => {
+  return createOKResult(event.body, zeroUUID);
 };
 
-export default {};
+export const POST: InternalHandler = async (event) => {
+  return createOKResult(event.body, zeroUUID);
+};
+
+export const PUT: InternalHandler = async (event) => {
+  return createOKResult(event.body, zeroUUID);
+};
+
+export const DELETE: InternalHandler = async (event) => {
+  return createOKResult(event.body, zeroUUID);
+};
