@@ -6,7 +6,7 @@
   "type": "module",
   "main": "index.ts",
   "scripts": {
-    "build": "pnpm exec ant-stack build"
+    "build": "ant-stack build"
   },
   "dependencies": {
     "@libs/db": "workspace:*",

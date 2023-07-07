@@ -2,6 +2,9 @@
   "name": "api-v1-graphql",
   "version": "0.0.0",
   "type": "module",
+  "scripts": {
+    "build": "ant-stack build"
+  },
   "dependencies": {
     "@apollo/server": "^4.4.0",
     "@as-integrations/aws-lambda": "^2.0.1",
