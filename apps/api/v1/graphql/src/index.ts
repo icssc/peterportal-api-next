@@ -55,25 +55,22 @@ export const ANY: InternalHandler = async (request) => {
 
   const resultStatusCode = httpGraphQLResponse.status ?? 200;
 
-  const resultHeaders: APIGatewayProxyResult["headers"] = {};
+  const resultHeaders: APIGatewayProxyResult["headers"] = {
+    "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  };
 
   httpGraphQLResponse.headers.forEach((value, key) => {
     resultHeaders[key] = value;
   });
 
-  if (httpGraphQLResponse.body.kind === "complete") {
-    const apiGatewayResponse: APIGatewayProxyResult = {
-      statusCode: resultStatusCode,
-      headers: resultHeaders,
-      body: httpGraphQLResponse.body.string,
-    };
-    return apiGatewayResponse;
-  } else {
-    const apiGatewayResponse: APIGatewayProxyResult = {
-      statusCode: resultStatusCode,
-      headers: resultHeaders,
-      body: `` + httpGraphQLResponse.body.asyncIterator,
-    };
-    return apiGatewayResponse;
-  }
+  return {
+    statusCode: resultStatusCode,
+    headers: resultHeaders,
+    body:
+      httpGraphQLResponse.body.kind === "complete"
+        ? httpGraphQLResponse.body.string
+        : `` + httpGraphQLResponse.body.asyncIterator,
+  };
 };
