@@ -24,7 +24,7 @@ const MethodsToExpress = {
   POST: "post",
   PUT: "put",
   OPTIONS: "options",
-  ALL: "use",
+  ANY: "use",
 } as const;
 
 /**

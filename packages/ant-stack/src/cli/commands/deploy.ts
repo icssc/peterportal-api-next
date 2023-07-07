@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { getClosestProjectDirectory } from "../../utils/searchRoot.js";
 
-const projectDirectory = getClosestProjectDirectory();
+const projectDirectory = getClosestProjectDirectory(__dirname);
 
 const app = path.join(projectDirectory, "src", "cdk", "index.ts");
 

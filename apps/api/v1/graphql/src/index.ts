@@ -30,7 +30,7 @@ const graphqlServer = new ApolloServer({
   typeDefs: mergeTypeDefs(loadFilesSync(path.join(projectDirectory, "src", "graphql/*.graphql"))),
 });
 
-export const ALL: InternalHandler = async (request) => {
+export const ANY: InternalHandler = async (request) => {
   try {
     graphqlServer.assertStarted("");
   } catch {
