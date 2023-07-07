@@ -41,6 +41,8 @@ export const ANY: InternalHandler = async (request) => {
     return headerMap.set(key, Array.isArray(value) ? value.join(", ") : value);
   }, new HeaderMap());
 
+  console.log(JSON.stringify(request, null, 2));
+
   const httpGraphQLRequest: HTTPGraphQLRequest = {
     method: request.method,
     headers,
