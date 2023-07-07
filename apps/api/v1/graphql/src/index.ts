@@ -1,5 +1,4 @@
 import path from "node:path";
-import url from "node:url";
 
 import { ApolloServer, HTTPGraphQLRequest, HTTPGraphQLResponse, HeaderMap } from "@apollo/server";
 import {
@@ -44,7 +43,7 @@ export const ANY: InternalHandler = async (request) => {
   const httpGraphQLRequest: HTTPGraphQLRequest = {
     method: request.method,
     headers,
-    search: url.parse(request.path).search ?? "",
+    search: request.params?.path ?? "",
     body: request.body,
   };
 
