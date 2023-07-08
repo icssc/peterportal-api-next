@@ -5,17 +5,27 @@
   "description": "The official PeterPortal API-Next monorepo",
   "type": "module",
   "scripts": {
-    "postinstall": "husky install",
-    "ant:dev": "dotenv -c development -- pnpm exec ant-stack dev",
     "ant:create": "dotenv -c development -- pnpm exec ant-stack create",
+    "ant:dev": "dotenv -c development -- pnpm exec ant-stack dev",
     "build": "turbo run build",
-    "dev": "dotenv -c development -- turbo run dev",
+    "commit": "cz",
     "deploy": "turbo run deploy",
     "destroy": "turbo run destroy",
-    "commit": "cz",
-    "lint": "eslint --fix .",
+    "dev": "dotenv -c development -- turbo run dev",
     "format": "prettier --write .",
+    "postinstall": "husky install",
+    "lint": "eslint --fix .",
     "test": "turbo run test"
+  },
+  "commitlint": {
+    "extends": [
+      "@commitlint/config-conventional"
+    ]
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
   },
   "devDependencies": {
     "@commitlint/cli": "^17.6.3",
@@ -38,25 +48,16 @@
     "lint-staged": "^13.2.2",
     "prettier": "^2.8.8",
     "prettier-plugin-packagejson": "^2.4.3",
+    "prettier-plugin-prisma": "^4.13.0",
     "prettier-plugin-sql": "^0.14.0",
     "prisma": "^4.14.0",
     "turbo": "^1.9.9",
     "typescript": "^5.0.4",
     "unconfig": "^0.3.9"
   },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
-  },
   "packageManager": "pnpm@8.5.0",
   "engines": {
-    "pnpm": "^8.0",
-    "node": "18"
+    "node": "18",
+    "pnpm": "^8.0"
   }
 }
