@@ -25,6 +25,8 @@ const outDir = resolve(cwd, "./dist");
 
 const config: AntConfigStub = {
   aws: {
+    id: "peterportal-api-next",
+    zoneName: "peterportal.org",
     routeRoleProps: {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
       managedPolicies: [
