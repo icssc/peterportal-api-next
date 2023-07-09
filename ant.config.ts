@@ -42,7 +42,7 @@ const config: AntConfig = {
     id: "peterportal-api-next",
     zoneName: "peterportal.org",
     routeRolePropsMapping: {
-      websoc: {
+      "v1-rest-websoc": {
         assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
         managedPolicies: [
           ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
