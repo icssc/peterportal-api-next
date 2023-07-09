@@ -142,7 +142,7 @@ export class AntStack extends Stack {
             httpMethod
           )}`,
           architecture: Architecture.ARM_64,
-          environment: { ...handlerConfig.env, ...this.config.env, stage: this.config.env.stage },
+          environment: { ...handlerConfig.env, ...this.config.env, STAGE: this.config.env.stage },
           timeout: Duration.seconds(15),
           memorySize: 512,
           role:

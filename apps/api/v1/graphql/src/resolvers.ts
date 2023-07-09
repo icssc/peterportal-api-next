@@ -54,6 +54,6 @@ function getBaseUrl() {
 
     case "staging":
     default:
-      return `https://${process.env.STAGE ?? process.env.stage}.api-next.peterportal.org`;
+      return `https://${process.env.STAGE}.api-next.peterportal.org`;
   }
 }
