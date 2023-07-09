@@ -145,9 +145,10 @@ export class AntStack extends Stack {
           environment: { ...handlerConfig.env, ...this.config.env, stage: this.config.env.stage },
           timeout: Duration.seconds(15),
           memorySize: 512,
-          role: handlerConfig.rolePropsMapping
-            ? new Role(this, `${functionName}-role`, handlerConfig.rolePropsMapping["route"])
-            : undefined,
+          role:
+            handlerConfig.rolePropsMapping && handlerConfig.rolePropsMapping["route"]
+              ? new Role(this, `${functionName}-role`, handlerConfig.rolePropsMapping["route"])
+              : undefined,
         });
 
         const lambdaIntegration = new LambdaIntegration(handler);

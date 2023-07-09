@@ -38,6 +38,7 @@
     "@typescript-eslint/parser": "^5.59.7",
     "ant-stack": "workspace:*",
     "arktype": "1.0.14-alpha",
+    "aws-cdk-lib": "^2.87.0",
     "cz-conventional-changelog": "^3.3.0",
     "dotenv": "^16.0.3",
     "eslint": "^8.41.0",

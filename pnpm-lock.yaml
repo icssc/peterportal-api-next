@@ -38,6 +38,9 @@ importers:
       arktype:
         specifier: 1.0.14-alpha
         version: 1.0.14-alpha
+      aws-cdk-lib:
+        specifier: ^2.87.0
+        version: 2.87.0(constructs@10.2.34)
       cz-conventional-changelog:
         specifier: ^3.3.0
         version: 3.3.0
@@ -571,9 +574,6 @@ importers:
       '@libs/build-tools':
         specifier: workspace:*
         version: link:../../../../../libs/build-tools
-      aws-cdk-lib:
-        specifier: ^2.53.0
-        version: 2.53.0(constructs@10.2.34)
       peterportal-api-next-types:
         specifier: workspace:*
         version: link:../../../../../packages/peterportal-api-next-types
@@ -757,11 +757,11 @@ importers:
         specifier: ^1.0.14-alpha
         version: 1.0.14-alpha
       aws-cdk:
-        specifier: ^2.81.0
-        version: 2.81.0
+        specifier: ^2.87.0
+        version: 2.87.0
       aws-cdk-lib:
-        specifier: ^2.53.0
-        version: 2.53.0(constructs@10.1.176)
+        specifier: ^2.87.0
+        version: 2.87.0(constructs@10.1.176)
       body-parser:
         specifier: ^1.20.2
         version: 1.20.2
@@ -4229,6 +4229,7 @@ packages:
 
   /@balena/dockerignore@1.0.2:
     resolution: {integrity: sha512-wMue2Sy4GAVTk6Ic4tJVcnfdau+gx2EnG7S+uAEe+TWJFqE4YoWN4/H8MSLj4eYJKxGg26lZwboEniNiNwZQ6Q==}
+    dev: true
 
   /@bcoe/v8-coverage@0.2.3:
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
@@ -4334,7 +4335,7 @@ packages:
       lodash.merge: 4.6.2
       lodash.uniq: 4.5.0
       resolve-from: 5.0.0
-      ts-node: 10.9.1(@types/node@20.2.5)(typescript@5.0.4)
+      ts-node: 10.9.1(@types/node@20.2.5)(typescript@4.9.5)
       typescript: 4.9.5
     transitivePeerDependencies:
       - '@swc/core'
@@ -8047,27 +8048,6 @@ packages:
       punycode: 2.3.0
       semver: 7.5.1
       yaml: 1.10.2
-    bundledDependencies:
-      - '@balena/dockerignore'
-      - case
-      - fs-extra
-      - ignore
-      - jsonschema
-      - minimatch
-      - punycode
-      - semver
-      - yaml
-
-  /aws-cdk-lib@2.53.0(constructs@10.2.34):
-    resolution: {integrity: sha512-ADpJ9luJxzmOrP/GJ37nA1YtdNmsOsjE+NZnQOpB7YL0spUxZJGNVAselaFLSDZmIsC6d9mSnW81fj4SDP1gAw==}
-    engines: {node: '>= 14.15.0'}
-    peerDependencies:
-      constructs: ^10.0.0
-    dependencies:
-      '@aws-cdk/asset-awscli-v1': 2.2.184
-      '@aws-cdk/asset-kubectl-v20': 2.1.1
-      '@aws-cdk/asset-node-proxy-agent-v5': 2.0.155
-      constructs: 10.2.34
     dev: true
     bundledDependencies:
       - '@balena/dockerignore'
@@ -8113,12 +8093,67 @@ packages:
       - table
       - yaml
 
+  /aws-cdk-lib@2.87.0(constructs@10.1.176):
+    resolution: {integrity: sha512-9kirXX7L7OP/yGmCbaYlkt5OAtowGiGw0AYFIQvSwvx/UU3aJO5XuDwAgDsvToDkRpBi0yX0bNwqa0DItu+C6A==}
+    engines: {node: '>= 14.15.0'}
+    peerDependencies:
+      constructs: ^10.0.0
+    dependencies:
+      '@aws-cdk/asset-awscli-v1': 2.2.184
+      '@aws-cdk/asset-kubectl-v20': 2.1.1
+      '@aws-cdk/asset-node-proxy-agent-v5': 2.0.155
+      constructs: 10.1.176
+    dev: false
+    bundledDependencies:
+      - '@balena/dockerignore'
+      - case
+      - fs-extra
+      - ignore
+      - jsonschema
+      - minimatch
+      - punycode
+      - semver
+      - table
+      - yaml
+
+  /aws-cdk-lib@2.87.0(constructs@10.2.34):
+    resolution: {integrity: sha512-9kirXX7L7OP/yGmCbaYlkt5OAtowGiGw0AYFIQvSwvx/UU3aJO5XuDwAgDsvToDkRpBi0yX0bNwqa0DItu+C6A==}
+    engines: {node: '>= 14.15.0'}
+    peerDependencies:
+      constructs: ^10.0.0
+    dependencies:
+      '@aws-cdk/asset-awscli-v1': 2.2.184
+      '@aws-cdk/asset-kubectl-v20': 2.1.1
+      '@aws-cdk/asset-node-proxy-agent-v5': 2.0.155
+      constructs: 10.2.34
+    dev: true
+    bundledDependencies:
+      - '@balena/dockerignore'
+      - case
+      - fs-extra
+      - ignore
+      - jsonschema
+      - minimatch
+      - punycode
+      - semver
+      - table
+      - yaml
+
   /aws-cdk@2.81.0:
     resolution: {integrity: sha512-EEwacXaauxHmVBLQzbFDOcjJOAZw57vzUQDJ7eDl3MIDSrKG2dZ1XYHVuMbSloqJpgDW6xZ9vAZ45rXTTjdSzw==}
     engines: {node: '>= 14.15.0'}
     hasBin: true
     optionalDependencies:
       fsevents: 2.3.2
+    dev: true
+
+  /aws-cdk@2.87.0:
+    resolution: {integrity: sha512-dBm74nl3dMUxoAzgjcfKnzJyoVNIV//B1sqDN11cC3LXEflYapcBxPxZHAyGcRXg5dW3m14dMdKVQfmt4N970g==}
+    engines: {node: '>= 14.15.0'}
+    hasBin: true
+    optionalDependencies:
+      fsevents: 2.3.2
+    dev: false
 
   /aws-lambda@1.0.7:
     resolution: {integrity: sha512-9GNFMRrEMG5y3Jvv+V4azWvc+qNWdWLTjDdhf/zgMlz8haaaLWv0xeAIWxz9PuWUBawsVxy0zZotjCdR3Xq+2w==}
@@ -8591,6 +8626,7 @@ packages:
   /case@1.6.3:
     resolution: {integrity: sha512-mzDSXIPaFwVDvZAHqZ9VlbyF4yyXRuX6IvB06WvPYkqJVO24kX1PPhv9bfpKNFZyxYFmmgo03HUiD8iklmJYRQ==}
     engines: {node: '>= 0.8.0'}
+    dev: true
 
   /ccount@1.1.0:
     resolution: {integrity: sha512-vlNK021QdI7PNeiUh/lKkC/mNHHfV0m/Ad5JoI0TYtlBnJAslM/JIkm/tGC88bkLIwO6OQ5uV6ztS6kVAtCDlg==}
@@ -9144,7 +9180,7 @@ packages:
     dependencies:
       '@types/node': 20.2.5
       cosmiconfig: 8.1.3
-      ts-node: 10.9.1(@types/node@20.2.5)(typescript@5.0.4)
+      ts-node: 10.9.1(@types/node@20.2.5)(typescript@4.9.5)
       typescript: 4.9.5
     dev: true
 
@@ -12365,6 +12401,7 @@ packages:
 
   /jsonschema@1.4.1:
     resolution: {integrity: sha512-S6cATIPVv1z0IlxdN+zUk5EPjkGCdnhN4wVSBlvoUO1tOLJootbo9CquNJmbIh4yikWHiUedhRYrNPn1arpEmQ==}
+    dev: true
 
   /keyv@3.1.0:
     resolution: {integrity: sha512-9ykJ/46SN/9KPM/sichzQ7OvXyGDYKGTaDlKMGCAlg2UK8KRy4jb0d8sFc+0Tt0YYnThq8X2RZgCg74RPxgcVA==}
@@ -15689,6 +15726,37 @@ packages:
       semver: 7.5.1
       typescript: 5.1.6
       yargs-parser: 21.1.1
+    dev: true
+
+  /ts-node@10.9.1(@types/node@20.2.5)(typescript@4.9.5):
+    resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
+    peerDependencies:
+      '@swc/core': '>=1.2.50'
+      '@swc/wasm': '>=1.2.50'
+      '@types/node': '*'
+      typescript: '>=2.7'
+    peerDependenciesMeta:
+      '@swc/core':
+        optional: true
+      '@swc/wasm':
+        optional: true
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.9
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 20.2.5
+      acorn: 8.8.2
+      acorn-walk: 8.2.0
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 4.9.5
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
     dev: true
 
   /ts-node@10.9.1(@types/node@20.2.5)(typescript@5.0.4):

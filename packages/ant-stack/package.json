@@ -56,8 +56,8 @@
   },
   "dependencies": {
     "arktype": "^1.0.14-alpha",
-    "aws-cdk": "^2.81.0",
-    "aws-cdk-lib": "^2.53.0",
+    "aws-cdk": "^2.87.0",
+    "aws-cdk-lib": "^2.87.0",
     "body-parser": "^1.20.2",
     "chalk": "^4.1.2",
     "chokidar": "^3.5.3",
