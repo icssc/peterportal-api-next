@@ -37,7 +37,7 @@ export interface HandlerConfig {
   /**
    *
    */
-  roleProps?: RoleProps;
+  rolePropsMapping?: Record<string, RoleProps>;
 }
 
 export class AntStack extends Stack {
@@ -145,8 +145,8 @@ export class AntStack extends Stack {
           environment: { ...handlerConfig.env, ...this.config.env, stage: this.config.env.stage },
           timeout: Duration.seconds(15),
           memorySize: 512,
-          role: handlerConfig.roleProps
-            ? new Role(this, `${functionName}-role`, handlerConfig.roleProps)
+          role: handlerConfig.rolePropsMapping
+            ? new Role(this, `${functionName}-role`, handlerConfig.rolePropsMapping["route"])
             : undefined,
         });
 

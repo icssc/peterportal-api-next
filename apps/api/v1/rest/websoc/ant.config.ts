@@ -27,23 +27,25 @@ const config: AntConfigStub = {
   aws: {
     id: "peterportal-api-next",
     zoneName: "peterportal.org",
-    routeRoleProps: {
-      assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-      managedPolicies: [
-        ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
-      ],
-      inlinePolicies: {
-        lambdaInvokePolicy: new PolicyDocument({
-          statements: [
-            new PolicyStatement({
-              effect: Effect.ALLOW,
-              resources: [
-                `arn:aws:lambda:${process.env.AWS_REGION}:${process.env.ACCOUNT_ID}:function:peterportal-api-next-prod-websoc-proxy-service`,
-              ],
-              actions: ["lambda:InvokeFunction"],
-            }),
-          ],
-        }),
+    routeRolePropsMapping: {
+      websoc: {
+        assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+        managedPolicies: [
+          ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
+        ],
+        inlinePolicies: {
+          lambdaInvokePolicy: new PolicyDocument({
+            statements: [
+              new PolicyStatement({
+                effect: Effect.ALLOW,
+                resources: [
+                  `arn:aws:lambda:${process.env.AWS_REGION}:${process.env.ACCOUNT_ID}:function:peterportal-api-next-prod-websoc-proxy-service`,
+                ],
+                actions: ["lambda:InvokeFunction"],
+              }),
+            ],
+          }),
+        },
       },
     },
   },

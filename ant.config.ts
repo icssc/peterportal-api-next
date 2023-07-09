@@ -34,6 +34,7 @@ const config: AntConfig = {
   aws: {
     id: "peterportal-api-next",
     zoneName: "peterportal.org",
+    routeRolePropsMapping: {},
   },
   env,
   directory: "apps/api",
