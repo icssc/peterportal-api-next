@@ -17,7 +17,7 @@ interface AntAWS {
 
   stackProps?: StackProps;
 
-  routeRoleProps: RoleProps;
+  routeRoleProps?: RoleProps;
 }
 
 /**
