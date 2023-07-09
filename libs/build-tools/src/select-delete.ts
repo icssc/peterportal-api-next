@@ -17,7 +17,7 @@ export const selectDelete = (nodeEnv: string, outDir: string): Plugin => ({
       if (queryEngines.length === 1) return;
       await Promise.all(
         queryEngines
-          .filter((x) => x !== "libquery_engine-rhel-openssl-1.0.x.so.node")
+          .filter((x) => x !== "libquery_engine-linux-arm64-openssl-1.0.x.so.node")
           .map((x) => rm(join(outDir, x)))
       );
     });
