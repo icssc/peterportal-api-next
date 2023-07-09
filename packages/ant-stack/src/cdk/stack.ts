@@ -146,8 +146,8 @@ export class AntStack extends Stack {
           timeout: Duration.seconds(15),
           memorySize: 512,
           role:
-            handlerConfig.rolePropsMapping && handlerConfig.rolePropsMapping["route"]
-              ? new Role(this, `${functionName}-role`, handlerConfig.rolePropsMapping["route"])
+            handlerConfig.rolePropsMapping && handlerConfig.rolePropsMapping[route]
+              ? new Role(this, `${functionName}-role`, handlerConfig.rolePropsMapping[route])
               : undefined,
         });
 
