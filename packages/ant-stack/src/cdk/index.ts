@@ -53,6 +53,7 @@ async function start() {
       route: relative(join(searchForWorkspaceRoot(__dirname), config.directory), apiRoute),
       directory: apiRoute,
       env: config.env,
+      roleProps: config.aws.routeRoleProps,
     }))
     .filter(
       (config, index, configs) => configs.findIndex((c) => c.route === config.route) === index

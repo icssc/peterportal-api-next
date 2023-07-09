@@ -1,4 +1,5 @@
 import type { AppProps, StackProps } from "aws-cdk-lib";
+import { RoleProps } from "aws-cdk-lib/aws-iam";
 import type { BuildOptions } from "esbuild";
 import { loadConfig } from "unconfig";
 
@@ -15,6 +16,8 @@ interface AntAWS {
   appProps?: AppProps;
 
   stackProps?: StackProps;
+
+  routeRoleProps: RoleProps;
 }
 
 /**

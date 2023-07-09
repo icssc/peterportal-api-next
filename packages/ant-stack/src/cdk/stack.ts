@@ -3,6 +3,7 @@ import { EndpointType, LambdaIntegration, ResponseType, RestApi } from "aws-cdk-
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import { Role, RoleProps } from "aws-cdk-lib/aws-iam";
 import lambda, { Architecture, Code, Runtime } from "aws-cdk-lib/aws-lambda";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
@@ -32,6 +33,11 @@ export interface HandlerConfig {
    * Environment variables specific to the function.
    */
   env?: Record<string, string>;
+
+  /**
+   *
+   */
+  roleProps?: RoleProps;
 }
 
 export class AntStack extends Stack {
@@ -118,8 +124,6 @@ export class AntStack extends Stack {
       `${handlerConfig.directory}/dist/index.js`
     );
 
-    console.log(internalHandlers);
-
     Object.keys(internalHandlers)
       .filter(isHttpMethod)
       .forEach((httpMethod) => {
@@ -141,6 +145,9 @@ export class AntStack extends Stack {
           environment: { ...handlerConfig.env, ...this.config.env, stage: this.config.env.stage },
           timeout: Duration.seconds(15),
           memorySize: 512,
+          role: handlerConfig.roleProps
+            ? new Role(this, `${functionName}-role`, handlerConfig.roleProps)
+            : undefined,
         });
 
         const lambdaIntegration = new LambdaIntegration(handler);
