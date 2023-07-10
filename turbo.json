@@ -21,8 +21,7 @@
         "HOSTED_ZONE_ID",
         "NODE_ENV",
         "PR_NUM",
-        "STAGE",
-        "stage"
+        "STAGE"
       ]
     },
     "destroy": {
