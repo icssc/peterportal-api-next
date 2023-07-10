@@ -4,6 +4,7 @@ A utility workflow to synchronize the `.github/labels.yml` manifest with the rep
 [Read More](https://github.com/micnncim/action-label-syncer)
 ---
 name: Sync labels
+
 on:
   push:
     branches:
