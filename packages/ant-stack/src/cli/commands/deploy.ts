@@ -47,6 +47,12 @@ async function createDeploymentStatuses() {
     repo,
     ref,
     required_contexts: [],
+    task: "task:a",
+    payload: {
+      a: "b",
+      c: "d",
+    },
+    description: "Deploying API",
   });
 
   const docsDeployment = await octokit.rest.repos.createDeployment({
@@ -54,6 +60,12 @@ async function createDeploymentStatuses() {
     repo,
     ref,
     required_contexts: [],
+    task: "task:b",
+    payload: {
+      e: "f",
+      g: "h",
+    },
+    description: "Deploying docs",
   });
 
   if (apiDeployment.status !== 201 || docsDeployment.status !== 201) {
