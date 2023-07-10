@@ -4,12 +4,8 @@ import { defineConfig } from "tsup";
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1491470829
  */
 const js = `\
-import topLevelPath from 'path';
-import topLevelUrl from 'url';
 import topLevelModule from 'module';
 const require = topLevelModule.createRequire(import.meta.url);
-const __filename = topLevelUrl.fileURLToPath(import.meta.url);
-const __dirname = topLevelPath.dirname(__filename);
 `;
 
 export default defineConfig({
@@ -26,6 +22,7 @@ export default defineConfig({
   splitting: false,
   banner: { js },
   clean: true,
+  shims: true,
 
   /**
    * Bundle __all__ dependencies into the output files to prepare for Lambda deployment.

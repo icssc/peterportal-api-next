@@ -1,15 +1,16 @@
 import { join, relative } from "node:path";
-import { fileURLToPath as futp } from "node:url";
+import { fileURLToPath } from "node:url";
 
 import * as cdk from "aws-cdk-lib";
 
 import { getConfig } from "../config.js";
-import { findAllProjects } from "../utils/searchProjects.js";
-import { searchForWorkspaceRoot } from "../utils/searchRoot";
+import { findAllProjects, getWorkspaceRoot } from "../utils/directories.js";
 
 import { AntStack, type HandlerConfig } from "./stack.js";
 
-const __dirname = futp(new URL(".", import.meta.url));
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
+
+const workspaceRoot = getWorkspaceRoot(__dirname);
 
 function getStage(NODE_ENV = "development") {
   switch (NODE_ENV) {
@@ -30,7 +31,7 @@ function getStage(NODE_ENV = "development") {
   }
 }
 
-async function start() {
+async function main() {
   const config = await getConfig();
 
   /**
@@ -46,11 +47,9 @@ async function start() {
   /**
    * Configs for all __unique__ Lambda routes.
    */
-  const handlerConfigs: HandlerConfig[] = findAllProjects(
-    join(searchForWorkspaceRoot(__dirname), config.directory)
-  )
+  const handlerConfigs: HandlerConfig[] = findAllProjects(join(workspaceRoot, config.directory))
     .map((apiRoute) => ({
-      route: relative(join(searchForWorkspaceRoot(__dirname), config.directory), apiRoute),
+      route: relative(join(workspaceRoot, config.directory), apiRoute),
       directory: apiRoute,
       env: config.env,
       rolePropsMapping: config.aws.routeRolePropsMapping,
@@ -59,11 +58,9 @@ async function start() {
       (config, index, configs) => configs.findIndex((c) => c.route === config.route) === index
     );
 
-  console.log(handlerConfigs);
-
   const stack = new AntStack(app, config);
 
   await Promise.all(handlerConfigs.map((handlerConfig) => stack.addRoute(handlerConfig)));
 }
 
-start();
+main();

@@ -14,6 +14,9 @@ import {
  * Compile for an AWS Lambda runtime
  */
 async function compileRuntime(config: AntConfig, functionName: string, outputFile: string) {
+  /**
+   * TODO: statically analyze the built file for the exported handler methods.
+   */
   const internalHandlers = await import(
     resolve(config.esbuild.outdir ?? ".", config.runtime.entryFile)
   );
@@ -25,8 +28,8 @@ async function compileRuntime(config: AntConfig, functionName: string, outputFil
 
   const exports = Object.keys(internalHandlers)
     .map(
-      (httpMethod) =>
-        `export const ${httpMethod} = ${functionName}(${config.runtime.entryHandlersName}.${httpMethod})`
+      (method) =>
+        `export const ${method} = ${functionName}(${config.runtime.entryHandlersName}.${method})`
     )
     .join("\n");
 

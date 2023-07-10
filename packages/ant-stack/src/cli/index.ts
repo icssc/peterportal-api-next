@@ -7,7 +7,7 @@ import { interactiveCreate } from "./commands/create";
 import { deploy } from "./commands/deploy.js";
 import { startDevServer } from "./commands/dev.js";
 
-async function start() {
+async function main() {
   consola.log(chalk("🐜 ant-stack CLI"));
 
   const argv = cli({
@@ -48,4 +48,4 @@ async function start() {
   }
 }
 
-start();
+main();

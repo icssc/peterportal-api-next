@@ -1,2 +1,1 @@
-export * from "./searchRoot.js";
-export * from "./searchProjects.js";
+export * from "./directories.js";

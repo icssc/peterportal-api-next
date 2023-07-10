@@ -5,7 +5,7 @@ import chalk from "chalk";
 import { consola } from "consola";
 
 import { getConfig } from "../../config.js";
-import { getClosestProjectDirectory } from "../../utils/searchRoot.js";
+import { getClosestProjectDirectory } from "../../utils/directories.js";
 
 const createHandlerTemplate = (httpMethod: string) => `\
 export const ${httpMethod}: InternalHandler = async (event) => {
@@ -13,9 +13,6 @@ export const ${httpMethod}: InternalHandler = async (event) => {
 }
 `;
 
-/**
- * {@link __dirname} is compiled by ESBuild.
- */
 const projectDirectory = getClosestProjectDirectory(__dirname);
 
 const templateDirectory = path.join(projectDirectory, "src", "templates");

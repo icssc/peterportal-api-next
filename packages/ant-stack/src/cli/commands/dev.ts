@@ -9,9 +9,11 @@ import express, { Router } from "express";
 
 import { getConfig } from "../../config.js";
 import { createExpressHandler } from "../../lambda-core/internal/handler.js";
-import { findAllProjects } from "../../utils/searchProjects.js";
-import { getClosestProjectDirectory } from "../../utils/searchRoot.js";
-import { searchForWorkspaceRoot } from "../../utils/searchRoot.js";
+import {
+  findAllProjects,
+  getClosestProjectDirectory,
+  getWorkspaceRoot,
+} from "../../utils/directories.js";
 
 /**
  * Translates the HTTP verbs exported by the lambda-core into Express methods.
@@ -49,7 +51,7 @@ export async function startDevServer() {
 
   const cwd = process.cwd();
 
-  const workspaceRoot = searchForWorkspaceRoot(cwd);
+  const workspaceRoot = getWorkspaceRoot(cwd);
 
   if (cwd === workspaceRoot) {
     consola.info(
