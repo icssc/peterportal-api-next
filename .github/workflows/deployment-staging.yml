@@ -1,5 +1,5 @@
 ---
-Creates a preview deployment for the head branch when a PR is made.
+description: Creates a preview deployment for the head branch when a PR is made.
 ---
 name: Deploy PR to staging
 

@@ -1,5 +1,5 @@
 ---
-Verify that code satisfies TypeScript checks.
+description: Verify that code satisfies TypeScript checks.
 ---
 name: Check for TypeScript errors
 

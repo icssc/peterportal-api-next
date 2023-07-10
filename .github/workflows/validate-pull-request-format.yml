@@ -1,5 +1,5 @@
 ---
-Ensure that pull request titles are up to Los Pollos standards.
+description: Ensure that pull request titles are up to Los Pollos standards.
 ---
 name: Lint PR title and message
 
