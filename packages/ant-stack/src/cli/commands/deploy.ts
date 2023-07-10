@@ -30,7 +30,12 @@ export async function deploy() {
  */
 async function createDeploymentStatuses() {
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");
-  const PR_NUM = process.env.PR_NUM ?? core.getInput("PR_NUM");
+  const PR_NUM = github.context.payload.pull_request?.number;
+
+  if (!PR_NUM) {
+    throw new Error("Stop, this is not a pull request!");
+  }
+
   const octokit = github.getOctokit(GITHUB_TOKEN);
 
   const owner = github.context.repo.owner;
@@ -61,7 +66,7 @@ async function createDeploymentStatuses() {
     deployment_id: apiDeployment.data.id,
     state: "success",
     description: "Deployment succeeded",
-    environment_url: `https://staging-${{ PR_NUM }}.api-next.peterportal.org`,
+    environment_url: `https://staging-${github.context.payload.pull_request?.number}.api-next.peterportal.org`,
     auto_inactive: false,
     environment: "staging",
   });
@@ -72,12 +77,26 @@ async function createDeploymentStatuses() {
     deployment_id: docsDeployment.data.id,
     state: "success",
     description: "Deployment succeeded",
-    environment_url: `https://staging-${{ PR_NUM }}-docs.api-next.peterportal.org`,
+    environment_url: `https://staging-${PR_NUM}-docs.api-next.peterportal.org`,
     auto_inactive: false,
     environment: "staging",
   });
 
   consola.info("API deployment status: ", apiDeploymentStatus.data);
-
   consola.info("Docs deployment status: ", docsDeploymentStatus.data);
+
+  apiDeploymentStatus.data.environment_url;
+
+  await octokit.rest.issues.createComment({
+    owner,
+    repo,
+    issue_number: PR_NUM,
+    body: `\
+🚀 Staging instances deployed!
+
+API - ${apiDeploymentStatus.data.environment_url}
+
+Docs - ${docsDeploymentStatus.data.environment_url}
+`,
+  });
 }
