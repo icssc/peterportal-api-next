@@ -1,28 +1,15 @@
-import { spawnSync } from "node:child_process";
-import path from "node:path";
-
 import core from "@actions/core";
 import github from "@actions/github";
 
-import { getClosestProjectDirectory } from "../../utils/directories.js";
-
-const projectDirectory = getClosestProjectDirectory(__dirname);
-
-const appEntry = path.join(projectDirectory, "src", "cdk", "index.ts");
-
-const app = `tsx ${appEntry}`;
-
-const cdkCommand = ["cdk", "deploy", "--app", app, "*", "--require-approval", "never"];
-
-export async function deploy() {
-  spawnSync("npx", cdkCommand);
-  createDeploymentStatuses();
-}
-
 /**
- * Guess what it does!
+ * Creates a GitHub deployment environment.
+ *
+ * TODO: not sure where to put this at the moment.
+ * This should be invoked by `ant-stack deploy`, but theoretically is a standalone module.
+ *
+ * Will leave this here as reference until further decisions are made :^)
  */
-async function createDeploymentStatuses() {
+async function main() {
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");
   const PR_NUM = process.env.PR_NUM ?? core.getInput("PR_NUM");
   const octokit = github.getOctokit(GITHUB_TOKEN);
@@ -71,3 +58,5 @@ async function createDeploymentStatuses() {
     environment: "staging",
   });
 }
+
+main();

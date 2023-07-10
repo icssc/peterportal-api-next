@@ -55,6 +55,8 @@
     "start:cli": "node dist/cli"
   },
   "dependencies": {
+    "@actions/core": "^1.10.0",
+    "@actions/github": "^5.1.1",
     "arktype": "^1.0.14-alpha",
     "aws-cdk": "^2.87.0",
     "aws-cdk-lib": "^2.87.0",

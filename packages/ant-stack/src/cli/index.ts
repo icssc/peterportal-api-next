@@ -43,7 +43,7 @@ async function main() {
       return await startDevServer();
     }
     case "deploy": {
-      return deploy();
+      return await deploy();
     }
   }
 }
