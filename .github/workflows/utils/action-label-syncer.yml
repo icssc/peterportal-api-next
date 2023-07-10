@@ -1,3 +1,8 @@
+---
+A utility workflow to synchronize the `.github/labels.yml` manifest with the repository's currently available labels.
+
+[Read More](https://github.com/micnncim/action-label-syncer)
+---
 name: Sync labels
 on:
   push:

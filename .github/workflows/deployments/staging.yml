@@ -1,33 +1,44 @@
 ---
+Creates a preview deployment for the head branch when a PR is made.
+---
 name: Deploy PR to staging
+
 on:
   pull_request:
     types:
       - opened
       - synchronize
       - unlabeled
+
 permissions:
   id-token: write
   contents: read
   deployments: write
   pull-requests: write
+
 concurrency:
   group: ${{ github.head_ref }}
   cancel-in-progress: true
+
 jobs:
   deploy:
     if: (!contains(github.event.pull_request.labels.*.name, 'no deploy'))
+
     runs-on: ubuntu-latest
+
     env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PR_NUM: ${{ github.event.pull_request.number }}
+      NODE_ENV: staging
+
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_REGION: us-east-1
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_REGION: us-east-1
+
       CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
       DATABASE_URL: ${{ secrets.DATABASE_URL_STAGING }}
       HOSTED_ZONE_ID: ${{ secrets.HOSTED_ZONE_ID }}
-      NODE_ENV: staging
-      PR_NUM: ${{ github.event.pull_request.number }}
 
     steps:
       - name: Check out codebase
@@ -57,30 +68,5 @@ jobs:
       - name: Build assets
         run: pnpm build
 
-      - name: Wait for API stack to stabilize
-        uses: ./.github/actions/stabilize-stack
-        with:
-          stack_name: peterportal-api-next-staging-${{ github.event.pull_request.number }}
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
-
-      - name: Wait for docs stack to stabilize
-        uses: ./.github/actions/stabilize-stack
-        with:
-          stack_name: peterportal-api-next-docs-staging-${{ github.event.pull_request.number }}
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
-
       - name: Deploy stacks
-        run: pnpm run deploy --filter="ant-stack" --filter="docs-cdk"
-
-      - name: Comment staging URLs
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: stagingURL
-          recreate: true
-          message: 🚀 Staging instances deployed!
-
-            API - https://staging-${{ github.event.pull_request.number }}.api-next.peterportal.org
-
-            Docs - https://staging-${{ github.event.pull_request.number }}-docs.api-next.peterportal.org
+        run: pnpm ant-stack deploy

@@ -1,6 +1,11 @@
+---
+Verify that code satisfies TypeScript checks.
+---
 name: Check for TypeScript errors
+
 on:
   pull_request:
+
 jobs:
   check-typescript:
     runs-on: ubuntu-latest
