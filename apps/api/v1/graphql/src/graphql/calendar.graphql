@@ -1,0 +1,12 @@
+scalar Date
+
+type QuarterDates {
+  instructionStart: Date
+  instructionEnd: Date
+  finalsStart: Date
+  finalsEnd: Date
+}
+
+extend type Query {
+  calendar(year: String!, quarter: Quarter!): QuarterDates
+}

@@ -1,14 +1,16 @@
 import { relative, resolve } from "node:path";
 
+import bodyParser from "body-parser";
 import chokidar from "chokidar";
 import { consola } from "consola";
+import cors from "cors";
 import { build, type BuildOptions } from "esbuild";
 import express, { Router } from "express";
 
 import { getConfig } from "../../config.js";
 import { createExpressHandler } from "../../lambda-core/internal/handler.js";
 import { findAllProjects } from "../../utils/searchProjects.js";
-import { searchForPackageRoot } from "../../utils/searchRoot.js";
+import { getClosestProjectDirectory } from "../../utils/searchRoot.js";
 import { searchForWorkspaceRoot } from "../../utils/searchRoot.js";
 
 /**
@@ -22,6 +24,7 @@ const MethodsToExpress = {
   POST: "post",
   PUT: "put",
   OPTIONS: "options",
+  ANY: "use",
 } as const;
 
 /**
@@ -111,6 +114,8 @@ export async function startDevServer() {
 
   const app = express();
 
+  app.use(cors(), bodyParser.json());
+
   /**
    * Mutable global router can be hot-swapped when routes change.
    * app.use ( global router .use (endpoint router ) )
@@ -186,7 +191,7 @@ export async function startDevServer() {
   });
 
   watcher.on("change", async (path) => {
-    const endpoint = searchForPackageRoot(path);
+    const endpoint = getClosestProjectDirectory(path);
 
     consola.success("✨ endpoint changed: ", endpoint);
 

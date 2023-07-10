@@ -7,9 +7,9 @@
   "main": "index.ts",
   "types": "index.ts",
   "scripts": {
-    "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "generate": "prisma generate",
+    "postinstall": "prisma generate",
     "migrate:dev": "dotenv -e ../../.env.development -- prisma migrate dev",
     "migrate:reset": "dotenv -e ../../.env.development -- prisma migrate reset"
   },

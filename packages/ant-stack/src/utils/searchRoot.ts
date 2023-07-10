@@ -48,7 +48,7 @@ export function hasWorkspacePackageJSON(root: string): boolean {
   return !!content.workspaces;
 }
 
-export function hasRootFile(root: string): boolean {
+export function hasWorkspaceRootFile(root: string): boolean {
   return ROOT_FILES.some((file) => fs.existsSync(join(root, file)));
 }
 
@@ -60,14 +60,19 @@ export function hasPackageJSON(root: string) {
 /**
  * Search up for the nearest `package.json`
  */
-export function searchForPackageRoot(current: string, root = current): string {
-  if (hasPackageJSON(current)) return current;
+export function getClosestProjectDirectory(current = process.cwd(), root = current): string {
+  if (hasPackageJSON(current)) {
+    return current;
+  }
 
   const dir = dirname(current);
-  // reach the fs root
-  if (!dir || dir === current) return root;
 
-  return searchForPackageRoot(dir, root);
+  // reach the fs root
+  if (!dir || dir === current) {
+    return root;
+  }
+
+  return getClosestProjectDirectory(dir, root);
 }
 
 /**
@@ -75,14 +80,18 @@ export function searchForPackageRoot(current: string, root = current): string {
  */
 export function searchForWorkspaceRoot(
   current: string,
-  root = searchForPackageRoot(current)
+  root = getClosestProjectDirectory(current)
 ): string {
-  if (hasRootFile(current)) return current;
-  if (hasWorkspacePackageJSON(current)) return current;
+  if (hasWorkspaceRootFile(current) || hasWorkspacePackageJSON(current)) {
+    return current;
+  }
 
   const dir = dirname(current);
-  // reach the fs root
-  if (!dir || dir === current) return root;
+
+  // reached the fs root
+  if (!dir || dir === current) {
+    return root;
+  }
 
   return searchForWorkspaceRoot(dir, root);
 }
