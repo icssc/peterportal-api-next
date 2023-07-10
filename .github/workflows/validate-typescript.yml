@@ -1,7 +1,6 @@
----
-description: Verify that code satisfies TypeScript checks.
----
 name: Check for TypeScript errors
+
+description: Verify that code satisfies TypeScript checks.
 
 on:
   pull_request:
