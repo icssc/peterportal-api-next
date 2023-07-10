@@ -1,7 +1,5 @@
 name: Deploy PR to staging
 
-description: Creates a preview deployment for the head branch when a PR is made.
-
 on:
   pull_request:
     types:

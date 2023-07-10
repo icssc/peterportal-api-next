@@ -1,15 +1,12 @@
 name: Sync labels
 
-description:
-  A utility workflow to synchronize the `.github/labels.yml` manifest with the repository's currently available labels.
-  [Read More](https://github.com/micnncim/action-label-syncer)
-
 on:
   push:
     branches:
       - main
     paths:
       - .github/labels.yml
+
 jobs:
   build:
     runs-on: ubuntu-latest
