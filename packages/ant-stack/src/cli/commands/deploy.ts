@@ -57,7 +57,6 @@ async function createDeploymentStatuses() {
     description: "Deployment succeeded",
     environment_url: `https://staging-${{ PR_NUM }}.api-next.peterportal.org`,
     auto_inactive: false,
-    environment: "staging",
   });
 
   await octokit.rest.repos.createDeploymentStatus({
@@ -68,6 +67,5 @@ async function createDeploymentStatuses() {
     description: "Deployment succeeded",
     environment_url: `https://staging-${{ PR_NUM }}-docs.api-next.peterportal.org`,
     auto_inactive: false,
-    environment: "staging",
   });
 }
