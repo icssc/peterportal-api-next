@@ -18,6 +18,7 @@ async function buildApp() {
       index: "src/index.ts",
     },
     outdir: "dist",
+    outExtension: { ".js": ".mjs" },
     bundle: true,
     minify: true,
     format: "esm",
