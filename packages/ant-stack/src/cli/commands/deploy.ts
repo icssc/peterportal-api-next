@@ -3,6 +3,7 @@ import path from "node:path";
 
 import core from "@actions/core";
 import github from "@actions/github";
+import consola from "consola";
 
 import { getClosestProjectDirectory } from "../../utils/directories.js";
 
@@ -15,8 +16,13 @@ const app = `tsx ${appEntry}`;
 const cdkCommand = ["cdk", "deploy", "--app", app, "*", "--require-approval", "never"];
 
 export async function deploy() {
+  consola.info("Deploying CDK stack");
+
   spawnSync("npx", cdkCommand);
-  createDeploymentStatuses();
+
+  consola.info("Creating API and Docs deployment statuses");
+
+  await createDeploymentStatuses();
 }
 
 /**
@@ -49,7 +55,7 @@ async function createDeploymentStatuses() {
     throw new Error("Deployment failed");
   }
 
-  await octokit.rest.repos.createDeploymentStatus({
+  const apiDeploymentStatus = await octokit.rest.repos.createDeploymentStatus({
     repo: github.context.repo.repo,
     owner: github.context.repo.owner,
     deployment_id: apiDeployment.data.id,
@@ -57,9 +63,10 @@ async function createDeploymentStatuses() {
     description: "Deployment succeeded",
     environment_url: `https://staging-${{ PR_NUM }}.api-next.peterportal.org`,
     auto_inactive: false,
+    environment: "staging",
   });
 
-  await octokit.rest.repos.createDeploymentStatus({
+  const docsDeploymentStatus = await octokit.rest.repos.createDeploymentStatus({
     repo: github.context.repo.repo,
     owner: github.context.repo.owner,
     deployment_id: docsDeployment.data.id,
@@ -67,5 +74,10 @@ async function createDeploymentStatuses() {
     description: "Deployment succeeded",
     environment_url: `https://staging-${{ PR_NUM }}-docs.api-next.peterportal.org`,
     auto_inactive: false,
+    environment: "staging",
   });
+
+  consola.info("API deployment status: ", apiDeploymentStatus.data);
+
+  consola.info("Docs deployment status: ", docsDeploymentStatus.data);
 }
