@@ -27,27 +27,31 @@ async function stabilizeStack(
   cfnClient: CloudFormationClient,
   stackName: string
 ): Promise<WaiterResult | void> {
-  const stackStatus = ((await cfnClient.send(new DescribeStacksCommand({ StackName: stackName })))
-    ?.Stacks ?? [])[0]?.StackStatus;
-  if (!stackStatus) return;
-  switch (stackStatus) {
-    case "CREATE_IN_PROGRESS":
-      return await waitUntilStackCreateComplete(
-        { client: cfnClient, maxWaitTime: 1800 },
-        { StackName: stackName }
-      );
-    case "UPDATE_IN_PROGRESS":
-      return await waitUntilStackUpdateComplete(
-        { client: cfnClient, maxWaitTime: 1800 },
-        { StackName: stackName }
-      );
-    case "DELETE_IN_PROGRESS":
-      return await waitUntilStackDeleteComplete(
-        { client: cfnClient, maxWaitTime: 1800 },
-        { StackName: stackName }
-      );
-    default:
-      return;
+  try {
+    const stackStatus = ((await cfnClient.send(new DescribeStacksCommand({ StackName: stackName })))
+      ?.Stacks ?? [])[0]?.StackStatus;
+    if (!stackStatus) return;
+    switch (stackStatus) {
+      case "CREATE_IN_PROGRESS":
+        return await waitUntilStackCreateComplete(
+          { client: cfnClient, maxWaitTime: 1800 },
+          { StackName: stackName }
+        );
+      case "UPDATE_IN_PROGRESS":
+        return await waitUntilStackUpdateComplete(
+          { client: cfnClient, maxWaitTime: 1800 },
+          { StackName: stackName }
+        );
+      case "DELETE_IN_PROGRESS":
+        return await waitUntilStackDeleteComplete(
+          { client: cfnClient, maxWaitTime: 1800 },
+          { StackName: stackName }
+        );
+      default:
+        return;
+    }
+  } catch {
+    return;
   }
 }
 
