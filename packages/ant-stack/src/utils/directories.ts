@@ -136,3 +136,74 @@ export function findSubProjects(root = ".", directory = "", paths: string[] = []
 
   return subRoutes.flatMap((subRoute) => findSubProjects(root, `${directory}/${subRoute}`, paths));
 }
+
+export interface FindUpOptions {
+  /**
+   * @default process.cwd
+   */
+  cwd?: string;
+
+  /**
+   * @default path.parse(cwd).root
+   */
+  stopAt?: string;
+
+  /**
+   * @default false
+   */
+  multiple?: boolean;
+
+  /**
+   * @default true
+   */
+  allowSymlinks?: boolean;
+}
+
+function existsSync(fp: string) {
+  try {
+    fs.accessSync(fp, fs.constants.R_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Given an array of files to look for, recursively find all matching files until {@link stopAt} is reached.
+ */
+export function findUpForFiles(files: string[], options: FindUpOptions = {}): string[] {
+  const {
+    cwd = process.cwd(),
+    stopAt = path.parse(cwd).root,
+    multiple = false,
+    allowSymlinks = true,
+  } = options;
+
+  let current = cwd;
+
+  const foundFiles: string[] = [];
+
+  const stat = allowSymlinks ? fs.statSync : fs.lstatSync;
+
+  while (current && current !== stopAt) {
+    for (const file of files) {
+      const filepath = path.resolve(current, file);
+
+      if (existsSync(filepath) && stat(filepath).isFile()) {
+        foundFiles.push(filepath);
+
+        if (!multiple) return foundFiles;
+      }
+    }
+
+    const parent = path.dirname(current);
+
+    if (parent === current) {
+      break;
+    }
+
+    current = parent;
+  }
+
+  return foundFiles;
+}

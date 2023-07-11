@@ -1,12 +1,7 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import type { Request as ExpressRequest } from "express";
 
-import { zeroUUID } from "../constants.js";
-
-/**
- * The body of a warming request to an AWS Lambda function.
- */
-export const warmerRequestBody = JSON.stringify({ isWarmer: true });
+import { warmerRequestBody, zeroUUID } from "../constants.js";
 
 /**
  * Basic request that will be processed by runtime-agnostic handler functions.

@@ -46,3 +46,8 @@ export type HttpMethod = (typeof httpMethods)[number];
 export function isHttpMethod(method: string): method is HttpMethod {
   return httpMethods.includes(method as HttpMethod);
 }
+
+/**
+ * The body of a warming request to an AWS Lambda function.
+ */
+export const warmerRequestBody = JSON.stringify({ isWarmer: true });

@@ -1,9 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { parse } from "acorn";
 import { build } from "esbuild";
-import type { ExportNamedDeclaration } from "estree";
 
 import { type AntConfig, getConfig } from "../../config.js";
 import { isHttpMethod } from "../../lambda-core/constants.js";
@@ -12,6 +10,7 @@ import {
   createNodeHandler,
   type InternalHandler,
 } from "../../lambda-core/internal/handler.js";
+import { getNamedExports } from "../../utils/static-analysis.js";
 
 /**
  * Builds an {@link InternalHandler}.
@@ -38,23 +37,10 @@ async function compileRuntimes(config: Required<AntConfig>) {
 
   const entryFile = path.resolve(config.esbuild.outdir ?? ".", config.runtime.entryFile);
 
-  const fileContents = fs.readFileSync(entryFile, "utf-8");
-
-  const parsedFile = parse(fileContents, {
-    ecmaVersion: "latest",
-    sourceType: "module",
-  });
-
   /**
-   * The (entry) handler's named exports.
+   * The (entry) handler's exported HTTP methods.
    */
-  const rawExports = parsedFile.body
-    .filter(
-      (node): node is acorn.ExtendNode<ExportNamedDeclaration> =>
-        node.type === "ExportNamedDeclaration"
-    )
-    .flatMap((node) => node.specifiers.map((s) => s.exported.name))
-    .filter(isHttpMethod);
+  const httpMethods = getNamedExports(entryFile).filter(isHttpMethod);
 
   /**
    * The runtime-specific file will import all of its handlers from the entry (handler) file.
@@ -63,17 +49,17 @@ async function compileRuntimes(config: Required<AntConfig>) {
 
   // All the handler's exports are re-exported, wrapped in an adapter.
 
-  const nodeExports = rawExports.map(
+  const nodeExports = httpMethods.map(
     (method) =>
       `export const ${method} = ${createNodeHandler.name}(${runtime.entryHandlersName}.${method})`
   );
 
-  const bunExports = rawExports.map(
+  const bunExports = httpMethods.map(
     (method) =>
       `export const ${method} = ${createBunHandler.name}(${runtime.entryHandlersName}.${method})`
   );
 
-  // The lines of code in the temporary, __unbundled__, .js file.
+  // The lines of code in the __unbundled__ temporary .js file.
 
   const temporaryNodeScript = [
     `import { ${createNodeHandler.name} } from 'ant-stack'`,
@@ -124,6 +110,7 @@ async function compileRuntimes(config: Required<AntConfig>) {
   });
 
   // Done with the temporary files, remove them.
+  // The entry file is preserved as a reliable source of truth for other parts of the deployment.
 
   fs.unlinkSync(temporaryNodeFile);
   fs.unlinkSync(temporaryBunFile);

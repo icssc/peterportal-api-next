@@ -1,4 +1,3 @@
-// acorn.d.ts
 import { Options } from "acorn";
 import * as ESTree from "estree";
 

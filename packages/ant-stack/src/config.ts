@@ -1,24 +1,14 @@
-import type { AppProps, StackProps } from "aws-cdk-lib";
-import { RoleProps } from "aws-cdk-lib/aws-iam";
+import fs from "node:fs";
+import path from "node:path";
+
+import { FunctionProps } from "aws-cdk-lib/aws-lambda";
+import { Construct } from "constructs";
+import { defu } from "defu";
 import type { BuildOptions } from "esbuild";
-import { loadConfig } from "unconfig";
+import createJITI from "jiti";
+import { loadConfig, type LoadConfigOptions } from "unconfig";
 
-/**
- * AntStack's AWS configuration.
- */
-interface AntAWS {
-  id: string;
-
-  zoneName: string;
-
-  stage?: string;
-
-  appProps?: AppProps;
-
-  stackProps?: StackProps;
-
-  routeRolePropsMapping?: Record<string, RoleProps>;
-}
+import { findUpForFiles } from "./utils";
 
 /**
  * Options that control dynamically generated files for different runtimes.
@@ -63,11 +53,6 @@ interface AntRuntime {
  */
 export interface AntConfig {
   /**
-   * The package manager used by the project.
-   */
-  packageManager: "npm" | "yarn" | "pnpm";
-
-  /**
    * Directory to recursively find API routes.
    */
   directory: string;
@@ -88,9 +73,9 @@ export interface AntConfig {
   runtime: AntRuntime;
 
   /**
-   * AWS configuration.
+   * A function that can be invoked to generate dynamic function props for the specific handler.
    */
-  aws: AntAWS;
+  functionProps?: (construct: Construct, id: string) => Partial<FunctionProps>;
 
   /**
    * Environment variables.
@@ -109,8 +94,10 @@ export type AntConfigStub = Partial<AntConfig>;
  */
 export const defineConfig = (config: AntConfig) => config;
 
-export async function getConfig() {
-  const loadedConfig = await loadConfig<Required<AntConfig>>({
+export type GetConfigOptions = Partial<LoadConfigOptions<AntConfig>>;
+
+export async function getConfig(options: GetConfigOptions = {}) {
+  const mergedOptions = defu(options, {
     sources: [
       {
         files: ["ant.config"],
@@ -120,5 +107,36 @@ export async function getConfig() {
     merge: true,
   });
 
+  const loadedConfig = await loadConfig<Required<AntConfig>>(mergedOptions);
+
   return loadedConfig.config;
+}
+
+export const configFiles = ["ant.config.ts", "ant.config.js"];
+
+export function configFileExists(directory: string) {
+  return configFiles.some((file) => fs.existsSync(path.resolve(directory, file)));
+}
+
+export function loadConfigSync(options: GetConfigOptions = {}) {
+  const allConfigFilePaths = findUpForFiles(configFiles, {
+    cwd: process.cwd(),
+    multiple: options.merge,
+  });
+
+  const jiti = createJITI(path.resolve(), {
+    interopDefault: true,
+    cache: false,
+    v8cache: false,
+    esmResolve: true,
+    requireCache: false,
+  });
+
+  const config = allConfigFilePaths.reduce((currentConfig, configFilePath) => {
+    const configModule = jiti(configFilePath);
+    const mergedConfig = defu(currentConfig, configModule.default);
+    return mergedConfig;
+  }, {} as AntConfig);
+
+  return config;
 }
