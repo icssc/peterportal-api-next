@@ -50,7 +50,7 @@ async function stabilizeStack(
       default:
         return;
     }
-  } catch {
+  } catch (e) {
     return;
   }
 }
