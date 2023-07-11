@@ -24,7 +24,7 @@ export async function deploy() {
     "Checking if CloudFormation stack exists and waiting until all CloudFormation updates are complete"
   );
 
-  spawnSync(`aws cloudformation describe-stacks --stack-name ${STACK_NAME}`);
+  spawnSync(`aws cloudformation wait stack-update-complete --stack-name ${STACK_NAME}`);
 
   consola.info("Deploying CDK stack");
 
