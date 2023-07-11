@@ -35,3 +35,11 @@ _what is this, a serverless stack for ants?_
 - This builds a `dist/index.js` file with the file you worked on (`src/index.ts`).
 - There is a `dist/lambda-core.js` file that contains the bundled internals of Lambda-Core.
 - There are also `dist/lambda-<runtime>-runtime.js` files that contain compatible scripts for different AWS Lambda JavaScript runtimes.
+
+# Developers: Under the Hood
+
+## Lambda-Core
+
+## CLI
+
+## CDK
