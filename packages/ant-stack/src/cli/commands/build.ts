@@ -26,20 +26,19 @@ export async function buildInternalHandler() {
     console.log(buildOutput);
   }
 
-  compileRuntimes(config);
+  await compileRuntimes(config);
 }
 
 /**
  * Lambda-Core is runtime-agnostic.
  * Do some additional steps to enable compatibility for specific runtimes. e.g. AWS Lambda Node
  */
-function compileRuntimes(config: Required<AntConfig>) {
+async function compileRuntimes(config: Required<AntConfig>) {
   const { runtime } = config;
 
-  const fileContents = fs.readFileSync(
-    path.resolve(config.esbuild.outdir ?? ".", config.runtime.entryFile),
-    "utf-8"
-  );
+  const entryFile = path.resolve(config.esbuild.outdir ?? ".", config.runtime.entryFile);
+
+  const fileContents = fs.readFileSync(entryFile, "utf-8");
 
   const parsedFile = parse(fileContents, {
     ecmaVersion: "latest",
@@ -47,7 +46,7 @@ function compileRuntimes(config: Required<AntConfig>) {
   });
 
   /**
-   * Original exports without any modifications.
+   * The (entry) handler's named exports.
    */
   const rawExports = parsedFile.body
     .filter(
@@ -58,17 +57,11 @@ function compileRuntimes(config: Required<AntConfig>) {
     .filter(isHttpMethod);
 
   /**
-   * Copy the core runtime file: has adapter logic that allows the handlers to run on different runtimes.
+   * The runtime-specific file will import all of its handlers from the entry (handler) file.
    */
-  fs.copyFileSync(
-    path.resolve(__dirname, config.runtime.lambdaCoreFile),
-    path.resolve(config.esbuild.outdir ?? ".", config.runtime.lambdaCoreFile)
-  );
+  const importHandlers = `import * as ${runtime.entryHandlersName} from '${entryFile}'`;
 
-  /**
-   * First line with imports always the same.
-   */
-  const firstLine = `import * as ${runtime.entryHandlersName} from './${runtime.entryFile}'`;
+  // All the handler's exports are re-exported, wrapped in an adapter.
 
   const nodeExports = rawExports.map(
     (method) =>
@@ -80,25 +73,58 @@ function compileRuntimes(config: Required<AntConfig>) {
       `export const ${method} = ${createBunHandler.name}(${runtime.entryHandlersName}.${method})`
   );
 
-  const nodeRuntimeScript = [
-    firstLine,
-    `import { ${createNodeHandler.name} } from './${config.runtime.lambdaCoreFile}'`,
+  // The lines of code in the temporary, __unbundled__, .js file.
+
+  const temporaryNodeScript = [
+    `import { ${createNodeHandler.name} } from 'ant-stack'`,
+    importHandlers,
     nodeExports.join("\n"),
   ];
 
-  const bunRuntimeScript = [
-    firstLine,
-    `import { ${createBunHandler.name} } from './${config.runtime.lambdaCoreFile}'`,
+  const temporaryBunScript = [
+    `import { ${createBunHandler.name} } from 'ant-stack'`,
+    importHandlers,
     bunExports.join("\n"),
   ];
 
-  fs.writeFileSync(
-    path.resolve(config.esbuild.outdir ?? ".", runtime.nodeRuntimeFile),
-    nodeRuntimeScript.join("\n")
-  );
+  const temporaryNodeFile = path.resolve(config.esbuild.outdir ?? ".", runtime.nodeRuntimeFile);
+  const temporaryBunFile = path.resolve(config.esbuild.outdir ?? ".", runtime.bunRuntimeFile);
 
-  fs.writeFileSync(
-    path.resolve(config.esbuild.outdir ?? ".", runtime.bunRuntimeFile),
-    bunRuntimeScript.join("\n")
-  );
+  // Write the temporary .js files to disk.
+
+  fs.writeFileSync(temporaryNodeFile, temporaryNodeScript.join("\n"));
+  fs.writeFileSync(temporaryBunFile, temporaryBunScript.join("\n"));
+
+  /**
+   * The temporary .js files look like this:
+   *
+   * ```js
+   *
+   *  import { createNodeHandler } from 'ant-stack'
+   *  import * as handlers from './index.js'
+   *  export const get = createNodeHandler(handlers.get)
+   *
+   * ```
+   *
+   * Use ESBuild to each temporary file into a standalone, runtime-specific file.
+   */
+  await build({
+    entryPoints: {
+      [temporaryNodeFile.replace(/\.js$/, "")]: temporaryNodeFile,
+      [temporaryBunFile.replace(/\.js$/, "")]: temporaryBunFile,
+    },
+    outdir: config.esbuild.outdir,
+    platform: "node",
+    format: "esm",
+    bundle: true,
+    target: "esnext",
+    outExtension: {
+      ".js": ".mjs",
+    },
+  });
+
+  // Done with the temporary files, remove them.
+
+  fs.unlinkSync(temporaryNodeFile);
+  fs.unlinkSync(temporaryBunFile);
 }
