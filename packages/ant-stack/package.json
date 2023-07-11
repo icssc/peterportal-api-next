@@ -59,6 +59,7 @@
     "@actions/github": "^5.1.1",
     "@aws-sdk/client-cloudformation": "^3.363.0",
     "@aws-sdk/util-waiter": "^3.357.0",
+    "acorn": "^8.10.0",
     "arktype": "^1.0.14-alpha",
     "aws-cdk": "^2.87.0",
     "aws-cdk-lib": "^2.87.0",

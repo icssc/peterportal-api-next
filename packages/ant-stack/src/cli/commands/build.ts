@@ -1,9 +1,12 @@
-import { copyFileSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import fs from "node:fs";
+import path from "node:path";
 
+import { parse } from "acorn";
 import { build } from "esbuild";
+import type { ExportNamedDeclaration } from "estree";
 
 import { type AntConfig, getConfig } from "../../config.js";
+import { isHttpMethod } from "../../lambda-core/constants.js";
 import {
   createBunHandler,
   createNodeHandler,
@@ -11,42 +14,10 @@ import {
 } from "../../lambda-core/internal/handler.js";
 
 /**
- * Compile for an AWS Lambda runtime
- */
-async function compileRuntime(config: AntConfig, functionName: string, outputFile: string) {
-  /**
-   * TODO: statically analyze the built file for the exported handler methods.
-   */
-  const internalHandlers = await import(
-    resolve(config.esbuild.outdir ?? ".", config.runtime.entryFile)
-  );
-
-  copyFileSync(
-    resolve(__dirname, config.runtime.lambdaCoreFile),
-    resolve(config.esbuild.outdir ?? ".", config.runtime.lambdaCoreFile)
-  );
-
-  const exports = Object.keys(internalHandlers)
-    .map(
-      (method) =>
-        `export const ${method} = ${functionName}(${config.runtime.entryHandlersName}.${method})`
-    )
-    .join("\n");
-
-  const script = `\
-import * as ${config.runtime.entryHandlersName} from './${config.runtime.entryFile}'
-import { ${functionName} } from './${config.runtime.lambdaCoreFile}'
-${exports}
-`;
-
-  writeFileSync(resolve(config.esbuild.outdir ?? ".", outputFile), script);
-}
-
-/**
  * Builds an {@link InternalHandler}.
  * TODO: add the ability to specify options.
  */
-export const buildInternalHandler = async () => {
+export async function buildInternalHandler() {
   const config = await getConfig();
 
   const buildOutput = await build(config.esbuild);
@@ -55,6 +26,79 @@ export const buildInternalHandler = async () => {
     console.log(buildOutput);
   }
 
-  await compileRuntime(config, createNodeHandler.name, config.runtime.nodeRuntimeFile);
-  await compileRuntime(config, createBunHandler.name, config.runtime.bunRuntimeFile);
-};
+  compileRuntimes(config);
+}
+
+/**
+ * Lambda-Core is runtime-agnostic.
+ * Do some additional steps to enable compatibility for specific runtimes. e.g. AWS Lambda Node
+ */
+function compileRuntimes(config: Required<AntConfig>) {
+  const { runtime } = config;
+
+  const fileContents = fs.readFileSync(
+    path.resolve(config.esbuild.outdir ?? ".", config.runtime.entryFile),
+    "utf-8"
+  );
+
+  const parsedFile = parse(fileContents, {
+    ecmaVersion: "latest",
+    sourceType: "module",
+  });
+
+  /**
+   * Original exports without any modifications.
+   */
+  const rawExports = parsedFile.body
+    .filter(
+      (node): node is acorn.ExtendNode<ExportNamedDeclaration> =>
+        node.type === "ExportNamedDeclaration"
+    )
+    .flatMap((node) => node.specifiers.map((s) => s.exported.name))
+    .filter(isHttpMethod);
+
+  /**
+   * Copy the core runtime file: has adapter logic that allows the handlers to run on different runtimes.
+   */
+  fs.copyFileSync(
+    path.resolve(__dirname, config.runtime.lambdaCoreFile),
+    path.resolve(config.esbuild.outdir ?? ".", config.runtime.lambdaCoreFile)
+  );
+
+  /**
+   * First line with imports always the same.
+   */
+  const firstLine = `import * as ${runtime.entryHandlersName} from './${runtime.entryFile}'`;
+
+  const nodeExports = rawExports.map(
+    (method) =>
+      `export const ${method} = ${createNodeHandler.name}(${runtime.entryHandlersName}.${method})`
+  );
+
+  const bunExports = rawExports.map(
+    (method) =>
+      `export const ${method} = ${createBunHandler.name}(${runtime.entryHandlersName}.${method})`
+  );
+
+  const nodeRuntimeScript = [
+    firstLine,
+    `import { ${createNodeHandler.name} } from './${config.runtime.lambdaCoreFile}'`,
+    nodeExports.join("\n"),
+  ];
+
+  const bunRuntimeScript = [
+    firstLine,
+    `import { ${createBunHandler.name} } from './${config.runtime.lambdaCoreFile}'`,
+    bunExports.join("\n"),
+  ];
+
+  fs.writeFileSync(
+    path.resolve(config.esbuild.outdir ?? ".", runtime.nodeRuntimeFile),
+    nodeRuntimeScript.join("\n")
+  );
+
+  fs.writeFileSync(
+    path.resolve(config.esbuild.outdir ?? ".", runtime.bunRuntimeFile),
+    bunRuntimeScript.join("\n")
+  );
+}
