@@ -5,6 +5,7 @@ import { consola } from "consola";
 import { buildInternalHandler } from "./commands/build.js";
 import { interactiveCreate } from "./commands/create";
 import { deploy } from "./commands/deploy.js";
+import { destroy } from "./commands/destroy.js";
 import { startDevServer } from "./commands/dev.js";
 
 async function main() {
@@ -29,6 +30,10 @@ async function main() {
       command({
         name: "deploy",
       }),
+
+      command({
+        name: "destroy",
+      }),
     ],
   });
 
@@ -44,6 +49,9 @@ async function main() {
     }
     case "deploy": {
       return await deploy();
+    }
+    case "destroy": {
+      return await destroy();
     }
   }
 }
