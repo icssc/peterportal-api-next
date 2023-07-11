@@ -16,21 +16,21 @@ const app = `tsx ${appEntry}`;
 const cdkCommand = ["cdk", "deploy", "--app", app, "*", "--require-approval", "never"];
 
 export async function deploy() {
+  const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");
+  const PR_NUM = github.context.payload.pull_request?.number;
+  const STACK_NAME = `peterportal-api-next-staging-${PR_NUM}`;
+
+  consola.info(
+    "Checking if CloudFormation stack exists and waiting until all CloudFormation updates are complete"
+  );
+
+  spawnSync(`aws cloudformation describe-stacks --stack-name ${STACK_NAME}`);
+
   consola.info("Deploying CDK stack");
 
   spawnSync("npx", cdkCommand);
 
   consola.info("Creating API and Docs deployment statuses");
-
-  await createDeploymentStatuses();
-}
-
-/**
- * Guess what it does!
- */
-async function createDeploymentStatuses() {
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");
-  const PR_NUM = github.context.payload.pull_request?.number;
 
   if (!PR_NUM) {
     throw new Error("Stop, this is not a pull request!");
