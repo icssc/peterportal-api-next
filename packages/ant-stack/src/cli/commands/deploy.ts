@@ -47,12 +47,7 @@ async function createDeploymentStatuses() {
     repo,
     ref,
     required_contexts: [],
-    task: "task:a",
-    payload: {
-      a: "b",
-      c: "d",
-    },
-    description: "Deploying API",
+    environment: "staging - api",
   });
 
   const docsDeployment = await octokit.rest.repos.createDeployment({
@@ -60,12 +55,7 @@ async function createDeploymentStatuses() {
     repo,
     ref,
     required_contexts: [],
-    task: "task:b",
-    payload: {
-      e: "f",
-      g: "h",
-    },
-    description: "Deploying docs",
+    environment: "staging - docs",
   });
 
   if (apiDeployment.status !== 201 || docsDeployment.status !== 201) {
@@ -80,7 +70,6 @@ async function createDeploymentStatuses() {
     description: "Deployment succeeded",
     environment_url: `https://staging-${github.context.payload.pull_request?.number}.api-next.peterportal.org`,
     auto_inactive: false,
-    environment: "staging",
   });
 
   const docsDeploymentStatus = await octokit.rest.repos.createDeploymentStatus({
@@ -91,7 +80,6 @@ async function createDeploymentStatuses() {
     description: "Deployment succeeded",
     environment_url: `https://staging-${PR_NUM}-docs.api-next.peterportal.org`,
     auto_inactive: false,
-    environment: "staging",
   });
 
   consola.info("API deployment status: ", apiDeploymentStatus.data);
