@@ -75,8 +75,8 @@ export async function deploy() {
 
   const cdkChild = spawn("npx", cdkCommand);
 
-  cdkChild.stdout.on("data", (data) => consola.info(data));
-  cdkChild.stderr.on("data", (data) => consola.info(data));
+  cdkChild.stdout.on("data", (data: Buffer) => consola.info(data.toString()));
+  cdkChild.stderr.on("data", (data: Buffer) => consola.error(data.toString()));
   cdkChild.on("close", async () => {
     consola.info("ℹ️ Creating API and Docs deployment statuses");
 
