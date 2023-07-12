@@ -23,6 +23,11 @@
       "types": "./dist/utils.d.ts",
       "import": "./dist/utils.js",
       "default": "./dist/utils.js"
+    },
+    "./constructs/*": {
+      "types": "./dist/constructs/*.d.ts",
+      "require": "./dist/constructs/*.cjs",
+      "default": "./dist/constructs/*.js"
     }
   },
   "main": "dist/lambda-core.js",
@@ -38,6 +43,9 @@
       ],
       "utils": [
         "./dist/utils.d.ts"
+      ],
+      "constructs/*": [
+        "./dist/constructs/*.d.ts"
       ]
     }
   },
@@ -68,7 +76,7 @@
     "chokidar": "^3.5.3",
     "cleye": "^1.3.2",
     "consola": "^3.1.0",
-    "constructs": "^10.1.176",
+    "constructs": "^10.2.69",
     "cors": "^2.8.5",
     "defu": "^6.1.2",
     "esbuild": "^0.17.19",

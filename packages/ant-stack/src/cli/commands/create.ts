@@ -4,8 +4,9 @@ import path from "node:path";
 import chalk from "chalk";
 import { consola } from "consola";
 
-import { getConfig } from "../../config.js";
+import { loadConfig } from "../../config.js";
 import { getClosestProjectDirectory } from "../../utils/directories.js";
+import { getPackageManager } from "../../utils/package-manager.js";
 
 const createHandlerTemplate = (httpMethod: string) => `\
 export const ${httpMethod}: InternalHandler = async (event) => {
@@ -46,7 +47,7 @@ function generateEntryFile(props: EntryFileProps): string {
 }
 
 export async function interactiveCreate() {
-  const config = await getConfig();
+  const config = loadConfig();
 
   consola.info(chalk("Creating a new endpoint."));
 
@@ -65,7 +66,7 @@ export async function interactiveCreate() {
     }
   }
 
-  const newProjectDirectory = path.join(config.directory, endpoint);
+  const newProjectDirectory = path.join(config.directory ?? process.cwd(), endpoint);
 
   if (fs.existsSync(newProjectDirectory)) {
     consola.warn(`A route already exists at ${endpoint}.`);
@@ -96,9 +97,11 @@ export async function interactiveCreate() {
   fs.writeFileSync(path.join(newProjectDirectory, "package.json"), packageJson);
   fs.writeFileSync(path.join(newProjectDirectory, "src", "index.ts"), entryFile);
 
+  const packageManager = getPackageManager();
+
   consola.info(
     `Endpoint created! Don't forget to run ${chalk.bold(
-      `${config.packageManager} install`
+      `${packageManager} install`
     )} to integrate the new route.`
   );
 }

@@ -7,7 +7,7 @@ import cors from "cors";
 import { build, type BuildOptions } from "esbuild";
 import express, { Router } from "express";
 
-import { getConfig } from "../../config.js";
+import { loadConfig } from "../../config.js";
 import { createExpressHandler } from "../../lambda-core/internal/handler.js";
 import {
   findAllProjects,
@@ -47,7 +47,7 @@ function isStringArray(value: Array<unknown>): value is string[] {
  * Start a dev server.
  */
 export async function startDevServer() {
-  const config = await getConfig();
+  const config = loadConfig();
 
   const cwd = process.cwd();
 

@@ -1,4 +1,10 @@
+import fs from "node:fs";
 import { defineConfig } from "tsup";
+
+const constructEntries = fs.readdirSync("./src/cdk/constructs").reduce((entries, file) => {
+  entries[`constructs/${file.replace(/\.ts/, "")}`] = `./src/cdk/constructs/${file}`;
+  return entries;
+}, {} as Record<string, string>);
 
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1491470829
@@ -14,6 +20,7 @@ export default defineConfig({
     config: "src/config.ts",
     "lambda-core": "src/lambda-core/index.ts",
     utils: "src/utils/index.ts",
+    ...constructEntries,
   },
   bundle: true,
   format: "esm",

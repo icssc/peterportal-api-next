@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { build } from "esbuild";
 
-import { type AntConfig, getConfig } from "../../config.js";
+import { type AntConfig, loadConfig } from "../../config.js";
 import { isHttpMethod } from "../../lambda-core/constants.js";
 import {
   createBunHandler,

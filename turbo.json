@@ -22,7 +22,8 @@
         "NODE_ENV",
         "PR_NUM",
         "STAGE",
-        "GITHUB_TOKEN"
+        "GITHUB_TOKEN",
+        "npm_config_user_agent"
       ]
     },
     "destroy": {
