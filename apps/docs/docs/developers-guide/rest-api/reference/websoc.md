@@ -241,3 +241,89 @@ type WebsocAPIResponse = {
 
 </TabItem>
 </Tabs>
+
+## Get a list of available departments
+
+### Query parameters
+
+None.
+
+### Response
+
+<Tabs>
+<TabItem value="json" label="Example response">
+
+```json
+[
+  {
+    "deptLabel": "ALL: Include All Departments",
+    "deptValue": "ALL"
+  },
+  {
+    "deptLabel": "AC ENG: Academic English",
+    "deptValue": "AC ENG"
+  },
+  "..."
+]
+```
+
+</TabItem>
+<TabItem value="ts" label="Payload schema">
+
+```typescript
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/websoc.ts
+type DepartmentList = {
+  deptLabel: string;
+  deptValue: string;
+}[];
+```
+
+</TabItem>
+</Tabs>
+
+## Get a list of available departments
+
+### Query parameters
+
+None.
+
+### Response
+
+<Tabs>
+<TabItem value="json" label="Example response">
+
+```json
+[
+  {
+    "shortName": "2023 Summer2",
+    "longName": "2023 Summer Session 2"
+  },
+  {
+    "shortName": "2023 Summer10wk",
+    "longName": "2023 10-wk Summer"
+  },
+  {
+    "shortName": "2023 Summer1",
+    "longName": "2023 Summer Session 1"
+  },
+  {
+    "shortName": "2023 Spring",
+    "longName": "2023 Spring Quarter"
+  },
+  "..."
+]
+```
+
+</TabItem>
+<TabItem value="ts" label="Payload schema">
+
+```typescript
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/websoc.ts
+type TermList = {
+  shortName: `${string} ${Quarter}`;
+  longName: string;
+}[];
+```
+
+</TabItem>
+</Tabs>

@@ -5,6 +5,10 @@ pagination_next: null
 
 # Getting Started
 
+Welcome to the **Developer's Guide** for PeterPortal API. This part of the documentation covers how to properly use PeterPortal API for your own projects.
+
+If you're a developer who's interested in helping to improve PeterPortal API, first of all please accept our thanks. We've got you covered in the Contributor's Guide [here](/docs/contributors-guide/getting-started).
+
 ## What is an API?
 
 API stands for **A**pplication **P**rogramming **I**nterface. In essence, it is a way for programs to communicate with each other using a set of agreed-upon definitions and protocols.
