@@ -3,7 +3,6 @@ import path from "node:path";
 
 import { build } from "esbuild";
 
-import { type AntConfig, loadConfig } from "../../config.js";
 import { isHttpMethod } from "../../lambda-core/constants.js";
 import {
   createBunHandler,
@@ -17,7 +16,7 @@ import { getNamedExports } from "../../utils/static-analysis.js";
  * TODO: add the ability to specify options.
  */
 export async function buildInternalHandler() {
-  const config = await getConfig();
+  const config: any = {};
 
   const buildOutput = await build(config.esbuild);
 
@@ -32,7 +31,7 @@ export async function buildInternalHandler() {
  * Lambda-Core is runtime-agnostic.
  * Do some additional steps to enable compatibility for specific runtimes. e.g. AWS Lambda Node
  */
-async function compileRuntimes(config: Required<AntConfig>) {
+async function compileRuntimes(config: any) {
   const { runtime } = config;
 
   const entryFile = path.resolve(config.esbuild.outdir ?? ".", config.runtime.entryFile);

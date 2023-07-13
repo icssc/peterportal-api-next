@@ -1,7 +1,7 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import type { AntConfigStub } from "ant-stack/config";
+import { ApiRouteConfigOverride } from "ant-stack/constructs/Api";
 import env from "../../../../../env.js";
 
 import { cleanCopy, selectDelete } from "@libs/build-tools";
@@ -16,13 +16,17 @@ const prismaSchema = "./node_modules/@libs/db/prisma/schema.prisma";
 
 const outDir = resolve(cwd, "./dist");
 
-const config: AntConfigStub = {
-  esbuild: {
-    plugins: [
-      cleanCopy(cwd, outDir, prismaClientDir, prismaSchema),
-      selectDelete(env.NODE_ENV, outDir),
-    ],
-  },
-};
-
-export default config;
+export default class Override extends ApiRouteConfigOverride {
+  constructor(scope: any, id: string) {
+    super(scope, id, {
+      runtime: {
+        esbuild: {
+          plugins: [
+            cleanCopy(cwd, outDir, prismaClientDir, prismaSchema),
+            selectDelete(env.NODE_ENV, outDir),
+          ],
+        },
+      },
+    });
+  }
+}
