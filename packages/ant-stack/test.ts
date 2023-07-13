@@ -1,27 +1,30 @@
-import path from "node:path";
-
-import createJITI from "jiti";
+import { Stack } from "aws-cdk-lib";
 
 import { Api } from "./src/cdk/constructs/Api";
+import { initConfig } from "./src/config.js";
 
 async function main() {
-  const jiti = createJITI(path.resolve(), {
-    interopDefault: true,
-    cache: false,
-    v8cache: false,
-    esmResolve: true,
-    requireCache: false,
-  });
+  const app = await initConfig();
 
-  const configModule = jiti("../../ant.config.ts");
+  /**
+   * TODO: handle multiple stacks.
+   */
+  const stacks = app.node.children.find(Stack.isStack);
 
-  const app = await configModule.default();
+  if (!stacks) {
+    throw new Error(`No stacks found.`);
+  }
 
-  const api = app.node.children[0].node.children[0];
+  /**
+   * TODO: handle multiple APIs.
+   */
+  const api = stacks?.node.children.find(Api.isApi);
 
-  console.log(Api.isApi(api));
+  if (!api) {
+    throw new Error(`No API construct found.`);
+  }
 
-  console.log(api);
+  return api;
 }
 
 main();

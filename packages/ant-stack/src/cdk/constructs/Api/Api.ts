@@ -111,14 +111,17 @@ export class Api extends Construct {
   }
 }
 
+/**
+ * 1) Find root config file and initialize.
+ */
 export async function initApi() {
   const app = await initConfig();
 
-  if (!app) {
-    throw new Error(`No config file found.`);
-  }
-
   const stacks = app.node.children.find(Stack.isStack);
+
+  if (!stacks) {
+    throw new Error(`No stacks found.`);
+  }
 
   const api = stacks?.node.children.find(Api.isApi);
 

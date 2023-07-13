@@ -28,7 +28,7 @@ export async function initConfig() {
 
       const exports = jiti(configPath);
 
-      const main = exports.default ?? exports;
+      const main = exports.default ?? exports.main;
 
       if (typeof main !== "function") {
         throw new Error(`Config file ${configFile} must export default a function.`);
@@ -44,5 +44,7 @@ export async function initConfig() {
     }
   }
 
-  return;
+  throw new Error(
+    `No config file found. Please provide one of the following: ${configFiles.join(", ")}`
+  );
 }

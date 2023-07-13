@@ -9,11 +9,7 @@ import express, { Router } from "express";
 
 import { initApi } from "../../cdk/constructs/Api/Api.js";
 import { createExpressHandler } from "../../lambda-core/internal/handler.js";
-import {
-  findAllProjects,
-  getClosestProjectDirectory,
-  getWorkspaceRoot,
-} from "../../utils/directories.js";
+import { getClosestProjectDirectory, getWorkspaceRoot } from "../../utils/directories.js";
 
 /**
  * Translates the HTTP verbs exported by the lambda-core into Express methods.
@@ -49,6 +45,10 @@ function isStringArray(value: Array<unknown>): value is string[] {
 export async function startDevServer() {
   const api = await initApi();
 
+  if (!("directory" in api.config)) {
+    throw new Error(`TODO: explicitly routed API is not supported yet.`);
+  }
+
   const config = api.config;
 
   const cwd = process.cwd();
@@ -57,7 +57,7 @@ export async function startDevServer() {
 
   if (cwd === workspaceRoot) {
     consola.info(
-      `🎏 Starting root dev server. All endpoints from ${config.directory} will be served.`
+      `🎏 Starting root dev server. All endpoints from ${api.config.directory} will be served.`
     );
   } else {
     const endpoint = relative(`${workspaceRoot}/${config.directory}`, cwd);
@@ -67,7 +67,7 @@ export async function startDevServer() {
     config.directory = resolve(process.cwd());
   }
 
-  const endpoints = findAllProjects(config.directory);
+  const endpoints = Object.keys(api.routes);
 
   //---------------------------------------------------------------------------------
   // Build.
@@ -96,7 +96,7 @@ export async function startDevServer() {
 
     const outdir = resolve(`${endpoint}/${config.runtime.esbuild.outdir}`);
 
-    configs[endpoint] = { ...config.runtime.esbuild, entryPoints, outdir };
+    configs[endpoint] = { ...api.routes[endpoint].config.runtime.esbuild, entryPoints, outdir };
 
     return configs;
   }, {} as Record<string, BuildOptions>);
