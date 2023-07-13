@@ -192,7 +192,9 @@ export function findUpForFiles(files: string[], options: FindUpOptions = {}): st
       if (existsSync(filepath) && stat(filepath).isFile()) {
         foundFiles.push(filepath);
 
-        if (!multiple) return foundFiles;
+        if (!multiple) {
+          return foundFiles;
+        }
       }
     }
 

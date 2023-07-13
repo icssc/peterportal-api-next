@@ -1,62 +1,48 @@
+import fs from "node:fs";
 import path from "node:path";
 
-import { App, Stack } from "aws-cdk-lib";
-import { Construct } from "constructs";
+import { App } from "aws-cdk-lib";
 import createJITI from "jiti";
 
-import type { Api, ApiSettings } from "./cdk/constructs/Api.js";
-import type { SsrSite } from "./cdk/constructs/SsrSite.js";
-import type { StaticSite } from "./cdk/constructs/StaticSite.js";
-import { findUpForFiles } from "./utils/directories.js";
-
-type SpecialConstruct = StaticSite | SsrSite | Api | ApiSettings;
-
-type AnyNodeChild = Construct | Stack | SpecialConstruct;
+import { getWorkspaceRoot } from "./utils/directories.js";
 
 export const configFiles = ["ant.config.ts", "ant.config.js"];
 
-export interface LoadConfigOptions {
-  merge?: boolean;
-}
-
 /**
- * Synchronous implementation of unconfig
- * @link https://github.com/antfu/unconfig/blob/main/src/index.ts
+ * Initialize the root config file.
  */
-export function loadConfig(options: LoadConfigOptions = {}) {
-  const configFilePaths = findUpForFiles(configFiles, {
-    cwd: process.cwd(),
-    multiple: options.merge,
-  });
+export async function initConfig() {
+  const workspaceRoot = getWorkspaceRoot(process.cwd());
 
-  const jiti = createJITI(path.resolve(), {
-    interopDefault: true,
-    cache: false,
-    v8cache: false,
-    esmResolve: true,
-    requireCache: false,
-  });
+  for (const configFile of configFiles) {
+    const configPath = path.join(workspaceRoot, configFile);
 
-  const app = new App();
+    if (fs.existsSync(configPath)) {
+      const jiti = createJITI(path.resolve(), {
+        interopDefault: true,
+        cache: false,
+        v8cache: false,
+        esmResolve: true,
+        requireCache: false,
+      });
 
-  const stacks = app.node.children.filter(isStack);
+      const exports = jiti(configPath);
 
-  /**
-   * TODO: handle multiple stacks.
-   */
-  const stackChildren = stacks[0].node.children as AnyNodeChild[];
+      const main = exports.default ?? exports;
 
-  const specialChildren = stackChildren.filter(isSpecialConstruct);
+      if (typeof main !== "function") {
+        throw new Error(`Config file ${configFile} must export default a function.`);
+      }
 
-  return specialChildren;
+      const app = await main();
+
+      if (!App.isApp(app)) {
+        throw new Error(`Function must return an App instance.`);
+      }
+
+      return app;
+    }
+  }
+
+  return;
 }
-
-function isStack(child: unknown): child is Stack {
-  return Stack.isStack(child);
-}
-
-function isSpecialConstruct(child: unknown): child is SpecialConstruct {
-  return Construct.isConstruct(child) && "type" in child;
-}
-
-export { App };

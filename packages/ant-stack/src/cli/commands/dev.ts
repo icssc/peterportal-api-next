@@ -7,7 +7,7 @@ import cors from "cors";
 import { build, type BuildOptions } from "esbuild";
 import express, { Router } from "express";
 
-import { loadConfig } from "../../config.js";
+import { initApi } from "../../cdk/constructs/Api/Api.js";
 import { createExpressHandler } from "../../lambda-core/internal/handler.js";
 import {
   findAllProjects,
@@ -47,7 +47,9 @@ function isStringArray(value: Array<unknown>): value is string[] {
  * Start a dev server.
  */
 export async function startDevServer() {
-  const config = loadConfig();
+  const api = await initApi();
+
+  const config = api.config;
 
   const cwd = process.cwd();
 
@@ -78,23 +80,23 @@ export async function startDevServer() {
     /**
      * {@link BuildOptions.entryPoints} can be way too many different things !!
      */
-    const entryPoints = Array.isArray(config.esbuild.entryPoints)
-      ? isStringArray(config.esbuild.entryPoints)
-        ? config.esbuild.entryPoints.map((entry) => `${endpoint}/${entry}`)
-        : config.esbuild.entryPoints.map((entry) => ({
+    const entryPoints = Array.isArray(config.runtime.esbuild.entryPoints)
+      ? isStringArray(config.runtime.esbuild.entryPoints)
+        ? config.runtime.esbuild.entryPoints.map((entry) => `${endpoint}/${entry}`)
+        : config.runtime.esbuild.entryPoints.map((entry) => ({
             in: `${endpoint}/${entry.in}`,
             out: `${endpoint}/${entry.out}`,
           }))
-      : typeof config.esbuild.entryPoints === "object"
-      ? Object.entries(config.esbuild.entryPoints).map(([key, value]) => ({
+      : typeof config.runtime.esbuild.entryPoints === "object"
+      ? Object.entries(config.runtime.esbuild.entryPoints).map(([key, value]) => ({
           in: `${endpoint}/${key}`,
           out: `${endpoint}/${value}`,
         }))
-      : config.esbuild.entryPoints;
+      : config.runtime.esbuild.entryPoints;
 
-    const outdir = resolve(`${endpoint}/${config.esbuild.outdir}`);
+    const outdir = resolve(`${endpoint}/${config.runtime.esbuild.outdir}`);
 
-    configs[endpoint] = { ...config.esbuild, entryPoints, outdir };
+    configs[endpoint] = { ...config.runtime.esbuild, entryPoints, outdir };
 
     return configs;
   }, {} as Record<string, BuildOptions>);
@@ -155,7 +157,7 @@ export async function startDevServer() {
 
     endpointMiddleware[endpoint] = Router();
 
-    const file = resolve(endpoint, `${config.esbuild.outdir}/index.js`);
+    const file = resolve(endpoint, `${config.runtime.esbuild.outdir}/index.js`);
 
     const internalHandlers = await import(`${file}?update=${Date.now()}`);
 
@@ -176,8 +178,8 @@ export async function startDevServer() {
    */
   await Promise.all(endpoints.map(loadEndpoint)).then(refreshRouter);
 
-  app.listen(config.port, () => {
-    consola.info(`🎉 Express server listening at http://localhost:${config.port}`);
+  app.listen(8080, () => {
+    consola.info(`🎉 Express server listening at http://localhost:${8080}`);
   });
 
   //---------------------------------------------------------------------------------
@@ -188,7 +190,7 @@ export async function startDevServer() {
     ignored: [
       /(^|[/\\])\../, // dotfiles
       /node_modules/, // node_modules
-      `**/${config.esbuild.outdir ?? "dist"}/**`, // build output directory
+      `**/${config.runtime.esbuild.outdir ?? "dist"}/**`, // build output directory
     ],
   });
 

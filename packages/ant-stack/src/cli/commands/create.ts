@@ -4,7 +4,6 @@ import path from "node:path";
 import chalk from "chalk";
 import { consola } from "consola";
 
-import { loadConfig } from "../../config.js";
 import { getClosestProjectDirectory } from "../../utils/directories.js";
 import { getPackageManager } from "../../utils/package-manager.js";
 
@@ -47,8 +46,6 @@ function generateEntryFile(props: EntryFileProps): string {
 }
 
 export async function interactiveCreate() {
-  const config = loadConfig();
-
   consola.info(chalk("Creating a new endpoint."));
 
   let endpoint = "";
@@ -66,7 +63,7 @@ export async function interactiveCreate() {
     }
   }
 
-  const newProjectDirectory = path.join(config.directory ?? process.cwd(), endpoint);
+  const newProjectDirectory = path.join(process.cwd(), endpoint);
 
   if (fs.existsSync(newProjectDirectory)) {
     consola.warn(`A route already exists at ${endpoint}.`);
