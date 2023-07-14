@@ -27,11 +27,15 @@ import { getNamedExports } from "../../../utils/static-analysis.js";
 export type ApiRouteConfig = {
   /**
    * The API route.
+   *
+   * @example /v1/rest/calendar
    */
   route: string;
 
   /**
-   * Location of the project.
+   * Location of the project, starting from the root config.
+   *
+   * @example apps/api/v1/rest/calendar
    */
   directory: string;
 
@@ -46,24 +50,17 @@ export type ApiRouteConfig = {
   runtime: ApiRouteRuntimeConfig;
 
   /**
-   * Override construct options for the route.
+   * Override construct props for the route.
    */
   constructs: ApiRouteConstructProps;
 };
 
 /**
- * Options that control dynamically generated files for different runtimes.
+ * How to generate files.
  */
 export interface ApiRouteRuntimeConfig {
   /**
-   * The name of the built file with all the handlers for the route.
-   *
-   * @default dist/index.js
-   */
-  entryFile?: string;
-
-  /**
-   * Esbuild options.
+   * esbuild options.
    */
   esbuild: BuildOptions;
 
@@ -72,7 +69,7 @@ export interface ApiRouteRuntimeConfig {
    *
    * @default InternalHandlers
    *
-   * @example {@link entryFile} = dist/index.js
+   * @example
    *
    * ```js
    * import * as InternalHandlers from "./dist/index.js"
@@ -112,48 +109,48 @@ export interface ApiRouteRuntimeConfig {
   environment?: Record<string, string>;
 }
 
+/**
+ * "satisfies" indicates that the object meets the requirements of the type,
+ * but without explicitly typing the object as the type.
+ *
+ * If a property is optional in the type, but defined in this object;
+ * the property in the object will be typed as fully defined.
+ *
+ * @link https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html
+ */
 const defaultApiRouteConfig = {
   runtime: {
     esbuild: {
       outdir: "dist",
-      outfile: "lambda-node-runtime.mjs",
+      outfile: "index.js",
       outExtension: {
         ".js": ".mjs",
       },
     },
-    entryFile: "dist/index.mjs",
     entryHandlersName: "InternalHandlers",
     nodeRuntimeFile: "lambda-node-runtime.mjs",
     bunRuntimeFile: "lambda-bun-runtime.mjs",
+    environment: {},
   },
   constructs: {},
 } satisfies Omit<ApiRouteConfig, "route" | "directory" | "api">;
 
 /**
- * Override the properties provided to the constructs.
+ * Override props provided to the constructs.
  */
 export interface ApiRouteConstructProps {
-  /**
-   * Override default Lambda integration props for each function.
-   */
   lambdaIntegrationOptions?: (
     scope: Construct,
     id: string,
     methodAndRoute: string
   ) => LambdaIntegrationOptions;
 
-  /**
-   * Override default function props for each route.
-   */
   functionProps?: (scope: Construct, id: string) => FunctionProps;
 
-  /**
-   * Override default method options for each route.
-   */
   methodOptions?: (scope: Construct, id: string, methodAndRoute: string) => MethodOptions;
 
   /**
-   * Whether to generate a warming rule for all routes.
+   * Not an override; whether to also create a warming rule.
    */
   includeWarmers?: boolean;
 }
@@ -164,25 +161,23 @@ export class ApiRoute extends Construct {
 
     const configWithDefaults = defu(config, defaultApiRouteConfig);
 
-    let resource = configWithDefaults.api.root;
+    const resource = configWithDefaults.route.split("/").reduce((resource, route) => {
+      return resource.getResource(route) ?? resource.addResource(route);
+    }, config.api.root);
 
-    configWithDefaults.route.split("/").forEach((route) => {
-      resource = resource.getResource(route) ?? resource.addResource(route);
-    });
-
-    const builtFile = path.join(
+    const builtNodeHandler = path.join(
       configWithDefaults.directory,
       configWithDefaults.runtime.esbuild.outdir,
       configWithDefaults.runtime.nodeRuntimeFile
     );
 
-    getNamedExports(builtFile)
+    getNamedExports(builtNodeHandler)
       .filter(isHttpMethod)
       .forEach((httpMethod) => {
         /**
          * Each route can override default construct properties with a higher priority.
          */
-        const routeConfig = defu(loadRouteConfig(config.directory), configWithDefaults);
+        const routeConfig = defu(loadRouteConfigOverride(config.directory), configWithDefaults);
 
         const functionName = `${id}-${httpMethod}`.replace(/\//g, "-");
 
@@ -192,9 +187,9 @@ export class ApiRoute extends Construct {
             functionName,
             runtime: Runtime.NODEJS_18_X,
             code: Code.fromAsset(routeConfig.directory, { exclude: ["node_modules"] }),
-            handler: builtFile.replace(/.js$/, httpMethod),
+            handler: builtNodeHandler.replace(/.js$/, httpMethod),
             architecture: Architecture.ARM_64,
-            environment: { ...routeConfig.runtime.environment },
+            environment: routeConfig.runtime.environment,
             timeout: Duration.seconds(15),
             memorySize: 512,
           }
@@ -235,7 +230,13 @@ export class ApiRoute extends Construct {
   }
 }
 
-function loadRouteConfig(directory: string) {
+/**
+ * Executes a config file if it exists, then finds exported `ApiRouteConfigOverride` instances.
+ * @returns the merged configs of overrides found.
+ */
+function loadRouteConfigOverride<
+  T extends Record<PropertyKey, unknown> = Record<PropertyKey, unknown>
+>(directory: string) {
   for (const configFile of configFiles) {
     const configPath = path.join(directory, configFile);
 
@@ -254,9 +255,9 @@ function loadRouteConfig(directory: string) {
         ApiRouteConfigOverride.isApiRouteConfigOverride
       );
 
-      const configs = overrides.map((override) => override.config);
+      const configs = overrides.map((override) => override.config) as [T];
 
-      const mergedRouteConfig = defu(...(configs as [DeepPartial<ApiRouteConfig>]));
+      const mergedRouteConfig = defu(...configs);
 
       return mergedRouteConfig;
     }
@@ -266,10 +267,29 @@ function loadRouteConfig(directory: string) {
 }
 
 /**
- * This can be declared at any route project to override the default API route config.
+ * An override class can be extended and exported from a route's config file to inject construct props.
+ *
+ * @example
+ *
+ * ```ts
+ *
+ * export class MyApiRouteConfigOverride extends ApiRouteConfigOverride {
+ *   constructor(scope: Construct, id: string) {
+ *     super(scope, id, {
+ *       runtime: { ...  },
+ *       constructs: { ... }
+ *     })
+ *   }
+ * }
+ *
+ * ```
+ *
+ * {@link loadRouteConfigOverride} will find relevant exported classes and initialize them in the {@link ApiRoute} scope.
  */
 export class ApiRouteConfigOverride extends Construct {
   public static readonly type = "api-route-config-override" as const;
+
+  public readonly type = ApiRouteConfigOverride.type;
 
   public static isApiRouteConfigOverride(x: unknown): x is ApiRouteConfigOverride {
     return Construct.isConstruct(x) && "type" in x && x["type"] === ApiRouteConfigOverride.type;

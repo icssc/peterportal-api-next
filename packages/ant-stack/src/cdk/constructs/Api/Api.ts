@@ -1,15 +1,17 @@
 import path from "node:path";
-import url from "node:url";
 
 import { Stack } from "aws-cdk-lib";
 import { RestApi, type RestApiProps } from "aws-cdk-lib/aws-apigateway";
 import { Construct } from "constructs";
 
-import { initConfig } from "../../../config.js";
+import { synthesizeConfig } from "../../../config.js";
 import { findAllProjects, getWorkspaceRoot } from "../../../utils/directories.js";
 
 import { ApiRoute, ApiRouteConfig } from "./ApiRoute.js";
 
+/**
+ * Configure the API Gateway REST API and set default options for API routes under it.
+ */
 export type ApiConfig = AnyApiConfig & DefaultApiRouteConfig;
 
 /**
@@ -17,17 +19,21 @@ export type ApiConfig = AnyApiConfig & DefaultApiRouteConfig;
  */
 export type AnyApiConfig = DirectoryRoutedApi | ExplictlyRoutedApi;
 
+/**
+ * API routes are identified as individual projects, i.e. with a `package.json` file.
+ */
 export type DirectoryRoutedApi = {
   /**
-   * Directory to recursively find API routes.
-   * API routes are identified as individual projects, i.e. with a `package.json` file.
+   * Directory to search for API routes. API routes will be registered relative from this.
    */
   directory: string;
 };
 
+/**
+ * Explicitly define paths to API routes.
+ */
 export type ExplictlyRoutedApi = {
   /**
-   * Like SST's version.
    * @link https://docs.sst.dev/apis#add-an-api
    */
   routes: Record<string, string>;
@@ -41,13 +47,13 @@ export interface DefaultApiRouteConfig extends Pick<ApiRouteConfig, "runtime" | 
 }
 
 /**
- * Additional constructs are accessible only at the root.
+ * Additional construct option overrides are accessible only at the root.
  */
 export interface RootApiConstructConfig {
   /**
-   * Override default API Gateway REST API props.
+   * Override {@link RestApiProps} passed to {@link RestApi}.
    */
-  restApiOptions?: (scope: Construct, id: string) => RestApiProps;
+  restApiProps?: (scope: Construct, id: string) => RestApiProps;
 }
 
 /**
@@ -77,11 +83,9 @@ export class Api extends Construct {
 
     this.routes = {};
 
-    this.api = new RestApi(this, `${id}-REST-API`, config.constructs?.restApiOptions?.(this, id));
+    this.api = new RestApi(this, `${id}-REST-API`, config.constructs?.restApiProps?.(this, id));
 
-    const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
-
-    const workspaceRoot = getWorkspaceRoot(__dirname);
+    const workspaceRoot = getWorkspaceRoot(process.cwd());
 
     if ("directory" in config) {
       const apiDirectory = path.join(workspaceRoot, config.directory);
@@ -94,14 +98,12 @@ export class Api extends Construct {
       apiRoutePaths.map((apiRoutePath) => {
         const route = path.relative(apiDirectory, apiRoutePath);
 
-        const apiRoute = new ApiRoute(this, `api-route-${route}`, {
+        this.routes[apiRoutePath] = new ApiRoute(this, `api-route-${route}`, {
           ...config,
           route,
           directory: apiRoutePath,
           api: this.api,
         });
-
-        this.routes[apiRoutePath] = apiRoute;
       });
     } else {
       /**
@@ -111,11 +113,8 @@ export class Api extends Construct {
   }
 }
 
-/**
- * 1) Find root config file and initialize.
- */
-export async function initApi() {
-  const app = await initConfig();
+export async function synthesizeApi() {
+  const app = await synthesizeConfig();
 
   const stacks = app.node.children.find(Stack.isStack);
 

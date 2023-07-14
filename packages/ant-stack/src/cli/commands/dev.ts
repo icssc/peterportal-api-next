@@ -7,7 +7,7 @@ import cors from "cors";
 import { build, type BuildOptions } from "esbuild";
 import express, { Router } from "express";
 
-import { initApi } from "../../cdk/constructs/Api/Api.js";
+import { synthesizeApi } from "../../cdk/constructs/Api/Api.js";
 import { createExpressHandler } from "../../lambda-core/internal/handler.js";
 import { getClosestProjectDirectory, getWorkspaceRoot } from "../../utils/directories.js";
 
@@ -43,7 +43,7 @@ function isStringArray(value: Array<unknown>): value is string[] {
  * Start a dev server.
  */
 export async function startDevServer() {
-  const api = await initApi();
+  const api = await synthesizeApi();
 
   if (!("directory" in api.config)) {
     throw new Error(`TODO: explicitly routed API is not supported yet.`);
