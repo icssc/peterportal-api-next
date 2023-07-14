@@ -4,8 +4,8 @@ import cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { defu } from "defu";
 import type { BuildOptions } from "esbuild";
-import { loadConfigFrom } from "packages/ant-stack/src/config.js";
 
+import { loadConfigFrom } from "../../../config.js";
 import { isHttpMethod, warmerRequestBody } from "../../../lambda-core/constants.js";
 import { DeepPartial } from "../../../utils/deep-partial.js";
 import { getNamedExports } from "../../../utils/static-analysis.js";
@@ -158,12 +158,17 @@ export class ApiRoute extends Construct {
   directory: string;
 
   /**
-   * Needs to be defined, so extracted from {@link BuildOptions}.
+   * Full path to directory for generated files.
    */
   outDirectory: string;
 
   /**
-   * Needs to be defined, so extracted from {@link ApiRouteRuntimeConfig}.
+   * Path to main handler. Relative from {@link directory}
+   */
+  entryFile: string;
+
+  /**
+   * Paths to generated files. Relative from {@link outDirectory}
    */
   outFiles: {
     index: string;
@@ -176,7 +181,7 @@ export class ApiRoute extends Construct {
    */
   functions: Record<string, FunctionResources>;
 
-  constructor(scope: Construct, id: string, config: ApiRouteConfig) {
+  constructor(scope: Construct, readonly id: string, config: ApiRouteConfig) {
     super(scope, id);
 
     /**
@@ -212,33 +217,31 @@ export class ApiRoute extends Construct {
 
     this.outDirectory = path.join(config.directory, config.runtime.esbuild?.outdir ?? "dist");
 
-    this.outFiles = {
-      /**
-       * TODO: How to support {@link configWithDefaults.runtime.esbuild.entryPoints}?
-       */
-      index: path.join(this.outDirectory, "index.js"),
-
-      node: path.join(
-        this.outDirectory,
-        config.runtime.nodeRuntimeFile ?? "lambda-node-runtime.js"
-      ),
-
-      bun: path.join(this.outDirectory, config.runtime.bunRuntimeFile ?? "lambda-bun-runtime.js"),
-    };
+    (this.entryFile = path.join(config.directory, "src", "index.js")),
+      (this.outFiles = {
+        /**
+         * TODO: How to support {@link configWithDefaults.runtime.esbuild.entryPoints}?
+         */
+        index: "index.js",
+        node: config.runtime.nodeRuntimeFile ?? "lambda-node-runtime.js",
+        bun: config.runtime.bunRuntimeFile ?? "lambda-bun-runtime.js",
+      });
 
     this.functions = {};
+  }
 
-    const resource = config.route.split("/").reduce((resource, route) => {
+  async init() {
+    const resource = this.config.route.split("/").reduce((resource, route) => {
       return resource.getResource(route) ?? resource.addResource(route);
-    }, config.api.root);
+    }, this.config.api.root);
 
     getNamedExports(this.outFiles.node)
       .filter(isHttpMethod)
       .forEach((httpMethod) => {
-        const functionName = `${id}-${httpMethod}`.replace(/\//g, "-");
+        const functionName = `${this.id}-${httpMethod}`.replace(/\//g, "-");
 
         const functionProps: cdk.aws_lambda.FunctionProps = defu(
-          this.config.constructs.functionProps?.(this, id),
+          this.config.constructs.functionProps?.(this, this.id),
           {
             functionName,
             runtime: cdk.aws_lambda.Runtime.NODEJS_18_X,
@@ -255,7 +258,7 @@ export class ApiRoute extends Construct {
 
         const handler = new cdk.aws_lambda.Function(
           this,
-          `${id}-${functionProps.functionName}-handler`,
+          `${this.id}-${functionProps.functionName}-handler`,
           functionProps
         );
 
@@ -263,11 +266,11 @@ export class ApiRoute extends Construct {
 
         const lambdaIntegrationOptions = this.config.constructs.lambdaIntegrationOptions?.(
           this,
-          id,
+          this.id,
           methodAndRoute
         );
 
-        const methodOptions = this.config.constructs.methodOptions?.(this, id, methodAndRoute);
+        const methodOptions = this.config.constructs.methodOptions?.(this, this.id, methodAndRoute);
 
         const lambdaIntegration = new cdk.aws_apigateway.LambdaIntegration(
           handler,
@@ -291,7 +294,7 @@ export class ApiRoute extends Construct {
 
           const warmingRule = new cdk.aws_events.Rule(
             this,
-            `${id}-${functionProps.functionName}-warming-rule`,
+            `${this.id}-${functionProps.functionName}-warming-rule`,
             {
               schedule: cdk.aws_events.Schedule.rate(cdk.Duration.minutes(5)),
             }
@@ -344,7 +347,12 @@ export class ApiRouteConfigOverride extends Construct {
   public static isApiRouteConfigOverrideConstructor(
     x: unknown
   ): x is typeof ApiRouteConfigOverride {
-    return Construct.isConstruct(x) && "type" in x && x["type"] === ApiRouteConfigOverride.type;
+    return (
+      x != null &&
+      typeof x === "function" &&
+      "type" in x &&
+      x["type"] === ApiRouteConfigOverride.type
+    );
   }
 
   constructor(scope: Construct, id: string, public config: DeepPartial<ApiRouteConfig> = {}) {

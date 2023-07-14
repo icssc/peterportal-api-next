@@ -16,7 +16,7 @@ const prismaSchema = "./node_modules/@libs/db/prisma/schema.prisma";
 
 const outDir = resolve(cwd, "./dist");
 
-export default class Override extends ApiRouteConfigOverride {
+export class Override extends ApiRouteConfigOverride {
   constructor(scope: any, id: string) {
     super(scope, id, {
       runtime: {

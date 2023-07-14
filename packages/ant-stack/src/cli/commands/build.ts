@@ -3,7 +3,7 @@ import path from "node:path";
 
 import { build } from "esbuild";
 
-import { getApiConfig, ApiConfig } from "../../cdk/constructs/Api";
+import { getApiRoute, ApiRoute } from "../../cdk/constructs/Api";
 import { isHttpMethod } from "../../lambda-core/constants.js";
 import {
   createBunHandler,
@@ -17,40 +17,49 @@ import { getNamedExports } from "../../utils/static-analysis.js";
  * TODO: add the ability to specify options.
  */
 export async function buildInternalHandler() {
-  const apiConfig = await getApiConfig();
+  const apiRoute = await getApiRoute();
 
-  const buildOutput = await build(apiConfig.runtime.esbuild);
+  apiRoute.config.runtime.esbuild ??= {};
+  apiRoute.config.runtime.esbuild.outdir ??= apiRoute.outDirectory;
 
-  apiConfig.runtime.esbuild;
+  const outFile = path.join(apiRoute.outDirectory, apiRoute.outFiles.index);
 
-  if (apiConfig.runtime.esbuild.logLevel === "info") {
+  apiRoute.config.runtime.esbuild.entryPoints ??= {
+    [outFile.replace(/.js$/, "")]: apiRoute.entryFile,
+  };
+
+  const buildOutput = await build(apiRoute.config.runtime.esbuild);
+
+  if (apiRoute.config.runtime.esbuild?.logLevel === "info") {
     console.log(buildOutput);
   }
 
-  await compileRuntimes(apiConfig);
+  await compileRuntimes(apiRoute);
 }
 
 /**
  * Lambda-Core is runtime-agnostic.
  * Do some additional steps to enable compatibility for specific runtimes. e.g. AWS Lambda Node
  */
-async function compileRuntimes(config: ApiConfig) {
-  const { runtime } = config;
+export async function compileRuntimes(apiRoute: ApiRoute) {
+  const { runtime } = apiRoute.config;
 
-  const entryFile = path.resolve(
-    runtime.esbuild.outdir ?? ".",
-    runtime.esbuild.outfile ?? "index.js"
-  );
+  const builtEntryFile = path.join(apiRoute.outDirectory, apiRoute.outFiles.index);
+  const builtNodeFile = path.join(apiRoute.outDirectory, apiRoute.outFiles.node);
+  const builtBunFile = path.join(apiRoute.outDirectory, apiRoute.outFiles.bun);
+
+  const temporaryNodeFile = builtNodeFile.replace(/.js$/, ".temp.js");
+  const temporaryBunFile = builtBunFile.replace(/.js$/, ".temp.js");
 
   /**
    * The (entry) handler's exported HTTP methods.
    */
-  const httpMethods = getNamedExports(entryFile).filter(isHttpMethod);
+  const httpMethods = getNamedExports(builtEntryFile).filter(isHttpMethod);
 
   /**
    * The runtime-specific file will import all of its handlers from the entry (handler) file.
    */
-  const importHandlers = `import * as ${runtime.entryHandlersName} from '${entryFile}'`;
+  const importHandlers = `import * as ${runtime.entryHandlersName} from '${builtEntryFile}'`;
 
   // All the handler's exports are re-exported, wrapped in an adapter.
 
@@ -78,9 +87,6 @@ async function compileRuntimes(config: ApiConfig) {
     bunExports.join("\n"),
   ];
 
-  const temporaryNodeFile = path.resolve(runtime.esbuild.outdir ?? ".", runtime.nodeRuntimeFile);
-  const temporaryBunFile = path.resolve(runtime.esbuild.outdir ?? ".", runtime.bunRuntimeFile);
-
   // Write the temporary .js files to disk.
 
   fs.writeFileSync(temporaryNodeFile, temporaryNodeScript.join("\n"));
@@ -101,10 +107,10 @@ async function compileRuntimes(config: ApiConfig) {
    */
   await build({
     entryPoints: {
-      [temporaryNodeFile.replace(/\.js$/, "")]: temporaryNodeFile,
-      [temporaryBunFile.replace(/\.js$/, "")]: temporaryBunFile,
+      [builtNodeFile.replace(/\.js$/, "")]: temporaryNodeFile,
+      [builtBunFile.replace(/\.js$/, "")]: temporaryBunFile,
     },
-    outdir: config.esbuild.outdir,
+    outdir: apiRoute.outDirectory,
     platform: "node",
     format: "esm",
     bundle: true,

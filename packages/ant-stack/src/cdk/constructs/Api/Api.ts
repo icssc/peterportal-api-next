@@ -3,7 +3,6 @@ import path from "node:path";
 import { Stack } from "aws-cdk-lib";
 import { RestApi, type RestApiProps } from "aws-cdk-lib/aws-apigateway";
 import { Construct } from "constructs";
-import { defu } from "defu";
 
 import { synthesizeConfig } from "../../../config.js";
 import { findAllProjects, getWorkspaceRoot } from "../../../utils/directories.js";
@@ -61,7 +60,7 @@ export interface RootApiConstructConfig {
  * Creates an API Gateway REST API with routes using Lambda integrations for specified routes.
  */
 export class Api extends Construct {
-  public static readonly type = "api-route-config-override" as const;
+  public static readonly type = "api" as const;
 
   public readonly type = Api.type;
 
@@ -101,7 +100,6 @@ export class Api extends Construct {
 
         this.routes[apiRoutePath] = new ApiRoute(this, `api-route-${route}`, {
           ...config,
-          runtime: {},
           route,
           directory: apiRoutePath,
           api: this.api,
@@ -136,14 +134,12 @@ export async function synthesizeApi() {
 /**
  * Get the API config with the current route at the highest priority (if it exists).
  */
-export async function getApiConfig(directory: string = process.cwd()) {
+export async function getApiRoute(directory: string = process.cwd()) {
   const api = await synthesizeApi();
 
   if (!api.routes[directory]) {
-    return api.config;
+    throw new Error(`No API route found for directory: ${directory}`);
   }
 
-  const mergedConfig = defu(api.routes[directory].config, api.config);
-
-  return mergedConfig;
+  return api.routes[directory];
 }

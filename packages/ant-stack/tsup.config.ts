@@ -1,12 +1,17 @@
+import path from "node:path";
 import { defineConfig } from "tsup";
 
-/**
- * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1491470829
- */
-const js = `\
-import topLevelModule from 'module';
-const require = topLevelModule.createRequire(import.meta.url);
-`;
+import { getAllFilesOrIndex } from "./src/utils/files.js";
+
+const files = getAllFilesOrIndex("./src/cdk/constructs");
+
+const constructs = files.reduce((currentConstructs, file) => {
+  const name = path.basename(file).startsWith("index")
+    ? path.basename(path.dirname(file))
+    : path.basename(file);
+  currentConstructs[`constructs/${name}`] = file;
+  return currentConstructs;
+}, {} as Record<string, string>);
 
 export default defineConfig({
   entry: {
@@ -14,19 +19,13 @@ export default defineConfig({
     config: "src/config.ts",
     "lambda-core": "src/lambda-core/index.ts",
     utils: "src/utils/index.ts",
-    "constructs/Api": "src/cdk/constructs/Api/index.ts",
+    ...constructs,
   },
   bundle: true,
-  format: "esm",
+  format: ["esm"],
   sourcemap: true,
   dts: true,
   splitting: false,
-  banner: { js },
   clean: true,
   shims: true,
-
-  /**
-   * Bundle __all__ dependencies into the output files to prepare for Lambda deployment.
-   */
-  noExternal: [/^((?!esbuild).)*$/],
 });
