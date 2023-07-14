@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { build } from "esbuild";
 
+import packageJson from "../../../package.json";
 import { getApiRoute, ApiRoute } from "../../cdk/constructs/Api";
 import { isHttpMethod } from "../../lambda-core/constants.js";
 import {
@@ -76,13 +77,13 @@ export async function compileRuntimes(apiRoute: ApiRoute) {
   // The lines of code in the __unbundled__ temporary .js file.
 
   const temporaryNodeScript = [
-    `import { ${createNodeHandler.name} } from 'ant-stack'`,
+    `import { ${createNodeHandler.name} } from '${packageJson.name}'`,
     importHandlers,
     nodeExports.join("\n"),
   ];
 
   const temporaryBunScript = [
-    `import { ${createBunHandler.name} } from 'ant-stack'`,
+    `import { ${createBunHandler.name} } from '${packageJson.name}'`,
     importHandlers,
     bunExports.join("\n"),
   ];
