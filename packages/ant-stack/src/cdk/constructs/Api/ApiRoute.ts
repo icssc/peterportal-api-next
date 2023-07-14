@@ -130,11 +130,11 @@ interface FunctionResources {
 
   function: cdk.aws_lambda.Function;
 
-  lambdaIntegrationOptions: cdk.aws_apigateway.LambdaIntegrationOptions;
+  lambdaIntegrationOptions?: cdk.aws_apigateway.LambdaIntegrationOptions;
 
-  lambdaIntegration: cdk.aws_apigateway.LambdaIntegration;
+  lambdaIntegration?: cdk.aws_apigateway.LambdaIntegration;
 
-  methodOptions: cdk.aws_apigateway.MethodOptions;
+  methodOptions?: cdk.aws_apigateway.MethodOptions;
 
   warmingTarget?: cdk.aws_events_targets.LambdaFunction;
 
@@ -142,6 +142,16 @@ interface FunctionResources {
 }
 
 export class ApiRoute extends Construct {
+  /**
+   * Override configs for this route.
+   */
+  overrides: ApiRouteConfigOverride[];
+
+  /**
+   * Merged config, including overrides.
+   */
+  config: ApiRouteConfig;
+
   /**
    * Path to the API route on disk.
    */
@@ -166,47 +176,61 @@ export class ApiRoute extends Construct {
    */
   functions: Record<string, FunctionResources>;
 
-  config: ApiRouteConfig;
-
   constructor(scope: Construct, id: string, config: ApiRouteConfig) {
     super(scope, id);
 
-    const configWithDefaults = defu(config);
+    /**
+     * Get all the exports from any config file in this route's directory.
+     */
+    const routeConfigExports = loadConfigFrom(config.directory);
 
-    this.config = configWithDefaults;
+    /**
+     * Find exports that are child classes of {@link ApiRouteConfigOverride}, and initialize them.
+     */
+    this.overrides = Object.values(routeConfigExports)
+      .filter(ApiRouteConfigOverride.isApiRouteConfigOverrideConstructor)
+      .map((overrideConstructor, index) => {
+        /**
+         * The exported class should __extend__ the original override class,
+         * and then invoke its super constructor with its desired config.
+         *
+         * The exported child class should only require the first two arguments to initialize itself.
+         */
+        return new overrideConstructor(this, `${id}-override-${index}`);
+      });
 
-    this.directory = configWithDefaults.directory;
+    const overrideConfigs = this.overrides.map((override) => override.config) as [
+      DeepPartial<ApiRouteConfig>
+    ];
 
-    this.functions = {};
+    /**
+     * Each route can override default construct properties with a higher priority.
+     */
+    this.config = defu(...overrideConfigs, config);
 
-    this.outDirectory = path.join(
-      configWithDefaults.directory,
-      configWithDefaults.runtime.esbuild?.outdir ?? "dist"
-    );
+    this.directory = config.directory;
+
+    this.outDirectory = path.join(config.directory, config.runtime.esbuild?.outdir ?? "dist");
 
     this.outFiles = {
       /**
        * TODO: How to support {@link configWithDefaults.runtime.esbuild.entryPoints}?
        */
       index: path.join(this.outDirectory, "index.js"),
+
       node: path.join(
         this.outDirectory,
-        configWithDefaults.runtime.nodeRuntimeFile ?? "lambda-node-runtime.js"
+        config.runtime.nodeRuntimeFile ?? "lambda-node-runtime.js"
       ),
-      bun: path.join(
-        this.outDirectory,
-        configWithDefaults.runtime.bunRuntimeFile ?? "lambda-bun-runtime.js"
-      ),
+
+      bun: path.join(this.outDirectory, config.runtime.bunRuntimeFile ?? "lambda-bun-runtime.js"),
     };
 
-    const resource = configWithDefaults.route.split("/").reduce((resource, route) => {
+    this.functions = {};
+
+    const resource = config.route.split("/").reduce((resource, route) => {
       return resource.getResource(route) ?? resource.addResource(route);
     }, config.api.root);
-
-    /**
-     * Each route can override default construct properties with a higher priority.
-     */
-    const routeConfig = defu(loadConfigFrom(configWithDefaults.directory), configWithDefaults);
 
     getNamedExports(this.outFiles.node)
       .filter(isHttpMethod)
@@ -214,16 +238,16 @@ export class ApiRoute extends Construct {
         const functionName = `${id}-${httpMethod}`.replace(/\//g, "-");
 
         const functionProps: cdk.aws_lambda.FunctionProps = defu(
-          routeConfig.constructs.functionProps?.(this, id),
+          this.config.constructs.functionProps?.(this, id),
           {
             functionName,
             runtime: cdk.aws_lambda.Runtime.NODEJS_18_X,
-            code: cdk.aws_lambda.Code.fromAsset(routeConfig.directory, {
+            code: cdk.aws_lambda.Code.fromAsset(this.config.directory, {
               exclude: ["node_modules"],
             }),
             handler: this.outFiles.node.replace(/.js$/, httpMethod),
             architecture: cdk.aws_lambda.Architecture.ARM_64,
-            environment: routeConfig.runtime.environment,
+            environment: { ...this.config.runtime.environment },
             timeout: cdk.Duration.seconds(15),
             memorySize: 512,
           }
@@ -235,15 +259,15 @@ export class ApiRoute extends Construct {
           functionProps
         );
 
-        const methodAndRoute = `${httpMethod} ${routeConfig.route}`;
+        const methodAndRoute = `${httpMethod} ${this.config.route}`;
 
-        const lambdaIntegrationOptions = routeConfig.constructs.lambdaIntegrationOptions?.(
+        const lambdaIntegrationOptions = this.config.constructs.lambdaIntegrationOptions?.(
           this,
           id,
           methodAndRoute
         );
 
-        const methodOptions = routeConfig.constructs.methodOptions?.(this, id, methodAndRoute);
+        const methodOptions = this.config.constructs.methodOptions?.(this, id, methodAndRoute);
 
         const lambdaIntegration = new cdk.aws_apigateway.LambdaIntegration(
           handler,
@@ -260,7 +284,7 @@ export class ApiRoute extends Construct {
           methodOptions,
         };
 
-        if (routeConfig.constructs.includeWarmers) {
+        if (this.config.constructs.includeWarmers) {
           const warmingTarget = new cdk.aws_events_targets.LambdaFunction(handler, {
             event: cdk.aws_events.RuleTargetInput.fromObject({ body: warmerRequestBody }),
           });
@@ -307,11 +331,23 @@ export class ApiRouteConfigOverride extends Construct {
 
   public readonly type = ApiRouteConfigOverride.type;
 
+  /**
+   * Used on initialized constructs, i.e. part of a node's children, to determine if they are of this type.
+   */
   public static isApiRouteConfigOverride(x: unknown): x is ApiRouteConfigOverride {
     return Construct.isConstruct(x) && "type" in x && x["type"] === ApiRouteConfigOverride.type;
   }
 
-  constructor(scope: Construct, id: string, public config: DeepPartial<ApiRouteConfig>) {
+  /**
+   * Used on exported classes, i.e. from config files, to determine if they are of this type.
+   */
+  public static isApiRouteConfigOverrideConstructor(
+    x: unknown
+  ): x is typeof ApiRouteConfigOverride {
+    return Construct.isConstruct(x) && "type" in x && x["type"] === ApiRouteConfigOverride.type;
+  }
+
+  constructor(scope: Construct, id: string, public config: DeepPartial<ApiRouteConfig> = {}) {
     super(scope, id);
   }
 }

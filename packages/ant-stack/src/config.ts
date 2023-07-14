@@ -50,13 +50,13 @@ export async function synthesizeConfig() {
  *
  * @returns the result of the config file after execution, i.e. its exports.
  */
-export function loadConfigFrom(directory: string) {
+export function loadConfigFrom(directory: string): Record<string, unknown> {
   const foundConfileFiles = configFiles
     .map((configFile) => path.join(directory, configFile))
     .filter((configPath) => fs.existsSync(configPath));
 
   if (!foundConfileFiles.length) {
-    return;
+    return {};
   }
 
   /**
