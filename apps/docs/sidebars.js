@@ -26,7 +26,22 @@ const sidebars = {
       ],
     },
   ],
-  contributorsGuideSidebar: ["contributors-guide/getting-started"],
+  contributorsGuideSidebar: [
+    "contributors-guide/getting-started",
+    {
+      type: "category",
+      label: "Application Architecture",
+      link: { type: "doc", id: "contributors-guide/application-architecture/index" },
+      items: [
+        "contributors-guide/application-architecture/documentation",
+        {
+          type: "category",
+          label: "Services",
+          items: ["contributors-guide/application-architecture/services/websoc-proxy-service"],
+        },
+      ],
+    },
+  ],
 };
 
 module.exports = sidebars;
