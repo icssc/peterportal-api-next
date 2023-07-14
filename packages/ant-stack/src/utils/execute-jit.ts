@@ -10,6 +10,9 @@ const defaultJitiOptions: JITIOptions = {
   requireCache: false,
 };
 
+/**
+ * Synchronously executes a JS or TS file Just-In-Time.
+ */
 export function executeJit(
   file: string,
   options: JITIOptions = defaultJitiOptions,

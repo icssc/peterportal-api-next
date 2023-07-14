@@ -24,4 +24,9 @@ export default defineConfig({
   banner: { js },
   clean: true,
   shims: true,
+
+  /**
+   * Bundle __all__ dependencies into the output files to prepare for Lambda deployment.
+   */
+  noExternal: [/^((?!esbuild).)*$/],
 });

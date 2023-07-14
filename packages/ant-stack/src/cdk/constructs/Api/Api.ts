@@ -3,6 +3,7 @@ import path from "node:path";
 import { Stack } from "aws-cdk-lib";
 import { RestApi, type RestApiProps } from "aws-cdk-lib/aws-apigateway";
 import { Construct } from "constructs";
+import { defu } from "defu";
 
 import { synthesizeConfig } from "../../../config.js";
 import { findAllProjects, getWorkspaceRoot } from "../../../utils/directories.js";
@@ -100,6 +101,7 @@ export class Api extends Construct {
 
         this.routes[apiRoutePath] = new ApiRoute(this, `api-route-${route}`, {
           ...config,
+          runtime: {},
           route,
           directory: apiRoutePath,
           api: this.api,
@@ -129,4 +131,19 @@ export async function synthesizeApi() {
   }
 
   return api;
+}
+
+/**
+ * Get the API config with the current route at the highest priority (if it exists).
+ */
+export async function getApiConfig(directory: string = process.cwd()) {
+  const api = await synthesizeApi();
+
+  if (!api.routes[directory]) {
+    return api.config;
+  }
+
+  const mergedConfig = defu(api.routes[directory].config, api.config);
+
+  return mergedConfig;
 }

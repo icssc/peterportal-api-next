@@ -3,6 +3,7 @@ import path from "node:path";
 
 import { build } from "esbuild";
 
+import { getApiConfig, ApiConfig } from "../../cdk/constructs/Api";
 import { isHttpMethod } from "../../lambda-core/constants.js";
 import {
   createBunHandler,
@@ -16,25 +17,30 @@ import { getNamedExports } from "../../utils/static-analysis.js";
  * TODO: add the ability to specify options.
  */
 export async function buildInternalHandler() {
-  const config: any = {};
+  const apiConfig = await getApiConfig();
 
-  const buildOutput = await build(config.esbuild);
+  const buildOutput = await build(apiConfig.runtime.esbuild);
 
-  if (config.esbuild.logLevel === "info") {
+  apiConfig.runtime.esbuild;
+
+  if (apiConfig.runtime.esbuild.logLevel === "info") {
     console.log(buildOutput);
   }
 
-  await compileRuntimes(config);
+  await compileRuntimes(apiConfig);
 }
 
 /**
  * Lambda-Core is runtime-agnostic.
  * Do some additional steps to enable compatibility for specific runtimes. e.g. AWS Lambda Node
  */
-async function compileRuntimes(config: any) {
+async function compileRuntimes(config: ApiConfig) {
   const { runtime } = config;
 
-  const entryFile = path.resolve(config.esbuild.outdir ?? ".", config.runtime.entryFile);
+  const entryFile = path.resolve(
+    runtime.esbuild.outdir ?? ".",
+    runtime.esbuild.outfile ?? "index.js"
+  );
 
   /**
    * The (entry) handler's exported HTTP methods.
@@ -72,8 +78,8 @@ async function compileRuntimes(config: any) {
     bunExports.join("\n"),
   ];
 
-  const temporaryNodeFile = path.resolve(config.esbuild.outdir ?? ".", runtime.nodeRuntimeFile);
-  const temporaryBunFile = path.resolve(config.esbuild.outdir ?? ".", runtime.bunRuntimeFile);
+  const temporaryNodeFile = path.resolve(runtime.esbuild.outdir ?? ".", runtime.nodeRuntimeFile);
+  const temporaryBunFile = path.resolve(runtime.esbuild.outdir ?? ".", runtime.bunRuntimeFile);
 
   // Write the temporary .js files to disk.
 

@@ -1,22 +1,11 @@
-import fs from "node:fs";
 import path from "node:path";
 
-import { Duration } from "aws-cdk-lib";
-import {
-  IRestApi,
-  LambdaIntegration,
-  LambdaIntegrationOptions,
-  MethodOptions,
-} from "aws-cdk-lib/aws-apigateway";
-import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
-import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
-import { Function, Architecture, Code, Runtime, FunctionProps } from "aws-cdk-lib/aws-lambda";
+import cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
 import { defu } from "defu";
 import type { BuildOptions } from "esbuild";
-import createJITI from "jiti";
+import { loadConfigFrom } from "packages/ant-stack/src/config.js";
 
-import { configFiles } from "../../../config.js";
 import { isHttpMethod, warmerRequestBody } from "../../../lambda-core/constants.js";
 import { DeepPartial } from "../../../utils/deep-partial.js";
 import { getNamedExports } from "../../../utils/static-analysis.js";
@@ -42,7 +31,7 @@ export type ApiRouteConfig = {
   /**
    * API Gateway REST API.
    */
-  api: IRestApi;
+  api: cdk.aws_apigateway.IRestApi;
 
   /**
    * Runtime-specific options.
@@ -62,7 +51,7 @@ export interface ApiRouteRuntimeConfig {
   /**
    * esbuild options.
    */
-  esbuild: BuildOptions;
+  esbuild?: BuildOptions;
 
   /**
    * What to name the imported handlers from the built entry file.
@@ -110,32 +99,6 @@ export interface ApiRouteRuntimeConfig {
 }
 
 /**
- * "satisfies" indicates that the object meets the requirements of the type,
- * but without explicitly typing the object as the type.
- *
- * If a property is optional in the type, but defined in this object;
- * the property in the object will be typed as fully defined.
- *
- * @link https://www.typescriptlang.org/docs/handbook/release-notes/typescript-4-9.html
- */
-const defaultApiRouteConfig = {
-  runtime: {
-    esbuild: {
-      outdir: "dist",
-      outfile: "index.js",
-      outExtension: {
-        ".js": ".mjs",
-      },
-    },
-    entryHandlersName: "InternalHandlers",
-    nodeRuntimeFile: "lambda-node-runtime.mjs",
-    bunRuntimeFile: "lambda-bun-runtime.mjs",
-    environment: {},
-  },
-  constructs: {},
-} satisfies Omit<ApiRouteConfig, "route" | "directory" | "api">;
-
-/**
  * Override props provided to the constructs.
  */
 export interface ApiRouteConstructProps {
@@ -143,11 +106,15 @@ export interface ApiRouteConstructProps {
     scope: Construct,
     id: string,
     methodAndRoute: string
-  ) => LambdaIntegrationOptions;
+  ) => cdk.aws_apigateway.LambdaIntegrationOptions;
 
-  functionProps?: (scope: Construct, id: string) => FunctionProps;
+  functionProps?: (scope: Construct, id: string) => cdk.aws_lambda.FunctionProps;
 
-  methodOptions?: (scope: Construct, id: string, methodAndRoute: string) => MethodOptions;
+  methodOptions?: (
+    scope: Construct,
+    id: string,
+    methodAndRoute: string
+  ) => cdk.aws_apigateway.MethodOptions;
 
   /**
    * Not an override; whether to also create a warming rule.
@@ -155,47 +122,114 @@ export interface ApiRouteConstructProps {
   includeWarmers?: boolean;
 }
 
+/**
+ * The resources provisioned for a single HTTP method handler.
+ */
+interface FunctionResources {
+  functionProps: cdk.aws_lambda.FunctionProps;
+
+  function: cdk.aws_lambda.Function;
+
+  lambdaIntegrationOptions: cdk.aws_apigateway.LambdaIntegrationOptions;
+
+  lambdaIntegration: cdk.aws_apigateway.LambdaIntegration;
+
+  methodOptions: cdk.aws_apigateway.MethodOptions;
+
+  warmingTarget?: cdk.aws_events_targets.LambdaFunction;
+
+  warmingRule?: cdk.aws_events.Rule;
+}
+
 export class ApiRoute extends Construct {
-  constructor(scope: Construct, id: string, public config: ApiRouteConfig) {
+  /**
+   * Path to the API route on disk.
+   */
+  directory: string;
+
+  /**
+   * Needs to be defined, so extracted from {@link BuildOptions}.
+   */
+  outDirectory: string;
+
+  /**
+   * Needs to be defined, so extracted from {@link ApiRouteRuntimeConfig}.
+   */
+  outFiles: {
+    index: string;
+    node: string;
+    bun: string;
+  };
+
+  /**
+   * Methods mapped to the Lambda Functions provisioned.
+   */
+  functions: Record<string, FunctionResources>;
+
+  config: ApiRouteConfig;
+
+  constructor(scope: Construct, id: string, config: ApiRouteConfig) {
     super(scope, id);
 
-    const configWithDefaults = defu(config, defaultApiRouteConfig);
+    const configWithDefaults = defu(config);
+
+    this.config = configWithDefaults;
+
+    this.directory = configWithDefaults.directory;
+
+    this.functions = {};
+
+    this.outDirectory = path.join(
+      configWithDefaults.directory,
+      configWithDefaults.runtime.esbuild?.outdir ?? "dist"
+    );
+
+    this.outFiles = {
+      /**
+       * TODO: How to support {@link configWithDefaults.runtime.esbuild.entryPoints}?
+       */
+      index: path.join(this.outDirectory, "index.js"),
+      node: path.join(
+        this.outDirectory,
+        configWithDefaults.runtime.nodeRuntimeFile ?? "lambda-node-runtime.js"
+      ),
+      bun: path.join(
+        this.outDirectory,
+        configWithDefaults.runtime.bunRuntimeFile ?? "lambda-bun-runtime.js"
+      ),
+    };
 
     const resource = configWithDefaults.route.split("/").reduce((resource, route) => {
       return resource.getResource(route) ?? resource.addResource(route);
     }, config.api.root);
 
-    const builtNodeHandler = path.join(
-      configWithDefaults.directory,
-      configWithDefaults.runtime.esbuild.outdir,
-      configWithDefaults.runtime.nodeRuntimeFile
-    );
+    /**
+     * Each route can override default construct properties with a higher priority.
+     */
+    const routeConfig = defu(loadConfigFrom(configWithDefaults.directory), configWithDefaults);
 
-    getNamedExports(builtNodeHandler)
+    getNamedExports(this.outFiles.node)
       .filter(isHttpMethod)
       .forEach((httpMethod) => {
-        /**
-         * Each route can override default construct properties with a higher priority.
-         */
-        const routeConfig = defu(loadRouteConfigOverride(config.directory), configWithDefaults);
-
         const functionName = `${id}-${httpMethod}`.replace(/\//g, "-");
 
-        const functionProps: FunctionProps = defu(
+        const functionProps: cdk.aws_lambda.FunctionProps = defu(
           routeConfig.constructs.functionProps?.(this, id),
           {
             functionName,
-            runtime: Runtime.NODEJS_18_X,
-            code: Code.fromAsset(routeConfig.directory, { exclude: ["node_modules"] }),
-            handler: builtNodeHandler.replace(/.js$/, httpMethod),
-            architecture: Architecture.ARM_64,
+            runtime: cdk.aws_lambda.Runtime.NODEJS_18_X,
+            code: cdk.aws_lambda.Code.fromAsset(routeConfig.directory, {
+              exclude: ["node_modules"],
+            }),
+            handler: this.outFiles.node.replace(/.js$/, httpMethod),
+            architecture: cdk.aws_lambda.Architecture.ARM_64,
             environment: routeConfig.runtime.environment,
-            timeout: Duration.seconds(15),
+            timeout: cdk.Duration.seconds(15),
             memorySize: 512,
           }
         );
 
-        const handler = new Function(
+        const handler = new cdk.aws_lambda.Function(
           this,
           `${id}-${functionProps.functionName}-handler`,
           functionProps
@@ -211,59 +245,41 @@ export class ApiRoute extends Construct {
 
         const methodOptions = routeConfig.constructs.methodOptions?.(this, id, methodAndRoute);
 
-        const lambdaIntegration = new LambdaIntegration(handler, lambdaIntegrationOptions);
+        const lambdaIntegration = new cdk.aws_apigateway.LambdaIntegration(
+          handler,
+          lambdaIntegrationOptions
+        );
 
         resource.addMethod(httpMethod, lambdaIntegration, methodOptions);
 
+        this.functions[httpMethod] = {
+          functionProps,
+          function: handler,
+          lambdaIntegration,
+          lambdaIntegrationOptions,
+          methodOptions,
+        };
+
         if (routeConfig.constructs.includeWarmers) {
-          const warmingTarget = new LambdaFunction(handler, {
-            event: RuleTargetInput.fromObject({ body: warmerRequestBody }),
+          const warmingTarget = new cdk.aws_events_targets.LambdaFunction(handler, {
+            event: cdk.aws_events.RuleTargetInput.fromObject({ body: warmerRequestBody }),
           });
 
-          const warmingRule = new Rule(this, `${id}-${functionProps.functionName}-warming-rule`, {
-            schedule: Schedule.rate(Duration.minutes(5)),
-          });
+          const warmingRule = new cdk.aws_events.Rule(
+            this,
+            `${id}-${functionProps.functionName}-warming-rule`,
+            {
+              schedule: cdk.aws_events.Schedule.rate(cdk.Duration.minutes(5)),
+            }
+          );
 
           warmingRule.addTarget(warmingTarget);
+
+          this.functions[httpMethod].warmingTarget = warmingTarget;
+          this.functions[httpMethod].warmingRule = warmingRule;
         }
       });
   }
-}
-
-/**
- * Executes a config file if it exists, then finds exported `ApiRouteConfigOverride` instances.
- * @returns the merged configs of overrides found.
- */
-function loadRouteConfigOverride<
-  T extends Record<PropertyKey, unknown> = Record<PropertyKey, unknown>
->(directory: string) {
-  for (const configFile of configFiles) {
-    const configPath = path.join(directory, configFile);
-
-    if (fs.existsSync(configPath)) {
-      const jiti = createJITI(path.resolve(), {
-        interopDefault: true,
-        cache: false,
-        v8cache: false,
-        esmResolve: true,
-        requireCache: false,
-      });
-
-      const exports = jiti(configPath);
-
-      const overrides = Object.values(exports).filter(
-        ApiRouteConfigOverride.isApiRouteConfigOverride
-      );
-
-      const configs = overrides.map((override) => override.config) as [T];
-
-      const mergedRouteConfig = defu(...configs);
-
-      return mergedRouteConfig;
-    }
-  }
-
-  return;
 }
 
 /**

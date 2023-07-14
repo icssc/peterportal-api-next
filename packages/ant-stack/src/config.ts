@@ -9,9 +9,9 @@ import { executeJit } from "./utils/execute-jit.js";
 export const configFiles = ["ant.config.ts", "ant.config.js"];
 
 /**
- * In CDK, "synth" is the process of executing a CDK script and generating a CloudFormation template.
+ * "cdk synth" executes a CDK script and generates a CloudFormation template.
  * We're also going to "synthesize" the root config in order to generate a construct tree.
- * The tree can then be searched for special constructs, which is used to determine build, deployment, etc. steps.
+ * The tree can then be searched for our special constructs, which is used to determine build, deployment, etc. steps.
  */
 export async function synthesizeConfig() {
   const workspaceRoot = getWorkspaceRoot(process.cwd());
@@ -39,16 +39,18 @@ export async function synthesizeConfig() {
   }
 
   throw new Error(
-    `No config file found at the workspace root. Please provide one of the following: ${configFiles.join(
+    `No config file found at the workspace root. Please create one of the following: ${configFiles.join(
       ", "
     )}`
   );
 }
 
 /**
- * Executes a config file if it exists, then returns the result.
+ * Synchronously JIT-executes a config file from the target directory if it exists.
+ *
+ * @returns the result of the config file after execution, i.e. its exports.
  */
-export function loadConfig(directory: string) {
+export function loadConfigFrom(directory: string) {
   const foundConfileFiles = configFiles
     .map((configFile) => path.join(directory, configFile))
     .filter((configPath) => fs.existsSync(configPath));
@@ -57,5 +59,8 @@ export function loadConfig(directory: string) {
     return;
   }
 
+  /**
+   * Only execute the first config file found.
+   */
   return executeJit(foundConfileFiles[0]);
 }
