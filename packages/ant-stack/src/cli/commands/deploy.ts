@@ -3,18 +3,10 @@ import path from "node:path";
 
 import core from "@actions/core";
 import github from "@actions/github";
-import {
-  CloudFormationClient,
-  DescribeStacksCommand,
-  waitUntilStackCreateComplete,
-  waitUntilStackDeleteComplete,
-  waitUntilStackUpdateComplete,
-  StackStatus,
-} from "@aws-sdk/client-cloudformation";
-import type { WaiterResult, WaiterConfiguration } from "@aws-sdk/util-waiter";
+import { CloudFormationClient } from "@aws-sdk/client-cloudformation";
 import consola from "consola";
 
-import { getClosestProjectDirectory } from "../../utils/directories.js";
+import { getClosestProjectDirectory, waitForStackIdle } from "../../utils";
 
 const projectDirectory = getClosestProjectDirectory(__dirname);
 
@@ -23,47 +15,6 @@ const appEntry = path.join(projectDirectory, "src", "cdk", "index.ts");
 const app = `tsx ${appEntry}`;
 
 const cdkCommand = ["cdk", "deploy", "--app", app, "*", "--require-approval", "never"];
-
-/**
- * Wait for existing CloudFormation stack to be in an idle state.
- */
-async function waitForStackIdle(
-  cloudFormationClient: CloudFormationClient,
-  stackName: string
-): Promise<WaiterResult | void> {
-  const stackCommand = new DescribeStacksCommand({ StackName: stackName });
-
-  try {
-    const stackInfo = await cloudFormationClient.send(stackCommand);
-
-    const stackStatus = stackInfo.Stacks?.[0]?.StackStatus;
-
-    if (!stackStatus) {
-      return;
-    }
-
-    const params: WaiterConfiguration<CloudFormationClient> = {
-      client: cloudFormationClient,
-      maxWaitTime: 1800,
-    };
-
-    switch (stackStatus) {
-      case StackStatus.CREATE_IN_PROGRESS:
-        return await waitUntilStackCreateComplete(params, { StackName: stackName });
-
-      case StackStatus.UPDATE_IN_PROGRESS:
-        return await waitUntilStackUpdateComplete(params, { StackName: stackName });
-
-      case StackStatus.DELETE_IN_PROGRESS:
-        return await waitUntilStackDeleteComplete(params, { StackName: stackName });
-
-      default:
-        return;
-    }
-  } catch {
-    return;
-  }
-}
 
 export async function deploy() {
   const cfnClient = new CloudFormationClient({});
