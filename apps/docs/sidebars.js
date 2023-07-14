@@ -36,6 +36,11 @@ const sidebars = {
         "contributors-guide/application-architecture/documentation",
         {
           type: "category",
+          label: "Tools",
+          items: ["contributors-guide/application-architecture/tools/websoc-scraper"],
+        },
+        {
+          type: "category",
           label: "Services",
           items: ["contributors-guide/application-architecture/services/websoc-proxy-service"],
         },
