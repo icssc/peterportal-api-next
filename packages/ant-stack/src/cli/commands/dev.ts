@@ -35,8 +35,8 @@ function isMethod(method: string): method is keyof typeof MethodsToExpress {
 /**
  * TODO: move to utils.
  */
-function isStringArray(value: Array<unknown>): value is string[] {
-  return value.every((v) => typeof v === "string");
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((v) => typeof v === "string");
 }
 
 /**
@@ -80,21 +80,21 @@ export async function startDevServer() {
     /**
      * {@link BuildOptions.entryPoints} can be way too many different things !!
      */
-    const entryPoints = Array.isArray(config.runtime.esbuild.entryPoints)
-      ? isStringArray(config.runtime.esbuild.entryPoints)
-        ? config.runtime.esbuild.entryPoints.map((entry) => `${endpoint}/${entry}`)
-        : config.runtime.esbuild.entryPoints.map((entry) => ({
+    const entryPoints = Array.isArray(config.runtime.esbuild?.entryPoints)
+      ? isStringArray(config.runtime.esbuild?.entryPoints)
+        ? config.runtime.esbuild?.entryPoints.map((entry) => `${endpoint}/${entry}`)
+        : config.runtime.esbuild?.entryPoints.map((entry) => ({
             in: `${endpoint}/${entry.in}`,
             out: `${endpoint}/${entry.out}`,
           }))
-      : typeof config.runtime.esbuild.entryPoints === "object"
-      ? Object.entries(config.runtime.esbuild.entryPoints).map(([key, value]) => ({
+      : typeof config.runtime.esbuild?.entryPoints === "object"
+      ? Object.entries(config.runtime?.esbuild.entryPoints).map(([key, value]) => ({
           in: `${endpoint}/${key}`,
           out: `${endpoint}/${value}`,
         }))
-      : config.runtime.esbuild.entryPoints;
+      : config.runtime.esbuild?.entryPoints;
 
-    const outdir = resolve(`${endpoint}/${config.runtime.esbuild.outdir}`);
+    const outdir = resolve(`${endpoint}/${config.runtime.esbuild?.outdir}`);
 
     configs[endpoint] = { ...api.routes[endpoint].config.runtime.esbuild, entryPoints, outdir };
 
@@ -157,7 +157,7 @@ export async function startDevServer() {
 
     endpointMiddleware[endpoint] = Router();
 
-    const file = resolve(endpoint, `${config.runtime.esbuild.outdir}/index.js`);
+    const file = resolve(endpoint, `${config.runtime.esbuild?.outdir}/index.js`);
 
     const internalHandlers = await import(`${file}?update=${Date.now()}`);
 
@@ -190,7 +190,7 @@ export async function startDevServer() {
     ignored: [
       /(^|[/\\])\../, // dotfiles
       /node_modules/, // node_modules
-      `**/${config.runtime.esbuild.outdir ?? "dist"}/**`, // build output directory
+      `**/${config.runtime.esbuild?.outdir ?? "dist"}/**`, // build output directory
     ],
   });
 
