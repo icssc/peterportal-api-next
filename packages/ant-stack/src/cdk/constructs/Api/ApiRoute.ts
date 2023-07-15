@@ -254,6 +254,11 @@ export class ApiRoute extends Construct {
       return resource.getResource(route) ?? resource.addResource(route);
     }, this.config.api.root);
 
+    /**
+     * Relative out directory used to set handler for AWS Lambda.
+     */
+    const outDirectory = path.relative(this.directory, this.outDirectory);
+
     getNamedExports(path.join(this.outDirectory, this.outFiles.node))
       .filter(isHttpMethod)
       .forEach((httpMethod) => {
@@ -265,7 +270,7 @@ export class ApiRoute extends Construct {
             functionName,
             runtime: aws_lambda.Runtime.NODEJS_18_X,
             code: aws_lambda.Code.fromAsset(this.config.directory, { exclude: ["node_modules"] }),
-            handler: this.outFiles.node.replace(/.js$/, httpMethod),
+            handler: path.join(outDirectory, this.outFiles.node.replace(/.js$/, `.${httpMethod}`)),
             architecture: aws_lambda.Architecture.ARM_64,
             environment: { ...this.config.runtime.environment },
             timeout: aws_core.Duration.seconds(15),

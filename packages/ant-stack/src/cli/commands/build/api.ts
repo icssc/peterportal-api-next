@@ -104,11 +104,7 @@ async function compileRuntimes(apiRoute: ApiRoute) {
       [builtNodeFile.replace(/\.js$/, "")]: temporaryNodeFile,
       [builtBunFile.replace(/\.js$/, "")]: temporaryBunFile,
     },
-    outdir: apiRoute.outDirectory,
-    platform: "node",
-    format: "esm",
-    bundle: true,
-    target: "esnext",
+    ...apiRoute.config.runtime.esbuild
   });
 
   // Done with the temporary files, remove them.
