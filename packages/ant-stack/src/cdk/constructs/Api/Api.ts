@@ -9,7 +9,7 @@ import chokidar from "chokidar";
 import { consola } from "consola";
 import { Construct } from "constructs";
 import cors from "cors";
-import { build, type BuildOptions } from "esbuild";
+import { build } from "esbuild";
 import express, { Router } from "express";
 import { getNamedExports } from "packages/ant-stack/src/utils/static-analysis.js";
 
@@ -45,13 +45,6 @@ const MethodsToExpress = {
  */
 function isMethod(method: string): method is keyof typeof MethodsToExpress {
   return method in MethodsToExpress;
-}
-
-/**
- * TODO: move to utils.
- */
-function isStringArray(value: unknown): value is string[] {
-  return Array.isArray(value) && value.every((v) => typeof v === "string");
 }
 
 /**
@@ -161,13 +154,9 @@ export class Api extends Construct {
    * Starts an ExpressJS development server.
    */
   async dev() {
-    const api = await getApi();
-
-    if (!("directory" in api.config)) {
+    if (!("directory" in this.config)) {
       throw new Error(`TODO: explicitly routed API is not supported yet.`);
     }
-
-    const config = api.config;
 
     const cwd = process.cwd();
 
@@ -175,58 +164,28 @@ export class Api extends Construct {
 
     if (cwd === workspaceRoot) {
       consola.info(
-        `🎏 Starting root dev server. All endpoints from ${api.config.directory} will be served.`
+        `🎏 Starting root dev server. All endpoints from ${this.config.directory} will be served.`
       );
     } else {
-      const endpoint = relative(`${workspaceRoot}/${config.directory}`, cwd);
+      const endpoint = relative(`${workspaceRoot}/${this.config.directory}`, cwd);
       consola.info(
         `🎏 Starting local dev server. Only the current endpoint, ${endpoint} will be served at the "/" route.`
       );
-      config.directory = resolve(process.cwd());
+      this.config.directory = resolve(process.cwd());
     }
-
-    const endpoints = Object.keys(api.routes);
 
     //---------------------------------------------------------------------------------
     // Build.
     //---------------------------------------------------------------------------------
 
     /**
-     * Cache the build configs for each endpoint.
-     */
-    const endpointBuildConfigs = endpoints.reduce((configs, endpoint) => {
-      /**
-       * {@link BuildOptions.entryPoints} can be way too many different things !!
-       */
-      const entryPoints = Array.isArray(config.runtime.esbuild?.entryPoints)
-        ? isStringArray(config.runtime.esbuild?.entryPoints)
-          ? config.runtime.esbuild?.entryPoints.map((entry) => `${endpoint}/${entry}`)
-          : config.runtime.esbuild?.entryPoints.map((entry) => ({
-              in: `${endpoint}/${entry.in}`,
-              out: `${endpoint}/${entry.out}`,
-            }))
-        : typeof config.runtime.esbuild?.entryPoints === "object"
-        ? Object.entries(config.runtime?.esbuild.entryPoints).map(([key, value]) => ({
-            in: `${endpoint}/${key}`,
-            out: `${endpoint}/${value}`,
-          }))
-        : config.runtime.esbuild?.entryPoints;
-
-      const outdir = resolve(`${endpoint}/${config.runtime.esbuild?.outdir}`);
-
-      configs[endpoint] = { ...api.routes[endpoint].config.runtime.esbuild, entryPoints, outdir };
-
-      return configs;
-    }, {} as Record<string, BuildOptions>);
-
-    /**
      * Build all endpoints.
      */
     await Promise.all(
-      endpoints.map(async (endpoint) => {
-        consola.info(`🔨 Building ${endpoint} to ${endpointBuildConfigs[endpoint].outdir}`);
-        await build(endpointBuildConfigs[endpoint]);
-        consola.info(`✅ Done building ${endpoint} to ${endpointBuildConfigs[endpoint].outdir}`);
+      Object.entries(this.routes).map(async ([filePath, apiRoute]) => {
+        consola.info(`🔨 Building ${filePath} to ${apiRoute.outDirectory}`);
+        await build(apiRoute.config.runtime.esbuild ?? {});
+        consola.info(`✅ Done building ${filePath} to ${apiRoute.outDirectory}`);
       })
     );
 
@@ -258,24 +217,26 @@ export class Api extends Construct {
     const refreshRouter = () => {
       router = Router();
 
-      endpoints.forEach((endpoint) => {
-        const api = `/${relative(config.directory, endpoint)}`;
+      Object.entries(this.routes).forEach(([filePath, apiRoute]) => {
+        if ("directory" in this.config) {
+          const endpoint = `/${relative(this.config.directory, filePath)}`;
 
-        consola.info(`🔄 Loading ${api} from ${endpointBuildConfigs[endpoint].outdir}`);
+          consola.info(`🔄 Loading ${endpoint} from ${apiRoute.outDirectory}`);
 
-        router.use(api, (req, res, next) => endpointMiddleware[endpoint](req, res, next));
+          router.use(endpoint, (req, res, next) => endpointMiddleware[endpoint](req, res, next));
+        }
       });
     };
 
     /**
      * Load a specific endpoint's middleware.
      */
-    const loadEndpoint = async (endpoint: string) => {
-      consola.info(`⚙  Setting up router for ${endpoint}`);
+    const loadEndpoint = async (apiRoute: ApiRoute) => {
+      consola.info(`⚙  Setting up router for ${apiRoute}`);
 
-      endpointMiddleware[endpoint] = Router();
+      endpointMiddleware[apiRoute.directory] = Router();
 
-      const file = resolve(endpoint, `${config.runtime.esbuild?.outdir}/index.js`);
+      const file = resolve(apiRoute.directory, apiRoute.outDirectory, apiRoute.outFiles.index);
 
       const internalHandlers = await import(`${file}?update=${Date.now()}`);
 
@@ -284,17 +245,21 @@ export class Api extends Construct {
       const handlerMethods = Object.keys(handlerFunctions);
 
       handlerMethods.filter(isMethod).forEach((key) => {
-        endpointMiddleware[endpoint][MethodsToExpress[key]](
+        endpointMiddleware[apiRoute.directory][MethodsToExpress[key]](
           "/",
           createExpressHandler(handlerFunctions[key])
         );
       });
     };
 
+    const endpointPaths = Object.keys(this.routes);
+
+    const endpointHandlers = Object.values(this.routes);
+
     /**
      * Prepare the development server by loading all the endpoints and refreshing the routes.
      */
-    await Promise.all(endpoints.map(loadEndpoint)).then(refreshRouter);
+    await Promise.all(endpointHandlers.map(loadEndpoint)).then(refreshRouter);
 
     app.listen(8080, () => {
       consola.info(`🎉 Express server listening at http://localhost:${8080}`);
@@ -304,11 +269,11 @@ export class Api extends Construct {
     // Watch file changes.
     //---------------------------------------------------------------------------------
 
-    const watcher = chokidar.watch(endpoints, {
+    const watcher = chokidar.watch(endpointPaths, {
       ignored: [
         /(^|[/\\])\../, // dotfiles
         /node_modules/, // node_modules
-        `**/${config.runtime.esbuild?.outdir ?? "dist"}/**`, // build output directory
+        `**/${this.config.runtime.esbuild?.outdir ?? "dist"}/**`, // build output directory
       ],
     });
 
@@ -317,8 +282,9 @@ export class Api extends Construct {
 
       consola.success("✨ endpoint changed: ", endpoint);
 
-      await build(endpointBuildConfigs[endpoint]);
-      await loadEndpoint(endpoint).then(refreshRouter);
+      await build(this.routes[endpoint].config.runtime.esbuild ?? {});
+
+      await loadEndpoint(this.routes[endpoint]).then(refreshRouter);
     });
   }
 
