@@ -61,8 +61,16 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
 
   public parseOutputs(): JsonFrom<T> {
     try {
+      console.log("output file: ", this.outputsFile);
+
       const fileContents = fs.readFileSync(this.outputsFile, "utf-8");
+
+      console.log("fileContents: ", fileContents);
+
       const json = JSON.parse(fileContents);
+
+      console.log("json: ", json);
+
       return json[this.stackName];
     } catch {
       console.log(`Failed to parse outputs file at ${this.outputsFile}.`);

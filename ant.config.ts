@@ -13,8 +13,6 @@ import { App, Stack } from "aws-cdk-lib/core";
 import { Api } from "ant-stack/constructs/Api";
 import { GitHub } from "ant-stack/constructs/GitHub";
 
-console.log({ github, core });
-
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1491470829
  */
