@@ -10,7 +10,7 @@ const dependencies = ["@libs/db"];
 const scrapers = ["course-scraper", "instructor-scraper", "prereq-scraper"];
 
 async function buildApp() {
-  console.log("🔨 Starting unified-cip-scraper build");
+  console.log("🔨 Starting unified-scraper build");
   await rm(join(__dirname, "node_modules/"), { recursive: true, force: true });
   await rm(join(__dirname, targetDir), { recursive: true, force: true });
   await mkdir(join(__dirname, `${targetDir}node_modules`), { recursive: true });
