@@ -40,10 +40,10 @@ export function getAllFilesOrIndex(directory: string): string[] {
   return allFilesOrIndex;
 }
 
-export function createTemporaryFile(name = "", extension = ".tmp", content = ""): string {
+export function createTemporaryFile(fileName = "temp", content = ""): string {
   const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), packageJson.name));
 
-  const temporaryFile = path.join(temporaryDirectory, `${name}${extension}`);
+  const temporaryFile = path.join(temporaryDirectory, fileName);
 
   fs.writeFileSync(temporaryFile, content);
 

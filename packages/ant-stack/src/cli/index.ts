@@ -5,6 +5,7 @@ import { consola } from "consola";
 
 import { Api } from "../cdk/constructs/Api";
 import { detectConstruct } from "../cdk/index.js";
+import { synthesizeConfig } from "../config";
 
 import { buildApi } from "./commands/build";
 import { interactiveCreate } from "./commands/create";
@@ -41,7 +42,9 @@ async function main() {
     ],
   });
 
-  const construct = await detectConstruct();
+  const app = await synthesizeConfig();
+
+  const construct = await detectConstruct(app);
 
   const isApi = Api.isApi(construct);
 
@@ -71,7 +74,7 @@ async function main() {
 
     case "deploy": {
       if (isGitHubPr) {
-        return await deployGitHub();
+        return await deployGitHub(app);
       }
       consola.error(`💀 Unsupported CI/CD environment.`);
       return;

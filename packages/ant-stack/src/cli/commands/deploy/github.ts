@@ -1,57 +1,48 @@
 import { spawn } from "node:child_process";
-import path from "node:path";
 
-import core from "@actions/core";
-import github from "@actions/github";
 import { CloudFormationClient } from "@aws-sdk/client-cloudformation";
+import { App, Stack } from "aws-cdk-lib/core";
 import consola from "consola";
 
-import { createTemporaryFile, getClosestProjectDirectory, waitForStackIdle } from "../../../utils";
+import { getGitHub, GitHub } from "../../../cdk/constructs/GitHub/GitHub";
+import { getExistingConfigFile, synthesizeConfig, supportedConfigFiles } from "../../../config.js";
+import { waitForStackIdle } from "../../../utils";
 
-const projectDirectory = getClosestProjectDirectory(__dirname);
-
-const appEntry = path.join(projectDirectory, "src", "cdk", "index.ts");
-
-const app = `tsx ${appEntry}`;
-
-const outputFile = createTemporaryFile("outputs", ".json");
-
-const cdkCommand = [
-  "cdk",
-  "deploy",
-  "--app",
-  app,
-  "*",
-  "--require-approval",
-  "never",
-  "--outputs-file",
-  outputFile,
-];
-
-export async function deployGitHub() {
-  const cfnClient = new CloudFormationClient({});
-
-  const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");
-  const PR_NUM = github.context.payload.pull_request?.number;
-
-  const octokit = github.getOctokit(GITHUB_TOKEN);
-
-  const owner = github.context.repo.owner;
-  const repo = github.context.repo.repo;
-  const ref = github.context.ref;
-
-  if (!PR_NUM) {
-    throw new Error("❌ Error: Pull request number not detected.");
-  }
+export async function deployGitHub(initializedApp?: App) {
+  const app = initializedApp ?? (await synthesizeConfig());
 
   consola.info("⏳ Waiting until all CloudFormation updates are complete");
 
-  await Promise.all([
-    waitForStackIdle(cfnClient, `peterportal-api-next-staging-${PR_NUM}`),
-    waitForStackIdle(cfnClient, `peterportal-api-next-docs-staging-${PR_NUM}`),
-  ]);
+  const cfnClient = new CloudFormationClient({});
+
+  await Promise.all(
+    app.node.children
+      .filter(Stack.isStack)
+      .map(async (stack) => await waitForStackIdle(cfnClient, stack.stackName))
+  );
 
   consola.info("🚀 Deploying CDK stacks");
+
+  const configFile = getExistingConfigFile();
+
+  if (configFile == null) {
+    throw new Error(
+      `No config file found at the workspace root. Please create one of the following: ${supportedConfigFiles}`
+    );
+  }
+
+  const cdkCommand = ["cdk", "deploy", "--app", configFile, "*", "--require-approval", "never"];
+
+  let github: GitHub | undefined;
+
+  try {
+    github = await getGitHub(app);
+    cdkCommand.push("--outputs-file", github.outputsFile);
+  } catch (e) {
+    consola.info("No GitHub construct found in the CDK app.");
+  }
+
+  await github?.onPreDeploy();
 
   const cdkChild = spawn("npx", cdkCommand);
 
@@ -59,63 +50,5 @@ export async function deployGitHub() {
 
   cdkChild.stderr.on("data", (data: Buffer) => consola.error(data.toString()));
 
-  cdkChild.on("close", async () => {
-    consola.info("ℹ️ Creating API and Docs deployment statuses");
-
-    const apiDeployment = await octokit.rest.repos.createDeployment({
-      owner,
-      repo,
-      ref,
-      required_contexts: [],
-      environment: "staging - api",
-    });
-
-    const docsDeployment = await octokit.rest.repos.createDeployment({
-      owner,
-      repo,
-      ref,
-      required_contexts: [],
-      environment: "staging - docs",
-    });
-
-    if (apiDeployment.status !== 201 || docsDeployment.status !== 201) {
-      throw new Error("❌ Deployment failed!");
-    }
-
-    const apiDeploymentStatus = await octokit.rest.repos.createDeploymentStatus({
-      repo,
-      owner,
-      deployment_id: apiDeployment.data.id,
-      state: "success",
-      description: "Deployment succeeded",
-      environment_url: `https://staging-${PR_NUM}.api-next.peterportal.org`,
-      auto_inactive: false,
-    });
-
-    const docsDeploymentStatus = await octokit.rest.repos.createDeploymentStatus({
-      repo,
-      owner,
-      deployment_id: docsDeployment.data.id,
-      state: "success",
-      description: "Deployment succeeded",
-      environment_url: `https://staging-${PR_NUM}-docs.api-next.peterportal.org`,
-      auto_inactive: false,
-    });
-
-    consola.info("ℹ️ API deployment status: ", apiDeploymentStatus.data);
-    consola.info("ℹ️ Docs deployment status: ", docsDeploymentStatus.data);
-
-    await octokit.rest.issues.createComment({
-      owner,
-      repo,
-      issue_number: PR_NUM,
-      body: `\
-🚀 Staging instances deployed!
-
-API - ${apiDeploymentStatus.data.environment_url}
-
-Docs - ${docsDeploymentStatus.data.environment_url}
-`,
-    });
-  });
+  cdkChild.on("close", async () => github?.onPostDeploy());
 }

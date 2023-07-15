@@ -23,9 +23,7 @@
         "PR_NUM",
         "STAGE",
         "GITHUB_TOKEN",
-        "npm_config_user_agent",
-        "FORCE_COLOR",
-        "CDK_INTEG_MODE"
+        "npm_config_user_agent"
       ]
     },
     "destroy": {

@@ -1,10 +1,12 @@
+import { App } from "aws-cdk-lib";
+
 import packageJson from "../../package.json";
 import { synthesizeConfig } from "../config.js";
 
 import { getApi } from "./constructs/Api/Api.js";
 
-export async function detectConstruct(directory = process.cwd()) {
-  const app = await synthesizeConfig();
+export async function detectConstruct(initializedApp?: App, directory = process.cwd()) {
+  const app = initializedApp ?? (await synthesizeConfig());
 
   try {
     const api = await getApi(app);

@@ -2,19 +2,24 @@ import fs from "node:fs";
 
 import { App, Stack, CfnOutput, CfnOutputProps } from "aws-cdk-lib/core";
 import { Construct } from "constructs";
-import { createTemporaryFile } from "packages/ant-stack/src/utils/files.js";
 
 import { synthesizeConfig } from "../../../config.js";
-import { MaybePromise } from "../../../utils/maybe-promise.js";
+import { MaybePromise, createTemporaryFile } from "../../../utils";
+
+type Outputs = Record<PropertyKey, CfnOutputProps>;
+
+type JsonFrom<T> = {
+  [K in keyof T]: string;
+};
 
 export type GitHubCallbacks<T> = {
-  onPreDeploy: (outputs: T) => MaybePromise<unknown>;
+  onPreDeploy: (outputs: JsonFrom<T>) => MaybePromise<unknown>;
 
-  onPostDeploy: (outputs: T) => MaybePromise<unknown>;
+  onPostDeploy: (outputs: JsonFrom<T>) => MaybePromise<unknown>;
 
-  onPreDestroy: (outputs: T) => MaybePromise<unknown>;
+  onPreDestroy: (outputs: JsonFrom<T>) => MaybePromise<unknown>;
 
-  onPostDestroy: (outputs: T) => MaybePromise<unknown>;
+  onPostDestroy: (outputs: JsonFrom<T>) => MaybePromise<unknown>;
 };
 
 export interface GitHubConfig<T> {
@@ -22,12 +27,6 @@ export interface GitHubConfig<T> {
   outputs: T;
   callbacks: GitHubCallbacks<T>;
 }
-
-type Outputs = Record<PropertyKey, CfnOutputProps>;
-
-type JsonFrom<T> = {
-  [K in keyof T]: string;
-};
 
 /**
  * Construct for configuring GitHub Actions CI/CD.
@@ -50,7 +49,7 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
   constructor(scope: Construct, id: string, readonly config: GitHubConfig<T>) {
     super(scope, id);
 
-    this.outputsFile = config.outputsFile ?? createTemporaryFile("outputs", ".json");
+    this.outputsFile = config.outputsFile ?? createTemporaryFile("outputs.json");
 
     this.stackName = Stack.of(this).stackName;
 
@@ -63,11 +62,28 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
   public parseOutputs(): JsonFrom<T> {
     try {
       const fileContents = fs.readFileSync(this.outputsFile, "utf-8");
-      return JSON.parse(fileContents);
+      const json = JSON.parse(fileContents);
+      return json[this.stackName];
     } catch {
       console.log(`Failed to parse outputs file at ${this.outputsFile}.`);
       return {} as JsonFrom<T>;
     }
+  }
+
+  public onPreDeploy() {
+    return this.config.callbacks.onPreDeploy(this.parseOutputs());
+  }
+
+  public onPostDeploy() {
+    return this.config.callbacks.onPostDeploy(this.parseOutputs());
+  }
+
+  public onPreDestroy() {
+    return this.config.callbacks.onPreDestroy(this.parseOutputs());
+  }
+
+  public onPostDestroy() {
+    return this.config.callbacks.onPostDestroy(this.parseOutputs());
   }
 }
 
