@@ -952,7 +952,7 @@ importers:
         specifier: ^10.9.1
         version: 10.9.1(@types/node@18.14.0)(typescript@5.0.4)
 
-  tools/unified-cip-scraper:
+  tools/unified-scraper:
     dependencies:
       '@libs/db':
         specifier: '*'
