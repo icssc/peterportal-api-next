@@ -13,16 +13,17 @@ import { getNamedExports } from "../../../utils/static-analysis.js";
 export async function buildApi() {
   const apiRoute = await getApiRoute();
 
-  apiRoute.config.runtime.esbuild ??= {};
-  apiRoute.config.runtime.esbuild.outdir ??= apiRoute.outDirectory;
+  const esbuildOptions = { ...apiRoute.config.runtime.esbuild };
 
-  const outFile = path.join(apiRoute.outDirectory, apiRoute.outFiles.index);
+  esbuildOptions.outdir ??= apiRoute.outDirectory;
 
-  apiRoute.config.runtime.esbuild.entryPoints ??= {
-    [outFile.replace(/.js$/, "")]: apiRoute.entryFile,
+  esbuildOptions.entryPoints ??= {
+    [path.join(apiRoute.outDirectory, apiRoute.outFiles.index).replace(/.js$/, "")]: apiRoute.entryFile,
   };
 
-  const buildOutput = await build(apiRoute.config.runtime.esbuild);
+  delete esbuildOptions.banner
+
+  const buildOutput = await build(esbuildOptions);
 
   if (apiRoute.config.runtime.esbuild?.logLevel === "info") {
     console.log(buildOutput);
@@ -86,6 +87,19 @@ async function compileRuntimes(apiRoute: ApiRoute) {
   fs.writeFileSync(temporaryNodeFile, temporaryNodeScript.join("\n"));
   fs.writeFileSync(temporaryBunFile, temporaryBunScript.join("\n"));
 
+  console.log('build options: ', {
+    entryPoints: {
+      [builtNodeFile.replace(/\.js$/, "")]: temporaryNodeFile,
+      [builtBunFile.replace(/\.js$/, "")]: temporaryBunFile,
+    },
+    outdir: apiRoute.outDirectory,
+    platform: "node",
+    format: "esm",
+    bundle: true,
+    target: "esnext",
+    banner: apiRoute.config.runtime.esbuild?.banner,
+  })
+
   /**
    * The temporary .js files look like this:
    *
@@ -104,7 +118,12 @@ async function compileRuntimes(apiRoute: ApiRoute) {
       [builtNodeFile.replace(/\.js$/, "")]: temporaryNodeFile,
       [builtBunFile.replace(/\.js$/, "")]: temporaryBunFile,
     },
-    ...apiRoute.config.runtime.esbuild
+    outdir: apiRoute.outDirectory,
+    platform: "node",
+    format: "esm",
+    bundle: true,
+    target: "esnext",
+    banner: apiRoute.config.runtime.esbuild?.banner,
   });
 
   // Done with the temporary files, remove them.
