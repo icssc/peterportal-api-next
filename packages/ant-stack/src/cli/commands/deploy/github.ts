@@ -11,6 +11,8 @@ import { waitForStackIdle } from "../../../utils";
 export async function deployGitHub(initializedApp?: App) {
   const app = initializedApp ?? (await synthesizeConfig());
 
+  app.synth();
+
   consola.info("⏳ Waiting until all CloudFormation updates are complete");
 
   const cfnClient = new CloudFormationClient({});
@@ -43,6 +45,8 @@ export async function deployGitHub(initializedApp?: App) {
   }
 
   await github?.onPreDeploy();
+
+  consola.info(`Running: npx ${cdkCommand.join(" ")}`);
 
   const cdkChild = spawn("npx", cdkCommand);
 
