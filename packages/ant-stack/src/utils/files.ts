@@ -1,5 +1,8 @@
 import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
+
+import packageJson from "../../package.json";
 
 const jsFileExtensions = ["js", "cjs", "mjs", "jsx"];
 
@@ -11,7 +14,7 @@ const jsOrTsFileExtensions = [...jsFileExtensions, ...tsFileExtesions];
  * Finds all files in a directory, or the directroy/index.js file if it's a directory.
  * TODO: fix efficiency issues.
  */
-export const getAllFilesOrIndex = (directory: string): string[] => {
+export function getAllFilesOrIndex(directory: string): string[] {
   const allFilesOrIndex = fs
     .readdirSync(directory)
     .map((file) => path.resolve(path.join(directory, file)))
@@ -35,4 +38,14 @@ export const getAllFilesOrIndex = (directory: string): string[] => {
     });
 
   return allFilesOrIndex;
-};
+}
+
+export function createTemporaryFile(name = "", extension = ".tmp", content = ""): string {
+  const temporaryDirectory = fs.mkdtempSync(path.join(os.tmpdir(), packageJson.name));
+
+  const temporaryFile = path.join(temporaryDirectory, `${name}${extension}`);
+
+  fs.writeFileSync(temporaryFile, content);
+
+  return temporaryFile;
+}

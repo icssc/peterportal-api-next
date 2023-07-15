@@ -5,15 +5,12 @@ import { consola } from "consola";
 
 import { Api } from "../cdk/constructs/Api";
 import { detectConstruct } from "../cdk/index.js";
-import { createCliCommands } from "../cdk/patches/cli";
 
 import { buildApi } from "./commands/build";
 import { interactiveCreate } from "./commands/create";
 import { deployGitHub } from "./commands/deploy";
 import { destroy } from "./commands/destroy.js";
 import { startApiDevelopmentServer } from "./commands/dev";
-
-console.log(createCliCommands);
 
 async function main() {
   consola.log(chalk("🐜 ant-stack CLI"));

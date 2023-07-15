@@ -53,9 +53,11 @@ class TestStack extends Stack {
       versioned: true,
     });
 
-    new CfnOutput(this, "Bucket Arn", {
+    new CfnOutput(this, "AbCd", {
       value: this.bucket.bucketArn,
     });
+
+    console.log(Stack.of(this).stackName);
   }
 }
 
