@@ -168,6 +168,7 @@ export class ApiRoute extends Construct {
 
   /**
    * Path to main handler. Relative from {@link directory}
+   * TODO: support multiple entry files?
    */
   entryFile: string;
 
@@ -242,7 +243,7 @@ export class ApiRoute extends Construct {
   /**
    * Initialize CDK resources.
    */
-  async synth() {
+  synth() {
     const resource = this.config.route.split("/").reduce((resource, route) => {
       return resource.getResource(route) ?? resource.addResource(route);
     }, this.config.api.root);
@@ -280,12 +281,12 @@ export class ApiRoute extends Construct {
           methodAndRoute
         );
 
-        const methodOptions = this.config.constructs.methodOptions?.(this, this.id, methodAndRoute);
-
         const lambdaIntegration = new aws_apigateway.LambdaIntegration(
           handler,
           lambdaIntegrationOptions
         );
+
+        const methodOptions = this.config.constructs.methodOptions?.(this, this.id, methodAndRoute);
 
         resource.addMethod(httpMethod, lambdaIntegration, methodOptions);
 
@@ -330,12 +331,15 @@ export class ApiRoute extends Construct {
  *   constructor(scope: Construct, id: string) {
  *     super(scope, id, {
  *       runtime: { ...  },
- *       constructs: { ... }
+ *       constructs: { ... },
+ *       // config overrides here...
  *     })
  *   }
  * }
  *
  * ```
+ * The child class should only need 2 arguments to initialize itself,
+ * and it will invoke the original constructor with the desired config.
  *
  * {@link loadRouteConfigOverride} will find relevant exported classes and initialize them in the {@link ApiRoute} scope.
  */
@@ -353,6 +357,7 @@ export class ApiRouteConfigOverride extends Construct {
 
   /**
    * Used on exported classes, i.e. from config files, to determine if they are of this type.
+   * Since it's a class declaration, checks if it's a constructor function with the correct static `type` property.
    */
   public static isApiRouteConfigOverrideClass(x: unknown): x is typeof ApiRouteConfigOverride {
     return (

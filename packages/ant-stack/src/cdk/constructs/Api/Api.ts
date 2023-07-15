@@ -1,6 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { relative, resolve } from "node:path";
 
 import { Stack } from "aws-cdk-lib";
 import { RestApi, type RestApiProps } from "aws-cdk-lib/aws-apigateway";
@@ -11,6 +10,7 @@ import { Construct } from "constructs";
 import cors from "cors";
 import { build } from "esbuild";
 import express, { Router } from "express";
+import { InternalHandler } from "packages/ant-stack/dist/lambda-core";
 
 import packageJson from "../../../../package.json";
 import { synthesizeConfig } from "../../../config.js";
@@ -22,35 +22,15 @@ import {
   getWorkspaceRoot,
   getClosestProjectDirectory,
 } from "../../../utils/directories.js";
+import { isMethod, MethodsToExpress, type Method } from "../../../utils/express-apigateway";
 import { getNamedExports } from "../../../utils/static-analysis.js";
 
 import { ApiRoute, ApiRouteConfig } from "./ApiRoute.js";
 
 /**
- * Translates the HTTP verbs exported by the lambda-core into Express methods.
- */
-const MethodsToExpress = {
-  DELETE: "delete",
-  GET: "get",
-  HEAD: "head",
-  PATCH: "patch",
-  POST: "post",
-  PUT: "put",
-  OPTIONS: "options",
-  ANY: "use",
-} as const;
-
-/**
- * TODO: move to some location for "express-adapter" related stuff?
- */
-function isMethod(method: string): method is keyof typeof MethodsToExpress {
-  return method in MethodsToExpress;
-}
-
-/**
  * Configure the API Gateway REST API and set default options for API routes under it.
  */
-export type ApiConfig = AnyApiConfig & DefaultApiRouteConfig;
+export type ApiConfig = AnyApiConfig & CommonApiConfig & DefaultApiRouteConfig;
 
 /**
  * API can be explicitly routed or directory-based routed.
@@ -60,7 +40,7 @@ export type AnyApiConfig = DirectoryRoutedApi | ExplictlyRoutedApi;
 /**
  * API routes are identified as individual projects, i.e. with a `package.json` file.
  */
-export type DirectoryRoutedApi = {
+export interface DirectoryRoutedApi {
   /**
    * Directory to search for API routes. API routes will be registered relative from here.
    *
@@ -68,17 +48,28 @@ export type DirectoryRoutedApi = {
    * If a project is at apps/api/v1/rest/calendar, it will be registered as the route /v1/rest/calendar.
    */
   directory: string;
-};
+}
 
 /**
  * Explicitly define paths to API routes.
  */
-export type ExplictlyRoutedApi = {
+export interface ExplictlyRoutedApi {
   /**
    * @link https://docs.sst.dev/apis#add-an-api
    */
   routes: Record<string, string>;
-};
+}
+
+/**
+ * Shared settings.
+ */
+export interface CommonApiConfig {
+  development?: ApiDevelopmentConfig;
+}
+
+export interface ApiDevelopmentConfig {
+  port?: string | number;
+}
 
 /**
  * The API can set defaults for all API Routes under it.
@@ -151,6 +142,13 @@ export class Api extends Construct {
   }
 
   /**
+   * Initializes CDK constructs.
+   */
+  synth() {
+    Object.values(this.routes).forEach((apiRoute) => apiRoute.synth());
+  }
+
+  /**
    * Starts an ExpressJS development server.
    */
   async dev() {
@@ -167,12 +165,16 @@ export class Api extends Construct {
         `🎏 Starting root dev server. All endpoints from ${this.config.directory} will be served.`
       );
     } else {
-      const endpoint = relative(`${workspaceRoot}/${this.config.directory}`, cwd);
+      const endpoint = path.relative(`${workspaceRoot}/${this.config.directory}`, cwd);
       consola.info(
         `🎏 Starting local dev server. Only the current endpoint, ${endpoint} will be served at the "/" route.`
       );
-      this.config.directory = resolve(process.cwd());
+      this.config.directory = path.resolve(process.cwd());
     }
+
+    const apiRoutePaths = Object.keys(this.routes);
+
+    const apiRoutes = Object.values(this.routes);
 
     //---------------------------------------------------------------------------------
     // Build.
@@ -182,10 +184,10 @@ export class Api extends Construct {
      * Build all endpoints.
      */
     await Promise.all(
-      Object.entries(this.routes).map(async ([filePath, apiRoute]) => {
-        consola.info(`🔨 Building ${filePath} to ${apiRoute.outDirectory}`);
+      apiRoutes.map(async (apiRoute) => {
+        consola.info(`🔨 Building ${apiRoute.directory} to ${apiRoute.outDirectory}`);
         await build(apiRoute.config.runtime.esbuild ?? {});
-        consola.info(`✅ Done building ${filePath} to ${apiRoute.outDirectory}`);
+        consola.info(`✅ Done building ${apiRoute.directory} to ${apiRoute.outDirectory}`);
       })
     );
 
@@ -199,7 +201,6 @@ export class Api extends Construct {
 
     /**
      * Mutable global router can be hot-swapped when routes change.
-     * app.use ( global router .use (endpoint router ) )
      * To update the routes, re-assign the global router, and load all endpoint routes into the new router.
      */
     let router = Router();
@@ -207,24 +208,18 @@ export class Api extends Construct {
     app.use((req, res, next) => router(req, res, next));
 
     /**
-     * Express will assign middleware based on endpoints.
+     * Routes mapped to ExpressJS routers, i.e. middleware.
      */
-    const endpointMiddleware: Record<string, Router> = {};
+    const routers: Record<string, Router> = {};
 
     /**
      * Replace the global router with a fresh one and reload all endpoints.
      */
     const refreshRouter = () => {
       router = Router();
-
-      Object.entries(this.routes).forEach(([filePath, apiRoute]) => {
-        if ("directory" in this.config) {
-          const endpoint = `/${relative(this.config.directory, filePath)}`;
-
-          consola.info(`🔄 Loading ${endpoint} from ${apiRoute.outDirectory}`);
-
-          router.use(endpoint, (req, res, next) => endpointMiddleware[endpoint](req, res, next));
-        }
+      apiRoutes.forEach((apiRoute) => {
+        consola.info(`🔄 Loading ${apiRoute.config.route} from ${apiRoute.outDirectory}`);
+        router.use(apiRoute.config.route, (...args) => routers[apiRoute.directory](...args));
       });
     };
 
@@ -234,46 +229,51 @@ export class Api extends Construct {
     const loadEndpoint = async (apiRoute: ApiRoute) => {
       consola.info(`⚙  Setting up router for ${apiRoute}`);
 
-      endpointMiddleware[apiRoute.directory] = Router();
+      routers[apiRoute.directory] = Router();
 
-      const file = resolve(apiRoute.directory, apiRoute.outDirectory, apiRoute.outFiles.index);
+      const file = path.resolve(apiRoute.directory, apiRoute.outDirectory, apiRoute.outFiles.index);
 
       const internalHandlers = await import(`${file}?update=${Date.now()}`);
 
+      if (internalHandlers == null) {
+        consola.error(`🚨 Failed to load ${apiRoute.directory}. No exports found.`);
+        return;
+      }
+
       const handlerFunctions = internalHandlers.default ?? internalHandlers;
 
-      const handlerMethods = Object.keys(handlerFunctions);
-
-      handlerMethods.filter(isMethod).forEach((key) => {
-        endpointMiddleware[apiRoute.directory][MethodsToExpress[key]](
-          "/",
-          createExpressHandler(handlerFunctions[key])
-        );
-      });
+      Object.entries(handlerFunctions)
+        .filter((entry): entry is [Method, InternalHandler] => isMethod(entry[0]))
+        .map(([key, handler]) => [MethodsToExpress[key], handler] as const)
+        .forEach(([method, handler]) => {
+          routers[apiRoute.directory][method]("/", createExpressHandler(handler));
+        });
     };
-
-    const endpointPaths = Object.keys(this.routes);
-
-    const endpointHandlers = Object.values(this.routes);
 
     /**
      * Prepare the development server by loading all the endpoints and refreshing the routes.
      */
-    await Promise.all(endpointHandlers.map(loadEndpoint)).then(refreshRouter);
+    await Promise.all(apiRoutes.map(loadEndpoint)).then(refreshRouter);
 
-    app.listen(8080, () => {
-      consola.info(`🎉 Express server listening at http://localhost:${8080}`);
+    const port = this.config.development?.port ?? 8080;
+
+    app.listen(port, () => {
+      consola.info(`🎉 Express server listening at http://localhost:${port}`);
     });
+
+    const outputDirectories = apiRoutes.map((apiRoute) =>
+      path.resolve(workspaceRoot, apiRoute.directory, apiRoute.outDirectory)
+    );
 
     //---------------------------------------------------------------------------------
     // Watch file changes.
     //---------------------------------------------------------------------------------
 
-    const watcher = chokidar.watch(endpointPaths, {
+    const watcher = chokidar.watch(apiRoutePaths, {
       ignored: [
         /(^|[/\\])\../, // dotfiles
         /node_modules/, // node_modules
-        `**/${this.config.runtime.esbuild?.outdir ?? "dist"}/**`, // build output directory
+        ...outputDirectories,
       ],
     });
 
