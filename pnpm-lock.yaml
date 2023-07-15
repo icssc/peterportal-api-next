@@ -729,7 +729,7 @@ importers:
 
   packages/peterportal-api-next-types: {}
 
-  tools/cdk:
+  services/cdk:
     dependencies:
       dotenv:
         specifier: ^16.1.0
@@ -737,6 +737,68 @@ importers:
       websoc-proxy-service:
         specifier: '*'
         version: link:../websoc-proxy-service
+    devDependencies:
+      '@types/babel__traverse':
+        specifier: ^7.18.3
+        version: 7.18.3
+      '@types/node':
+        specifier: ^18.11.10
+        version: 18.14.0
+      aws-cdk:
+        specifier: ^2.81.0
+        version: 2.81.0
+      aws-cdk-lib:
+        specifier: ^2.53.0
+        version: 2.53.0(constructs@10.1.176)
+      constructs:
+        specifier: ^10.1.176
+        version: 10.1.176
+      peterportal-api-next-types:
+        specifier: workspace:*
+        version: link:../../packages/peterportal-api-next-types
+      source-map-support:
+        specifier: ^0.5.21
+        version: 0.5.21
+      tsx:
+        specifier: ^3.12.3
+        version: 3.12.7
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+
+  services/websoc-proxy-service:
+    dependencies:
+      '@libs/websoc-api-next':
+        specifier: workspace:*
+        version: link:../../libs/websoc-api-next
+      api-core:
+        specifier: workspace:*
+        version: link:../../api/core
+      api-route-websoc:
+        specifier: workspace:*
+        version: link:../../api/routes/websoc
+    devDependencies:
+      '@types/node':
+        specifier: ^18.11.10
+        version: 18.14.0
+      esbuild:
+        specifier: ^0.17.8
+        version: 0.17.19
+      peterportal-api-next-types:
+        specifier: workspace:*
+        version: link:../../packages/peterportal-api-next-types
+      typescript:
+        specifier: ^4.9.4
+        version: 4.9.5
+
+  tools/cdk:
+    dependencies:
+      dotenv:
+        specifier: ^16.1.0
+        version: 16.1.0
+      websoc-proxy-service:
+        specifier: '*'
+        version: link:../../services/websoc-proxy-service
       websoc-scraper-v2:
         specifier: '*'
         version: link:../websoc-scraper-v2
@@ -908,31 +970,6 @@ importers:
       peterportal-api-next-types:
         specifier: '*'
         version: link:../../packages/peterportal-api-next-types
-
-  tools/websoc-proxy-service:
-    dependencies:
-      '@libs/websoc-api-next':
-        specifier: workspace:*
-        version: link:../../libs/websoc-api-next
-      api-core:
-        specifier: workspace:*
-        version: link:../../api/core
-      api-route-websoc:
-        specifier: workspace:*
-        version: link:../../api/routes/websoc
-    devDependencies:
-      '@types/node':
-        specifier: ^18.11.10
-        version: 18.14.0
-      esbuild:
-        specifier: ^0.17.8
-        version: 0.17.19
-      peterportal-api-next-types:
-        specifier: workspace:*
-        version: link:../../packages/peterportal-api-next-types
-      typescript:
-        specifier: ^4.9.4
-        version: 4.9.5
 
   tools/websoc-scraper-v2:
     dependencies:
@@ -7803,7 +7840,6 @@ packages:
       punycode: 2.3.0
       semver: 7.5.1
       yaml: 1.10.2
-    dev: false
     bundledDependencies:
       - '@balena/dockerignore'
       - case
@@ -8714,7 +8750,6 @@ packages:
   /constructs@10.1.176:
     resolution: {integrity: sha512-1+fQUc9AcJImVlRfyC0lAAhB4coAqvV+M7ZqfCX/8FLq2X1xuY1eDhlR2MHB6h1ndkyrPHqpbQaxoJhoQzLb8w==}
     engines: {node: '>= 14.17.0'}
-    dev: false
 
   /constructs@10.2.34:
     resolution: {integrity: sha512-4Onsxk0ZdFaJKn5ZbDKkq8Zfv/zZzgIMLdS8/O7KZRvnsLJkBcro11eUnlN3mYA/RN+nDaYTFm5b0MEMWabVtA==}

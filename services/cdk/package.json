@@ -1,0 +1,25 @@
+{
+  "name": "services-cdk",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "cdk deploy --all --require-approval never",
+    "destroy": "cdk destroy --all --force"
+  },
+  "dependencies": {
+    "dotenv": "^16.1.0",
+    "websoc-proxy-service": "*"
+  },
+  "devDependencies": {
+    "@types/babel__traverse": "^7.18.3",
+    "@types/node": "^18.11.10",
+    "aws-cdk": "^2.81.0",
+    "aws-cdk-lib": "^2.53.0",
+    "constructs": "^10.1.176",
+    "peterportal-api-next-types": "workspace:*",
+    "source-map-support": "^0.5.21",
+    "tsx": "^3.12.3",
+    "typescript": "^5.0.4"
+  }
+}
