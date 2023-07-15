@@ -115,18 +115,18 @@ export class Api extends Construct {
           directory: apiRoutePath,
           api: this.api,
         });
-
-        /**
-         * Only synthesize everything if we're not in a dry run.
-         */
-        if (!process.env[dryRunKey]) {
-          Object.values(this.routes).forEach((apiRoute) => apiRoute.synth());
-        }
       });
     } else {
       /**
        * TODO: handle explitly routed API.
        */
+    }
+
+    /**
+     * Only synthesize everything if we're not in a dry run.
+     */
+    if (!process.env[dryRunKey]) {
+      Object.values(this.routes).forEach((apiRoute) => apiRoute.synth());
     }
   }
 }
