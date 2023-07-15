@@ -1,1 +1,2 @@
-export * from "./directories.js";
+export * from "./directories";
+export * from "./wait-for-stack-idle";
