@@ -1,7 +1,14 @@
 import fs from "node:fs";
 
-import { parse } from "acorn";
+import { parse, type Options, type ExtendNode } from "acorn";
 import type { ExportNamedDeclaration } from "estree";
+
+type NamedExportNode = ExtendNode<ExportNamedDeclaration>;
+
+const defaultParseOptions: Options = {
+  ecmaVersion: "latest",
+  sourceType: "module",
+};
 
 /**
  * In order to dynamically generate runtime files, allocate API Gateway routes, etc.
@@ -17,23 +24,19 @@ import type { ExportNamedDeclaration } from "estree";
  *
  * ```
  *
+ * Named exports of above module: ["GET", "POST"]
+ *
  * @param file The path to the file to analyze.
  * @returns All the parsed file's named exports. Does __not__ filter for valid HTTP method exports.
  */
-export function getNamedExports(file: string) {
+export function getNamedExports(file: string, parseOptions: Options = defaultParseOptions) {
   const fileContents = fs.readFileSync(file, "utf-8");
 
-  const parsedFile = parse(fileContents, {
-    ecmaVersion: "latest",
-    sourceType: "module",
-  });
+  const parsedFileContents = parse(fileContents, parseOptions);
 
-  const namedExports = parsedFile.body
-    .filter(
-      (node): node is acorn.ExtendNode<ExportNamedDeclaration> =>
-        node.type === "ExportNamedDeclaration"
-    )
-    .flatMap((node) => node.specifiers.map((s) => s.exported.name));
+  const namedExports = parsedFileContents.body
+    .filter((node): node is NamedExportNode => node.type === "ExportNamedDeclaration")
+    .flatMap((node) => node.specifiers.map((specifier) => specifier.exported.name));
 
   return namedExports;
 }
