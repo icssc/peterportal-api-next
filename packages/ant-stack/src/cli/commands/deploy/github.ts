@@ -5,13 +5,16 @@ import { App, Stack } from "aws-cdk-lib/core";
 import consola from "consola";
 
 import { getGitHub, GitHub } from "../../../cdk/constructs/GitHub/GitHub";
-import { getExistingConfigFile, synthesizeConfig, supportedConfigFiles } from "../../../config.js";
+import {
+  getExistingConfigFile,
+  synthesizeConfig,
+  supportedConfigFiles,
+  dryRunKey,
+} from "../../../config.js";
 import { waitForStackIdle } from "../../../utils";
 
 export async function deployGitHub(initializedApp?: App) {
   const app = initializedApp ?? (await synthesizeConfig());
-
-  app.synth();
 
   consola.info("⏳ Waiting until all CloudFormation updates are complete");
 
@@ -33,7 +36,15 @@ export async function deployGitHub(initializedApp?: App) {
     );
   }
 
-  const cdkCommand = ["cdk", "deploy", "--app", configFile, "*", "--require-approval", "never"];
+  const cdkCommand = [
+    "cdk",
+    "deploy",
+    "--app",
+    `npx tsx ${configFile}`,
+    "*",
+    "--require-approval",
+    "never",
+  ];
 
   let github: GitHub | undefined;
 
@@ -47,6 +58,11 @@ export async function deployGitHub(initializedApp?: App) {
   await github?.onPreDeploy();
 
   consola.info(`Running: npx ${cdkCommand.join(" ")}`);
+
+  /**
+   * Unset this so that special constructs will fully synthesize.
+   */
+  process.env[dryRunKey] = "";
 
   const cdkChild = spawn("npx", cdkCommand);
 
