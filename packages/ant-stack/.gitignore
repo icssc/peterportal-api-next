@@ -27,13 +27,3 @@ yarn-error.log*
 
 # tsc output
 dist/
-
-# cdk output
-cdk.out/
-
-# grade distribution csv files
-tools/grades-updater/inputData
-tools/grades-updater/outputData
-
-# grades-updater logs
-tools/grades-updater/logs
