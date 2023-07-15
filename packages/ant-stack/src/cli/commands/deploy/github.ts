@@ -64,7 +64,9 @@ export async function deployGitHub(initializedApp?: App) {
    */
   process.env[dryRunKey] = "";
 
-  const cdkChild = spawn("npx", cdkCommand);
+  const cdkChild = spawn("npx", cdkCommand, {
+    env: { ...process.env },
+  });
 
   cdkChild.stdout.on("data", (data: Buffer) => consola.info(data.toString()));
 
