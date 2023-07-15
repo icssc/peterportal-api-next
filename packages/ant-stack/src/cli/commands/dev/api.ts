@@ -51,7 +51,18 @@ export async function startApiDevelopmentServer(api: Api) {
   await Promise.all(
     apiRoutes.map(async (apiRoute) => {
       consola.info(`🔨 Building ${apiRoute.directory} to ${apiRoute.outDirectory}`);
-      await build(apiRoute.config.runtime.esbuild ?? {});
+
+      apiRoute.config.runtime.esbuild ??= {};
+      apiRoute.config.runtime.esbuild.outdir ??= apiRoute.outDirectory;
+
+      const outFile = path.join(apiRoute.outDirectory, apiRoute.outFiles.index);
+
+      apiRoute.config.runtime.esbuild.entryPoints ??= {
+        [outFile.replace(/.js$/, "")]: apiRoute.entryFile,
+      };
+
+      await build(apiRoute.config.runtime.esbuild);
+
       consola.info(`✅ Done building ${apiRoute.directory} to ${apiRoute.outDirectory}`);
     })
   );
@@ -83,8 +94,8 @@ export async function startApiDevelopmentServer(api: Api) {
   const refreshRouter = () => {
     router = Router();
     apiRoutes.forEach((apiRoute) => {
-      consola.info(`🔄 Loading ${apiRoute.config.route} from ${apiRoute.outDirectory}`);
-      router.use(apiRoute.config.route, (...args) => routers[apiRoute.directory](...args));
+      consola.info(`🔄 Loading /${apiRoute.config.route} from ${apiRoute.outDirectory}`);
+      router.use(`/${apiRoute.config.route}`, (...args) => routers[apiRoute.directory](...args));
     });
   };
 

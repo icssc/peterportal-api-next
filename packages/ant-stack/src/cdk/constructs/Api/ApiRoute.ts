@@ -21,7 +21,9 @@ export type ApiRouteConfig = {
   /**
    * The API route.
    *
-   * @example /v1/rest/calendar
+   * @example v1/rest/calendar
+   *
+   * @remarks Does __not__ include the leading slash.
    */
   route: string;
 

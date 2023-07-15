@@ -4,7 +4,7 @@ import { RestApi, type RestApiProps } from "aws-cdk-lib/aws-apigateway";
 import { App, Stack } from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 
-import { synthesizeConfig } from "../../../config.js";
+import { synthesizeConfig, dryRunKey } from "../../../config.js";
 import { findAllProjects, getWorkspaceRoot } from "../../../utils/directories.js";
 
 import { ApiRoute, ApiRouteConfig } from "./ApiRoute.js";
@@ -115,19 +115,19 @@ export class Api extends Construct {
           directory: apiRoutePath,
           api: this.api,
         });
+
+        /**
+         * Only synthesize everything if we're not in a dry run.
+         */
+        if (process.env[dryRunKey]) {
+          Object.values(this.routes).forEach((apiRoute) => apiRoute.synth());
+        }
       });
     } else {
       /**
        * TODO: handle explitly routed API.
        */
     }
-  }
-
-  /**
-   * Initializes CDK constructs.
-   */
-  synth() {
-    Object.values(this.routes).forEach((apiRoute) => apiRoute.synth());
   }
 }
 

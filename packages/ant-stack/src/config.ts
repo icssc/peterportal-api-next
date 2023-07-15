@@ -6,6 +6,8 @@ import { App } from "aws-cdk-lib";
 import { getWorkspaceRoot } from "./utils/directories.js";
 import { executeJit } from "./utils/execute-jit.js";
 
+export const dryRunKey = "klein_stack_dryrun";
+
 export const configFiles = ["ant.config.ts", "ant.config.js"];
 
 export const supportedConfigFiles = configFiles.join(", ");
@@ -37,6 +39,8 @@ export async function synthesizeConfig() {
       `No config file found at the workspace root. Please create one of the following: ${supportedConfigFiles}`
     );
   }
+
+  process.env[dryRunKey] = "true";
 
   const exports = executeJit(configFile);
 
