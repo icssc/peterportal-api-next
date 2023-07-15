@@ -42,7 +42,10 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
 
   public readonly outputsFile: string;
 
-  public readonly stackName: string;
+  /**
+   * The stack that this construct is defined in.
+   */
+  public readonly stack: Stack;
 
   public readonly outputs: Record<PropertyKey, CfnOutput>;
 
@@ -51,31 +54,32 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
 
     this.outputsFile = config.outputsFile ?? createTemporaryFile("outputs.json");
 
-    this.stackName = Stack.of(this).stackName;
+    this.stack = Stack.of(this);
 
+    /**
+     * CfnOutputs should be scoped directly under the stack so the keys don't get polluted.
+     * Strings representing nested constructs will be appended to the key otherwise.
+     */
     this.outputs = Object.entries(config.outputs ?? {}).reduce((outputs, [key, value]) => {
-      outputs[key] = new CfnOutput(scope, key, value);
+      outputs[key] = new CfnOutput(this.stack, key, value);
       return outputs;
     }, {} as Record<PropertyKey, CfnOutput>);
   }
 
   public parseOutputs(): JsonFrom<T> {
     try {
-      console.log("outputs file: ", this.outputsFile);
-
       const fileContents = fs.readFileSync(this.outputsFile, "utf-8");
-
-      console.log("file contents: ", fileContents);
-
       const json = JSON.parse(fileContents);
 
-      console.log("json: ", json);
+      if (json[this.stack.stackName] == null) {
+        throw new Error();
+      }
 
-      console.log("stack name: ", this.stackName);
-
-      return json[this.stackName];
+      return json[this.stack.stackName];
     } catch (e) {
-      console.log(`Error: ${e}. Failed to parse outputs file at ${this.outputsFile}.`);
+      console.log(
+        `Error: ${e}. Failed to parse outputs file at ${this.outputsFile} for the stack: ${this.stack.stackName}`
+      );
       return {} as JsonFrom<T>;
     }
   }

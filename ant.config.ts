@@ -75,7 +75,7 @@ export class MyStack extends Stack {
             repo,
             ref,
             required_contexts: [],
-            environment: "staging - docs",
+            environment: "staging - api",
           });
 
           if (apiDeployment.status !== 201) {
@@ -102,8 +102,6 @@ export class MyStack extends Stack {
 🚀 Staging instances deployed!
 
 API - ${apiDeploymentStatus.data.environment_url}
-
-Docs - ${apiDeploymentStatus.data.environment_url}
 `,
           });
         },
