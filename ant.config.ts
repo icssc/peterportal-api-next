@@ -6,8 +6,7 @@
  * import * as cdk from 'aws-cdk-lib'
  * ```
  */
-import { App, Stack, CfnOutput } from "aws-cdk-lib/core";
-import { Bucket } from "aws-cdk-lib/aws-s3";
+import { App, Stack } from "aws-cdk-lib/core";
 import { Api } from "ant-stack/constructs/Api";
 
 /**
@@ -43,28 +42,10 @@ export class MyStack extends Stack {
   }
 }
 
-class TestStack extends Stack {
-  bucket: Bucket;
-
-  constructor(scope: App, id: string) {
-    super(scope, id);
-
-    this.bucket = new Bucket(this, "aponia-bucket-test-discipline", {
-      versioned: true,
-    });
-
-    new CfnOutput(this, "AbCd", {
-      value: this.bucket.bucketArn,
-    });
-
-    console.log(Stack.of(this).stackName);
-  }
-}
-
 export default function main() {
   const app = new App();
 
-  new TestStack(app, "MyStack");
+  new MyStack(app, "MyStack");
 
   return app;
 }

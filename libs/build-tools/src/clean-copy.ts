@@ -9,6 +9,7 @@ import type { Plugin } from "esbuild";
  * - copies all Prisma query engines to the output directory;
  * - copies the Prisma schema to the output directory; and
  * - sets the mode of each query engine to 755.
+ *
  * @param cwd The current working directory.
  * @param outDir The output directory.
  * @param prismaClientDir The path to the Prisma Client.
