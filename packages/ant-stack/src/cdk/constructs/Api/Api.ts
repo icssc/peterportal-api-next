@@ -1,28 +1,16 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { Stack } from "aws-cdk-lib";
 import { RestApi, type RestApiProps } from "aws-cdk-lib/aws-apigateway";
-import bodyParser from "body-parser";
-import chokidar from "chokidar";
-import { consola } from "consola";
+import { App, Stack } from "aws-cdk-lib/core";
 import { Construct } from "constructs";
-import cors from "cors";
 import { build } from "esbuild";
-import express, { Router } from "express";
-import { InternalHandler } from "packages/ant-stack/dist/lambda-core";
 
 import packageJson from "../../../../package.json";
 import { synthesizeConfig } from "../../../config.js";
 import { isHttpMethod } from "../../../lambda-core/constants.js";
 import { createBunHandler, createNodeHandler } from "../../../lambda-core/internal/handler.js";
-import { createExpressHandler } from "../../../lambda-core/internal/handler.js";
-import {
-  findAllProjects,
-  getWorkspaceRoot,
-  getClosestProjectDirectory,
-} from "../../../utils/directories.js";
-import { isMethod, MethodsToExpress, type Method } from "../../../utils/express-apigateway";
+import { findAllProjects, getWorkspaceRoot } from "../../../utils/directories.js";
 import { getNamedExports } from "../../../utils/static-analysis.js";
 
 import { ApiRoute, ApiRouteConfig } from "./ApiRoute.js";
@@ -149,146 +137,6 @@ export class Api extends Construct {
   }
 
   /**
-   * Starts an ExpressJS development server.
-   */
-  async dev() {
-    if (!("directory" in this.config)) {
-      throw new Error(`TODO: explicitly routed API is not supported yet.`);
-    }
-
-    const cwd = process.cwd();
-
-    const workspaceRoot = getWorkspaceRoot(cwd);
-
-    if (cwd === workspaceRoot) {
-      consola.info(
-        `🎏 Starting root dev server. All endpoints from ${this.config.directory} will be served.`
-      );
-    } else {
-      const endpoint = path.relative(`${workspaceRoot}/${this.config.directory}`, cwd);
-      consola.info(
-        `🎏 Starting local dev server. Only the current endpoint, ${endpoint} will be served at the "/" route.`
-      );
-      this.config.directory = path.resolve(process.cwd());
-    }
-
-    const apiRoutePaths = Object.keys(this.routes);
-
-    const apiRoutes = Object.values(this.routes);
-
-    //---------------------------------------------------------------------------------
-    // Build.
-    //---------------------------------------------------------------------------------
-
-    /**
-     * Build all endpoints.
-     */
-    await Promise.all(
-      apiRoutes.map(async (apiRoute) => {
-        consola.info(`🔨 Building ${apiRoute.directory} to ${apiRoute.outDirectory}`);
-        await build(apiRoute.config.runtime.esbuild ?? {});
-        consola.info(`✅ Done building ${apiRoute.directory} to ${apiRoute.outDirectory}`);
-      })
-    );
-
-    //---------------------------------------------------------------------------------
-    // Express development server.
-    //---------------------------------------------------------------------------------
-
-    const app = express();
-
-    app.use(cors(), bodyParser.json());
-
-    /**
-     * Mutable global router can be hot-swapped when routes change.
-     * To update the routes, re-assign the global router, and load all endpoint routes into the new router.
-     */
-    let router = Router();
-
-    app.use((req, res, next) => router(req, res, next));
-
-    /**
-     * Routes mapped to ExpressJS routers, i.e. middleware.
-     */
-    const routers: Record<string, Router> = {};
-
-    /**
-     * Replace the global router with a fresh one and reload all endpoints.
-     */
-    const refreshRouter = () => {
-      router = Router();
-      apiRoutes.forEach((apiRoute) => {
-        consola.info(`🔄 Loading ${apiRoute.config.route} from ${apiRoute.outDirectory}`);
-        router.use(apiRoute.config.route, (...args) => routers[apiRoute.directory](...args));
-      });
-    };
-
-    /**
-     * Load a specific endpoint's middleware.
-     */
-    const loadEndpoint = async (apiRoute: ApiRoute) => {
-      consola.info(`⚙  Setting up router for ${apiRoute}`);
-
-      routers[apiRoute.directory] = Router();
-
-      const file = path.resolve(apiRoute.directory, apiRoute.outDirectory, apiRoute.outFiles.index);
-
-      const internalHandlers = await import(`${file}?update=${Date.now()}`);
-
-      if (internalHandlers == null) {
-        consola.error(`🚨 Failed to load ${apiRoute.directory}. No exports found.`);
-        return;
-      }
-
-      const handlerFunctions = internalHandlers.default ?? internalHandlers;
-
-      Object.entries(handlerFunctions)
-        .filter((entry): entry is [Method, InternalHandler] => isMethod(entry[0]))
-        .map(([key, handler]) => [MethodsToExpress[key], handler] as const)
-        .forEach(([method, handler]) => {
-          routers[apiRoute.directory][method]("/", createExpressHandler(handler));
-        });
-    };
-
-    /**
-     * Prepare the development server by loading all the endpoints and refreshing the routes.
-     */
-    await Promise.all(apiRoutes.map(loadEndpoint)).then(refreshRouter);
-
-    const port = this.config.development?.port ?? 8080;
-
-    app.listen(port, () => {
-      consola.info(`🎉 Express server listening at http://localhost:${port}`);
-    });
-
-    const outputDirectories = apiRoutes.map((apiRoute) =>
-      path.resolve(workspaceRoot, apiRoute.directory, apiRoute.outDirectory)
-    );
-
-    //---------------------------------------------------------------------------------
-    // Watch file changes.
-    //---------------------------------------------------------------------------------
-
-    const watcher = chokidar.watch(apiRoutePaths, {
-      ignored: [
-        /(^|[/\\])\../, // dotfiles
-        /node_modules/, // node_modules
-        ...outputDirectories,
-      ],
-    });
-
-    watcher.on("change", async (path) => {
-      const endpoint = getClosestProjectDirectory(path);
-
-      consola.success("✨ endpoint changed: ", endpoint);
-
-      await build(this.routes[endpoint].config.runtime.esbuild ?? {});
-
-      await loadEndpoint(this.routes[endpoint]).then(refreshRouter);
-    });
-  }
-
-  /**
    * Build stuff.
    */
   async build() {
@@ -316,8 +164,8 @@ export class Api extends Construct {
 /**
  * Get the API defined in the root config.
  */
-export async function getApi() {
-  const app = await synthesizeConfig();
+export async function getApi(initializedApp?: App) {
+  const app = initializedApp ?? (await synthesizeConfig());
 
   const stacks = app.node.children.find(Stack.isStack);
 

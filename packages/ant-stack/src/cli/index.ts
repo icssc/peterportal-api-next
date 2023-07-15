@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { cli, command } from "cleye";
 import { consola } from "consola";
 
-import { buildInternalHandler } from "./commands/build.js";
+import { build } from "./commands/build.js";
 import { interactiveCreate } from "./commands/create";
 import { deploy } from "./commands/deploy.js";
 import { destroy } from "./commands/destroy.js";
@@ -39,7 +39,7 @@ async function main() {
 
   switch (argv.command) {
     case "build": {
-      return await buildInternalHandler();
+      return await build();
     }
     case "create": {
       return await interactiveCreate();
