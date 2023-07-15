@@ -11,7 +11,6 @@ import { Construct } from "constructs";
 import cors from "cors";
 import { build } from "esbuild";
 import express, { Router } from "express";
-import { getNamedExports } from "packages/ant-stack/src/utils/static-analysis.js";
 
 import packageJson from "../../../../package.json";
 import { synthesizeConfig } from "../../../config.js";
@@ -23,6 +22,7 @@ import {
   getWorkspaceRoot,
   getClosestProjectDirectory,
 } from "../../../utils/directories.js";
+import { getNamedExports } from "../../../utils/static-analysis.js";
 
 import { ApiRoute, ApiRouteConfig } from "./ApiRoute.js";
 
