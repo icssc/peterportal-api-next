@@ -146,6 +146,10 @@ interface FunctionResources {
 }
 
 export class ApiRoute extends Construct {
+  public static readonly type = "API Route" as const;
+
+  public readonly type = ApiRoute.type;
+
   /**
    * Override configs for this route.
    */

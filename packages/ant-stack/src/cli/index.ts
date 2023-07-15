@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import ci from "ci-info";
 import { cli, command } from "cleye";
 import { consola } from "consola";
 
@@ -7,7 +8,7 @@ import { detectConstruct } from "../cdk/index.js";
 
 import { buildApi } from "./commands/build";
 import { interactiveCreate } from "./commands/create";
-import { deploy } from "./commands/deploy.js";
+import { deployGitHub } from "./commands/deploy";
 import { destroy } from "./commands/destroy.js";
 import { startApiDevelopmentServer } from "./commands/dev";
 
@@ -44,11 +45,15 @@ async function main() {
 
   const isApi = Api.isApi(construct);
 
+  const isGitHubPr = ci.isCI && ci.GITHUB_ACTIONS && ci.isPR;
+
   switch (argv.command) {
     case "build": {
       if (isApi) {
         return await buildApi();
       }
+
+      consola.error(`💀 Unsupported constructs`);
       return;
     }
 
@@ -60,11 +65,16 @@ async function main() {
       if (isApi) {
         return await startApiDevelopmentServer(construct);
       }
+      consola.error(`💀 Unsupported development server.`);
       return;
     }
 
     case "deploy": {
-      return await deploy();
+      if (isGitHubPr) {
+        return await deployGitHub();
+      }
+      consola.error(`💀 Unsupported CI/CD environment.`);
+      return;
     }
 
     case "destroy": {

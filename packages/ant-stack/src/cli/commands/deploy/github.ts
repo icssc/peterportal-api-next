@@ -6,7 +6,7 @@ import github from "@actions/github";
 import { CloudFormationClient } from "@aws-sdk/client-cloudformation";
 import consola from "consola";
 
-import { getClosestProjectDirectory, waitForStackIdle } from "../../utils";
+import { getClosestProjectDirectory, waitForStackIdle } from "../../../utils";
 
 const projectDirectory = getClosestProjectDirectory(__dirname);
 
@@ -16,7 +16,7 @@ const app = `tsx ${appEntry}`;
 
 const cdkCommand = ["cdk", "deploy", "--app", app, "*", "--require-approval", "never"];
 
-export async function deploy() {
+export async function deployGitHub() {
   const cfnClient = new CloudFormationClient({});
 
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");

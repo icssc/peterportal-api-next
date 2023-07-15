@@ -71,7 +71,7 @@ export interface RootApiConstructConfig {
  * Creates an API Gateway REST API with routes using Lambda integrations for specified routes.
  */
 export class Api extends Construct {
-  public static readonly type = "api" as const;
+  public static readonly type = "API" as const;
 
   public readonly type = Api.type;
 
@@ -134,7 +134,7 @@ export class Api extends Construct {
 /**
  * Get the API defined in the root config.
  */
-export async function getApi(initializedApp?: App) {
+export async function getApi(initializedApp?: App): Promise<Api> {
   const app = initializedApp ?? (await synthesizeConfig());
 
   const stacks = app.node.children.find(Stack.isStack);
@@ -146,7 +146,7 @@ export async function getApi(initializedApp?: App) {
   const api = stacks?.node.children.find(Api.isApi);
 
   if (!api) {
-    throw new Error(`No API construct found.`);
+    throw new Error(`No ${Api.type} construct found.`);
   }
 
   return api;
@@ -159,7 +159,7 @@ export async function getApiRoute(directory: string = process.cwd()) {
   const api = await getApi();
 
   if (!api.routes[directory]) {
-    throw new Error(`No API route found for directory: ${directory}`);
+    throw new Error(`No ${ApiRoute.type} found for directory: ${directory}`);
   }
 
   return api.routes[directory];
