@@ -254,7 +254,7 @@ export class ApiRoute extends Construct {
       return resource.getResource(route) ?? resource.addResource(route);
     }, this.config.api.root);
 
-    getNamedExports(this.outFiles.node)
+    getNamedExports(path.join(this.outDirectory, this.outFiles.node))
       .filter(isHttpMethod)
       .forEach((httpMethod) => {
         const functionName = `${this.id}-${httpMethod}`.replace(/\//g, "-");

@@ -119,7 +119,7 @@ export class Api extends Construct {
         /**
          * Only synthesize everything if we're not in a dry run.
          */
-        if (process.env[dryRunKey]) {
+        if (!process.env[dryRunKey]) {
           Object.values(this.routes).forEach((apiRoute) => apiRoute.synth());
         }
       });

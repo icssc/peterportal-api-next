@@ -109,9 +109,6 @@ async function compileRuntimes(apiRoute: ApiRoute) {
     format: "esm",
     bundle: true,
     target: "esnext",
-    outExtension: {
-      ".js": ".mjs",
-    },
   });
 
   // Done with the temporary files, remove them.
