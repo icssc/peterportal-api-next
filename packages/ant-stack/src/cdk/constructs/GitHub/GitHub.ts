@@ -24,8 +24,8 @@ export type GitHubCallbacks<T> = {
 
 export interface GitHubConfig<T> {
   outputsFile?: string;
-  outputs: T;
-  callbacks: GitHubCallbacks<T>;
+  outputs?: T;
+  callbacks?: Partial<GitHubCallbacks<T>>;
 }
 
 /**
@@ -53,7 +53,7 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
 
     this.stackName = Stack.of(this).stackName;
 
-    this.outputs = Object.entries(config.outputs).reduce((outputs, [key, value]) => {
+    this.outputs = Object.entries(config.outputs ?? {}).reduce((outputs, [key, value]) => {
       outputs[key] = new CfnOutput(this, key, value);
       return outputs;
     }, {} as Record<PropertyKey, CfnOutput>);
@@ -71,19 +71,19 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
   }
 
   public onPreDeploy() {
-    return this.config.callbacks.onPreDeploy(this.parseOutputs());
+    return this.config.callbacks?.onPreDeploy?.(this.parseOutputs());
   }
 
   public onPostDeploy() {
-    return this.config.callbacks.onPostDeploy(this.parseOutputs());
+    return this.config.callbacks?.onPostDeploy?.(this.parseOutputs());
   }
 
   public onPreDestroy() {
-    return this.config.callbacks.onPreDestroy(this.parseOutputs());
+    return this.config.callbacks?.onPreDestroy?.(this.parseOutputs());
   }
 
   public onPostDestroy() {
-    return this.config.callbacks.onPostDestroy(this.parseOutputs());
+    return this.config.callbacks?.onPostDestroy?.(this.parseOutputs());
   }
 }
 
