@@ -54,26 +54,28 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
     this.stackName = Stack.of(this).stackName;
 
     this.outputs = Object.entries(config.outputs ?? {}).reduce((outputs, [key, value]) => {
-      outputs[key] = new CfnOutput(this, key, value);
+      outputs[key] = new CfnOutput(scope, key, value);
       return outputs;
     }, {} as Record<PropertyKey, CfnOutput>);
   }
 
   public parseOutputs(): JsonFrom<T> {
     try {
-      console.log("output file: ", this.outputsFile);
+      console.log("outputs file: ", this.outputsFile);
 
       const fileContents = fs.readFileSync(this.outputsFile, "utf-8");
 
-      console.log("fileContents: ", fileContents);
+      console.log("file contents: ", fileContents);
 
       const json = JSON.parse(fileContents);
 
       console.log("json: ", json);
 
+      console.log("stack name: ", this.stackName);
+
       return json[this.stackName];
-    } catch {
-      console.log(`Failed to parse outputs file at ${this.outputsFile}.`);
+    } catch (e) {
+      console.log(`Error: ${e}. Failed to parse outputs file at ${this.outputsFile}.`);
       return {} as JsonFrom<T>;
     }
   }

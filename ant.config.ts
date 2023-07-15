@@ -52,7 +52,7 @@ export class MyStack extends Stack {
     new GitHub(this, "GitHub", {
       outputs: {
         invokeUrl: {
-          value: api.api.arnForExecuteApi(),
+          value: api.api.urlForPath(),
         },
       },
       callbacks: {
