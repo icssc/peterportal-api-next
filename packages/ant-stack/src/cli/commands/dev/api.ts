@@ -16,7 +16,7 @@ import { isMethod, MethodsToExpress, type Method } from "../../../utils/express-
 /**
  * Start an ExpressJS server for the API construct.
  */
-export async function devApi(api: Api) {
+export async function startApiDevelopmentServer(api: Api) {
   if (!("directory" in api.config)) {
     throw new Error(`TODO: explicitly routed API is not supported yet.`);
   }

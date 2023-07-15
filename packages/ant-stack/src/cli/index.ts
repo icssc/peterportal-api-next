@@ -2,11 +2,14 @@ import chalk from "chalk";
 import { cli, command } from "cleye";
 import { consola } from "consola";
 
-import { build } from "./commands/build.js";
+import { Api } from "../cdk/constructs/Api";
+import { detectConstruct } from "../cdk/index.js";
+
+import { buildApi } from "./commands/build";
 import { interactiveCreate } from "./commands/create";
 import { deploy } from "./commands/deploy.js";
 import { destroy } from "./commands/destroy.js";
-import { startDevServer } from "./commands/dev.js";
+import { startApiDevelopmentServer } from "./commands/dev";
 
 async function main() {
   consola.log(chalk("🐜 ant-stack CLI"));
@@ -37,19 +40,33 @@ async function main() {
     ],
   });
 
+  const construct = await detectConstruct();
+
+  const isApi = Api.isApi(construct);
+
   switch (argv.command) {
     case "build": {
-      return await build();
+      if (isApi) {
+        return await buildApi();
+      }
+      return;
     }
+
     case "create": {
       return await interactiveCreate();
     }
+
     case "dev": {
-      return await startDevServer();
+      if (isApi) {
+        return await startApiDevelopmentServer(construct);
+      }
+      return;
     }
+
     case "deploy": {
       return await deploy();
     }
+
     case "destroy": {
       return await destroy();
     }
