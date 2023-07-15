@@ -1,12 +1,13 @@
 /**
- * IMPORTANT: we can't import the entirety of aws-cdk-lib because it will nuke our memory because we JIT execute!
+ * IMPORTANT: we can't import the entirety of aws-cdk-lib because it will nuke our memory when we JIT execute!
  *
  * NOO! 🤬
  * ```ts
  * import * as cdk from 'aws-cdk-lib'
  * ```
  */
-import { App, Stack } from "aws-cdk-lib/core";
+import { App, Stack, CfnOutput } from "aws-cdk-lib/core";
+import { Bucket } from "aws-cdk-lib/aws-s3";
 import { Api } from "ant-stack/constructs/Api";
 
 /**
@@ -17,7 +18,7 @@ import topLevelModule from 'module';
 const require = topLevelModule.createRequire(import.meta.url);
 `;
 
-class MyStack extends Stack {
+export class MyStack extends Stack {
   constructor(scope: App, id: string) {
     super(scope, id);
 
@@ -42,10 +43,28 @@ class MyStack extends Stack {
   }
 }
 
+class TestStack extends Stack {
+  bucket: Bucket;
+
+  constructor(scope: App, id: string) {
+    super(scope, id);
+
+    this.bucket = new Bucket(this, "aponia-bucket-test-discipline", {
+      versioned: true,
+    });
+
+    new CfnOutput(this, "Bucket Arn", {
+      value: this.bucket.bucketArn,
+    });
+  }
+}
+
 export default function main() {
   const app = new App();
 
-  new MyStack(app, "MyStack");
+  new TestStack(app, "MyStack");
 
   return app;
 }
+
+main();
