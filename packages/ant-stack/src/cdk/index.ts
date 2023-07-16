@@ -4,7 +4,7 @@ import packageJson from "../../package.json";
 import { synthesizeConfig } from "../config.js";
 import { getWorkspaceRoot } from "../utils";
 
-import { getApi } from "./constructs/Api/Api.js";
+import { getApi } from "./constructs/api/api.js";
 
 export async function detectConstruct(initializedApp?: App, directory = process.cwd()) {
   const workspaceRoot = getWorkspaceRoot(directory);

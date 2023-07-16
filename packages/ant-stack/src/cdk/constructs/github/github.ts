@@ -8,21 +8,25 @@ import { MaybePromise, createTemporaryFile } from "../../../utils";
 
 type Outputs = Record<PropertyKey, CfnOutputProps>;
 
-type JsonFrom<T> = {
-  [K in keyof T]: string;
+type OutputsJson<T extends Outputs> = {
+  [K in keyof T]: T[K]["value"];
 };
 
-export type GitHubCallbacks<T> = {
-  onPreDeploy: (outputs: JsonFrom<T>) => MaybePromise<unknown>;
+/**
+ * Pre-cdk actions don't have any stack outputs to refer to.
+ * After synthesizing and deploying/destroying the stack, the outputs are written to a file.
+ */
+export type GitHubCallbacks<T extends Outputs> = {
+  onPreDeploy: () => MaybePromise<unknown>;
 
-  onPostDeploy: (outputs: JsonFrom<T>) => MaybePromise<unknown>;
+  onPostDeploy: (outputs: OutputsJson<T>) => MaybePromise<unknown>;
 
-  onPreDestroy: (outputs: JsonFrom<T>) => MaybePromise<unknown>;
+  onPreDestroy: () => MaybePromise<unknown>;
 
-  onPostDestroy: (outputs: JsonFrom<T>) => MaybePromise<unknown>;
+  onPostDestroy: (outputs: OutputsJson<T>) => MaybePromise<unknown>;
 };
 
-export interface GitHubConfig<T> {
+export interface GitHubConfig<T extends Outputs> {
   outputsFile?: string;
   outputs?: T;
   callbacks?: Partial<GitHubCallbacks<T>>;
@@ -66,7 +70,7 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
     }, {} as Record<PropertyKey, CfnOutput>);
   }
 
-  public parseOutputs(): JsonFrom<T> {
+  public parseOutputs(): OutputsJson<T> {
     try {
       const fileContents = fs.readFileSync(this.outputsFile, "utf-8");
       const json = JSON.parse(fileContents);
@@ -80,12 +84,12 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
       console.log(
         `Error: ${e}. Failed to parse outputs file at ${this.outputsFile} for the stack: ${this.stack.stackName}`
       );
-      return {} as JsonFrom<T>;
+      return {} as OutputsJson<T>;
     }
   }
 
   public onPreDeploy() {
-    return this.config.callbacks?.onPreDeploy?.(this.parseOutputs());
+    return this.config.callbacks?.onPreDeploy?.();
   }
 
   public onPostDeploy() {
@@ -93,7 +97,7 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
   }
 
   public onPreDestroy() {
-    return this.config.callbacks?.onPreDestroy?.(this.parseOutputs());
+    return this.config.callbacks?.onPreDestroy?.();
   }
 
   public onPostDestroy() {

@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { build } from "esbuild";
-import { getApiRoute, ApiRoute } from "../../../cdk/constructs/Api";
+import { getApiRoute, ApiRoute } from "../../../cdk/constructs/api";
 import packageJson from "../../../../package.json";
 import { isHttpMethod } from "../../../lambda-core/constants.js";
 import { createBunHandler, createNodeHandler } from "../../../lambda-core/internal/handler.js";

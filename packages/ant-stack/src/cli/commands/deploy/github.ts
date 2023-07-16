@@ -4,7 +4,7 @@ import { CloudFormationClient } from "@aws-sdk/client-cloudformation";
 import { App, Stack } from "aws-cdk-lib/core";
 import consola from "consola";
 
-import { getGitHub, GitHub } from "../../../cdk/constructs/GitHub/GitHub";
+import { getGitHub, GitHub } from "../../../cdk/constructs/github";
 import {
   getExistingConfigFile,
   synthesizeConfig,

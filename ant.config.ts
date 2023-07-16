@@ -10,8 +10,8 @@ import { consola } from "consola";
 import * as core from "@actions/core";
 import * as github from "@actions/github";
 import { App, Stack } from "aws-cdk-lib/core";
-import { Api } from "ant-stack/constructs/Api";
-import { GitHub } from "ant-stack/constructs/GitHub";
+import { Api } from "ant-stack/constructs/api";
+import { GitHub } from "ant-stack/constructs/github";
 
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1491470829

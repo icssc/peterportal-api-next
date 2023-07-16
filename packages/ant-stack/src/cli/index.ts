@@ -3,7 +3,7 @@ import ci from "ci-info";
 import { cli, command } from "cleye";
 import { consola } from "consola";
 
-import { Api } from "../cdk/constructs/Api";
+import { Api } from "../cdk/constructs/api";
 import { detectConstruct } from "../cdk/index.js";
 import { synthesizeConfig } from "../config";
 

@@ -7,7 +7,7 @@ import { Construct } from "constructs";
 import { synthesizeConfig, dryRunKey } from "../../../config.js";
 import { findAllProjects, getWorkspaceRoot } from "../../../utils/directories.js";
 
-import { ApiRoute, ApiRouteConfig } from "./ApiRoute.js";
+import { ApiRoute, ApiRouteConfig } from "./apiRoute.js";
 
 /**
  * Configure the API Gateway REST API and set default options for API routes under it.
