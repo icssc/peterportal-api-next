@@ -5,7 +5,7 @@ import he from "he";
 import pLimit from "p-limit";
 import { dirname, join } from "path";
 import type { Instructor } from "peterportal-api-next-types";
-import stringSimilarity from "string-similarity";
+import { stringSimilarity } from "string-similarity-js";
 import { fileURLToPath } from "url";
 import winston from "winston";
 
@@ -527,17 +527,21 @@ async function getDirectoryInfo(
           nameResults.push(strToTitleCase(response[i][1]["Name"]));
         }
       }
-      const match = stringSimilarity.findBestMatch(name, nameResults);
+      const ratings = nameResults.map((target) => ({
+        target,
+        rating: stringSimilarity(name, target, 1),
+      }));
+      const bestMatchIndex = Math.max(...ratings.map((x) => x.rating), 0);
+      const match = {
+        ratings,
+        bestMatch: ratings[bestMatchIndex],
+        bestMatchIndex,
+      };
       if (match["bestMatch"]["rating"] >= 0.5) {
         json = response[match["bestMatchIndex"]][1];
       }
       // Check if Nickname matches
-      else if (
-        stringSimilarity.compareTwoStrings(
-          name,
-          response[match["bestMatchIndex"]][1]["Nickname"]
-        ) >= 0.5
-      ) {
+      else if (stringSimilarity(name, response[match["bestMatchIndex"]][1]["Nickname"], 1) >= 0.5) {
         json = response[match["bestMatchIndex"]][1];
       }
     }
