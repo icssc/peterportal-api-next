@@ -954,6 +954,9 @@ importers:
       instructor-scraper:
         specifier: '*'
         version: link:../instructor-scraper
+      p-limit:
+        specifier: ^4.0.0
+        version: 4.0.0
       prereq-scraper:
         specifier: '*'
         version: link:../prereq-scraper

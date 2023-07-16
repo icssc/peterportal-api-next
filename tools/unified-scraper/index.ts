@@ -1,6 +1,7 @@
 import { PrismaClient } from "@libs/db";
 import { getCourses } from "course-scraper";
 import { getInstructors } from "instructor-scraper";
+import pLimit from "p-limit";
 import { getPrereqs } from "prereq-scraper";
 
 import type { ScrapedCourse } from "./lib";
@@ -40,10 +41,16 @@ prisma.$on('query', (e) => {
 });
 
 async function main() {
-  const courseInfo = (await getCourses()) as Record<string, ScrapedCourse>;
-  const instructorInfo = (await getInstructors()).result;
+  const limit = pLimit(1);
+  const [courses, instructors, prereqs] = await Promise.all([
+    limit(() => getCourses()),
+    limit(() => getInstructors()),
+    limit(() => getPrereqs()),
+  ])
+  const courseInfo = courses as Record<string, ScrapedCourse>;
+  const instructorInfo = instructors.result;
   const prereqInfo = Object.fromEntries(
-    Object.values(await getPrereqs())
+    Object.values(prereqs)
       .flat()
       .map(({ courseId, prereqTree }) => [courseId, prereqTree])
   );
