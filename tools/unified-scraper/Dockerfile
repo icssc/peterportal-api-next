@@ -15,4 +15,4 @@ RUN npm i
 WORKDIR /home/node/node_modules/prereq-scraper
 RUN npm i
 WORKDIR /home/node
-CMD ["tsx", "--expose-gc", "index.ts"]
+CMD ["tsx", "index.ts"]

@@ -41,8 +41,8 @@ async function safeFetch(url: string): Promise<Response> {
       await sleep(500);
       return await fetch(url);
     } catch {
-      console.log("Request failed, sleeping for 3 minutes");
-      await sleep(3 * 60 * 1000);
+      console.log("Request failed");
+      await sleep(1000);
     }
   }
   return new Response();

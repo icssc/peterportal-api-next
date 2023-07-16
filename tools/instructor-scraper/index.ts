@@ -85,7 +85,7 @@ function sleep(ms: number) {
  * @returns {InstructorsData} Object containing instructors info and stats regarding retrieval
  */
 export async function getInstructors(
-  concurrency_limit = 16,
+  concurrency_limit = 1,
   attempts = 5,
   year_threshold: number = YEAR_THRESHOLD
 ): Promise<InstructorsData> {
