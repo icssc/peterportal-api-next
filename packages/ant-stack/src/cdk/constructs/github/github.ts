@@ -111,17 +111,19 @@ export class GitHub<T extends Outputs = Outputs> extends Construct {
 export async function getGitHub(initializedApp?: App): Promise<GitHub> {
   const app = initializedApp ?? (await synthesizeConfig());
 
-  const stacks = app.node.children.find(Stack.isStack);
+  const stacks = app.node.children.filter(Stack.isStack);
 
   if (!stacks) {
     throw new Error(`No stacks found.`);
   }
 
-  const gitHub = stacks?.node.children.find(GitHub.isGitHub);
+  const stackWithGitHub = stacks.find((stack) => stack.node.children.some(GitHub.isGitHub));
 
-  if (!gitHub) {
+  const github = stackWithGitHub?.node.children.find(GitHub.isGitHub);
+
+  if (!github) {
     throw new Error(`No ${GitHub.type} construct found.`);
   }
 
-  return gitHub;
+  return github;
 }
