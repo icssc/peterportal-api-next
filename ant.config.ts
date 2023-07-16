@@ -21,6 +21,7 @@ import { Api } from "ant-stack/constructs/api";
 import { GitHub } from "ant-stack/constructs/github";
 import { StaticSite } from "ant-stack/constructs/staticSite";
 import { getWorkspaceRoot } from "ant-stack/utils";
+import { isCdk } from "packages/ant-stack/src/config";
 
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1491470829
@@ -71,11 +72,9 @@ export class DocsStack extends aws_core.Stack {
 
   zone: aws_route53.IHostedZone;
 
-  constructor(scope: aws_core.App, id: string) {
-    if (!process.env.CERTIFICATE_ARN) throw new Error("Certificate ARN not provided. Stop.");
-    if (!process.env.DATABASE_URL) throw new Error("Database URL not provided. Stop.");
-    if (!process.env.HOSTED_ZONE_ID) throw new Error("Hosted Zone ID not provided. Stop.");
+  stage: string;
 
+  constructor(scope: aws_core.App, id: string) {
     let stage = "prod";
 
     switch (process.env.NODE_ENV) {
@@ -103,9 +102,21 @@ export class DocsStack extends aws_core.Stack {
       terminationProtection: /*stage === "prod"*/ false,
     });
 
+    this.stage = stage;
+
+    if (isCdk()) {
+      this.synth();
+    }
+  }
+
+  synth() {
+    if (!process.env.CERTIFICATE_ARN) throw new Error("Certificate ARN not provided. Stop.");
+    if (!process.env.DATABASE_URL) throw new Error("Database URL not provided. Stop.");
+    if (!process.env.HOSTED_ZONE_ID) throw new Error("Hosted Zone ID not provided. Stop.");
+
     const certificateArn = process.env.CERTIFICATE_ARN;
     const hostedZoneId = process.env.HOSTED_ZONE_ID ?? "hi";
-    const recordName = `${stage === "prod" ? "" : `${stage}-`}docs.api-next`;
+    const recordName = `${this.stage === "prod" ? "" : `${this.stage}-`}docs.api-next`;
     const zoneName = "peterportal.org";
 
     const workspaceRoot = getWorkspaceRoot(process.cwd());
@@ -155,11 +166,15 @@ export class DocsStack extends aws_core.Stack {
       hostedZoneId,
     });
 
-    this.aRecord = new aws_route53.ARecord(this, `peterportal-api-next-docs-a-record-${stage}`, {
-      zone: this.zone,
-      recordName,
-      target: aws_route53.RecordTarget.fromAlias(this.cloudFrontTarget),
-    });
+    this.aRecord = new aws_route53.ARecord(
+      this,
+      `peterportal-api-next-docs-a-record-${this.stage}`,
+      {
+        zone: this.zone,
+        recordName,
+        target: aws_route53.RecordTarget.fromAlias(this.cloudFrontTarget),
+      }
+    );
   }
 }
 
