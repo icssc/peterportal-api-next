@@ -4,12 +4,32 @@ import aws_iam from "aws-cdk-lib/aws-iam";
 import aws_s3 from "aws-cdk-lib/aws-s3";
 import aws_s3_deployment from "aws-cdk-lib/aws-s3-deployment";
 import { Construct } from "constructs";
+import { defu } from "defu";
 
 export interface StaticSiteProps {
   /**
    * Full path to the directory containing the static site assets.
    */
   assets: string;
+
+  /**
+   * Override props passed to constructs.
+   */
+  constructs?: StaticSiteConstructProps;
+}
+
+export interface StaticSiteConstructProps {
+  bucketProps?: (scope: Construct, id: string) => aws_s3.BucketProps;
+
+  oaiProps?: (scope: Construct, id: string) => aws_cloudfront.OriginAccessIdentityProps;
+
+  policyStatementProps?: (scope: Construct, id: string) => aws_iam.PolicyStatementProps;
+
+  originProps?: (scope: Construct, id: string) => aws_cloudfront_origins.S3OriginProps;
+
+  distributionProps?: (scope: Construct, id: string) => aws_cloudfront.DistributionProps;
+
+  bucketDeploymentProps?: (scope: Construct, id: string) => aws_s3_deployment.BucketDeploymentProps;
 }
 
 export class StaticSite extends Construct {
@@ -30,30 +50,50 @@ export class StaticSite extends Construct {
   constructor(scope: Construct, id: string, readonly props: StaticSiteProps) {
     super(scope, id);
 
-    this.bucket = new aws_s3.Bucket(this, `${id}-destination-bucket`);
+    const bucketProps = props.constructs?.bucketProps?.(this, id);
+
+    this.bucket = new aws_s3.Bucket(this, `${id}-destination-bucket`, bucketProps);
+
+    const oaiProps = props.constructs?.oaiProps?.(this, id);
 
     this.originAccessIdentity = new aws_cloudfront.OriginAccessIdentity(
       this,
-      `${id}-origin-access-identity`
+      `${id}-origin-access-identity`,
+      oaiProps
     );
 
     this.originAccessIdentityPrincipal = new aws_iam.CanonicalUserPrincipal(
       this.originAccessIdentity.cloudFrontOriginAccessIdentityS3CanonicalUserId
     );
 
-    this.policyStatement = new aws_iam.PolicyStatement({
+    const policyStatementProps = props.constructs?.policyStatementProps?.(this, id);
+
+    const defaultPolicyStatementProps: aws_iam.PolicyStatementProps = {
       actions: ["s3:GetObject"],
       resources: [this.bucket.arnForObjects("*")],
       principals: [this.originAccessIdentityPrincipal],
-    });
+    };
+
+    this.policyStatement = new aws_iam.PolicyStatement(
+      defu(policyStatementProps, defaultPolicyStatementProps)
+    );
 
     this.bucket.addToResourcePolicy(this.policyStatement);
 
-    this.origin = new aws_cloudfront_origins.S3Origin(this.bucket, {
-      originAccessIdentity: this.originAccessIdentity,
-    });
+    const originProps = props.constructs?.originProps?.(this, id);
 
-    this.distribution = new aws_cloudfront.Distribution(this, `${id}-distribution`, {
+    const defaultOriginProps: aws_cloudfront_origins.S3OriginProps = {
+      originAccessIdentity: this.originAccessIdentity,
+    };
+
+    this.origin = new aws_cloudfront_origins.S3Origin(
+      this.bucket,
+      defu(originProps, defaultOriginProps)
+    );
+
+    const distributionProps = props.constructs?.distributionProps?.(this, id);
+
+    const defaultDistributionProps: aws_cloudfront.DistributionProps = {
       // certificate: this.certificate --> user should figure this out,
       defaultRootObject: "index.html",
       defaultBehavior: {
@@ -61,17 +101,27 @@ export class StaticSite extends Construct {
         allowedMethods: aws_cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: aws_cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
-    });
+    };
+
+    this.distribution = new aws_cloudfront.Distribution(
+      this,
+      `${id}-distribution`,
+      defu(distributionProps, defaultDistributionProps)
+    );
+
+    const bucketDeploymentProps = props.constructs?.bucketDeploymentProps?.(this, id);
+
+    const defaultBucketDeploymentProps: aws_s3_deployment.BucketDeploymentProps = {
+      sources: [aws_s3_deployment.Source.asset(props.assets)],
+      destinationBucket: this.bucket,
+      distribution: this.distribution,
+      distributionPaths: ["/*"],
+    };
 
     this.bucketDeployment = new aws_s3_deployment.BucketDeployment(
       this,
       `${id}-bucket-deployment`,
-      {
-        sources: [aws_s3_deployment.Source.asset(props.assets)],
-        destinationBucket: this.bucket,
-        distribution: this.distribution,
-        distributionPaths: ["/*"],
-      }
+      defu(bucketDeploymentProps, defaultBucketDeploymentProps)
     );
   }
 }
