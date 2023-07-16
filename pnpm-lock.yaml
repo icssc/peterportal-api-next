@@ -837,9 +837,6 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0
     devDependencies:
-      '@types/axios':
-        specifier: ^0.14.0
-        version: 0.14.0
       '@types/cheerio':
         specifier: ^0.22.31
         version: 0.22.31

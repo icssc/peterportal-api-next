@@ -33,6 +33,21 @@ const GE_DICTIONARY: Record<string, string> = {
  */
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+async function safeFetch(url: string): Promise<Response> {
+  const requestSucceeded = false;
+  while (!requestSucceeded) {
+    try {
+      console.log(`Making request to ${url}`);
+      await sleep(500);
+      return await fetch(url);
+    } catch {
+      console.log("Request failed, sleeping for 3 minutes");
+      await sleep(3 * 60 * 1000);
+    }
+  }
+  return new Response();
+}
+
 /**
  * @param {string} s: string to normalize (usually parsed from cheerio object)
  * @returns {string}: a normalized string that can be safely compared to other strings
@@ -52,7 +67,7 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
    * @param {string} school: school name
    */
   async function findSchoolNameFromDepartmentPage(departmentUrl: string, school: string) {
-    const response = await fetch(departmentUrl);
+    const response = await safeFetch(departmentUrl);
     const $ = cheerio.load(await response.text());
     // if this department has the "Courses" tab
     const departmentCourses = $("#courseinventorytab");
@@ -68,7 +83,7 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
    * @param {string} schoolURL: URL to a school page
    */
   async function findSchoolName(schoolURL: string) {
-    const response = await fetch(schoolURL);
+    const response = await safeFetch(schoolURL);
     const $ = cheerio.load(await response.text());
     // get school name
     const school: string = normalizeString($("#contentarea > h1").text());
@@ -106,7 +121,7 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
   const mapping: Record<string, string> = JSON.parse(
     readFileSync(join(__dirname, "missingDepartments.json"), { encoding: "utf8" })
   );
-  const response = await fetch(URL_TO_ALL_SCHOOLS);
+  const response = await safeFetch(URL_TO_ALL_SCHOOLS);
   const $ = cheerio.load(await response.text());
   const schoolLinks: string[] = [];
   // look through all the lis in the sidebar
@@ -133,7 +148,7 @@ export async function mapCoursePageToSchool(
   school: string,
   courseURL: string
 ) {
-  const response = await fetch(courseURL);
+  const response = await safeFetch(courseURL);
   const $ = cheerio.load(await response.text());
   // get all the departments under this school
   const courseBlocks: cheerio.Element[] = [];
@@ -170,7 +185,7 @@ export async function getAllCourseURLS(): Promise<string[]> {
   // store all URLS in list
   const courseURLS: string[] = [];
   // access the course website to parse info
-  const response = await fetch(URL_TO_ALL_COURSES);
+  const response = await safeFetch(URL_TO_ALL_COURSES);
   const $ = cheerio.load(await response.text());
   // get all the unordered lists
   $("#atozindex > ul").each((i, letterLists) => {
@@ -197,7 +212,7 @@ export async function getAllCourses(
   json_data: { [key: string]: Record<string, unknown> },
   departmentToSchoolMapping: { [key: string]: string }
 ) {
-  const response = await fetch(courseURL);
+  const response = await safeFetch(courseURL);
 
   const responseText = await response.text();
   const $ = cheerio.load(responseText);
@@ -322,7 +337,7 @@ export async function getCourseInfo(
   courseBlock: cheerio.Element,
   courseURL: string
 ): Promise<string[]> {
-  const response = await fetch(courseURL);
+  const response = await safeFetch(courseURL);
   const $ = cheerio.load(await response.text());
   // Regex filed into three categories (id, name, units) each representing an element in the return array
   const courseInfoPatternWithUnits =
