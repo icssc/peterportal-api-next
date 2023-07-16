@@ -40,7 +40,12 @@ export class ApiStack extends aws_core.Stack {
   api: Api;
 
   constructor(scope: aws_core.App, id: string) {
-    super(scope, id);
+    super(scope, id, {
+      env: {
+        region: "us-east-1",
+      },
+      terminationProtection: /*stage === "prod"*/ false,
+    });
 
     this.api = new Api(this, "Api", {
       directory: "apps/api",
