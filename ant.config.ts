@@ -27,10 +27,12 @@ const __dirname = topLevelPath.dirname(__filename);
 `;
 
 export class MyStack extends Stack {
+  api: Api;
+
   constructor(scope: App, id: string) {
     super(scope, id);
 
-    const api = new Api(this, "Api", {
+    this.api = new Api(this, "Api", {
       directory: "apps/api",
       constructs: {},
       runtime: {
@@ -48,72 +50,74 @@ export class MyStack extends Stack {
         },
       },
     });
-
-    new GitHub(this, "GitHub", {
-      outputs: {
-        invokeUrl: {
-          value: api.api.urlForPath(),
-        },
-      },
-      callbacks: {
-        async onPostDeploy(outputs) {
-          const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");
-          const PR_NUM = github.context.payload.pull_request?.number;
-
-          if (!PR_NUM) {
-            throw new Error("❌ Error: Pull request number not detected.");
-          }
-
-          const octokit = github.getOctokit(GITHUB_TOKEN);
-
-          const owner = github.context.repo.owner;
-          const repo = github.context.repo.repo;
-          const ref = github.context.ref;
-
-          const apiDeployment = await octokit.rest.repos.createDeployment({
-            owner,
-            repo,
-            ref,
-            required_contexts: [],
-            environment: "staging - api",
-          });
-
-          if (apiDeployment.status !== 201) {
-            throw new Error("❌ Deployment failed!");
-          }
-
-          const apiDeploymentStatus = await octokit.rest.repos.createDeploymentStatus({
-            repo,
-            owner,
-            deployment_id: apiDeployment.data.id,
-            state: "success",
-            description: "Deployment succeeded",
-            environment_url: outputs.invokeUrl,
-            auto_inactive: false,
-          });
-
-          consola.info("ℹ️ API deployment status: ", apiDeploymentStatus.data);
-
-          await octokit.rest.issues.createComment({
-            owner,
-            repo,
-            issue_number: PR_NUM,
-            body: `\
-🚀 Staging instances deployed!
-
-API - ${apiDeploymentStatus.data.environment_url}
-`,
-          });
-        },
-      },
-    });
   }
 }
 
 export default function main() {
   const app = new App();
 
-  new MyStack(app, "TestingPpaReleaseCandidateStack");
+  const myStack = new MyStack(app, "TestingPpaReleaseCandidateStack");
+
+  const stack = new Stack(app, "GitHubStuff");
+
+  new GitHub(stack, "GitHub", {
+    outputs: {
+      invokeUrl: {
+        value: myStack.api.api.urlForPath(),
+      },
+    },
+    callbacks: {
+      async onPostDeploy(outputs) {
+        const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");
+        const PR_NUM = github.context.payload.pull_request?.number;
+
+        if (!PR_NUM) {
+          throw new Error("❌ Error: Pull request number not detected.");
+        }
+
+        const octokit = github.getOctokit(GITHUB_TOKEN);
+
+        const owner = github.context.repo.owner;
+        const repo = github.context.repo.repo;
+        const ref = github.context.ref;
+
+        const apiDeployment = await octokit.rest.repos.createDeployment({
+          owner,
+          repo,
+          ref,
+          required_contexts: [],
+          environment: "staging - api",
+        });
+
+        if (apiDeployment.status !== 201) {
+          throw new Error("❌ Deployment failed!");
+        }
+
+        const apiDeploymentStatus = await octokit.rest.repos.createDeploymentStatus({
+          repo,
+          owner,
+          deployment_id: apiDeployment.data.id,
+          state: "success",
+          description: "Deployment succeeded",
+          environment_url: outputs.invokeUrl,
+          auto_inactive: false,
+        });
+
+        consola.info("ℹ️ API deployment status: ", apiDeploymentStatus.data);
+
+        await octokit.rest.issues.createComment({
+          owner,
+          repo,
+          issue_number: PR_NUM,
+          body: `\
+🚀 Staging instances deployed!
+
+API - ${apiDeploymentStatus.data.environment_url}
+`,
+        });
+      },
+    },
+  });
 
   return app;
 }

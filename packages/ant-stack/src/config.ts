@@ -2,11 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { App } from "aws-cdk-lib/core";
+import { CLI_VERSION_ENV } from "aws-cdk-lib/cx-api";
 
 import { getWorkspaceRoot } from "./utils/directories.js";
 import { executeJit } from "./utils/execute-jit.js";
-
-export const dryRunKey = "klein_stack_dryrun";
 
 export const configFiles = ["ant.config.ts", "ant.config.js"];
 
@@ -39,8 +38,6 @@ export async function synthesizeConfig() {
       `No config file found at the workspace root. Please create one of the following: ${supportedConfigFiles}`
     );
   }
-
-  process.env[dryRunKey] = "true";
 
   const exports = executeJit(configFile);
 
@@ -77,4 +74,20 @@ export function loadConfigFrom(directory: string): Record<string, unknown> {
    * Only execute the first config file found.
    */
   return executeJit(foundConfileFiles[0]);
+}
+
+/**
+ * Whether or not the current process is being executed by the CDK CLI.
+ * This matters because we don't need to fully synthesize everything when only getting the config
+ * for our own operations. But CDK does needs to fully synthesize and validate everything.
+ */
+export function isCdk() {
+  /**
+   * When CDK spawns a new process to synthesize the stack,
+   * it generates a new "env" object using constants from the cx-api library.
+   * We'll just use the presence of a designated env variable to determine if CDK is executing this.
+   *
+   * @link https://github.com/aws/aws-cdk/blob/c575dded26834bd55618813b74046d2f380d1940/packages/aws-cdk/lib/api/cxapp/exec.ts#L66
+   */
+  return process.env[CLI_VERSION_ENV] != null;
 }

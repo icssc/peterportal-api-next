@@ -5,12 +5,7 @@ import { App, Stack } from "aws-cdk-lib/core";
 import consola from "consola";
 
 import { getGitHub, GitHub } from "../../../cdk/constructs/github";
-import {
-  getExistingConfigFile,
-  synthesizeConfig,
-  supportedConfigFiles,
-  dryRunKey,
-} from "../../../config.js";
+import { getExistingConfigFile, synthesizeConfig, supportedConfigFiles } from "../../../config.js";
 import { waitForStackIdle } from "../../../utils";
 
 export async function deployGitHub(initializedApp?: App) {
@@ -58,11 +53,6 @@ export async function deployGitHub(initializedApp?: App) {
   await github?.onPreDeploy();
 
   consola.info(`Running: npx ${cdkCommand.join(" ")}`);
-
-  /**
-   * Unset this so that special constructs will fully synthesize.
-   */
-  process.env[dryRunKey] = "";
 
   const cdkChild = spawn("npx", cdkCommand, {
     stdio: "inherit",
