@@ -14,7 +14,7 @@ type DepartmentCourses = {
   [dept: string]: CourseList;
 };
 
-type CourseTree = {
+export type CourseTree = {
   courseId: string;
   courseTitle: string;
   prereqTree: PrerequisiteTree;

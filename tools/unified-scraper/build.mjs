@@ -5,7 +5,7 @@ import { fileURLToPath } from "url";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const targetDir = "dist/";
-const sourceFiles = ["index.ts", "lib.ts", "package.json"];
+const sourceFiles = ["index.ts", "lib.ts", "main.sh", "package.json"];
 const dependencies = ["@libs/db"];
 const scrapers = ["course-scraper", "instructor-scraper", "prereq-scraper"];
 

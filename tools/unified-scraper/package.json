@@ -14,8 +14,7 @@
     "@libs/db": "*",
     "course-scraper": "*",
     "instructor-scraper": "*",
-    "prereq-scraper": "*",
-    "p-limit": "^4.0.0"
+    "prereq-scraper": "*"
   },
   "devDependencies": {
     "peterportal-api-next-types": "*"

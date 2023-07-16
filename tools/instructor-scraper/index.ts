@@ -85,7 +85,7 @@ function sleep(ms: number) {
  * @returns {InstructorsData} Object containing instructors info and stats regarding retrieval
  */
 export async function getInstructors(
-  concurrency_limit = 1,
+  concurrency_limit = 16,
   attempts = 5,
   year_threshold: number = YEAR_THRESHOLD
 ): Promise<InstructorsData> {
@@ -531,7 +531,9 @@ async function getDirectoryInfo(
         target,
         rating: stringSimilarity(name, target, 1),
       }));
-      const bestMatchIndex = Math.max(...ratings.map((x) => x.rating), 0);
+      const bestMatchIndex = ratings
+        .map((x) => x.rating)
+        .indexOf(Math.max(...ratings.map((x) => x.rating), 0));
       const match = {
         ratings,
         bestMatch: ratings[bestMatchIndex],
@@ -559,6 +561,11 @@ async function getDirectoryInfo(
       ];
     }
   } catch (error) {
+    if (error instanceof Error) {
+      logger.error(error.name);
+      logger.error(error.message);
+      logger.error(error.stack);
+    }
     if (attempts > 0) {
       await sleep(1000);
       return await getDirectoryInfo(name, attempts - 1);

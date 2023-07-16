@@ -1,8 +1,7 @@
 import { PrismaClient } from "@libs/db";
-import { getCourses } from "course-scraper";
-import { getInstructors } from "instructor-scraper";
-import pLimit from "p-limit";
-import { getPrereqs } from "prereq-scraper";
+import { readFileSync } from "fs";
+import { Instructor } from "peterportal-api-next-types";
+import type { CourseTree } from "prereq-scraper";
 
 import type { ScrapedCourse } from "./lib";
 import {
@@ -16,41 +15,43 @@ import {
 const prisma = new PrismaClient({
   log: [
     {
-      emit: 'event',
-      level: 'query',
+      emit: "event",
+      level: "query",
     },
     {
-      emit: 'stdout',
-      level: 'error',
+      emit: "stdout",
+      level: "error",
     },
     {
-      emit: 'stdout',
-      level: 'info',
+      emit: "stdout",
+      level: "info",
     },
     {
-      emit: 'stdout',
-      level: 'warn',
+      emit: "stdout",
+      level: "warn",
     },
   ],
-})
+});
 
-prisma.$on('query', (e) => {
-  console.log('Query: ' + e.query)
-  console.log('Params: ' + e.params)
-  console.log('Duration: ' + e.duration + 'ms')
+prisma.$on("query", (e) => {
+  console.log("Query: " + e.query);
+  console.log("Params: " + e.params);
+  console.log("Duration: " + e.duration + "ms");
 });
 
 async function main() {
-  const limit = pLimit(1);
-  const [courses, instructors, prereqs] = await Promise.all([
-    limit(() => getCourses()),
-    limit(() => getInstructors()),
-    limit(() => getPrereqs()),
-  ])
-  const courseInfo = courses as Record<string, ScrapedCourse>;
-  const instructorInfo = instructors.result;
+  const courseInfo = JSON.parse(
+    readFileSync("./node_modules/course-scraper/courses.json", { encoding: "utf8" })
+  ) as Record<string, ScrapedCourse>;
+  const instructorInfo = JSON.parse(
+    readFileSync("./node_modules/instructors-scraper/instructors.json", { encoding: "utf8" })
+  ).result as Record<string, Instructor>;
   const prereqInfo = Object.fromEntries(
-    Object.values(prereqs)
+    (Object.values(
+      JSON.parse(
+        readFileSync("./node_modules/prereq-scraper/prerequisites.json", { encoding: "utf8" })
+      )
+    ) as CourseTree[])
       .flat()
       .map(({ courseId, prereqTree }) => [courseId, prereqTree])
   );
