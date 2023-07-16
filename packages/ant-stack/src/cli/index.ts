@@ -42,6 +42,9 @@ async function main() {
     ],
   });
 
+  /**
+   * FIXME: the app is initialized once and prop-drilled everywhere.
+   */
   const app = await synthesizeConfig();
 
   const construct = await detectConstruct(app);
@@ -53,7 +56,7 @@ async function main() {
   switch (argv.command) {
     case "build": {
       if (isApi) {
-        return await buildApi();
+        return await buildApi(app);
       }
 
       consola.error(`💀 Unsupported constructs`);
@@ -81,7 +84,7 @@ async function main() {
     }
 
     case "destroy": {
-      return await destroy();
+      return await destroy(app);
     }
   }
 }

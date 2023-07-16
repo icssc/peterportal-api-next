@@ -109,15 +109,15 @@ export interface ApiRouteRuntimeConfig {
  */
 export interface ApiRouteConstructProps {
   lambdaIntegrationOptions?: (
-    scope: Construct,
+    scope: ApiRoute,
     id: string,
     methodAndRoute: string
   ) => aws_apigateway.LambdaIntegrationOptions;
 
-  functionProps?: (scope: Construct, id: string) => aws_lambda.FunctionProps;
+  functionProps?: (scope: ApiRoute, id: string) => aws_lambda.FunctionProps;
 
   methodOptions?: (
-    scope: Construct,
+    scope: ApiRoute,
     id: string,
     methodAndRoute: string
   ) => aws_apigateway.MethodOptions;
@@ -264,19 +264,19 @@ export class ApiRoute extends Construct {
       .forEach((httpMethod) => {
         const functionName = `${this.id}-${httpMethod}`.replace(/\//g, "-");
 
-        const functionProps: aws_lambda.FunctionProps = defu(
-          this.config.constructs.functionProps?.(this, this.id),
-          {
-            functionName,
-            runtime: aws_lambda.Runtime.NODEJS_18_X,
-            code: aws_lambda.Code.fromAsset(this.config.directory, { exclude: ["node_modules"] }),
-            handler: path.join(outDirectory, this.outFiles.node.replace(/.js$/, `.${httpMethod}`)),
-            architecture: aws_lambda.Architecture.ARM_64,
-            environment: { ...this.config.runtime.environment },
-            timeout: aws_core.Duration.seconds(15),
-            memorySize: 512,
-          }
-        );
+        const functionProps: aws_lambda.FunctionProps = this.config.constructs.functionProps?.(
+          this,
+          this.id
+        ) ?? {
+          functionName,
+          runtime: aws_lambda.Runtime.NODEJS_18_X,
+          code: aws_lambda.Code.fromAsset(this.config.directory, { exclude: ["node_modules"] }),
+          handler: path.join(outDirectory, this.outFiles.node.replace(/.js$/, `.${httpMethod}`)),
+          architecture: aws_lambda.Architecture.ARM_64,
+          environment: { ...this.config.runtime.environment },
+          timeout: aws_core.Duration.seconds(15),
+          memorySize: 512,
+        };
 
         const handler = new aws_lambda.Function(
           this,

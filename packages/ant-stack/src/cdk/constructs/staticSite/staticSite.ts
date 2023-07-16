@@ -1,10 +1,9 @@
-import aws_cloudfront from "aws-cdk-lib/aws-cloudfront";
-import aws_cloudfront_origins from "aws-cdk-lib/aws-cloudfront-origins";
-import aws_iam from "aws-cdk-lib/aws-iam";
-import aws_s3 from "aws-cdk-lib/aws-s3";
-import aws_s3_deployment from "aws-cdk-lib/aws-s3-deployment";
+import * as aws_cloudfront from "aws-cdk-lib/aws-cloudfront";
+import * as aws_cloudfront_origins from "aws-cdk-lib/aws-cloudfront-origins";
+import * as aws_iam from "aws-cdk-lib/aws-iam";
+import * as aws_s3 from "aws-cdk-lib/aws-s3";
+import * as aws_s3_deployment from "aws-cdk-lib/aws-s3-deployment";
 import { Construct } from "constructs";
-import { defu } from "defu";
 
 export interface StaticSiteProps {
   /**
@@ -15,21 +14,21 @@ export interface StaticSiteProps {
   /**
    * Override props passed to constructs.
    */
-  constructs?: StaticSiteConstructProps;
+  constructs?: Partial<StaticSiteConstructProps>;
 }
 
 export interface StaticSiteConstructProps {
-  bucketProps?: (scope: Construct, id: string) => aws_s3.BucketProps;
+  bucketProps: (scope: StaticSite, id: string) => aws_s3.BucketProps;
 
-  oaiProps?: (scope: Construct, id: string) => aws_cloudfront.OriginAccessIdentityProps;
+  oaiProps: (scope: StaticSite, id: string) => aws_cloudfront.OriginAccessIdentityProps;
 
-  policyStatementProps?: (scope: Construct, id: string) => aws_iam.PolicyStatementProps;
+  policyStatementProps: (scope: StaticSite, id: string) => aws_iam.PolicyStatementProps;
 
-  originProps?: (scope: Construct, id: string) => aws_cloudfront_origins.S3OriginProps;
+  originProps: (scope: StaticSite, id: string) => aws_cloudfront_origins.S3OriginProps;
 
-  distributionProps?: (scope: Construct, id: string) => aws_cloudfront.DistributionProps;
+  distributionProps: (scope: StaticSite, id: string) => aws_cloudfront.DistributionProps;
 
-  bucketDeploymentProps?: (scope: Construct, id: string) => aws_s3_deployment.BucketDeploymentProps;
+  bucketDeploymentProps: (scope: StaticSite, id: string) => aws_s3_deployment.BucketDeploymentProps;
 }
 
 export class StaticSite extends Construct {
@@ -75,7 +74,7 @@ export class StaticSite extends Construct {
     };
 
     this.policyStatement = new aws_iam.PolicyStatement(
-      defu(policyStatementProps, defaultPolicyStatementProps)
+      policyStatementProps ?? defaultPolicyStatementProps
     );
 
     this.bucket.addToResourcePolicy(this.policyStatement);
@@ -88,13 +87,12 @@ export class StaticSite extends Construct {
 
     this.origin = new aws_cloudfront_origins.S3Origin(
       this.bucket,
-      defu(originProps, defaultOriginProps)
+      originProps ?? defaultOriginProps
     );
 
     const distributionProps = props.constructs?.distributionProps?.(this, id);
 
     const defaultDistributionProps: aws_cloudfront.DistributionProps = {
-      // certificate: this.certificate --> user should figure this out,
       defaultRootObject: "index.html",
       defaultBehavior: {
         origin: this.origin,
@@ -106,7 +104,7 @@ export class StaticSite extends Construct {
     this.distribution = new aws_cloudfront.Distribution(
       this,
       `${id}-distribution`,
-      defu(distributionProps, defaultDistributionProps)
+      distributionProps ?? defaultDistributionProps
     );
 
     const bucketDeploymentProps = props.constructs?.bucketDeploymentProps?.(this, id);
@@ -121,7 +119,7 @@ export class StaticSite extends Construct {
     this.bucketDeployment = new aws_s3_deployment.BucketDeployment(
       this,
       `${id}-bucket-deployment`,
-      defu(bucketDeploymentProps, defaultBucketDeploymentProps)
+      bucketDeploymentProps ?? defaultBucketDeploymentProps
     );
   }
 }

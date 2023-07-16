@@ -64,7 +64,7 @@ export interface DefaultApiRouteConfig extends Pick<ApiRouteConfig, "runtime" | 
  * Additional construct prop overrides are accessible only at the root.
  */
 export interface RootApiConstructConfig {
-  restApiProps?: (scope: Construct, id: string) => RestApiProps;
+  restApiProps?: (scope: Api, id: string) => RestApiProps;
 }
 
 /**
@@ -134,13 +134,15 @@ export class Api extends Construct {
 export async function getApi(initializedApp?: App): Promise<Api> {
   const app = initializedApp ?? (await synthesizeConfig());
 
-  const stacks = app.node.children.find(Stack.isStack);
+  const stacks = app.node.children.filter(Stack.isStack);
 
   if (!stacks) {
     throw new Error(`No stacks found.`);
   }
 
-  const api = stacks?.node.children.find(Api.isApi);
+  const stackWithApi = stacks.find((stack) => stack.node.children.some(Api.isApi));
+
+  const api = stackWithApi?.node.children.find(Api.isApi);
 
   if (!api) {
     throw new Error(`No ${Api.type} construct found.`);
@@ -152,8 +154,8 @@ export async function getApi(initializedApp?: App): Promise<Api> {
 /**
  * Get the API config with the current route at the highest priority (if it exists).
  */
-export async function getApiRoute(directory: string = process.cwd()) {
-  const api = await getApi();
+export async function getApiRoute(directory: string = process.cwd(), app?: App) {
+  const api = await getApi(app);
 
   if (!api.routes[directory]) {
     throw new Error(`No ${ApiRoute.type} found for directory: ${directory}`);

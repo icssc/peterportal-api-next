@@ -4,6 +4,7 @@ import path from "node:path";
 import core from "@actions/core";
 import github from "@actions/github";
 import { CloudFormationClient } from "@aws-sdk/client-cloudformation";
+import { App } from "aws-cdk-lib/core";
 import consola from "consola";
 
 import { getClosestProjectDirectory, waitForStackIdle } from "../../utils";
@@ -16,7 +17,7 @@ const app = `tsx ${appEntry}`;
 
 const cdkCommand = ["cdk", "destroy", "--app", app, "*", "--require-approval", "never"];
 
-export async function destroy() {
+export async function destroy(app?: App) {
   const cfnClient = new CloudFormationClient({});
 
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");

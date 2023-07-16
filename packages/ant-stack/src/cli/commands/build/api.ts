@@ -6,12 +6,13 @@ import packageJson from "../../../../package.json";
 import { isHttpMethod } from "../../../lambda-core/constants.js";
 import { createBunHandler, createNodeHandler } from "../../../lambda-core/internal/handler.js";
 import { getNamedExports } from "../../../utils/static-analysis.js";
+import { App } from "aws-cdk-lib/core";
 
 /**
  * Build stuff.
  */
-export async function buildApi() {
-  const apiRoute = await getApiRoute();
+export async function buildApi(app?: App) {
+  const apiRoute = await getApiRoute(process.cwd(), app);
 
   const esbuildOptions = { ...apiRoute.config.runtime.esbuild };
 
