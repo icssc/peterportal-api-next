@@ -250,7 +250,7 @@ export default function main() {
           deployment_id: docsDeployment.data.id,
           state: "success",
           description: "Deployment succeeded",
-          environment_url: outputs.docsUrl,
+          environment_url: `https://${outputs.docsUrl}`,
           auto_inactive: false,
         });
 
