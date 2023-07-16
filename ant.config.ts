@@ -255,6 +255,7 @@ export default function main() {
         });
 
         consola.info("ℹ️ API deployment status: ", apiDeploymentStatus.data);
+        consola.info("ℹ️ Docs deployment status: ", docsDeploymentStatus.data);
 
         await octokit.rest.issues.createComment({
           owner,

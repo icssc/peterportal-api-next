@@ -18,6 +18,8 @@ const app = `tsx ${appEntry}`;
 const cdkCommand = ["cdk", "destroy", "--app", app, "*", "--require-approval", "never"];
 
 export async function destroy(app?: App) {
+  app;
+
   const cfnClient = new CloudFormationClient({});
 
   const GITHUB_TOKEN = process.env.GITHUB_TOKEN ?? core.getInput("GITHUB_TOKEN");
