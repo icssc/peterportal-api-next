@@ -1,7 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { App } from "aws-cdk-lib";
+import { App } from "aws-cdk-lib/core";
 
 import { getWorkspaceRoot } from "./utils/directories.js";
 import { executeJit } from "./utils/execute-jit.js";

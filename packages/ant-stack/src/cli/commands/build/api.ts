@@ -87,19 +87,6 @@ async function compileRuntimes(apiRoute: ApiRoute) {
   fs.writeFileSync(temporaryNodeFile, temporaryNodeScript.join("\n"));
   fs.writeFileSync(temporaryBunFile, temporaryBunScript.join("\n"));
 
-  console.log('build options: ', {
-    entryPoints: {
-      [builtNodeFile.replace(/\.js$/, "")]: temporaryNodeFile,
-      [builtBunFile.replace(/\.js$/, "")]: temporaryBunFile,
-    },
-    outdir: apiRoute.outDirectory,
-    platform: "node",
-    format: "esm",
-    bundle: true,
-    target: "esnext",
-    banner: apiRoute.config.runtime.esbuild?.banner,
-  })
-
   /**
    * The temporary .js files look like this:
    *
