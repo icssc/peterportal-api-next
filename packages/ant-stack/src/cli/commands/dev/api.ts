@@ -7,7 +7,7 @@ import cors from "cors";
 import { build } from "esbuild";
 import express, { Router } from "express";
 
-import type { Api, ApiRoute } from "../../../cdk/constructs/api";
+import type { Api, ApiRoute } from "../../../cdk/constructs/applications/Api";
 import { type InternalHandler } from "../../../lambda-core/internal/handler.js";
 import { createExpressHandler } from "../../../lambda-core/internal/handler.js";
 import { getWorkspaceRoot, getClosestProjectDirectory } from "../../../utils/directories.js";
