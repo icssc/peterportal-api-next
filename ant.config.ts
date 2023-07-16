@@ -21,7 +21,7 @@ import { Api } from "ant-stack/constructs/api";
 import { GitHub } from "ant-stack/constructs/github";
 import { StaticSite } from "ant-stack/constructs/staticSite";
 import { getWorkspaceRoot } from "ant-stack/utils";
-import { isCdk } from "packages/ant-stack/src/config";
+import { isCdk } from "ant-stack/config";
 
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1491470829
@@ -64,13 +64,13 @@ export class ApiStack extends aws_core.Stack {
 }
 
 export class DocsStack extends aws_core.Stack {
-  staticSite: StaticSite;
+  staticSite: StaticSite = Object.create(null);
 
-  cloudFrontTarget: aws_route53_targets.CloudFrontTarget;
+  cloudFrontTarget: aws_route53_targets.CloudFrontTarget = Object.create(null);
 
-  aRecord: aws_route53.ARecord;
+  aRecord: aws_route53.ARecord = Object.create(null);
 
-  zone: aws_route53.IHostedZone;
+  zone: aws_route53.IHostedZone = Object.create(null);
 
   stage: string;
 
@@ -188,10 +188,10 @@ export default function main() {
   new GitHub(stack, "GitHub", {
     outputs: {
       apiUrl: {
-        value: myStack.api.api.urlForPath(),
+        value: myStack.api.api.urlForPath() ?? "no api url",
       },
       docsUrl: {
-        value: stack.aRecord.domainName,
+        value: stack.aRecord.domainName ?? "no docs url",
       },
     },
     callbacks: {
