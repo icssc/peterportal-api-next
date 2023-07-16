@@ -17,9 +17,9 @@ import * as aws_cloudfront from "aws-cdk-lib/aws-cloudfront";
 import * as aws_cloudfront_origins from "aws-cdk-lib/aws-cloudfront-origins";
 import * as aws_route53 from "aws-cdk-lib/aws-route53";
 import * as aws_route53_targets from "aws-cdk-lib/aws-route53-targets";
-import { Api } from "ant-stack/constructs/api";
-import { GitHub } from "ant-stack/constructs/github";
-import { StaticSite } from "ant-stack/constructs/staticSite";
+import { Api } from "ant-stack/constructs/applications/Api";
+import { GitHub } from "ant-stack/constructs/pipeline/GitHub";
+import { StaticSite } from "ant-stack/constructs/applications/StaticSite";
 import { getWorkspaceRoot } from "ant-stack/utils";
 import { isCdk } from "ant-stack/config";
 

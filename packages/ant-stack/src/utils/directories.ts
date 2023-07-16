@@ -70,12 +70,16 @@ export function hasPackageJSON(root: string) {
  * Search up for the nearest `package.json`, i.e. the current project root.
  */
 export function getClosestProjectDirectory(current: string, root = current): string {
-  if (hasPackageJSON(current)) return current;
+  if (hasPackageJSON(current)) {
+    return current;
+  }
 
   const currentDirectory = path.dirname(current);
 
   // reach the fs root
-  if (!currentDirectory || currentDirectory === current) return root;
+  if (!currentDirectory || currentDirectory === current) {
+    return root;
+  }
 
   return getClosestProjectDirectory(currentDirectory, root);
 }
@@ -87,26 +91,27 @@ export function getWorkspaceRoot(
   current: string,
   root = getClosestProjectDirectory(current)
 ): string {
-  if (hasRootFile(current)) return current;
-  if (hasWorkspacePackageJSON(current)) return current;
+  if (hasRootFile(current) || hasWorkspacePackageJSON(current)) {
+    return current;
+  }
 
   const currentDirectory = path.dirname(current);
 
   // reach the fs root
-  if (!currentDirectory || currentDirectory === current) return root;
+  if (!currentDirectory || currentDirectory === current) {
+    return root;
+  }
 
   return getWorkspaceRoot(currentDirectory, root);
 }
 
-/**
- */
-export function getFilesRecursively(directory: string): string[] {
+export function findFilesRecursively(directory: string): string[] {
   return fs
     .readdirSync(directory)
     .map((name) => path.join(directory, name))
     .flatMap((fileOrDirectory) =>
       fs.statSync(fileOrDirectory).isDirectory()
-        ? getFilesRecursively(fileOrDirectory)
+        ? findFilesRecursively(fileOrDirectory)
         : fileOrDirectory
     );
 }
@@ -135,77 +140,4 @@ export function findSubProjects(root = ".", directory = "", paths: string[] = []
     .map((dirent) => dirent.name);
 
   return subRoutes.flatMap((subRoute) => findSubProjects(root, `${directory}/${subRoute}`, paths));
-}
-
-export interface FindUpOptions {
-  /**
-   * @default process.cwd
-   */
-  cwd?: string;
-
-  /**
-   * @default path.parse(cwd).root
-   */
-  stopAt?: string;
-
-  /**
-   * @default false
-   */
-  multiple?: boolean;
-
-  /**
-   * @default true
-   */
-  allowSymlinks?: boolean;
-}
-
-function existsSync(fp: string) {
-  try {
-    fs.accessSync(fp, fs.constants.R_OK);
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-/**
- * Given an array of files to look for, recursively find all matching files until {@link stopAt} is reached.
- */
-export function findUpForFiles(files: string[], options: FindUpOptions = {}): string[] {
-  const {
-    cwd = process.cwd(),
-    stopAt = path.parse(cwd).root,
-    multiple = false,
-    allowSymlinks = true,
-  } = options;
-
-  let current = cwd;
-
-  const foundFiles: string[] = [];
-
-  const stat = allowSymlinks ? fs.statSync : fs.lstatSync;
-
-  while (current && current !== stopAt) {
-    for (const file of files) {
-      const filepath = path.resolve(current, file);
-
-      if (existsSync(filepath) && stat(filepath).isFile()) {
-        foundFiles.push(filepath);
-
-        if (!multiple) {
-          return foundFiles;
-        }
-      }
-    }
-
-    const parent = path.dirname(current);
-
-    if (parent === current) {
-      break;
-    }
-
-    current = parent;
-  }
-
-  return foundFiles;
 }

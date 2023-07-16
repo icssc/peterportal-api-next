@@ -4,10 +4,10 @@ import { RestApi, type RestApiProps } from "aws-cdk-lib/aws-apigateway";
 import { App, Stack } from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 
-import { synthesizeConfig, isCdk } from "../../../config.js";
-import { findAllProjects, getWorkspaceRoot } from "../../../utils/directories.js";
+import { synthesizeConfig, isCdk } from "../../../../config.js";
+import { findAllProjects, getWorkspaceRoot } from "../../../../utils/directories.js";
 
-import { ApiRoute, ApiRouteConfig } from "./apiRoute.js";
+import { ApiRoute, ApiRouteConfig } from "./ApiRoute.js";
 
 /**
  * Configure the API Gateway REST API and set default options for API routes under it.

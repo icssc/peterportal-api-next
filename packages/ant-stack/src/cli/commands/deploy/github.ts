@@ -4,7 +4,7 @@ import { CloudFormationClient } from "@aws-sdk/client-cloudformation";
 import { App, Stack } from "aws-cdk-lib/core";
 import consola from "consola";
 
-import { getGitHub, GitHub } from "../../../cdk/constructs/github";
+import { getGitHub, GitHub } from "../../../cdk/constructs/pipeline/GitHub";
 import { getExistingConfigFile, synthesizeConfig, supportedConfigFiles } from "../../../config.js";
 import { waitForStackIdle } from "../../../utils";
 

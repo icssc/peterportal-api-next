@@ -3,5 +3,5 @@
  * Each API route, including its methods is a distinct Lambda integration.
  */
 
-export * from "./api.js";
-export * from "./apiRoute.js";
+export * from "./Api.js";
+export * from "./ApiRoute.js";

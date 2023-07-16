@@ -1,7 +1,7 @@
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { ApiRouteConfigOverride } from "ant-stack/constructs/api";
+import { ApiRouteConfigOverride } from "ant-stack/constructs/applications/Api";
 import env from "../../../../../env.js";
 
 import { cleanCopy, selectDelete } from "@libs/build-tools";

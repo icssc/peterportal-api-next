@@ -1,17 +1,37 @@
+import fs from "node:fs";
 import path from "node:path";
 import { defineConfig } from "tsup";
 
-import { getAllFilesOrIndex } from "./src/utils/files.js";
+import { findFilesRecursively } from "./src/utils";
 
-const files = getAllFilesOrIndex("./src/cdk/constructs");
+const constructDirectory = "src/cdk/constructs";
 
-const constructs = files.reduce((currentConstructs, file) => {
-  const name = path.basename(file).startsWith("index")
-    ? path.basename(path.dirname(file))
-    : path.basename(file);
-  currentConstructs[`constructs/${name}`] = file;
-  return currentConstructs;
-}, {} as Record<string, string>);
+const allFilesInConstructs = findFilesRecursively(constructDirectory);
+
+const constructs = allFilesInConstructs
+  .filter((file) => path.extname(file) === ".ts")
+  .filter((file) => {
+    /**
+     * It's either index.ts or the directory is not the same as the file name
+     */
+    const directory = path.dirname(file);
+    const fileName = path.basename(file, ".ts");
+    return (
+      fileName === "index" ||
+      !fs.readdirSync(directory).some((file) => path.parse(file).name === "index")
+    );
+  })
+  .map((file) => path.parse(file))
+  .reduce((constructEntryPoints, file) => {
+    const name =
+      file.name === "index"
+        ? path.relative(constructDirectory, file.dir)
+        : path.join(path.relative(constructDirectory, file.dir), file.name);
+
+    constructEntryPoints[`constructs/${name}`] = path.join(file.dir, file.base);
+
+    return constructEntryPoints;
+  }, {} as Record<string, string>);
 
 export default defineConfig({
   entry: {

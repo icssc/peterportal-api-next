@@ -3,8 +3,8 @@ import ci from "ci-info";
 import { cli, command } from "cleye";
 import { consola } from "consola";
 
-import { Api } from "../cdk/constructs/api";
-import { detectConstruct } from "../cdk/index.js";
+import { Api } from "../cdk/constructs/applications/Api";
+import { detectConstruct } from "../cdk/helpers/detect.js";
 import { synthesizeConfig } from "../config";
 
 import { buildApi } from "./commands/build";

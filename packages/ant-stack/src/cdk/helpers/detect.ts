@@ -1,10 +1,9 @@
 import { App } from "aws-cdk-lib";
 
-import packageJson from "../../package.json";
-import { synthesizeConfig } from "../config.js";
-import { getWorkspaceRoot } from "../utils";
-
-import { getApi } from "./constructs/api/api.js";
+import packageJson from "../../../package.json";
+import { synthesizeConfig } from "../../config.js";
+import { getWorkspaceRoot } from "../../utils";
+import { getApi } from "../constructs/applications/Api";
 
 export async function detectConstruct(initializedApp?: App, directory = process.cwd()) {
   const workspaceRoot = getWorkspaceRoot(directory);

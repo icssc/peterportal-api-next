@@ -9,10 +9,10 @@ import { Construct } from "constructs";
 import { defu } from "defu";
 import type { BuildOptions } from "esbuild";
 
-import { loadConfigFrom } from "../../../config.js";
-import { isHttpMethod, warmerRequestBody } from "../../../lambda-core/constants.js";
-import { DeepPartial } from "../../../utils/deep-partial.js";
-import { getNamedExports } from "../../../utils/static-analysis.js";
+import { loadConfigFrom } from "../../../../config.js";
+import { isHttpMethod, warmerRequestBody } from "../../../../lambda-core/constants.js";
+import { DeepPartial } from "../../../../utils/deep-partial.js";
+import { getNamedExports } from "../../../../utils/static-analysis.js";
 
 /**
  * Configure the API route.
