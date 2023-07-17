@@ -142,7 +142,7 @@ export const GET: InternalHandler = async (request) => {
         return createErrorResult(
           400,
           "More than 900 sections matched your query. Please refine your search.",
-          requestId
+          requestId,
         );
       }
 
@@ -173,7 +173,7 @@ export const GET: InternalHandler = async (request) => {
               },
               select: { data: true },
               distinct: ["year", "quarter", "sectionCode"],
-            })
+            }),
           );
 
           const responses = (await prisma.$transaction(transactions))
@@ -220,3 +220,5 @@ export const GET: InternalHandler = async (request) => {
     return createErrorResult(400, error, requestId);
   }
 };
+
+export const HEAD = GET;

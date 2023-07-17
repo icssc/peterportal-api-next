@@ -41,7 +41,7 @@ export const GET: InternalHandler = async (request) => {
     }
 
     const termDateData = await getTermDateData(
-      where.quarter === "Fall" ? where.year : (parseInt(where.year) - 1).toString(10)
+      where.quarter === "Fall" ? where.year : (parseInt(where.year) - 1).toString(10),
     );
 
     await prisma.calendarTerm.createMany({
@@ -56,7 +56,7 @@ export const GET: InternalHandler = async (request) => {
       return createErrorResult(
         400,
         `The requested term, ${where.year} ${where.quarter}, is currently unavailable.`,
-        requestId
+        requestId,
       );
     }
 
@@ -69,3 +69,5 @@ export const GET: InternalHandler = async (request) => {
     return createErrorResult(400, error, requestId);
   }
 };
+
+export const HEAD = GET;
