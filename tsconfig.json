@@ -22,19 +22,19 @@
   "include": [
     "*.ts",
     "api/**/*",
-    "libs/**/*",
     "apps/**/*",
-    "tools/**/*",
+    "libs/**/*",
     "packages/**/*",
-    "services/**/*"
+    "services/**/*",
+    "tools/**/*"
   ],
   "exclude": [
-    "**/dist/",
-    "build/",
-    "node_modules/",
+    "**/build/**/*",
     "**/cdk.out/**/*",
-    "apps/docs/**/*",
+    "**/dist/**/*",
+    "**/node_modules/**/*",
     "**/*.template.ts",
-    "api/example/**/*"
+    "api/example/**/*",
+    "apps/docs/**/*"
   ]
 }
