@@ -8,7 +8,7 @@
  */
 const config = {
   printWidth: 100,
-  plugins: ["prettier-plugin-packagejson", "prettier-plugin-prisma", "prettier-plugin-sql"],
+  plugins: ["prettier-plugin-packagejson", "prettier-plugin-prisma"],
   pluginSearchDirs: false,
 };
 

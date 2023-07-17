@@ -19,7 +19,15 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["*.ts", "api/**/*", "libs/**/*", "apps/**/*", "tools/**/*", "packages/**/*"],
+  "include": [
+    "*.ts",
+    "api/**/*",
+    "libs/**/*",
+    "apps/**/*",
+    "tools/**/*",
+    "packages/**/*",
+    "services/**/*"
+  ],
   "exclude": [
     "**/dist/",
     "build/",

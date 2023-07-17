@@ -5,8 +5,8 @@
   "description": "The official PeterPortal API-Next monorepo",
   "type": "module",
   "scripts": {
-    "ant:create": "dotenv -c development -- pnpm exec ant-stack create",
-    "ant:dev": "dotenv -c development -- pnpm exec ant-stack dev",
+    "ant:build": "dotenv -c development -- ant build",
+    "ant:dev": "dotenv -c development -- ant dev",
     "build": "turbo run build",
     "commit": "cz",
     "deploy": "turbo run deploy",
@@ -22,6 +22,15 @@
       "@commitlint/config-conventional"
     ]
   },
+  "lint-staged": {
+    "*.?(c|m){js,ts}?(x)": [
+      "eslint --quiet --fix",
+      "prettier --write"
+    ],
+    "*.{css,graphql,json,md,prisma,sql,yaml,yml}": [
+      "prettier --write"
+    ]
+  },
   "config": {
     "commitizen": {
       "path": "cz-conventional-changelog"
@@ -30,27 +39,26 @@
   "devDependencies": {
     "@commitlint/cli": "^17.6.3",
     "@commitlint/config-conventional": "^17.6.3",
-    "@libs/db": "workspace:*",
+    "@libs/db": "workspace:^",
     "@libs/registrar-api": "workspace:*",
-    "@libs/websoc-api-next": "workspace:*",
+    "@libs/websoc-api-next": "workspace:^",
     "@prisma/client": "^4.14.0",
     "@typescript-eslint/eslint-plugin": "^5.59.7",
     "@typescript-eslint/parser": "^5.59.7",
-    "ant-stack": "workspace:*",
+    "ant-stack": "workspace:^",
     "arktype": "1.0.14-alpha",
-    "aws-cdk-lib": "^2.87.0",
     "cz-conventional-changelog": "^3.3.0",
     "dotenv": "^16.0.3",
     "eslint": "^8.41.0",
     "eslint-config-prettier": "^8.8.0",
     "eslint-config-turbo": "^1.9.9",
     "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-simple-import-sort": "^10.0.0",
     "husky": "^8.0.3",
     "lint-staged": "^13.2.2",
     "prettier": "^2.8.8",
     "prettier-plugin-packagejson": "^2.4.3",
     "prettier-plugin-prisma": "^4.13.0",
-    "prettier-plugin-sql": "^0.14.0",
     "prisma": "^4.14.0",
     "turbo": "^1.9.9",
     "typescript": "^5.0.4",

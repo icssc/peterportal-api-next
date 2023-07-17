@@ -18,7 +18,7 @@ export class WebsocScraperV2Stack extends Stack {
   constructor(scope: Construct, id: string, props: StackProps) {
     if (process.env.NODE_ENV !== "production")
       throw new Error("Cannot deploy this stack outside of production. Stop.");
-    if (!process.env.DATABASE_URL_SCRAPER)
+    if (!process.env.DATABASE_URL_WEBSOC_SCRAPER)
       throw new Error("Scraper database URL not provided. Stop.");
     super(scope, id, props);
     const vpc = new Vpc(this, `${id}-vpc`, {
@@ -41,7 +41,7 @@ export class WebsocScraperV2Stack extends Stack {
     taskDefinition.addContainer(`${id}-container`, {
       containerName: `${id}-container`,
       environment: {
-        DATABASE_URL: process.env.DATABASE_URL_SCRAPER,
+        DATABASE_URL: process.env.DATABASE_URL_WEBSOC_SCRAPER,
         NODE_ENV: "production",
         NODE_OPTIONS: "--max-old-space-size=2048",
         TZ: "America/Los_Angeles",
