@@ -23,7 +23,7 @@ export class UnifiedScraperStack extends Stack {
       natGateways: 0,
       subnetConfiguration: [
         {
-          name: `${id}-subnet-configuration`,
+          name: `${id}-subnet-configuration-public`,
           subnetType: SubnetType.PUBLIC,
         },
       ],
@@ -36,7 +36,6 @@ export class UnifiedScraperStack extends Stack {
         hour: "12",
         day: "1",
         month: "*",
-        weekDay: "*",
       }),
       scheduledFargateTaskImageOptions: {
         cpu: 256,
@@ -58,6 +57,7 @@ export class UnifiedScraperStack extends Stack {
           streamPrefix: "/aws/ecs/container",
         }),
       },
+      subnetSelection: { subnetType: SubnetType.PUBLIC },
     });
   }
 }
