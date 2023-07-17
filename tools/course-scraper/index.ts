@@ -101,7 +101,7 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
       // go through each department link
       $(departmentLinks)
         .find("li")
-        .each((j, departmentLink) => {
+        .each((_, departmentLink) => {
           // create department cheerio
           const departmentUrl: string =
             CATALOGUE_BASE_URL + $(departmentLink).find("a").attr("href") + "#courseinventory";
@@ -110,7 +110,7 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
       const departmentLinksPromises: Promise<void>[] = departmentURLList.map((x) =>
         findSchoolNameFromDepartmentPage(x, school)
       );
-      const departmentLinksResult = await Promise.all(departmentLinksPromises);
+      await Promise.all(departmentLinksPromises);
     }
   }
 
@@ -123,14 +123,14 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
   const $ = cheerio.load(await response.text());
   const schoolLinks: string[] = [];
   // look through all the lis in the sidebar
-  $("#textcontainer > h4").each((i, lis) => {
+  $("#textcontainer > h4").each((_, lis) => {
     // create new cheerio object based on each school
     const schoolURL: string =
       CATALOGUE_BASE_URL + $(lis).find("a").attr("href") + "#courseinventory";
     schoolLinks.push(schoolURL);
   });
   const schoolLinksPromises: Promise<void>[] = schoolLinks.map((x) => findSchoolName(x));
-  const schoolLinksResult = await Promise.all(schoolLinksPromises);
+  await Promise.all(schoolLinksPromises);
   console.log("Successfully mapped " + Object.keys(mapping).length + " departments!");
   return mapping;
 }
@@ -150,7 +150,7 @@ export async function mapCoursePageToSchool(
   const $ = cheerio.load(await response.text());
   // get all the departments under this school
   const courseBlocks: cheerio.Element[] = [];
-  $("#courseinventorycontainer > .courses").each(async (i, schoolDepartment: cheerio.Element) => {
+  $("#courseinventorycontainer > .courses").each(async (_, schoolDepartment: cheerio.Element) => {
     // if department is not empty (why tf is Chemical Engr and Materials Science empty)
     const department: string = $(schoolDepartment).find("h3").text();
     if (department != "") {
@@ -186,11 +186,11 @@ export async function getAllCourseURLS(): Promise<string[]> {
   const response = await safeFetch(URL_TO_ALL_COURSES);
   const $ = cheerio.load(await response.text());
   // get all the unordered lists
-  $("#atozindex > ul").each((i, letterLists) => {
+  $("#atozindex > ul").each((_, letterLists) => {
     // get all the list items
     $(letterLists)
       .find("li")
-      .each((j, letterList) => {
+      .each((_, letterList) => {
         // prepend base url to relative path
         courseURLS.push(CATALOGUE_BASE_URL + $(letterList).find("a").attr("href"));
       });
@@ -221,7 +221,7 @@ export async function getAllCourses(
   }
   // strip off department id
   department = department.slice(0, department.indexOf("(")).trim();
-  $("#courseinventorycontainer > .courses").each(async (i: number, course: cheerio.Element) => {
+  $("#courseinventorycontainer > .courses").each(async (_, course: cheerio.Element) => {
     // if page is empty for some reason??? (http://catalogue.uci.edu/allcourses/cbems/)
     if ($(course).find("h3").text().length == 0) {
       return;
@@ -229,7 +229,7 @@ export async function getAllCourses(
     //const courseBlocks: cheerio.Element[] = [];
     $(course)
       .find("div > .courseblock")
-      .each(async (j: number, courseBlock: cheerio.Element) => {
+      .each(async (_, courseBlock: cheerio.Element) => {
         // course identification
         //courseBlocks.push(courseBlock);
         let courseInfo;
@@ -398,7 +398,7 @@ export async function parseCourseBody(
 ) {
   const $ = cheerio.load(responseText);
   // iterate through each ptag for the course
-  $(courseBody).each((i, ptag) => {
+  $(courseBody).each((_, ptag) => {
     let pTagText = normalizeString($(ptag).text().trim());
     // if starts with ( and has I or V in it, probably a GE tag
     if (
@@ -445,24 +445,6 @@ export async function parseCourseBody(
         classInfo[keyWord] = possibleMatch.groups?.value;
         break;
       }
-    }
-  });
-}
-
-/**
- * @param {{[key: string]: any}} json_data: collection of class information generated from getAllCourses
- * @param filename the file to write the result to
- * @returns {void}: writes the json_data to a json file
- */
-function writeJsonData(json_data: Record<string, unknown>, filename = "./courses.json"): void {
-  console.log(`\nWriting JSON to ${filename}...`);
-  //const bar = new ProgressBar(Object.keys(json_data).length, debug);
-  // Maybe delete the existing data?
-  fs.writeFile(filename, JSON.stringify(json_data), (error) => {
-    if (error) {
-      console.error("Error writing to file " + filename, error);
-    } else {
-      console.log("Exported instructors data to", filename + "courses.json");
     }
   });
 }
