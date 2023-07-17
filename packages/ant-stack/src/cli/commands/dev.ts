@@ -5,13 +5,12 @@ import chokidar from "chokidar";
 import { consola } from "consola";
 import cors from "cors";
 import { build, type BuildOptions } from "esbuild";
-import express, { Router } from "express";
+import express from "express";
+import { RequestHandler, Router } from "express";
 
 import { getConfig } from "../../config.js";
-import { createExpressHandler } from "../../lambda-core/internal/handler.js";
-import { findAllProjects } from "../../utils/searchProjects.js";
-import { getClosestProjectDirectory } from "../../utils/searchRoot.js";
-import { searchForWorkspaceRoot } from "../../utils/searchRoot.js";
+import { createExpressHandler, createErrorResult, logger, zeroUUID } from "../../lambda-core";
+import { findAllProjects, getClosestProjectDirectory, searchForWorkspaceRoot } from "../../utils";
 
 /**
  * Translates the HTTP verbs exported by the lambda-core into Express methods.
@@ -41,6 +40,18 @@ function isStringArray(value: Array<unknown>): value is string[] {
   return value.every((v) => typeof v === "string");
 }
 
+const notFoundHandler: RequestHandler = (req, res) => {
+  logger.info(
+    `${req.method} ${req.path} ${JSON.stringify(req.method === "GET" ? req.query : req.body)}`,
+  );
+  const { statusCode, body, headers } = createErrorResult(
+    404,
+    "The requested resource could not be found.",
+    zeroUUID,
+  );
+  res.status(statusCode).set(headers).json(JSON.parse(body));
+};
+
 /**
  * Start a dev server.
  */
@@ -53,12 +64,12 @@ export async function startDevServer() {
 
   if (cwd === workspaceRoot) {
     consola.info(
-      `🎏 Starting root dev server. All endpoints from ${config.directory} will be served.`
+      `🎏 Starting root dev server. All endpoints from ${config.directory} will be served.`,
     );
   } else {
     const endpoint = relative(`${workspaceRoot}/${config.directory}`, cwd);
     consola.info(
-      `🎏 Starting local dev server. Only the current endpoint, ${endpoint} will be served at the "/" route.`
+      `🎏 Starting local dev server. Only the current endpoint, ${endpoint} will be served at the "/" route.`,
     );
     config.directory = resolve(process.cwd());
   }
@@ -72,30 +83,33 @@ export async function startDevServer() {
   /**
    * Cache the build configs for each endpoint.
    */
-  const endpointBuildConfigs = endpoints.reduce((configs, endpoint) => {
-    /**
-     * {@link BuildOptions.entryPoints} can be way too many different things !!
-     */
-    const entryPoints = Array.isArray(config.esbuild.entryPoints)
-      ? isStringArray(config.esbuild.entryPoints)
-        ? config.esbuild.entryPoints.map((entry) => `${endpoint}/${entry}`)
-        : config.esbuild.entryPoints.map((entry) => ({
-            in: `${endpoint}/${entry.in}`,
-            out: `${endpoint}/${entry.out}`,
+  const endpointBuildConfigs = endpoints.reduce(
+    (configs, endpoint) => {
+      /**
+       * {@link BuildOptions.entryPoints} can be way too many different things !!
+       */
+      const entryPoints = Array.isArray(config.esbuild.entryPoints)
+        ? isStringArray(config.esbuild.entryPoints)
+          ? config.esbuild.entryPoints.map((entry) => `${endpoint}/${entry}`)
+          : config.esbuild.entryPoints.map((entry) => ({
+              in: `${endpoint}/${entry.in}`,
+              out: `${endpoint}/${entry.out}`,
+            }))
+        : typeof config.esbuild.entryPoints === "object"
+        ? Object.entries(config.esbuild.entryPoints).map(([key, value]) => ({
+            in: `${endpoint}/${key}`,
+            out: `${endpoint}/${value}`,
           }))
-      : typeof config.esbuild.entryPoints === "object"
-      ? Object.entries(config.esbuild.entryPoints).map(([key, value]) => ({
-          in: `${endpoint}/${key}`,
-          out: `${endpoint}/${value}`,
-        }))
-      : config.esbuild.entryPoints;
+        : config.esbuild.entryPoints;
 
-    const outdir = resolve(`${endpoint}/${config.esbuild.outdir}`);
+      const outdir = resolve(`${endpoint}/${config.esbuild.outdir}`);
 
-    configs[endpoint] = { ...config.esbuild, entryPoints, outdir };
+      configs[endpoint] = { ...config.esbuild, entryPoints, outdir };
 
-    return configs;
-  }, {} as Record<string, BuildOptions>);
+      return configs;
+    },
+    {} as Record<string, BuildOptions>,
+  );
 
   /**
    * Build all endpoints.
@@ -105,7 +119,7 @@ export async function startDevServer() {
       consola.info(`🔨 Building ${endpoint} to ${endpointBuildConfigs[endpoint].outdir}`);
       await build(endpointBuildConfigs[endpoint]);
       consola.info(`✅ Done building ${endpoint} to ${endpointBuildConfigs[endpoint].outdir}`);
-    })
+    }),
   );
 
   //---------------------------------------------------------------------------------
@@ -122,6 +136,8 @@ export async function startDevServer() {
    * To update the routes, re-assign the global router, and load all endpoint routes into the new router.
    */
   let router = Router();
+
+  router.all("*", notFoundHandler);
 
   app.use((req, res, next) => router(req, res, next));
 
@@ -143,6 +159,8 @@ export async function startDevServer() {
 
       router.use(api, (req, res, next) => endpointMiddleware[endpoint](req, res, next));
     });
+
+    router.all("*", notFoundHandler);
   };
 
   /**
@@ -164,7 +182,7 @@ export async function startDevServer() {
     handlerMethods.filter(isMethod).forEach((key) => {
       endpointMiddleware[endpoint][MethodsToExpress[key]](
         "/",
-        createExpressHandler(handlerFunctions[key])
+        createExpressHandler(handlerFunctions[key]),
       );
     });
   };
