@@ -4,8 +4,7 @@ import { fileURLToPath as futp } from "node:url";
 import * as cdk from "aws-cdk-lib";
 
 import { getConfig } from "../config.js";
-import { findAllProjects } from "../utils/searchProjects.js";
-import { searchForWorkspaceRoot } from "../utils/searchRoot";
+import { findAllProjects, searchForWorkspaceRoot } from "../utils";
 
 import { AntStack, type HandlerConfig } from "./stack.js";
 
@@ -47,7 +46,7 @@ async function start() {
    * Configs for all __unique__ Lambda routes.
    */
   const handlerConfigs: HandlerConfig[] = findAllProjects(
-    join(searchForWorkspaceRoot(__dirname), config.directory)
+    join(searchForWorkspaceRoot(__dirname), config.directory),
   )
     .map((apiRoute) => ({
       route: relative(join(searchForWorkspaceRoot(__dirname), config.directory), apiRoute),
@@ -56,7 +55,7 @@ async function start() {
       rolePropsMapping: config.aws.routeRolePropsMapping,
     }))
     .filter(
-      (config, index, configs) => configs.findIndex((c) => c.route === config.route) === index
+      (config, index, configs) => configs.findIndex((c) => c.route === config.route) === index,
     );
 
   console.log(handlerConfigs);
