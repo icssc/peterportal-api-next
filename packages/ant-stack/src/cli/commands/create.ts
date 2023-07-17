@@ -10,7 +10,7 @@ import { getClosestProjectDirectory } from "../../utils/searchRoot.js";
 const createHandlerTemplate = (httpMethod: string) => `\
 export const ${httpMethod}: InternalHandler = async (event) => {
   return createOKResult({}, zeroUUID);
-}
+}${httpMethod === "GET" ? `\n\nexport const HEAD = GET;` : ""}
 `;
 
 /**
@@ -61,8 +61,8 @@ export async function interactiveCreate() {
     if (!(endpoint.match(/\/[0-9A-Za-z]+/) && !endpoint.endsWith("/"))) {
       consola.error(
         chalk.red(
-          "Malformed path provided. A well-formed path must consist entirely of path parts (one slash followed by at least one alphanumeric character), and must not end with a slash (e.g. /v1/rest/test)."
-        )
+          "Malformed path provided. A well-formed path must consist entirely of path parts (one slash followed by at least one alphanumeric character), and must not end with a slash (e.g. /v1/rest/test).",
+        ),
       );
       endpoint = "";
     }
@@ -75,7 +75,7 @@ export async function interactiveCreate() {
 
     const create = await consola.prompt(
       "Would you like to create a new route anyway? This will overwrite the existing route!",
-      { type: "confirm" }
+      { type: "confirm" },
     );
 
     if (!create) {
@@ -101,7 +101,7 @@ export async function interactiveCreate() {
 
   consola.info(
     `Endpoint created! Don't forget to run ${chalk.bold(
-      `${config.packageManager} install`
-    )} to integrate the new route.`
+      `${config.packageManager} install`,
+    )} to integrate the new route.`,
   );
 }
