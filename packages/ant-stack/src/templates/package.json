@@ -11,8 +11,7 @@
     "ant-stack": "workspace:^"
   },
   "devDependencies": {
-    "@types/node": "18",
-    "tsx": "*",
-    "typescript": "~5.0"
+    "@libs/build-tools": "workspace:*",
+    "peterportal-api-next-types": "workspace:*"
   }
 }
