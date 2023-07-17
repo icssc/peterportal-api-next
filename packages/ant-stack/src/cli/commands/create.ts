@@ -8,7 +8,7 @@ import { getConfig } from "../../config.js";
 import { getClosestProjectDirectory } from "../../utils/searchRoot.js";
 
 const createHandlerTemplate = (httpMethod: string) => `\
-export const ${httpMethod}: InternalHandler = async (event) => {
+export const ${httpMethod}: InternalHandler = async (request) => {
   return createOKResult({}, zeroUUID);
 }${httpMethod === "GET" ? `\n\nexport const HEAD = GET;` : ""}
 `;
