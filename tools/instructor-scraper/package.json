@@ -19,5 +19,8 @@
     "p-limit": "^4.0.0",
     "string-similarity-js": "^2.1.4",
     "winston": "^3.8.2"
+  },
+  "devDependencies": {
+    "peterportal-api-next-types": "workspace:1.0.0-beta.2"
   }
 }
