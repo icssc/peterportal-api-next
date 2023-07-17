@@ -1,0 +1,22 @@
+{
+  "name": "unified-scraper",
+  "version": "0.1.0",
+  "description": "",
+  "license": "MIT",
+  "author": "",
+  "type": "module",
+  "main": "index.ts",
+  "types": "index.ts",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@libs/db": "*",
+    "course-scraper": "*",
+    "instructor-scraper": "*",
+    "prereq-scraper": "*"
+  },
+  "devDependencies": {
+    "peterportal-api-next-types": "*"
+  }
+}

@@ -7,7 +7,7 @@ export type Prerequisite = {
   /**
    * Type of requisite. {course, exam}
    */
-  type: string;
+  type: "course" | "exam";
   /**
    * The course ID of the requisite.
    */
@@ -21,7 +21,7 @@ export type Prerequisite = {
    */
   minGrade?: string;
   /**
-   * If requisite is a coreguisite.
+   * If requisite is a coreqisite.
    */
   coreq?: boolean;
 };

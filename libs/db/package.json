@@ -13,9 +13,9 @@
     "migrate:reset": "dotenv -e ../../.env.development -- prisma migrate reset"
   },
   "dependencies": {
-    "@prisma/client": "^4.14.0"
+    "@prisma/client": "^4.16.2"
   },
   "devDependencies": {
-    "prisma": "^4.14.0"
+    "prisma": "^4.16.2"
   }
 }

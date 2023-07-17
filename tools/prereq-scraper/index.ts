@@ -1,6 +1,7 @@
 import cheerio from "cheerio";
 import fetch from "cross-fetch";
-import { dirname } from "path";
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import { dirname, join } from "path";
 import { Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
 import { fileURLToPath } from "url";
 import winston from "winston";
@@ -13,7 +14,7 @@ type DepartmentCourses = {
   [dept: string]: CourseList;
 };
 
-type CourseTree = {
+export type CourseTree = {
   courseId: string;
   courseTitle: string;
   prereqTree: PrerequisiteTree;
@@ -42,7 +43,9 @@ const logger = winston.createLogger({
 /**
  * Scrape all course prerequisite data from the Registrar's website.
  */
-export async function scrapeAllPrereqs(): Promise<DepartmentCourses> {
+export async function getPrereqs(): Promise<DepartmentCourses> {
+  if (process.env["DEBUG"] && existsSync(join(__dirname, "prerequisites.json")))
+    return JSON.parse(readFileSync(join(__dirname, "prerequisites.json"), { encoding: "utf8" }));
   logger.info("Scraping all course prerequisite data");
   const deptCourses: DepartmentCourses = {};
   try {
@@ -159,9 +162,13 @@ function buildANDLeaf(prereqTree: PrerequisiteTree, prereq: string) {
   }
 }
 
-function createPrereq(type: string, req: string, grade?: string, coreq?: boolean): Prerequisite {
-  const prereq: Prerequisite = { type: "" };
-  prereq.type = type;
+function createPrereq(
+  type: "course" | "exam",
+  req: string,
+  grade?: string,
+  coreq?: boolean
+): Prerequisite {
+  const prereq: Prerequisite = { type };
   if (type === "course") {
     prereq.courseId = req;
   } else {
@@ -212,3 +219,10 @@ function parseAntiRequisite(requisite: string): Prerequisite | null {
   }
   return null;
 }
+
+async function main() {
+  const prereqs = await getPrereqs();
+  writeFileSync("./prerequisites.json", JSON.stringify(prereqs));
+}
+
+main();
