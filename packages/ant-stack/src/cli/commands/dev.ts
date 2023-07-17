@@ -165,7 +165,7 @@ export async function startDevServer() {
    * Load a specific endpoint's middleware.
    */
   const loadEndpoint = async (endpoint: string) => {
-    consola.info(`⚙  Setting up router for ${endpoint}`);
+    consola.info(`🔧 Setting up router for ${endpoint}`);
 
     endpointMiddleware[endpoint] = Router();
 
