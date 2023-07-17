@@ -35,7 +35,7 @@ export class UnifiedScraperStack extends Stack {
         minute: "0",
         hour: "12",
         day: "1",
-        month: "8",
+        month: "*",
         weekDay: "*",
       }),
       scheduledFargateTaskImageOptions: {
