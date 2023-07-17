@@ -1,12 +1,11 @@
 {
-  "name": "api-v1-rest-calendar",
+  "name": "api-v1-rest-courses",
   "version": "0.0.0",
-  "private": true,
-  "license": "MIT",
   "type": "module",
-  "main": "index.ts",
   "scripts": {
-    "build": "ant-stack build"
+    "build": "pnpm exec ant-stack build",
+    "dev": "pnpm exec ant-stack dev",
+    "start": "node dist"
   },
   "dependencies": {
     "@libs/db": "workspace:*",

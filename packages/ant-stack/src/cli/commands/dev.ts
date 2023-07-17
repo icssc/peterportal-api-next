@@ -137,8 +137,6 @@ export async function startDevServer() {
    */
   let router = Router();
 
-  router.all("*", notFoundHandler);
-
   app.use((req, res, next) => router(req, res, next));
 
   /**

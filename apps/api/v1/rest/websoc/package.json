@@ -16,7 +16,6 @@
   },
   "devDependencies": {
     "@libs/build-tools": "workspace:*",
-    "peterportal-api-next-types": "workspace:*",
-    "typescript": "^5.0.4"
+    "peterportal-api-next-types": "workspace:*"
   }
 }
