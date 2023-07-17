@@ -24,7 +24,7 @@ export const GET: InternalHandler = async (request) => {
       return createOKResult(
         await normalizeCourse(
           prisma,
-          await prisma.course.findUniqueOrThrow({
+          await prisma.course.findFirstOrThrow({
             where: { id: decodeURIComponent(params.id) },
           }),
         ),

@@ -179,7 +179,7 @@ export async function startDevServer() {
 
     handlerMethods.filter(isMethod).forEach((key) => {
       endpointMiddleware[endpoint][MethodsToExpress[key]](
-        "/",
+        "/:id",
         createExpressHandler(handlerFunctions[key]),
       );
     });
