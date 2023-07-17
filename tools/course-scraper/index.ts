@@ -11,9 +11,6 @@ const CATALOGUE_BASE_URL = "https://catalogue.uci.edu";
 const URL_TO_ALL_COURSES: string = CATALOGUE_BASE_URL + "/allcourses/";
 const URL_TO_ALL_SCHOOLS: string = CATALOGUE_BASE_URL + "/schoolsandprograms/";
 
-// output file names
-const COURSES_DATA_NAME = "courses.json";
-
 // references
 const GE_DICTIONARY: Record<string, string> = {
   Ia: "GE Ia: Lower Division Writing",
@@ -507,7 +504,7 @@ export async function getCourses() {
 async function main() {
   try {
     const data = await getCourses();
-    fs.writeFileSync(join(__dirname, COURSES_DATA_NAME), JSON.stringify(data));
+    fs.writeFileSync(join("./courses.json"), JSON.stringify(data));
   } catch {
     console.log(
       "FAILED!",

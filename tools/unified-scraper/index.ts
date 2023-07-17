@@ -41,15 +41,15 @@ prisma.$on("query", (e) => {
 
 async function main() {
   const courseInfo = JSON.parse(
-    readFileSync("./node_modules/course-scraper/courses.json", { encoding: "utf8" })
+    readFileSync("./courses.json", { encoding: "utf8" })
   ) as Record<string, ScrapedCourse>;
   const instructorInfo = JSON.parse(
-    readFileSync("./node_modules/instructor-scraper/instructors.json", { encoding: "utf8" })
+    readFileSync("./instructors.json", { encoding: "utf8" })
   ).result as Record<string, Instructor>;
   const prereqInfo = Object.fromEntries(
     (Object.values(
       JSON.parse(
-        readFileSync("./node_modules/prereq-scraper/prerequisites.json", { encoding: "utf8" })
+        readFileSync("./prerequisites.json", { encoding: "utf8" })
       )
     ) as CourseTree[])
       .flat()
