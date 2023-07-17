@@ -20,9 +20,9 @@
   "devDependencies": {
     "@types/babel__traverse": "^7.18.3",
     "@types/node": "^18.11.10",
-    "aws-cdk": "^2.81.0",
-    "aws-cdk-lib": "^2.53.0",
-    "constructs": "^10.1.176",
+    "aws-cdk": "2.87.0",
+    "aws-cdk-lib": "2.87.0",
+    "constructs": "10.2.69",
     "peterportal-api-next-types": "*",
     "source-map-support": "^0.5.21",
     "tsx": "^3.12.3",
