@@ -16,9 +16,9 @@
     "studio:prod": "dotenv -e ../../.env.production -- prisma studio"
   },
   "dependencies": {
-    "@prisma/client": "^4.16.2"
+    "@prisma/client": "4.16.2"
   },
   "devDependencies": {
-    "prisma": "^4.16.2"
+    "prisma": "4.16.2"
   }
 }

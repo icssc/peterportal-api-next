@@ -9,13 +9,10 @@
   "types": "index.ts",
   "scripts": {},
   "dependencies": {
-    "@types/cheerio": "^0.22.31",
-    "cheerio": "^1.0.0-rc.12",
-    "winston": "^3.8.2"
+    "cheerio": "1.0.0-rc.12",
+    "winston": "3.10.0"
   },
   "devDependencies": {
-    "nodemon": "^2.0.20",
-    "peterportal-api-next-types": "workspace:^1.0.0-beta.1",
-    "ts-node": "^10.9.1"
+    "peterportal-api-next-types": "workspace:*"
   }
 }

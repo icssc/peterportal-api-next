@@ -8,12 +8,12 @@
   "main": "index.ts",
   "types": "index.ts",
   "dependencies": {
-    "@types/he": "^1.2.0",
-    "cheerio": "^1.0.0-rc.12",
-    "he": "^1.2.0",
-    "p-limit": "^4.0.0",
-    "string-similarity-js": "^2.1.4",
-    "winston": "^3.8.2"
+    "@types/he": "1.2.0",
+    "cheerio": "1.0.0-rc.12",
+    "he": "1.2.0",
+    "p-limit": "4.0.0",
+    "string-similarity-js": "2.1.4",
+    "winston": "3.10.0"
   },
   "devDependencies": {
     "peterportal-api-next-types": "*"

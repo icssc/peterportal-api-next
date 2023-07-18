@@ -12,15 +12,14 @@
     "test:watch": "vitest run --coverage --watch"
   },
   "dependencies": {
-    "@ap0nia/camaro": "^6.2.4",
-    "cheerio": "^1.0.0-rc.12",
-    "cross-fetch": "^3.1.5",
+    "@ap0nia/camaro": "6.2.4",
+    "cheerio": "1.0.0-rc.12",
+    "cross-fetch": "4.0.0",
     "peterportal-api-next-types": "*"
   },
   "devDependencies": {
-    "@vitest/coverage-istanbul": "^0.32.2",
-    "tsup": "^6.7.0",
-    "typescript": "^5.0.4",
-    "vitest": "^0.32.2"
+    "@vitest/coverage-istanbul": "0.33.0",
+    "tsup": "7.1.0",
+    "vitest": "0.33.0"
   }
 }

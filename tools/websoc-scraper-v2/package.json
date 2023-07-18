@@ -12,6 +12,6 @@
     "@libs/registrar-api": "*",
     "@libs/websoc-api-next": "*",
     "peterportal-api-next-types": "*",
-    "winston": "^3.8.2"
+    "winston": "3.10.0"
   }
 }
