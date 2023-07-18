@@ -4,11 +4,7 @@ import { resolve } from "node:path";
 import { build } from "esbuild";
 
 import { type AntConfig, getConfig } from "../../config.js";
-import {
-  createBunHandler,
-  createNodeHandler,
-  type InternalHandler,
-} from "../../lambda-core/internal/handler.js";
+import { createNodeHandler } from "../../lambda-core";
 
 /**
  * Compile for an AWS Lambda runtime
@@ -20,13 +16,13 @@ async function compileRuntime(config: AntConfig, functionName: string, outputFil
 
   copyFileSync(
     resolve(__dirname, config.runtime.lambdaCoreFile),
-    resolve(config.esbuild.outdir ?? ".", config.runtime.lambdaCoreFile)
+    resolve(config.esbuild.outdir ?? ".", config.runtime.lambdaCoreFile),
   );
 
   const exports = Object.keys(internalHandlers)
     .map(
       (httpMethod) =>
-        `export const ${httpMethod} = ${functionName}(${config.runtime.entryHandlersName}.${httpMethod})`
+        `export const ${httpMethod} = ${functionName}(${config.runtime.entryHandlersName}.${httpMethod})`,
     )
     .join("\n");
 
@@ -53,5 +49,4 @@ export const buildInternalHandler = async () => {
   }
 
   await compileRuntime(config, createNodeHandler.name, config.runtime.nodeRuntimeFile);
-  await compileRuntime(config, createBunHandler.name, config.runtime.bunRuntimeFile);
 };

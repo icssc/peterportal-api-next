@@ -3,14 +3,7 @@ import type { RequestHandler } from "express";
 
 import { logger } from "../logger.js";
 
-import {
-  type BunRequest,
-  type InternalRequest,
-  normalizeRecord,
-  transformBunRequest,
-  transformExpressRequest,
-  transformNodeRequest,
-} from "./request.js";
+import { type InternalRequest, transformExpressRequest, transformNodeRequest } from "./request.js";
 
 /**
  * A runtime-agnostic handler function.
@@ -22,12 +15,14 @@ export type InternalHandler = (request: InternalRequest) => Promise<APIGatewayPr
  * Create an Express handler for a route from an {@link InternalHandler}.
  * @remarks Used with the local Express development server.
  */
-export function createExpressHandler(handler: InternalHandler): RequestHandler {
-  const expressHandler: RequestHandler = async (req, res) => {
+export const createExpressHandler =
+  (handler: InternalHandler): RequestHandler =>
+  async (req, res) => {
     const request = transformExpressRequest(req);
 
     logger.info(`Path params: ${JSON.stringify(request.params)}`);
     logger.info(`Query: ${JSON.stringify(request.query)}`);
+    logger.info(`Body: ${JSON.stringify(request.body)}`);
 
     const result = await handler(request);
 
@@ -41,41 +36,14 @@ export function createExpressHandler(handler: InternalHandler): RequestHandler {
     }
   };
 
-  return expressHandler;
-}
-
 /**
  * Create an AWS Lambda node-runtime handler for a route from an {@link InternalHandler}.
  */
-export function createNodeHandler(handler: InternalHandler) {
-  const nodeHandler = async (event: APIGatewayProxyEvent, context: Context) => {
+export const createNodeHandler =
+  (handler: InternalHandler) => async (event: APIGatewayProxyEvent, context: Context) => {
     const request = transformNodeRequest(event, context);
 
     logger.info(`Request: ${JSON.stringify(request.params)}`);
 
     return handler(request);
   };
-
-  return nodeHandler;
-}
-
-/**
- * Create an AWS Lambnda Bun-runtime (HTTP) handler for a route from an {@link InternalHandler}.
- */
-export function createBunHandler(handler: InternalHandler) {
-  const lambdaHandler = async (event: BunRequest) => {
-    const request = transformBunRequest(event);
-
-    logger.info(`Request: ${JSON.stringify(request.params)}`);
-
-    const response = await handler(request);
-
-    const status = response.statusCode;
-
-    const headers = normalizeRecord(response.headers);
-
-    return new Response(response.body, { status, headers });
-  };
-
-  return lambdaHandler;
-}

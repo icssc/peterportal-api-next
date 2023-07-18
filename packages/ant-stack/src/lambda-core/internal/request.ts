@@ -70,11 +70,6 @@ export type InternalExpressRequest = InternalRequest<ExpressRequest>;
 export type InternalNodeRequest = InternalRequest<APIGatewayProxyEvent> & { context: Context };
 
 /**
- * Internal requests from a local Bun HTTP development server only have the basic properties.
- */
-export type InternalBunRequest = InternalRequest<BunRequest>;
-
-/**
  * Transform an {@link ExpressRequest} into an {@link InternalExpressRequest}.
  */
 export function transformExpressRequest(req: ExpressRequest) {
@@ -111,31 +106,6 @@ export function transformNodeRequest(event: APIGatewayProxyEvent, context: Conte
   };
 
   return internalLambdaRequest;
-}
-
-/**
- * A request received from the AWS Lambda Bun runtime.
- * The `aws` property is actually only available when deployed on AWS Lambda.
- */
-export type BunRequest = Request & { aws: APIGatewayProxyEvent };
-
-/**
- * Transform received {@link BunRequest} into an {@link InternalBunRequest}.
- */
-export function transformBunRequest(request: BunRequest): InternalBunRequest {
-  const internalBunRequest: InternalBunRequest = {
-    request,
-    body: request.body,
-    headers: normalizeRecord({}),
-    method: request.method,
-    params: null,
-    path: request.url,
-    query: normalizeRecord({}),
-    requestId: zeroUUID,
-    isWarmerRequest: false,
-  };
-
-  return internalBunRequest;
 }
 
 /**

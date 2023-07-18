@@ -85,7 +85,6 @@ const config: AntConfig = {
     entryHandlersName: "InternalHandlers",
     lambdaCoreFile: "lambda-core.js",
     nodeRuntimeFile: "lambda-node-runtime.js",
-    bunRuntimeFile: "lambda-bun-runtime.js",
   },
 };
 

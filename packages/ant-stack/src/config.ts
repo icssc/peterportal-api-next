@@ -50,12 +50,6 @@ interface AntRuntime {
    * @example 'lambda-node-runtime.js'
    */
   nodeRuntimeFile: string;
-
-  /**
-   * Name of dynamically generated script for AWS Lambda's Bun runtime.
-   * @example 'lambda-bun-runtime.js'
-   */
-  bunRuntimeFile: string;
 }
 
 /**

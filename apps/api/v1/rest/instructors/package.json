@@ -1,9 +1,10 @@
 {
   "name": "api-v1-rest-instructors",
   "version": "0.0.0",
+  "private": true,
   "type": "module",
   "scripts": {
-    "build": "pnpm exec ant-stack build"
+    "build": "ant-stack build"
   },
   "dependencies": {
     "@libs/db": "workspace:*",
