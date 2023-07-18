@@ -59,7 +59,7 @@ async function main() {
   await prisma.$transaction([
     prisma.course.deleteMany({ where: { id: { in: Object.keys(courseInfo) } } }),
     prisma.course.createMany({
-      data: Object.entries(courseInfo).map(createCourses(instructorInfo, prereqInfo)),
+      data: Object.entries(courseInfo).map(createCourses(instructorInfo, prereqInfo, prereqLists)),
       skipDuplicates: true,
     }),
     prisma.course.deleteMany({ where: { id: { in: Object.keys(prereqInfo) } } }),

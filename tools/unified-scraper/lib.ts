@@ -51,17 +51,17 @@ const prereqToString = (prereq: Prerequisite) => {
 const prereqTreeToString = (tree: PrerequisiteTree): string => {
   if (tree.AND) {
     return `(${tree.AND.map((x) => (isPrereq(x) ? prereqToString(x) : prereqTreeToString(x))).join(
-      " AND ",
+      " AND "
     )})`;
   }
   if (tree.OR) {
     return `(${tree.OR.map((x) => (isPrereq(x) ? prereqToString(x) : prereqTreeToString(x))).join(
-      " OR ",
+      " OR "
     )})`;
   }
   if (tree.NOT) {
     return `(${tree.NOT.map((x) =>
-      isPrereq(x) ? `NOT ${prereqToString(x)}` : `NOT ${prereqTreeToString(x)}`,
+      isPrereq(x) ? `NOT ${prereqToString(x)}` : `NOT ${prereqTreeToString(x)}`
     ).join(" AND ")})`;
   }
   return "";
@@ -95,7 +95,11 @@ export const prereqTreeToList = (tree: PrerequisiteTree): string[] => {
 };
 
 export const createCourses =
-  (instructorInfo: Record<string, Instructor>, prereqInfo: Record<string, PrerequisiteTree>) =>
+  (
+    instructorInfo: Record<string, Instructor>,
+    prereqInfo: Record<string, PrerequisiteTree>,
+    prereqLists: Record<string, string[]>
+  ) =>
   ([
     id,
     {
@@ -116,8 +120,6 @@ export const createCourses =
       corequisite,
       ge_list,
       ge_text,
-      prerequisite_list,
-      prerequisite_for,
     },
   ]: [string, ScrapedCourse]): Prisma.CourseCreateManyInput => {
     const courseId = `${department} ${number}`;
@@ -135,12 +137,12 @@ export const createCourses =
       description,
       departmentName: department_name,
       instructorHistory: Object.values(instructorInfo)
-        .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
+        .filter((x) => Object.keys(x.courseHistory ?? {}).includes(id))
         .map((x) => x.ucinetid),
       prerequisiteTree: prereqInfo[courseId] ?? {},
       prerequisiteText: prereqTreeToString(prereqInfo[courseId] ?? {}).slice(1, -1),
-      prerequisiteList: prerequisite_list,
-      prerequisiteFor: prerequisite_for,
+      prerequisiteList: prereqLists[courseId] ?? [],
+      prerequisiteFor: Object.keys(prereqLists).filter((x) => prereqLists[x].includes(courseId)),
       repeatability,
       gradingOption: grading_option,
       concurrent,
@@ -179,9 +181,9 @@ export const createCourses =
       terms: Array.from(
         new Set(
           Object.values(instructorInfo)
-            .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
-            .flatMap((x) => x.courseHistory[courseId]),
-        ),
+            .filter((x) => Object.keys(x.courseHistory ?? {}).includes(id))
+            .flatMap((x) => x.courseHistory[id])
+        )
       )
         .map(transformTerm)
         .sort(sortTerms),
