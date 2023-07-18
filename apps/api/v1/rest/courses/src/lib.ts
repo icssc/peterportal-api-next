@@ -1,14 +1,7 @@
-import { PrismaClient } from "@libs/db";
-import type { Course as PrismaCourse, CourseLevel as PrismaCourseLevel } from "@libs/db";
-import type {
-  Course,
-  CourseLevel,
-  GE,
-  GECategory,
-  PrerequisiteTree,
-} from "peterportal-api-next-types";
+import { Course as PrismaCourse, CourseLevel as PrismaCourseLevel } from "@libs/db";
+import { Course, CourseLevel, GE, GECategory, PrerequisiteTree } from "peterportal-api-next-types";
 
-export async function normalizeCourse(prisma: PrismaClient, course: PrismaCourse): Promise<Course> {
+export function normalizeCourse(course: PrismaCourse): Course {
   let courseLevel: CourseLevel;
   switch (course.courseLevel as PrismaCourseLevel) {
     case "LowerDiv":
@@ -53,18 +46,8 @@ export async function normalizeCourse(prisma: PrismaClient, course: PrismaCourse
     courseLevel,
     instructorHistory: course.instructorHistory as unknown as string[],
     prerequisiteTree: course.prerequisiteTree as unknown as PrerequisiteTree,
-    prerequisiteList: (
-      await prisma.coursePrereq.findMany({
-        where: { forCourseId: course.id },
-        select: { courseId: true },
-      })
-    ).map((x) => x.courseId),
-    prerequisiteFor: (
-      await prisma.coursePrereq.findMany({
-        where: { courseId: course.id },
-        select: { forCourseId: true },
-      })
-    ).map((x) => x.forCourseId),
+    prerequisiteList: course.prerequisiteList as unknown as string[],
+    prerequisiteFor: course.prerequisiteFor as unknown as string[],
     geList,
     terms: course.terms as unknown as string[],
   };
