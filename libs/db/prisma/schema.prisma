@@ -72,9 +72,9 @@ model Course {
   departmentName    String
   instructorHistory Json
   prerequisiteTree  Json
-  prerequisiteList  Json?
+  prerequisiteList  Json
   prerequisiteText  String      @db.Text
-  prerequisiteFor   Json?
+  prerequisiteFor   Json
   repeatability     String
   gradingOption     String
   concurrent        String

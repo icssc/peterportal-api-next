@@ -7,7 +7,7 @@ import { fileURLToPath } from "url";
 const cwd = dirname(fileURLToPath(import.meta.url));
 
 // The relative path to the generated Prisma Client.
-const prismaClientDir = "../../../node_modules/prisma/";
+const prismaClientDir = "../../../libs/db/node_modules/prisma/";
 
 const prismaSchema = "../../../libs/db/prisma/schema.prisma";
 
