@@ -23,12 +23,12 @@ export const rawHandler: RawHandler = async (request) => {
       if (params?.id) {
         try {
           return createOKResult<Course>(
-            await normalizeCourse(prisma,
+            normalizeCourse(
               await prisma.course.findUniqueOrThrow({
                 where: { id: decodeURIComponent(params.id) },
-              })
+              }),
             ),
-            requestId
+            requestId,
           );
         } catch {
           return createErrorResult(404, `Course ${params.id} not found`, requestId);

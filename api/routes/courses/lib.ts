@@ -1,7 +1,7 @@
-import { Course as PrismaCourse, CourseLevel as PrismaCourseLevel, PrismaClient } from "@libs/db";
+import { Course as PrismaCourse, CourseLevel as PrismaCourseLevel } from "@libs/db";
 import { Course, CourseLevel, GE, GECategory, PrerequisiteTree } from "peterportal-api-next-types";
 
-export async function normalizeCourse(prisma: PrismaClient, course: PrismaCourse): Promise<Course> {
+export function normalizeCourse(course: PrismaCourse): Course {
   let courseLevel: CourseLevel;
   switch (course.courseLevel as PrismaCourseLevel) {
     case "LowerDiv":
