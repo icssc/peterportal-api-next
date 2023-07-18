@@ -1,9 +1,9 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import type { RequestHandler } from "express";
 
-import { logger } from "../logger.js";
+import { logger } from "../logger";
 
-import { type InternalRequest, transformExpressRequest, transformNodeRequest } from "./request.js";
+import { type InternalRequest, transformExpressRequest, transformNodeRequest } from "./request";
 
 /**
  * A runtime-agnostic handler function.

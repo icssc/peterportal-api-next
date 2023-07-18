@@ -7,7 +7,7 @@
 import type { AntConfig, defineConfig } from "ant-stack/config";
 import type { loadConfig } from "unconfig";
 
-import env from "./env.js";
+import env from "./env";
 import {
   Effect,
   ManagedPolicy,

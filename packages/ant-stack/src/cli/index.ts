@@ -2,9 +2,9 @@ import chalk from "chalk";
 import { cli, command } from "cleye";
 import { consola } from "consola";
 
-import { buildInternalHandler } from "./commands/build.js";
+import { buildInternalHandler } from "./commands/build";
 import { interactiveCreate } from "./commands/create";
-import { startDevServer } from "./commands/dev.js";
+import { startDevServer } from "./commands/dev";
 
 async function start() {
   consola.log(chalk("🐜 ant-stack CLI"));

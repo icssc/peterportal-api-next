@@ -1,8 +1,8 @@
 import type { APIGatewayProxyResult } from "aws-lambda";
 import type { ErrorResponse, Response } from "peterportal-api-next-types";
 
-import { httpErrorCodes, months } from "../constants.js";
-import { logger } from "../logger.js";
+import { httpErrorCodes, months } from "../constants";
+import { logger } from "../logger";
 
 /**
  * Common response headers.
@@ -61,7 +61,7 @@ export function createOKResult<T>(payload: T, requestId: string): APIGatewayProx
 export function createErrorResult(
   statusCode: number,
   e: unknown,
-  requestId: string
+  requestId: string,
 ): APIGatewayProxyResult {
   const timestamp = createTimestamp();
 

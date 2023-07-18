@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import type { Request as ExpressRequest } from "express";
 
-import { zeroUUID } from "../constants.js";
+import { zeroUUID } from "../constants";
 
 /**
  * The body of a warming request to an AWS Lambda function.

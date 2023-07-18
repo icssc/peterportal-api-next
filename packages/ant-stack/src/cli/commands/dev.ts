@@ -8,7 +8,7 @@ import { build, type BuildOptions } from "esbuild";
 import express from "express";
 import { RequestHandler, Router } from "express";
 
-import { getConfig } from "../../config.js";
+import { getConfig } from "../../config";
 import { createExpressHandler, createErrorResult, logger, zeroUUID } from "../../lambda-core";
 import { findAllProjects, getClosestProjectDirectory, searchForWorkspaceRoot } from "../../utils";
 

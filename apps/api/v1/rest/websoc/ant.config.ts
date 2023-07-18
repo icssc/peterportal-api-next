@@ -2,7 +2,7 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import type { AntConfigStub } from "ant-stack/config";
-import env from "../../../../../env.js";
+import env from "../../../../../env";
 
 import { cleanCopy, selectDelete } from "@libs/build-tools";
 

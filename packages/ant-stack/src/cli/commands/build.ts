@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 
 import { build } from "esbuild";
 
-import { type AntConfig, getConfig } from "../../config.js";
+import { type AntConfig, getConfig } from "../../config";
 import { createNodeHandler } from "../../lambda-core";
 
 /**

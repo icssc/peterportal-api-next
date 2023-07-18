@@ -3,10 +3,10 @@ import { fileURLToPath as futp } from "node:url";
 
 import * as cdk from "aws-cdk-lib";
 
-import { getConfig } from "../config.js";
+import { getConfig } from "../config";
 import { findAllProjects, searchForWorkspaceRoot } from "../utils";
 
-import { AntStack, type HandlerConfig } from "./stack.js";
+import { AntStack, type HandlerConfig } from "./stack";
 
 const __dirname = futp(new URL(".", import.meta.url));
 

@@ -4,8 +4,8 @@ import path from "node:path";
 import chalk from "chalk";
 import { consola } from "consola";
 
-import { getConfig } from "../../config.js";
-import { getClosestProjectDirectory } from "../../utils/searchRoot.js";
+import { getConfig } from "../../config";
+import { getClosestProjectDirectory } from "../../utils";
 
 const createHandlerTemplate = (httpMethod: string) => `\
 export const ${httpMethod}: InternalHandler = async (request) => {

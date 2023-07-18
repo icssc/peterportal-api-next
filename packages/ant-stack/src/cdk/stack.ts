@@ -9,7 +9,7 @@ import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import type { Construct } from "constructs";
 
-import type { AntConfig } from "../config.js";
+import type { AntConfig } from "../config";
 import { type InternalHandler, isHttpMethod, warmerRequestBody } from "../lambda-core";
 
 export interface HandlerConfig {
