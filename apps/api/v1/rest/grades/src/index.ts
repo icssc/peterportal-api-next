@@ -97,7 +97,11 @@ export const GET: InternalHandler = async (request) => {
         );
       }
     }
-    return createErrorResult(400, `Invalid sub-resource ${params?.id}`, requestId);
+    return createErrorResult(
+      400,
+      params?.id ? `Invalid operation ${params.id}` : "Operation name not provided",
+      requestId,
+    );
   } catch (e) {
     if (e instanceof ZodError) {
       const messages = e.issues.map((issue) => issue.message);

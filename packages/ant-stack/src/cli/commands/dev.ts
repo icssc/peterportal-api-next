@@ -1,4 +1,4 @@
-import { relative, resolve } from "node:path";
+import { basename, join, relative, resolve } from "node:path";
 
 import bodyParser from "body-parser";
 import chokidar from "chokidar";
@@ -62,10 +62,11 @@ export async function startDevServer() {
 
   const workspaceRoot = searchForWorkspaceRoot(cwd);
 
-  if (cwd === workspaceRoot) {
+  if (cwd === workspaceRoot || basename(cwd) === "ant-stack") {
     consola.info(
       `🎏 Starting root dev server. All endpoints from ${config.directory} will be served.`,
     );
+    config.directory = join(workspaceRoot, config.directory);
   } else {
     const endpoint = relative(`${workspaceRoot}/${config.directory}`, cwd);
     consola.info(
@@ -176,6 +177,13 @@ export async function startDevServer() {
     const handlerFunctions = internalHandlers.default ?? internalHandlers;
 
     const handlerMethods = Object.keys(handlerFunctions);
+
+    handlerMethods.filter(isMethod).forEach((key) => {
+      endpointMiddleware[endpoint][MethodsToExpress[key]](
+        "/",
+        createExpressHandler(handlerFunctions[key]),
+      );
+    });
 
     handlerMethods.filter(isMethod).forEach((key) => {
       endpointMiddleware[endpoint][MethodsToExpress[key]](

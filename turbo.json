@@ -30,7 +30,7 @@
     },
     "dev": {
       "cache": false,
-      "dependsOn": ["^generate"],
+      "dependsOn": ["^build"],
       "env": ["API_PORT"]
     },
     "test": {}

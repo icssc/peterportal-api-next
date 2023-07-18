@@ -52,6 +52,7 @@
   "scripts": {
     "build": "tsup",
     "deploy": "cdk deploy --all --require-approval never",
+    "dev": "pnpm exec ant-stack dev",
     "start:cli": "node dist/cli"
   },
   "dependencies": {
