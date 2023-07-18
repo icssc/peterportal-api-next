@@ -32,7 +32,7 @@ export const rawHandler: RawHandler = async (request) => {
     case "HEAD":
     case "GET":
       try {
-        switch (params?.option) {
+        switch (params?.id) {
           case "terms": {
             const [gradesTerms, webSocTerms] = await Promise.all([
               prisma.gradesSection.findMany({
@@ -132,7 +132,7 @@ export const rawHandler: RawHandler = async (request) => {
             return createErrorResult(
               400,
               "More than 900 sections matched your query. Please refine your search.",
-              requestId
+              requestId,
             );
           }
 
@@ -161,7 +161,7 @@ export const rawHandler: RawHandler = async (request) => {
                   },
                   select: { data: true },
                   distinct: ["year", "quarter", "sectionCode"],
-                })
+                }),
               );
               const responses = (await prisma.$transaction(transactions))
                 .flat()
@@ -191,7 +191,7 @@ export const rawHandler: RawHandler = async (request) => {
               queries: normalizeQuery(parsedQuery),
             })) as Response<WebsocAPIResponse>
           ).payload,
-          requestId
+          requestId,
         );
       } catch (e) {
         if (e instanceof ZodError) {
