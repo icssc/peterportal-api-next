@@ -1,0 +1,15 @@
+{
+  "name": "api-v1-rest-instructors",
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "pnpm exec ant-stack build"
+  },
+  "dependencies": {
+    "@libs/db": "workspace:*",
+    "ant-stack": "workspace:*"
+  },
+  "devDependencies": {
+    "peterportal-api-next-types": "workspace:*"
+  }
+}

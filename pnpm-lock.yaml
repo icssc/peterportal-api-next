@@ -163,6 +163,19 @@ importers:
         specifier: workspace:*
         version: link:../../../../../packages/peterportal-api-next-types
 
+  apps/api/v1/rest/instructors:
+    dependencies:
+      '@libs/db':
+        specifier: workspace:*
+        version: link:../../../../../libs/db
+      ant-stack:
+        specifier: workspace:*
+        version: link:../../../../../packages/ant-stack
+    devDependencies:
+      peterportal-api-next-types:
+        specifier: workspace:*
+        version: link:../../../../../packages/peterportal-api-next-types
+
   apps/api/v1/rest/larc:
     dependencies:
       ant-stack:

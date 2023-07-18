@@ -198,8 +198,10 @@ export async function startDevServer() {
    */
   await Promise.all(endpoints.map(loadEndpoint)).then(refreshRouter);
 
-  app.listen(config.port, () => {
-    consola.info(`🎉 Express server listening at http://localhost:${config.port}`);
+  const port = process.env.API_PORT ?? config.port;
+
+  app.listen(port, () => {
+    consola.info(`🎉 Express server listening at http://localhost:${port}`);
   });
 
   //---------------------------------------------------------------------------------

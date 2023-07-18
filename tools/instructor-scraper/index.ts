@@ -53,7 +53,7 @@ const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.json(),
-    winston.format.prettyPrint()
+    winston.format.prettyPrint(),
   ),
   transports: [
     new winston.transports.Console(),
@@ -88,7 +88,7 @@ function sleep(ms: number) {
 export async function getInstructors(
   concurrency_limit = 16,
   attempts = 5,
-  year_threshold: number = YEAR_THRESHOLD
+  year_threshold: number = YEAR_THRESHOLD,
 ): Promise<InstructorsData> {
   if (process.env["DEBUG"] && existsSync(join(__dirname, "instructors.json")))
     return JSON.parse(readFileSync(join(__dirname, "instructors.json"), { encoding: "utf8" }));
@@ -111,11 +111,11 @@ export async function getInstructors(
   instructorsLog["faculty_links"] = facultyLinks;
   logger.info(`Retrieved ${Object.keys(facultyLinks).length} faculty links`);
   const instructorNamePromises = Object.keys(facultyLinks).map((link) =>
-    getInstructorNames(link, attempts)
+    getInstructorNames(link, attempts),
   );
   await sleep(1000); // Wait 1 second before scraping site again or catalogue.uci will throw a fit
   const facultyCoursesPromises = Object.keys(facultyLinks).map((link) =>
-    getDepartmentCourses(link, attempts)
+    getDepartmentCourses(link, attempts),
   );
   const instructorNames = await Promise.all(instructorNamePromises);
   const facultyCourses = await Promise.all(facultyCoursesPromises);
@@ -144,7 +144,7 @@ export async function getInstructors(
     const related_departments = Array.from(instructorsDict[name].courses);
     // Append promise for each instructor - the number of promises that run at the same is determined by concurrency_limit
     instructorPromises.push(
-      limit(() => getInstructor(name, schools, related_departments, attempts, year_threshold))
+      limit(() => getInstructor(name, schools, related_departments, attempts, year_threshold)),
     );
     instructorsLog["instructors_found"][name] = {
       schools: schools,
@@ -212,7 +212,7 @@ async function getInstructor(
   schools: string[],
   relatedDepartments: string[],
   attempts: number,
-  year_threshold: number
+  year_threshold: number,
 ): Promise<[string, Instructor]> {
   const instructorObject: Instructor = {
     name: instructorName,
@@ -239,7 +239,7 @@ async function getInstructor(
     instructorObject["name"],
     relatedDepartments,
     attempts,
-    year_threshold
+    year_threshold,
   );
   instructorObject["shortenedName"] = courseHistory[1]["shortened_name"];
   instructorObject["courseHistory"] = courseHistory[1]["course_history"];
@@ -263,7 +263,7 @@ async function getFaculty(
   schoolUrl: string,
   schoolName: string,
   root: boolean,
-  attempts: number
+  attempts: number,
 ): Promise<{ [key: string]: string[] }> {
   const schoolURLs: { [faculty_link: string]: string[] } = {
     [schoolName]: [],
@@ -283,7 +283,7 @@ async function getFaculty(
         departmentLinks.push([CATALOGUE_BASE_URL + departmentURL + "#faculty", schoolName]);
       });
       const departmentLinksPromises = departmentLinks.map((x) =>
-        getFaculty(x[0], x[1], false, attempts - 1)
+        getFaculty(x[0], x[1], false, attempts - 1),
       );
       const departmentLinksResults = await Promise.all(departmentLinksPromises);
       departmentLinksResults.forEach((res) => {
@@ -420,7 +420,7 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
     return lookup[facultyLink];
   }
   logger.warn(
-    `WARNING! ${facultyLink} does not have an associated Courses page! Use https://www.reg.uci.edu/perl/InstructHist to hardcode.`
+    `WARNING! ${facultyLink} does not have an associated Courses page! Use https://www.reg.uci.edu/perl/InstructHist to hardcode.`,
   );
   return [];
 }
@@ -441,7 +441,7 @@ function getHardcodedDepartmentCourses(facultyLink: string): string[] {
  */
 async function getDirectoryInfo(
   instructorName: string,
-  attempts: number
+  attempts: number,
 ): Promise<[string, { [key: string]: string }]> {
   const headers = {
     "Content-Type": "application/x-www-form-urlencoded",
@@ -572,7 +572,7 @@ async function getDirectoryInfo(
       return await getDirectoryInfo(name, attempts - 1);
     }
     logger.error(
-      "Failed to access directory! You may be making too many requests. Try lowering the concurrent limit."
+      "Failed to access directory! You may be making too many requests. Try lowering the concurrent limit.",
     );
     return ["FAILED", {}];
   }
@@ -604,7 +604,7 @@ async function getCourseHistory(
   instructorName: string,
   relatedDepartments: string[],
   attempts: number,
-  year_threshold: number
+  year_threshold: number,
 ): Promise<
   [
     string,
@@ -613,7 +613,7 @@ async function getCourseHistory(
       course_history: {
         [course_id: string]: string[];
       };
-    }
+    },
   ]
 > {
   const courseHistory: { [key: string]: Set<string> } = {};
@@ -643,7 +643,7 @@ async function getCourseHistory(
       year_threshold,
       relatedDepartments,
       courseHistory,
-      nameCounts
+      nameCounts,
     );
     // Set up parameters to parse previous pages (older course pages)
     let row = 1;
@@ -661,7 +661,7 @@ async function getCourseHistory(
         year_threshold,
         relatedDepartments,
         courseHistory,
-        nameCounts
+        nameCounts,
       );
       row += 101;
       params["start_row"] = row.toString();
@@ -670,7 +670,7 @@ async function getCourseHistory(
     // Determine most common shortened name
     if (Object.keys(nameCounts).length > 0) {
       shortenedName = Object.keys(nameCounts).reduce((a, b) =>
-        nameCounts[a] > nameCounts[b] ? a : b
+        nameCounts[a] > nameCounts[b] ? a : b,
       ); // Get name with the greatest count
     }
   } catch (error: unknown) {
@@ -681,7 +681,7 @@ async function getCourseHistory(
   // Convert sets to lists
   const courseHistoryListed: { [key: string]: string[] } = {};
   for (const courseId in courseHistory) {
-    courseHistoryListed[courseId.replace(/ /g, "")] = Array.from(courseHistory[courseId]);
+    courseHistoryListed[courseId.replace(/ {2}/g, " ")] = Array.from(courseHistory[courseId]);
   }
   if (status == "FOUND" && Object.keys(courseHistoryListed).length == 0) {
     status = "HISTORY_NOT_FOUND";
@@ -704,7 +704,7 @@ async function getCourseHistory(
  */
 async function fetchHistoryPage(
   params: { [key: string]: string },
-  attempts: number
+  attempts: number,
 ): Promise<string> {
   try {
     const response = await (
@@ -730,7 +730,7 @@ async function fetchHistoryPage(
     }
   }
   logger.error(
-    "InstrucHist connection to database is down! You may be making too many requests. Try lowering the concurrent limit."
+    "InstrucHist connection to database is down! You may be making too many requests. Try lowering the concurrent limit.",
   );
   return "HISTORY_FAILED";
 }
@@ -751,7 +751,7 @@ async function parseHistoryPage(
   year_threshold: number,
   relatedDepartments: string[],
   courseHistory: { [key: string]: Set<string> },
-  nameCounts: { [key: string]: number }
+  nameCounts: { [key: string]: number },
 ): Promise<boolean> {
   const relatedDepartmentsSet = new Set(relatedDepartments);
   // Map of table fields to index

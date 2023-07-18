@@ -11,7 +11,9 @@
     "generate": "prisma generate",
     "postinstall": "prisma generate",
     "migrate:dev": "dotenv -e ../../.env.development -- prisma migrate dev",
-    "migrate:reset": "dotenv -e ../../.env.development -- prisma migrate reset"
+    "migrate:reset": "dotenv -e ../../.env.development -- prisma migrate reset",
+    "studio:dev": "dotenv -e ../../.env.development -- prisma studio",
+    "studio:prod": "dotenv -e ../../.env.production -- prisma studio"
   },
   "dependencies": {
     "@prisma/client": "^4.16.2"
