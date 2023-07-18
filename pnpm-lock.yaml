@@ -564,6 +564,18 @@ importers:
         specifier: workspace:*
         version: link:../../../../../packages/peterportal-api-next-types
 
+  apps/api/v1/rest/larc:
+    dependencies:
+      ant-stack:
+        specifier: workspace:*
+        version: link:../../../../../packages/ant-stack
+      cheerio:
+        specifier: 1.0.0-rc.12
+        version: 1.0.0-rc.12
+      cross-fetch:
+        specifier: 4.0.0
+        version: 4.0.0
+
   apps/api/v1/rest/websoc:
     dependencies:
       '@aws-sdk/client-lambda':
