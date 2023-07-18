@@ -5,9 +5,6 @@
   "license": "MIT",
   "type": "module",
   "main": "server.ts",
-  "scripts": {
-    "dev": "nodemon server.ts"
-  },
   "dependencies": {
     "api-core": "workspace:*",
     "api-route-calendar": "workspace:*",

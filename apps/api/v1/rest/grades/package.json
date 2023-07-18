@@ -1,5 +1,5 @@
 {
-  "name": "api-v1-rest-courses",
+  "name": "api-v1-rest-grades",
   "version": "0.0.0",
   "type": "module",
   "scripts": {

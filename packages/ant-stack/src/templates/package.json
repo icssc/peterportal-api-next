@@ -3,15 +3,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "build": "pnpm exec ant-stack build",
-    "dev": "pnpm exec ant-stack dev",
-    "start": "node dist"
+    "build": "pnpm exec ant-stack build"
   },
   "dependencies": {
-    "ant-stack": "workspace:^"
-  },
-  "devDependencies": {
-    "@libs/build-tools": "workspace:*",
-    "peterportal-api-next-types": "workspace:*"
+    "ant-stack": "workspace:*"
   }
 }

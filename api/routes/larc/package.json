@@ -6,8 +6,7 @@
   "type": "module",
   "main": "src/index.ts",
   "scripts": {
-    "build": "node build.mjs",
-    "dev": "tsx src/index.ts"
+    "build": "node build.mjs"
   },
   "dependencies": {
     "api-core": "workspace:*",

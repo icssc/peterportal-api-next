@@ -51,7 +51,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "deploy": "cdk deploy --all -a 'tsx src/cdk/index.ts' --require-approval never",
+    "deploy": "cdk deploy --all --require-approval never",
     "start:cli": "node dist/cli"
   },
   "dependencies": {

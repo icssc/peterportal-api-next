@@ -545,6 +545,25 @@ importers:
         specifier: workspace:*
         version: link:../../../../../packages/peterportal-api-next-types
 
+  apps/api/v1/rest/grades:
+    dependencies:
+      '@libs/db':
+        specifier: workspace:*
+        version: link:../../../../../libs/db
+      ant-stack:
+        specifier: workspace:*
+        version: link:../../../../../packages/ant-stack
+      zod:
+        specifier: ^3.21.4
+        version: 3.21.4
+    devDependencies:
+      '@libs/build-tools':
+        specifier: workspace:*
+        version: link:../../../../../libs/build-tools
+      peterportal-api-next-types:
+        specifier: workspace:*
+        version: link:../../../../../packages/peterportal-api-next-types
+
   apps/api/v1/rest/websoc:
     dependencies:
       '@aws-sdk/client-lambda':
