@@ -8,7 +8,7 @@ import { parse } from "csv-parse";
 import { stringify } from "csv-stringify/sync";
 import type { Quarter, WebsocAPIResponse, WebsocSection } from "peterportal-api-next-types";
 
-import { __dirname, dataColumns, type Grade, handleError, logger } from "./gradesUpdaterUtil";
+import { __dirname, dataColumns, type Grade, handleError, logger } from "./lib";
 
 export interface RawGrade {
   year: string;
@@ -58,7 +58,7 @@ async function wait(min: number, max: number): Promise<void> {
 async function getInfo(
   year: string,
   quarters: Quarter[],
-  courseCode: number
+  courseCode: number,
 ): Promise<WebsocAPIResponse[]> {
   const promises: Promise<WebsocAPIResponse>[] = [];
   for (const quarter of quarters) {
@@ -77,8 +77,8 @@ async function getInfo(
         {
           department: "ANY",
           sectionCodes: `${courseCode}`,
-        }
-      )
+        },
+      ),
     );
   }
   return Promise.all(promises);
@@ -110,7 +110,7 @@ async function updateInformation(info: RawGrade): Promise<Grade | null> {
   const responses: WebsocAPIResponse[] = await getInfo(
     parseYear(info.year, info.quarter),
     info.quarter === "Summer" ? summerQuarters : [info.quarter],
-    info.courseCode
+    info.courseCode,
   );
   for (let index = 0; index < responses.length; ++index) {
     if (
@@ -174,7 +174,7 @@ function createParser(filePath: string): Parser {
       from_line: 2,
       skip_empty_lines: true,
       trim: true,
-    })
+    }),
   );
 }
 
@@ -186,7 +186,7 @@ function createParser(filePath: string): Parser {
 async function processFile(filePath: string): Promise<void> {
   const courseParser: Parser = createParser(filePath);
   const outputFilePath: string = resolve(
-    `${__dirname}/outputData/${basename(filePath, ".csv")}.output.csv`
+    `${__dirname}/outputData/${basename(filePath, ".csv")}.output.csv`,
   );
   const stream: fs.WriteStream = fs.createWriteStream(outputFilePath, {
     flags: "a",
@@ -201,7 +201,7 @@ async function processFile(filePath: string): Promise<void> {
     });
     const info: Grade | null = await updateInformation(rawInfo);
     if (info !== null) {
-      if (stream.write(stringify([info])) === false) {
+      if (!stream.write(stringify([info]))) {
         stream.once("drain", () => ({}));
       }
       logger.info("Finished processing course", info);
@@ -220,16 +220,13 @@ async function processFile(filePath: string): Promise<void> {
  * The entry point of this program.
  */
 async function sanitizeData(): Promise<void> {
-  if (
-    fs.existsSync(`${__dirname}/inputData`) === false ||
-    fs.existsSync(`${__dirname}/outputData`) === false
-  ) {
+  if (!fs.existsSync(`${__dirname}/inputData`) || !fs.existsSync(`${__dirname}/outputData`)) {
     throw new Error("Please create /inputData and /outputData first");
   }
   await Promise.all(
     fs
       .readdirSync(resolve(`${__dirname}/inputData`))
-      .map((file: string) => processFile(resolve(`${__dirname}/inputData/${file}`)))
+      .map((file: string) => processFile(resolve(`${__dirname}/inputData/${file}`))),
   );
 }
 

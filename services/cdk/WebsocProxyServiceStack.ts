@@ -15,7 +15,7 @@ export class WebsocProxyServiceStack extends Stack {
     const functionName = "peterportal-api-next-prod-websoc-proxy-service";
     const fn = new Function(this, functionName, {
       code: Code.fromAsset(
-        join(dirname(fileURLToPath(import.meta.url)), "../websoc-proxy-service/dist")
+        join(dirname(fileURLToPath(import.meta.url)), "../websoc-proxy-service/dist"),
       ),
       functionName,
       handler: "index.handler",
@@ -32,7 +32,7 @@ export class WebsocProxyServiceStack extends Stack {
     rule.addTarget(
       new LambdaFunction(fn, {
         event: RuleTargetInput.fromObject({ body: '{"warmer":"true"}' }),
-      })
+      }),
     );
   }
 }

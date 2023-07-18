@@ -5,8 +5,8 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "sanitize": "tsx sanitizeData.ts",
-    "upload": "dotenv -e ../../.env.grades -- tsx uploadData.ts"
+    "sanitize": "tsx sanitize-data.ts",
+    "upload": "dotenv -e ../../.env.grades -- tsx upload-data.ts"
   },
   "dependencies": {
     "@libs/db": "workspace:*",

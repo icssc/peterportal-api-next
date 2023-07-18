@@ -4,11 +4,7 @@ import { join } from "node:path";
 /**
  * Recursively find all paths to projects starting from a given root directory.
  */
-export function findAllProjects(root = "."): string[] {
-  const allProjects = findSubProjects(root);
-  const dedupedProjects = [...new Set(allProjects)];
-  return dedupedProjects;
-}
+export const findAllProjects = (root = "."): string[] => [...new Set(findSubProjects(root))];
 
 /**
  * Recursively find all paths to projects starting from a given root directory.

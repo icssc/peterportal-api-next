@@ -1,22 +1,6 @@
 import fs from "node:fs";
 import { dirname, join } from "node:path";
 
-export function isFileReadable(filename: string): boolean {
-  try {
-    // The "throwIfNoEntry" is a performance optimization for cases where the file does not exist
-    if (!fs.statSync(filename, { throwIfNoEntry: false })) {
-      return false;
-    }
-
-    // Check if current process has read permission to the file
-    fs.accessSync(filename, fs.constants.R_OK);
-
-    return true;
-  } catch {
-    return false;
-  }
-}
-
 // https://github.com/vitejs/vite/issues/2820#issuecomment-812495079
 const ROOT_FILES = [
   // '.git',
@@ -34,6 +18,22 @@ const ROOT_FILES = [
   // https://github.com/lerna/lerna#lernajson
   "lerna.json",
 ];
+
+export function isFileReadable(filename: string): boolean {
+  try {
+    // The "throwIfNoEntry" is a performance optimization for cases where the file does not exist
+    if (!fs.statSync(filename, { throwIfNoEntry: false })) {
+      return false;
+    }
+
+    // Check if current process has read permission to the file
+    fs.accessSync(filename, fs.constants.R_OK);
+
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 // npm: https://docs.npmjs.com/cli/v7/using-npm/workspaces#installing-workspaces
 // yarn: https://classic.yarnpkg.com/en/docs/workspaces/#toc-how-to-use-it
@@ -80,7 +80,7 @@ export function getClosestProjectDirectory(current = process.cwd(), root = curre
  */
 export function searchForWorkspaceRoot(
   current: string,
-  root = getClosestProjectDirectory(current)
+  root = getClosestProjectDirectory(current),
 ): string {
   if (hasWorkspaceRootFile(current) || hasWorkspacePackageJSON(current)) {
     return current;

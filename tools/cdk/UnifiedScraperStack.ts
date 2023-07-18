@@ -48,7 +48,7 @@ export class UnifiedScraperStack extends Stack {
           TZ: "America/Los_Angeles",
         },
         image: ContainerImage.fromAsset(
-          join(dirname(fileURLToPath(import.meta.url)), "../unified-scraper/")
+          join(dirname(fileURLToPath(import.meta.url)), "../unified-scraper/"),
         ),
         logDriver: LogDriver.awsLogs({
           logGroup: new LogGroup(this, `${id}-log-group`, {

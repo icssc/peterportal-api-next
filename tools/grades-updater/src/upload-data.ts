@@ -5,7 +5,7 @@ import { PrismaClient } from "@libs/db";
 import { type CastingContext, parse, type Parser } from "csv-parse";
 import type { Quarter } from "peterportal-api-next-types";
 
-import { __dirname, dataColumns, handleError, logger } from "./gradesUpdaterUtil";
+import { __dirname, dataColumns, handleError, logger } from "./lib";
 
 type Section = {
   meta: {
@@ -69,7 +69,7 @@ function createParser(filePath: string): Parser {
       from_line: 2,
       skip_empty_lines: true,
       trim: true,
-    })
+    }),
   );
 }
 
@@ -143,7 +143,7 @@ async function processData(sections: Section[]): Promise<void> {
         quarter: section.data.quarter,
         sectionCode: section.data.sectionCode,
         name,
-      }))
+      })),
     ),
     skipDuplicates: true,
   });

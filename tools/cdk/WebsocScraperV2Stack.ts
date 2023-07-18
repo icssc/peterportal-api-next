@@ -47,7 +47,7 @@ export class WebsocScraperV2Stack extends Stack {
         TZ: "America/Los_Angeles",
       },
       image: ContainerImage.fromAsset(
-        join(dirname(fileURLToPath(import.meta.url)), "../websoc-scraper-v2/")
+        join(dirname(fileURLToPath(import.meta.url)), "../websoc-scraper-v2/"),
       ),
       logging: LogDriver.awsLogs({
         logGroup: new LogGroup(this, `${id}-log-group`, {
