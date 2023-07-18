@@ -172,6 +172,9 @@ importers:
         specifier: workspace:*
         version: link:../../../../../packages/ant-stack
     devDependencies:
+      '@libs/build-tools':
+        specifier: workspace:*
+        version: link:../../../../../libs/build-tools
       peterportal-api-next-types:
         specifier: workspace:*
         version: link:../../../../../packages/peterportal-api-next-types

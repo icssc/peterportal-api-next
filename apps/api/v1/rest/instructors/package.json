@@ -10,6 +10,7 @@
     "ant-stack": "workspace:*"
   },
   "devDependencies": {
+    "@libs/build-tools": "workspace:*",
     "peterportal-api-next-types": "workspace:*"
   }
 }
