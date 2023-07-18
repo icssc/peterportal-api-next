@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import path from "node:path";
 
-import { getClosestProjectDirectory } from "../../utils/searchRoot.js";
+import { getClosestProjectDirectory } from "../../utils";
 
 const projectDirectory = getClosestProjectDirectory(__dirname);
 
