@@ -1,6 +1,6 @@
-import { describe, expect, test } from "@jest/globals";
+import { describe, expect, test } from "vitest";
 
-import { getTermDateData } from "./index";
+import { getTermDateData } from "../src";
 
 describe("registrar-api tests", () => {
   test("getTermData on invalid year throws error", () => {

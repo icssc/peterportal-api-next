@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { callWebSocAPI, getDepts, getTerms } from "../src/index.js";
+import { callWebSocAPI, getDepts, getTerms } from "../src";
 
 describe("websoc-api-next tests", () => {
   test("getDepts return includes COMPSCI", async () => {
@@ -23,13 +23,13 @@ describe("websoc-api-next tests", () => {
       {
         department: "I&C SCI",
         division: "LowerDiv",
-      }
+      },
     );
     expect(res.schools).toHaveLength(1);
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("I&C SCI");
     expect(
-      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "32A").length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "32A").length,
     ).toEqual(1);
   });
 
@@ -39,13 +39,13 @@ describe("websoc-api-next tests", () => {
       {
         department: "COMPSCI",
         division: "UpperDiv",
-      }
+      },
     );
     expect(res.schools).toHaveLength(1);
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("COMPSCI");
     expect(
-      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "161").length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "161").length,
     ).toEqual(1);
   });
 
@@ -55,13 +55,13 @@ describe("websoc-api-next tests", () => {
       {
         department: "COMPSCI",
         division: "Graduate",
-      }
+      },
     );
     expect(res.schools).toHaveLength(1);
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("COMPSCI");
     expect(
-      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "260P").length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "260P").length,
     ).toEqual(1);
   });
 
@@ -70,13 +70,13 @@ describe("websoc-api-next tests", () => {
       { year: "2022", quarter: "Summer1" },
       {
         department: "COMPSCI",
-      }
+      },
     );
     expect(res.schools).toHaveLength(1);
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("COMPSCI");
     expect(
-      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "143A").length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "143A").length,
     ).toEqual(1);
   });
 
@@ -85,13 +85,13 @@ describe("websoc-api-next tests", () => {
       { year: "2022", quarter: "Summer10wk" },
       {
         department: "I&C SCI",
-      }
+      },
     );
     expect(res.schools).toHaveLength(1);
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("I&C SCI");
     expect(
-      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "31").length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "31").length,
     ).toEqual(1);
   });
 
@@ -100,13 +100,13 @@ describe("websoc-api-next tests", () => {
       { year: "2022", quarter: "Summer2" },
       {
         department: "I&C SCI",
-      }
+      },
     );
     expect(res.schools).toHaveLength(1);
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("I&C SCI");
     expect(
-      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "6B").length
+      res.schools[0].departments[0].courses.filter((x) => x.courseNumber == "6B").length,
     ).toEqual(1);
   });
 
@@ -116,13 +116,13 @@ describe("websoc-api-next tests", () => {
       {
         department: "I&C SCI",
         courseNumber: "6B",
-      }
+      },
     );
     expect(res.schools).toHaveLength(1);
     expect(res.schools[0].departments).toHaveLength(1);
     expect(res.schools[0].departments[0].deptCode).toEqual("I&C SCI");
     expect(
-      res.schools[0].departments[0].courses[0].sections.every((x) => x.numOnWaitlist == "")
+      res.schools[0].departments[0].courses[0].sections.every((x) => x.numOnWaitlist == ""),
     ).toBeTruthy();
   });
 
@@ -131,7 +131,7 @@ describe("websoc-api-next tests", () => {
       { year: "2023", quarter: "Winter" },
       {
         department: "ECON",
-      }
+      },
     );
     expect(res.schools).toHaveLength(1);
     expect(res.schools[0].departments).toHaveLength(1);
@@ -144,7 +144,7 @@ describe("websoc-api-next tests", () => {
       { year: "2023", quarter: "Winter" },
       {
         department: "HUMAN",
-      }
+      },
     );
     expect(res.schools).toHaveLength(1);
     expect(res.schools[0].departments).toHaveLength(1);
@@ -157,7 +157,7 @@ describe("websoc-api-next tests", () => {
       { year: "2023", quarter: "Winter" },
       {
         ge: "GE-2",
-      }
+      },
     );
     expect(res.schools.length).toBeGreaterThan(1);
   });
@@ -167,7 +167,7 @@ describe("websoc-api-next tests", () => {
       { year: "2023", quarter: "Winter" },
       {
         department: "CBEMS",
-      }
+      },
     );
     expect(res.schools.length).toEqual(0);
   });

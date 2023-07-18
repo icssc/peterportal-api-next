@@ -6,13 +6,8 @@
   "author": "",
   "type": "module",
   "main": "index.ts",
-  "scripts": {
-    "test": "jest"
-  },
   "dependencies": {
-    "cross-fetch": "^4.0.0"
-  },
-  "devDependencies": {
-    "@types/cheerio": "^0.22.31"
+    "cheerio": "1.0.0-rc.12",
+    "cross-fetch": "4.0.0"
   }
 }

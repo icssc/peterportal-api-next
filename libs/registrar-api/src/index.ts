@@ -14,7 +14,7 @@ const addSingleDateRow = (
   key: string,
   record: Record<string, Partial<QuarterDates & { [p: string]: Date }>>,
   year: string,
-  offset = 0
+  offset = 0,
 ): void => {
   for (const [idx, date] of data[index].entries()) {
     const currYear = idx == offset ? parseInt(year) : parseInt(year) + 1;
@@ -22,7 +22,7 @@ const addSingleDateRow = (
     record[`${currYear} ${quarters[idx + offset]}`][key] = new Date(
       currYear,
       months.indexOf(month),
-      parseInt(day)
+      parseInt(day),
     );
   }
 };
@@ -34,7 +34,7 @@ const addMultipleDateRow = (
   keyEnd: string,
   record: Record<string, Partial<QuarterDates & { [p: string]: Date }>>,
   year: string,
-  offset = 0
+  offset = 0,
 ): void => {
   for (const [idx, date] of data[index].entries()) {
     const currYear = idx == offset ? parseInt(year) : parseInt(year) + 1;
@@ -50,12 +50,12 @@ const addMultipleDateRow = (
     record[`${currYear} ${quarters[idx + offset]}`][keyStart] = new Date(
       currYear,
       months.indexOf(startMonth),
-      parseInt(startDay)
+      parseInt(startDay),
     );
     record[`${currYear} ${quarters[idx + offset]}`][keyEnd] = new Date(
       currYear,
       months.indexOf(endMonth),
-      parseInt(endDay)
+      parseInt(endDay),
     );
   }
 };
@@ -71,7 +71,7 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
   const response = await fetch(
     `https://www.reg.uci.edu/calendars/quarterly/${year}-${
       parseInt(year, 10) + 1
-    }/quarterly${shortYear}-${parseInt(shortYear, 10) + 1}.html`
+    }/quarterly${shortYear}-${parseInt(shortYear, 10) + 1}.html`,
   );
   if (response.status === 404) return {};
   const quarterData: string[][] = [];
@@ -88,7 +88,7 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
           .split("\n")
           .map((x) => x.trim())
           .filter((x) => x.length)
-          .slice(1)
+          .slice(1),
       );
     });
   $table
@@ -101,15 +101,18 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
           .split("\n")
           .map((x) => x.trim())
           .filter((x) => x.length)
-          .slice(1)
+          .slice(1),
       );
     });
   const ret = quarters
     .map((x, i) => `${i == 0 ? year : parseInt(year) + 1} ${x}`)
-    .reduce((p, c) => {
-      p[c] = {};
-      return p;
-    }, {} as Record<string, Partial<QuarterDates>>);
+    .reduce(
+      (p, c) => {
+        p[c] = {};
+        return p;
+      },
+      {} as Record<string, Partial<QuarterDates>>,
+    );
   addSingleDateRow(quarterData, 2, "instructionStart", ret, year);
   addSingleDateRow(quarterData, 17, "instructionEnd", ret, year);
   addMultipleDateRow(quarterData, 18, "finalsStart", "finalsEnd", ret, year);
@@ -121,7 +124,7 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
     "instructionStart",
     ret,
     year,
-    3
+    3,
   );
   addSingleDateRow(summerSessionData, 6, "instructionEnd", ret, year, 3);
   addMultipleDateRow(summerSessionData, 7, "finalsStart", "finalsEnd", ret, year, 3);
@@ -131,12 +134,12 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
     if (key.includes("Fall")) {
       (ret[key] as QuarterDates).instructionStart.setDate(
         (ret[key] as QuarterDates).instructionStart.getDate() -
-          ((ret[key] as QuarterDates).instructionStart.getDay() - 4)
+          ((ret[key] as QuarterDates).instructionStart.getDay() - 4),
       );
     } else {
       (ret[key] as QuarterDates).instructionStart.setDate(
         (ret[key] as QuarterDates).instructionStart.getDate() -
-          ((ret[key] as QuarterDates).instructionStart.getDay() - 1)
+          ((ret[key] as QuarterDates).instructionStart.getDay() - 1),
       );
     }
   }

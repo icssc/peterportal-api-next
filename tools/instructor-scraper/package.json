@@ -7,12 +7,7 @@
   "type": "module",
   "main": "index.ts",
   "types": "index.ts",
-  "scripts": {
-    "test": "jest --collectCoverage",
-    "test:watch": "jest --collectCoverage --watch"
-  },
   "dependencies": {
-    "@types/cheerio": "^0.22.31",
     "@types/he": "^1.2.0",
     "cheerio": "^1.0.0-rc.12",
     "he": "^1.2.0",
@@ -21,6 +16,6 @@
     "winston": "^3.8.2"
   },
   "devDependencies": {
-    "peterportal-api-next-types": "workspace:1.0.0-beta.2"
+    "peterportal-api-next-types": "*"
   }
 }
