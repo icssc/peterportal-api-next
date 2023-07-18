@@ -1,9 +1,13 @@
 import { callWebSocAPI, getDepts, getTerms, WebsocAPIOptions } from "@libs/websoc-api-next";
-import { createErrorResult, createOKResult, LambdaHandler, logger } from "api-core";
-import { combineResponses, fulfilled, sleep, sortResponse } from "api-route-websoc/lib";
+import { createErrorResult, createOKResult, logger } from "ant-stack";
+import { combineResponses, fulfilled, sleep, sortResponse } from "api-v1-rest-websoc/src/lib";
+import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import { WebsocAPIResponse } from "peterportal-api-next-types";
 
-export const handler: LambdaHandler = async (event, context) => {
+export const handler = async (
+  event: APIGatewayProxyEvent,
+  context: Context,
+): Promise<APIGatewayProxyResult> => {
   const requestId = context.awsRequestId;
   const body = JSON.parse(event.body ?? "{}");
   switch (body.function) {
@@ -26,7 +30,7 @@ export const handler: LambdaHandler = async (event, context) => {
 
       while (queries.length && retries < 3) {
         responses = await Promise.allSettled(
-          queries.map((options) => callWebSocAPI(parsedQuery, options))
+          queries.map((options) => callWebSocAPI(parsedQuery, options)),
         );
 
         responses.forEach((response, i) => {
@@ -42,7 +46,7 @@ export const handler: LambdaHandler = async (event, context) => {
         successes = responses.filter(fulfilled);
         websocResponseData = successes.reduce(
           (acc, curr) => combineResponses(acc, curr.value),
-          websocResponseData
+          websocResponseData,
         );
 
         queries = failed;
@@ -54,7 +58,7 @@ export const handler: LambdaHandler = async (event, context) => {
         return createErrorResult(
           500,
           "WebSoc failed to respond too many times. Please try again later.",
-          requestId
+          requestId,
         );
 
       return createOKResult(sortResponse(websocResponseData), requestId);

@@ -10,10 +10,11 @@
   },
   "dependencies": {
     "@libs/websoc-api-next": "workspace:*",
-    "api-core": "workspace:*",
-    "api-route-websoc": "workspace:*"
+    "ant-stack": "workspace:*",
+    "api-v1-rest-websoc": "workspace:*"
   },
   "devDependencies": {
+    "@types/aws-lambda": "8.10.119",
     "@types/node": "^18.11.10",
     "esbuild": "^0.17.8",
     "peterportal-api-next-types": "workspace:*",

@@ -1,7 +1,0 @@
-{
-  "execMap": {
-    "ts": "tsx"
-  },
-  "ext": "graphql,ts",
-  "watch": ["../**/*"]
-}
