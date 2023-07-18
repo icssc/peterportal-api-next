@@ -63,7 +63,7 @@ export class AntStack extends Stack {
         certificate: Certificate.fromCertificateArn(
           this,
           "peterportal-cert",
-          process.env.CERTIFICATE_ARN ?? ""
+          process.env.CERTIFICATE_ARN ?? "",
         ),
       },
       disableExecuteApiEndpoint: true,
@@ -139,7 +139,7 @@ export class AntStack extends Stack {
           }),
           handler: `${this.config.esbuild.outdir}/${this.config.runtime.nodeRuntimeFile.replace(
             "js",
-            httpMethod
+            httpMethod,
           )}`,
           architecture: Architecture.ARM_64,
           environment: { ...handlerConfig.env, ...this.config.env, STAGE: this.config.env.stage },
@@ -154,6 +154,8 @@ export class AntStack extends Stack {
         const lambdaIntegration = new LambdaIntegration(handler);
 
         resource.addMethod(httpMethod, lambdaIntegration);
+
+        resource.addResource("{id}").addMethod(httpMethod, lambdaIntegration);
 
         const warmingTarget = new LambdaFunction(handler, {
           event: RuleTargetInput.fromObject({ body: warmerRequestBody }),
