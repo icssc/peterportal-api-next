@@ -1,4 +1,4 @@
-![PeterPortal API logo banner](docs/static/img/banner.png)
+![PeterPortal API logo banner](apps/docs/static/img/banner.png)
 
 ## ℹ️ About
 

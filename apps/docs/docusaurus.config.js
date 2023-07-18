@@ -55,9 +55,15 @@ const config = {
         items: [
           {
             type: "doc",
-            docId: "getting-started",
+            docId: "developers-guide/getting-started",
             position: "left",
-            label: "Docs",
+            label: "Developer's Guide",
+          },
+          {
+            type: "doc",
+            docId: "contributors-guide/getting-started",
+            position: "left",
+            label: "Contributor's Guide",
           },
           {
             position: "left",

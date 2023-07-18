@@ -2,23 +2,47 @@
 
 /** @type {import('@docusaurus/plugin-content-docs').SidebarsConfig} */
 const sidebars = {
-  docsSidebar: [
-    "getting-started",
-    "fair-use-policy",
+  developersGuideSidebar: [
+    "developers-guide/getting-started",
+    "developers-guide/fair-use-policy",
     {
       type: "category",
       label: "REST API",
       items: [
-        "rest-api/overview",
+        "developers-guide/rest-api/overview",
         {
           type: "category",
           label: "Guides",
-          items: ["rest-api/guides/typescript-integration"],
+          items: ["developers-guide/rest-api/guides/typescript-integration"],
         },
         {
           type: "category",
           label: "Reference",
-          items: ["rest-api/reference/grades", "rest-api/reference/websoc"],
+          items: [
+            "developers-guide/rest-api/reference/grades",
+            "developers-guide/rest-api/reference/websoc",
+          ],
+        },
+      ],
+    },
+  ],
+  contributorsGuideSidebar: [
+    "contributors-guide/getting-started",
+    {
+      type: "category",
+      label: "Application Architecture",
+      link: { type: "doc", id: "contributors-guide/application-architecture/index" },
+      items: [
+        "contributors-guide/application-architecture/documentation",
+        {
+          type: "category",
+          label: "Tools",
+          items: ["contributors-guide/application-architecture/tools/websoc-scraper"],
+        },
+        {
+          type: "category",
+          label: "Services",
+          items: ["contributors-guide/application-architecture/services/websoc-proxy-service"],
         },
       ],
     },

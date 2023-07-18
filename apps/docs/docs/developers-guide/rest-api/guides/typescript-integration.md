@@ -34,7 +34,7 @@ try {
       headers: {
         Referer: "https://docs.api-next.peterportal.org",
       },
-    }
+    },
   );
   const json: RawResponse<WebsocAPIResponse> = await res.json();
   // These fields are always available regardless of whether the request

@@ -21,7 +21,7 @@ If you do believe you have discovered a security vulnerability in PeterPortal AP
 
 While not required to use the API, we would greatly appreciate it if you could set the `Referer` header to the homepage of the application making the requests. For example, if your web application lives at https://panteate.github.io/awesome-project, or if you are hosting documentation for your non-web application there, we ask that you set that as the `Referer`.
 
-Setting the `Referer` header allows us to determine which endpoints are most used by which applications, allowing us to increase the capacity if necessary, or make further optimizations if we note that these endpoints are slow. By providing a meaningful `Referer` header, you would be helping both yourself and us.
+Setting the `Referer` header allows us to determine which endpoints are most used by which applications, allowing us to increase the capacity if necessary, or make further optimizations if we note that these endpoints are slow. If we have determined that your application is making too many requests, the header will make it easier for us to determine who to contact and speed up the resolution process. By providing a meaningful `Referer` header, you would also be helping yourself in addition to helping us.
 
 The following is a non-exhaustive list of code snippets for doing so using various HTTP libraries. If the library you're using isn't present below, please don't hesitate to open a pull request!
 
@@ -47,7 +47,7 @@ const res = await fetch(
       // other headers
     },
     // other options
-  }
+  },
 );
 ```
 
