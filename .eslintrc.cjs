@@ -15,6 +15,15 @@ const config = {
     "prettier",
   ],
   rules: {
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
+      },
+    ],
     "import/first": "error",
     "import/newline-after-import": "error",
     "import/order": [

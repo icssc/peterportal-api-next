@@ -1,11 +1,6 @@
-import type { PrismaClient, PrismaPromise } from "@libs/db";
-import {
-  courseLevels,
-  divisionCodes,
-  Instructor,
-  Prerequisite,
-  PrerequisiteTree,
-} from "peterportal-api-next-types";
+import type { Prisma } from "@libs/db";
+import type { Instructor, Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
+import { courseLevels, divisionCodes } from "peterportal-api-next-types";
 
 export type ScrapedCourse = {
   department: string;
@@ -99,12 +94,8 @@ export const prereqTreeToList = (tree: PrerequisiteTree): string[] => {
   return [];
 };
 
-export const upsertCourses =
-  (
-    prisma: PrismaClient,
-    instructorInfo: Record<string, Instructor>,
-    prereqInfo: Record<string, PrerequisiteTree>,
-  ) =>
+export const createCourses =
+  (instructorInfo: Record<string, Instructor>, prereqInfo: Record<string, PrerequisiteTree>) =>
   ([
     id,
     {
@@ -125,10 +116,12 @@ export const upsertCourses =
       corequisite,
       ge_list,
       ge_text,
+      prerequisite_list,
+      prerequisite_for,
     },
-  ]: [string, ScrapedCourse]): PrismaPromise<unknown> => {
+  ]: [string, ScrapedCourse]): Prisma.CourseCreateManyInput => {
     const courseId = `${department} ${number}`;
-    const course = {
+    return {
       id,
       department,
       courseNumber: number,
@@ -146,6 +139,8 @@ export const upsertCourses =
         .map((x) => x.ucinetid),
       prerequisiteTree: prereqInfo[courseId] ?? {},
       prerequisiteText: prereqTreeToString(prereqInfo[courseId] ?? {}).slice(1, -1),
+      prerequisiteList: prerequisite_list,
+      prerequisiteFor: prerequisite_for,
       repeatability,
       gradingOption: grading_option,
       concurrent,
@@ -191,27 +186,4 @@ export const upsertCourses =
         .map(transformTerm)
         .sort(sortTerms),
     };
-    return prisma.course.upsert({
-      where: { id },
-      create: course,
-      update: course,
-    });
   };
-
-export const deletePrereqs =
-  (prisma: PrismaClient) =>
-  (forCourseId: string): PrismaPromise<unknown> =>
-    prisma.coursePrereq.deleteMany({
-      where: { forCourseId },
-    });
-
-export const deleteInstructorsAndHistory =
-  (prisma: PrismaClient) =>
-  (ucinetid: string): PrismaPromise<unknown>[] => [
-    prisma.courseHistory.deleteMany({
-      where: { ucinetid },
-    }),
-    prisma.instructor.deleteMany({
-      where: { ucinetid },
-    }),
-  ];
