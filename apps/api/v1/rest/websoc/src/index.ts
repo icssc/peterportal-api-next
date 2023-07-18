@@ -35,7 +35,7 @@ export const GET: InternalHandler = async (request) => {
   }
 
   try {
-    switch (params?.option) {
+    switch (params?.id) {
       case "terms": {
         const [gradesTerms, webSocTerms] = await Promise.all([
           prisma.gradesSection.findMany({

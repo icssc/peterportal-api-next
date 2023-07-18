@@ -26,7 +26,8 @@ export function createExpressHandler(handler: InternalHandler): RequestHandler {
   const expressHandler: RequestHandler = async (req, res) => {
     const request = transformExpressRequest(req);
 
-    logger.info(`Request: ${JSON.stringify(request.params)}`);
+    logger.info(`Path params: ${JSON.stringify(request.params)}`);
+    logger.info(`Query: ${JSON.stringify(request.query)}`);
 
     const result = await handler(request);
 
