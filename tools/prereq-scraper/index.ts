@@ -71,6 +71,20 @@ export async function getPrereqs(): Promise<DepartmentCourses> {
   } catch (error) {
     logger.error("Failed to scrape prerequisite data", { error: error });
   }
+  // normalize prereq trees
+  Object.values(deptCourses).forEach((courseList) => {
+    courseList.forEach(({ prereqTree }) => {
+      if (prereqTree.AND) {
+        if (!prereqTree.NOT && prereqTree.AND.length === 1 && "OR" in prereqTree.AND[0]) {
+          prereqTree.OR = prereqTree.AND[0].OR;
+          delete prereqTree.AND;
+        } else if (prereqTree.NOT) {
+          prereqTree.AND.push({ NOT: prereqTree.NOT });
+          delete prereqTree.NOT;
+        }
+      }
+    });
+  });
   logger.info("Finished scraping all course prerequisite data", { data: deptCourses });
   return deptCourses;
 }
