@@ -2,7 +2,8 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
-import cheerio from "cheerio";
+import { load } from "cheerio";
+import type { Element } from "cheerio";
 import fetch from "cross-fetch";
 import he from "he";
 import pLimit from "p-limit";
@@ -270,7 +271,7 @@ async function getFaculty(
   };
   try {
     const response = await (await fetch(schoolUrl)).text();
-    const $ = cheerio.load(response);
+    const $ = load(response);
     // Faculty tab found
     if ($("#facultytab").length !== 0) {
       schoolURLs[schoolName].push(schoolUrl);
@@ -278,7 +279,7 @@ async function getFaculty(
     // No faculty tab, might have departments tab
     else if (root) {
       const departmentLinks: string[][] = [];
-      $(".levelone li a").each(function (this: cheerio.Element) {
+      $(".levelone li a").each(function (this: Element) {
         const departmentURL = $(this).attr("href");
         departmentLinks.push([CATALOGUE_BASE_URL + departmentURL + "#faculty", schoolName]);
       });
@@ -313,9 +314,9 @@ async function getFacultyLinks(attempts: number): Promise<{ [faculty_link: strin
   try {
     // Get links to all schools and store them into an array
     const response = await (await fetch(URL_TO_ALL_SCHOOLS)).text();
-    const $ = cheerio.load(response);
+    const $ = load(response);
     const schoolLinks: string[][] = [];
-    $("#textcontainer h4 a").each(function (this: cheerio.Element) {
+    $("#textcontainer h4 a").each(function (this: Element) {
       const schoolURL = $(this).attr("href");
       const schoolName = $(this).text();
       schoolLinks.push([CATALOGUE_BASE_URL + schoolURL + "#faculty", schoolName]);
@@ -350,8 +351,8 @@ async function getInstructorNames(facultyLink: string, attempts: number): Promis
   const result: string[] = [];
   try {
     const response = await (await fetch(facultyLink)).text();
-    const $ = cheerio.load(response);
-    $(".faculty").each(function (this: cheerio.Element) {
+    const $ = load(response);
+    $(".faculty").each(function (this: Element) {
       let name = he.decode($(this).find(".name").text()); // Get name and try decoding
       name = name.split(",")[0]; // Remove suffixes that begin with ","  ex: ", Jr."
       name = name.replace(/\s*\b(?:I{2,3}|IV|V|VI{0,3}|IX)\b$/, ""); // Remove roman numeral suffixes ex: "III"
@@ -381,8 +382,8 @@ async function getDepartmentCourses(facultyLink: string, attempts: number): Prom
   try {
     const courseUrl = facultyLink.replace("#faculty", "#courseinventory");
     const response = await (await fetch(courseUrl)).text();
-    const $ = cheerio.load(response);
-    $("#courseinventorycontainer .courses").each(function (this: cheerio.Element) {
+    const $ = load(response);
+    $("#courseinventorycontainer .courses").each(function (this: Element) {
       if ($(this).find("h3").length == 0) {
         return;
       }
@@ -710,7 +711,7 @@ async function fetchHistoryPage(
     const response = await (
       await fetch(URL_TO_INSTRUCT_HISTORY + "?" + new URLSearchParams(params))
     ).text();
-    const $ = cheerio.load(response);
+    const $ = load(response);
     const warning = $("tr td.lcRegWeb_red_message");
     if (warning.length) {
       if (
@@ -772,8 +773,8 @@ async function parseHistoryPage(
   const currentYear = new Date().getFullYear() % 100;
   let entryFound = false;
   try {
-    const $ = cheerio.load(instructorHistoryPage);
-    $("table tbody tr").each(function (this: cheerio.Element) {
+    const $ = load(instructorHistoryPage);
+    $("table tbody tr").each(function (this: Element) {
       const entry = $(this).find("td");
       // Check if row entry is valid
       if ($(entry).length == 12) {

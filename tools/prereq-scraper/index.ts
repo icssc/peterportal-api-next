@@ -2,7 +2,8 @@ import { existsSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
-import cheerio from "cheerio";
+import { load } from "cheerio";
+import type { Element } from "cheerio";
 import fetch from "cross-fetch";
 import { Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
 import winston from "winston";
@@ -31,7 +32,7 @@ const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.json(),
-    winston.format.prettyPrint()
+    winston.format.prettyPrint(),
   ),
   transports: [
     new winston.transports.Console(),
@@ -51,7 +52,7 @@ export async function getPrereqs(): Promise<DepartmentCourses> {
   const deptCourses: DepartmentCourses = {};
   try {
     const response = await (await fetch(PREREQ_URL)).text();
-    const $ = cheerio.load(response);
+    const $ = load(response);
     // Get all department options
     const deptOptions = $("select[name='dept'] option");
     for (const deptOption of deptOptions) {
@@ -87,8 +88,8 @@ async function parsePage(url: string): Promise<CourseList> {
   };
   try {
     const response = await (await fetch(url)).text();
-    const $ = cheerio.load(response);
-    $("table tbody tr").each(function (this: cheerio.Element) {
+    const $ = load(response);
+    $("table tbody tr").each(function (this: Element) {
       const entry = $(this).find("td");
       // Check if row entry is valid
       if ($(entry).length === 3) {
@@ -167,7 +168,7 @@ function createPrereq(
   type: "course" | "exam",
   req: string,
   grade?: string,
-  coreq?: boolean
+  coreq?: boolean,
 ): Prerequisite {
   const prereq: Prerequisite = { type };
   if (type === "course") {

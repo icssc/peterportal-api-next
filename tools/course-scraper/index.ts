@@ -2,7 +2,8 @@ import fs, { existsSync, readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
-import cheerio from "cheerio";
+import { load } from "cheerio";
+import type { Cheerio, Element } from "cheerio";
 import fetch from "cross-fetch";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -66,7 +67,7 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
    */
   async function findSchoolNameFromDepartmentPage(departmentUrl: string, school: string) {
     const response = await safeFetch(departmentUrl);
-    const $ = cheerio.load(await response.text());
+    const $ = load(await response.text());
     // if this department has the "Courses" tab
     const departmentCourses = $("#courseinventorytab");
     if (departmentCourses.text() != "") {
@@ -82,7 +83,7 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
    */
   async function findSchoolName(schoolURL: string) {
     const response = await safeFetch(schoolURL);
-    const $ = cheerio.load(await response.text());
+    const $ = load(await response.text());
     // get school name
     const school: string = normalizeString($("#contentarea > h1").text());
     if (debug) {
@@ -108,7 +109,7 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
           departmentURLList.push(departmentUrl);
         });
       const departmentLinksPromises: Promise<void>[] = departmentURLList.map((x) =>
-        findSchoolNameFromDepartmentPage(x, school)
+        findSchoolNameFromDepartmentPage(x, school),
       );
       await Promise.all(departmentLinksPromises);
     }
@@ -117,10 +118,10 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
   console.log("Mapping Departments to Schools...");
   // some need to be hard coded (These are mentioned in All Courses but not listed in their respective school catalogue)
   const mapping: Record<string, string> = JSON.parse(
-    readFileSync(join(__dirname, "missingDepartments.json"), { encoding: "utf8" })
+    readFileSync(join(__dirname, "missingDepartments.json"), { encoding: "utf8" }),
   );
   const response = await safeFetch(URL_TO_ALL_SCHOOLS);
-  const $ = cheerio.load(await response.text());
+  const $ = load(await response.text());
   const schoolLinks: string[] = [];
   // look through all the lis in the sidebar
   $("#textcontainer > h4").each((_, lis) => {
@@ -144,13 +145,13 @@ export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: s
 export async function mapCoursePageToSchool(
   mapping: { [key: string]: string },
   school: string,
-  courseURL: string
+  courseURL: string,
 ) {
   const response = await safeFetch(courseURL);
-  const $ = cheerio.load(await response.text());
+  const $ = load(await response.text());
   // get all the departments under this school
-  const courseBlocks: cheerio.Element[] = [];
-  $("#courseinventorycontainer > .courses").each(async (_, schoolDepartment: cheerio.Element) => {
+  const courseBlocks: Element[] = [];
+  $("#courseinventorycontainer > .courses").each((_, schoolDepartment: Element) => {
     // if department is not empty (why tf is Chemical Engr and Materials Science empty)
     const department: string = $(schoolDepartment).find("h3").text();
     if (department != "") {
@@ -159,7 +160,7 @@ export async function mapCoursePageToSchool(
     }
   });
   const courseBlockPromises: Promise<string[]>[] = courseBlocks.map((x) =>
-    getCourseInfo(x, courseURL)
+    getCourseInfo(x, courseURL),
   );
   const courseBlockResults: string[][] = await Promise.all(courseBlockPromises);
   courseBlockResults.forEach((courseInfo: string[]) => {
@@ -184,7 +185,7 @@ export async function getAllCourseURLS(): Promise<string[]> {
   const courseURLS: string[] = [];
   // access the course website to parse info
   const response = await safeFetch(URL_TO_ALL_COURSES);
-  const $ = cheerio.load(await response.text());
+  const $ = load(await response.text());
   // get all the unordered lists
   $("#atozindex > ul").each((_, letterLists) => {
     // get all the list items
@@ -208,12 +209,12 @@ export async function getAllCourseURLS(): Promise<string[]> {
 export async function getAllCourses(
   courseURL: string,
   json_data: { [key: string]: Record<string, unknown> },
-  departmentToSchoolMapping: { [key: string]: string }
+  departmentToSchoolMapping: { [key: string]: string },
 ) {
   const response = await safeFetch(courseURL);
 
   const responseText = await response.text();
-  const $ = cheerio.load(responseText);
+  const $ = load(responseText);
   // department name
   let department: string = normalizeString($("#contentarea > h1").text());
   if (debug) {
@@ -221,15 +222,19 @@ export async function getAllCourses(
   }
   // strip off department id
   department = department.slice(0, department.indexOf("(")).trim();
-  $("#courseinventorycontainer > .courses").each(async (_, course: cheerio.Element) => {
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  $("#courseinventorycontainer > .courses").each(async (_, course: Element) => {
     // if page is empty for some reason??? (http://catalogue.uci.edu/allcourses/cbems/)
     if ($(course).find("h3").text().length == 0) {
       return;
     }
-    //const courseBlocks: cheerio.Element[] = [];
+    //const courseBlocks: Element[] = [];
     $(course)
       .find("div > .courseblock")
-      .each(async (_, courseBlock: cheerio.Element) => {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      // @ts-ignore
+      .each(async (_, courseBlock: Element) => {
         // course identification
         //courseBlocks.push(courseBlock);
         let courseInfo;
@@ -267,7 +272,6 @@ export async function getAllCourses(
         if (!(id_department in departmentToSchoolMapping)) {
           noSchoolDepartment.add(id_department);
         }
-        // Examples at https://github.com/icssc-projects/PeterPortal/wiki/Course-Search
         // store class data into object
         const classInforamtion = {
           id: courseID.replace(" ", ""),
@@ -305,38 +309,19 @@ export async function getAllCourses(
         json_data[courseID] = classInforamtion;
         // populates the dic with simple information
         await parseCourseBody(courseBody, responseText, classInforamtion);
-
-        // try to parse prerequisite
-        if (courseBody.length > 1) {
-          //const node = parsePrerequisite(courseBody[1], response, classInforamtion);
-          // maps the course to its requirement Node
-          // json_data[courseID]["node"] = node // This was commented out in original python doc so... ???
-        }
-        // doesn't have any prerequisites
-        else {
-          if (debug) {
-            console.log("\t\tNOREQS");
-          }
-        }
       });
-    // const courseBlockPromises: Promise<string[]>[] = courseBlocks.map(x => getCourseInfo(x, courseURL));
-    // const courseBlockResults: string[][] = await Promise.all(courseBlockPromises);
-    // console.log(courseBlockResults);
   });
 }
 
 /**
- * @param {cheerio.Element} courseBlock: a courseblock tag
+ * @param {Element} courseBlock: a courseblock tag
  * @param {string} courseURL: URL to a catalogue department page
  * @returns {Promise<string[]>}: array[courseID, courseName, courseUnits]
  * Example: ['I&C SCI 6B', "Boolean Logic and Discrete Structures", "4 Units."]
  */
-export async function getCourseInfo(
-  courseBlock: cheerio.Element,
-  courseURL: string
-): Promise<string[]> {
+export async function getCourseInfo(courseBlock: Element, courseURL: string): Promise<string[]> {
   const response = await safeFetch(courseURL);
-  const $ = cheerio.load(await response.text());
+  const $ = load(await response.text());
   // Regex filed into three categories (id, name, units) each representing an element in the return array
   const courseInfoPatternWithUnits =
     /(?<id>.*[0-9]+[^.]*)\. +(?<name>.*)\. +(?<units>\d*\.?\d.*Units?)\./;
@@ -386,17 +371,17 @@ export function determineCourseLevel(id_number: string) {
 }
 
 /**
- * @param {cheerio.Element} courseBody: a collection of ptags within a courseblock
+ * @param {Element} courseBody: a collection of ptags within a courseblock
  * @param {string} responseText: response text
  * @param {Record<string, unknown>} classInfo: a map to store parsed information
  * @returns {void}: nothing, mutates the mapping passed in
  */
 export async function parseCourseBody(
-  courseBody: object,
+  courseBody: Cheerio<Element>,
   responseText: string,
-  classInfo: Record<string, unknown>
+  classInfo: Record<string, unknown>,
 ) {
-  const $ = cheerio.load(responseText);
+  const $ = load(responseText);
   // iterate through each ptag for the course
   $(courseBody).each((_, ptag) => {
     let pTagText = normalizeString($(ptag).text().trim());
@@ -419,7 +404,7 @@ export async function parseCourseBody(
         // normalize in full string also
         pTagText = pTagText.replace(
           (match.groups?.type ?? "") + match.groups?.subtype,
-          extractedGE
+          extractedGE,
         );
         // add to ge_types
         if (classInfo["ge_list"] instanceof Array) {
@@ -439,7 +424,7 @@ export async function parseCourseBody(
     for (const keyWord of Object.keys(classInfo)) {
       const possibleMatch: RegExpExecArray | null = RegExp(
         `^${keyWord.replace("_", " ")}s?\\s?(with\\s)?(:\\s)?(?<value>.*)`,
-        "i"
+        "i",
       ).exec(pTagText);
       if (possibleMatch && (classInfo[keyWord] as []).length === 0) {
         classInfo[keyWord] = possibleMatch.groups?.value;
@@ -451,7 +436,7 @@ export async function parseCourseBody(
 
 async function parseCourses(
   departmentToSchoolMapping: { [key: string]: string },
-  JSON_data: Record<string, Record<string, unknown>>
+  JSON_data: Record<string, Record<string, unknown>>,
 ) {
   const allCourseURLS = await getAllCourseURLS();
   console.log("\nParsing Each Course URL...");
@@ -480,7 +465,7 @@ export async function getCourses() {
         .split(".  ")[0]
         .replace("  ", " ");
       return x;
-    })
+    }),
   );
 }
 
@@ -492,7 +477,7 @@ async function main() {
     console.log(
       "FAILED!",
       noSchoolDepartment,
-      "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT IN missingDepartments.json"
+      "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT IN missingDepartments.json",
     );
   }
 }
