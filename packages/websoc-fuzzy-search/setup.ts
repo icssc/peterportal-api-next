@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { normalize } from "path";
 import { gzipSync } from "zlib";
 
@@ -12,7 +12,8 @@ const geCategories = JSON.parse(readFileSync("./input/ge-categories.json", { enc
 const schools = JSON.parse(readFileSync("./input/schools.json", { encoding: "utf8" }));
 
 // output configuration
-const outputFile = normalize("./output/index.js");
+const outputDir = normalize("./output");
+const outputFile = normalize(`${outputDir}index.js`);
 
 // Roman numeral map
 // Stops at 8 because that's the highest Roman numeral encountered in the cache (as of 2022-04-08)
@@ -193,6 +194,7 @@ function parseAndWriteData(d: DataObject) {
   // write the index using a replacer for Sets
   console.log("Writing parsed data...");
   const data = JSON.stringify(parsedData, (_, v) => (v instanceof Set ? [...v] : v));
+  if (!existsSync(normalize(outputDir))) mkdirSync(normalize(outputDir));
   writeFileSync(
     `${outputFile}`,
     ["-d", "--debug"].includes(process.argv[2])
