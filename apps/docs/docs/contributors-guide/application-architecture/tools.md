@@ -5,6 +5,14 @@ pagination_next: null
 
 # Tools
 
+## Grades Updater
+
+The `grades-updater` takes
+
+## Unified Scraper
+
+The `unified-scraper` combines the three main scrapers--for courses, instructors, and course prerequisites--into one
+
 ## WebSoc Scraper
 
 The `websoc-scraper-v2` periodically scrapes the contents of WebSoc, and uploads it to our database.
@@ -21,4 +29,4 @@ Ultimately, we decided to scrap the old scraping approach, and adopted the curre
 
 The scraper runs in a Docker container hosted on [Fargate](https://aws.amazon.com/fargate/), which was necessary because scraping WebSoc takes too much time and memory for Lambda. In accordance with the Registrar's requirements, we pause for 500 milliseconds between each department or GE category that we scrape, and 3 minutes between each term we scrape, so as not to overload the WebSoc servers.
 
-To determine which terms to scrape, we use the `@libs/registrar-api` module, and we get the start and end dates for all available terms for academic years that include the current calendar year, the previous calendar year, and the next calendar year. We then filter out the terms that have already ended, and the terms that are not yet available, since the data for those terms are not likely to be accessed frequently enough to warrant storing it in our cache. Once we've identified the terms to scrape, it's just a matter of iterating over all the departments.
+To determine which terms to scrape, we use the `@libs/registrar-api` module, and we get the start and end dates for all available terms for academic years that include the current calendar year, the previous calendar year, and the next calendar year. We then filter out the terms that have already ended, since the data for those terms are not likely to be accessed frequently enough to warrant storing it in our cache. Once we've identified the terms to scrape, it's just a matter of iterating over all the departments.

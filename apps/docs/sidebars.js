@@ -34,9 +34,7 @@ const sidebars = {
       link: { type: "doc", id: "contributors-guide/application-architecture/index" },
       items: [
         "contributors-guide/application-architecture/api",
-        "contributors-guide/application-architecture/documentation",
         "contributors-guide/application-architecture/tools",
-        "contributors-guide/application-architecture/services",
       ],
     },
   ],
