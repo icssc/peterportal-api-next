@@ -1,6 +1,6 @@
 # websoc-fuzzy-search
 
-A fuzzy search module for cached WebSOC data.
+A fuzzy search module for cached WebSoc data.
 
 ## Installation
 

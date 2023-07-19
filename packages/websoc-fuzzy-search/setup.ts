@@ -12,7 +12,7 @@ const geCategories = JSON.parse(readFileSync("./input/ge-categories.json", { enc
 const schools = JSON.parse(readFileSync("./input/schools.json", { encoding: "utf8" }));
 
 // output configuration
-const outputDir = normalize("./output");
+const outputDir = normalize("./output/");
 const outputFile = normalize(`${outputDir}index.js`);
 
 // Roman numeral map
