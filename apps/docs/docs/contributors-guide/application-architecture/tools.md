@@ -3,11 +3,13 @@ pagination_prev: null
 pagination_next: null
 ---
 
-# WebSoc Scraper
+# Tools
+
+## WebSoc Scraper
 
 The `websoc-scraper-v2` periodically scrapes the contents of WebSoc, and uploads it to our database.
 
-## Interlude: Why V2?
+### Interlude: Why V2?
 
 In the early days of this project, we had a radically different approach to caching WebSoc. Instead of getting all the data at once, which we deemed infeasible at the time, we would instead scrape reactively, caching requests that we only actually received. The idea was that after the initial cache miss, the most popular requests would all be cache hits, so things would still be fast.
 
@@ -15,7 +17,7 @@ The problem came when it came to applying WebSoc filters; since we were also usi
 
 Ultimately, we decided to scrap the old scraping approach, and adopted the current one.
 
-## Technical Details
+### Technical Details
 
 The scraper runs in a Docker container hosted on [Fargate](https://aws.amazon.com/fargate/), which was necessary because scraping WebSoc takes too much time and memory for Lambda. In accordance with the Registrar's requirements, we pause for 500 milliseconds between each department or GE category that we scrape, and 3 minutes between each term we scrape, so as not to overload the WebSoc servers.
 
