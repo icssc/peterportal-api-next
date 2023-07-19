@@ -1,4 +1,4 @@
-import cheerio from "cheerio";
+import { load } from "cheerio";
 import fetch from "cross-fetch";
 import { QuarterDates, quarters } from "peterportal-api-next-types";
 
@@ -76,12 +76,12 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
   if (response.status === 404) return {};
   const quarterData: string[][] = [];
   const summerSessionData: string[][] = [];
-  const $ = cheerio.load(await response.text());
+  const $ = load(await response.text());
   const $table = $("table.calendartable");
   $table
     .eq(2)
     .find("tr")
-    .each(function (this: cheerio.Cheerio) {
+    .each(function () {
       quarterData.push(
         $(this)
           .text()
@@ -94,7 +94,7 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
   $table
     .eq(4)
     .find("tr")
-    .each(function (this: cheerio.Cheerio) {
+    .each(function () {
       summerSessionData.push(
         $(this)
           .text()
