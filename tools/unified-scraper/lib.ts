@@ -137,7 +137,7 @@ export const createCourses =
       description,
       departmentName: department_name,
       instructorHistory: Object.values(instructorInfo)
-        .filter((x) => Object.keys(x.courseHistory ?? {}).includes(id))
+        .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
         .map((x) => x.ucinetid),
       prerequisiteTree: prereqInfo[courseId] ?? {},
       prerequisiteText: prereqTreeToString(prereqInfo[courseId] ?? {}).slice(1, -1),

@@ -22,6 +22,7 @@ export const proxyRestApi =
   (
     route: string,
     argsTransform: (args: Record<string, string>) => Record<string, string> = (args) => args,
+    pathArg?: string,
   ): IFieldResolver<never, BaseContext> =>
   async (_source, args, _context, _info) => {
     const urlSearchParams = new URLSearchParams(argsTransform(args));
@@ -29,7 +30,9 @@ export const proxyRestApi =
     const query = urlSearchParams.toString();
 
     const data: RawResponse<unknown> = await fetch(
-      `${getBaseUrl()}/${route}${query ? "?" + query : ""}`,
+      pathArg
+        ? `${getBaseUrl()}/${route}/${args[pathArg]}`
+        : `${getBaseUrl()}/${route}${query ? "?" + query : ""}`,
     )
       .then((res) => res.json())
       .catch((err) => {

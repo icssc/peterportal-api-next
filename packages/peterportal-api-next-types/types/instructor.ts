@@ -40,7 +40,7 @@ export type Instructor = {
   /**
    * Course(s) this instructor has taught in the past and the associated Quarter/Year.
    */
-  courseHistory: { [course_id: string]: string[] };
+  courseHistory: Record<string, string[]>;
 };
 
 /**

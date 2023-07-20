@@ -72,7 +72,7 @@ extend type Query {
     sectionCode: String
     division: Division
     excludePNP: Boolean
-  ): AggregateGrades
+  ): AggregateGrades!
   gradesOptions(
     year: String
     quarter: Quarter
@@ -82,5 +82,5 @@ extend type Query {
     sectionCode: String
     division: Division
     excludePNP: Boolean
-  ): GradesOptions
+  ): GradesOptions!
 }

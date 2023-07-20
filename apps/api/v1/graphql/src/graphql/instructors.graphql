@@ -1,0 +1,17 @@
+scalar JSON
+
+type Instructor {
+  ucinetid: String!
+  name: String!
+  shortenedName: String!
+  title: String!
+  email: String!
+  department: String!
+  schools: [String!]!
+  relatedDepartments: [String!]!
+  courseHistory: JSON!
+}
+
+extend type Query {
+  instructor(ucinetid: String!): Instructor!
+}

@@ -124,5 +124,5 @@ extend type Query {
     maxCapacity: String
     fullCourses: FullCourses
     cancelledCourses: CancelledCourses
-  ): WebsocAPIResponse
+  ): WebsocAPIResponse!
 }

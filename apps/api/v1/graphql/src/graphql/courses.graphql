@@ -1,0 +1,53 @@
+enum PrerequisiteType {
+  course
+  exam
+}
+
+type Prerequisite {
+  type: PrerequisiteType
+  courseId: String
+  examName: String
+  minGrade: String
+  coreq: Boolean
+}
+
+union PrerequisiteNode = Prerequisite | PrerequisiteTree
+
+type PrerequisiteTree {
+  AND: [PrerequisiteNode!]
+  OR: [PrerequisiteNode!]
+  NOT: [PrerequisiteNode!]
+}
+
+type Course {
+  id: String!
+  department: String!
+  courseNumber: String!
+  courseNumeric: Int!
+  school: String!
+  title: String!
+  courseLevel: String!
+  minUnits: Float!
+  maxUnits: Float!
+  description: String!
+  departmentName: String!
+  instructorHistory: [String!]!
+  prerequisiteTree: PrerequisiteTree!
+  prerequisiteList: [String!]!
+  prerequisiteText: String!
+  prerequisiteFor: [String!]!
+  repeatability: String!
+  gradingOption: String!
+  concurrent: String!
+  sameAs: String!
+  restriction: String!
+  overlap: String!
+  corequisites: String!
+  geList: [String!]!
+  geText: String!
+  terms: [String!]!
+}
+
+extend type Query {
+  course(courseId: String!): Course!
+}
