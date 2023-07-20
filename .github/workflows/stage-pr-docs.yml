@@ -64,10 +64,10 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Deploy stacks
+      - name: Deploy stack
         run: pnpm run deploy --filter="docs-cdk"
 
-      - name: Comment staging URLs
+      - name: Comment docs staging URL
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           header: docsStagingURL
