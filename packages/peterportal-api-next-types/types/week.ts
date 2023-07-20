@@ -1,4 +1,3 @@
-import { Quarter } from "./constants";
 /**
  * An object that represents the week that the specified day is in.
  * The type of the payload returned on a successful response from querying
@@ -7,13 +6,13 @@ import { Quarter } from "./constants";
  */
 export type WeekData = {
   /**
-   * The week number.
+   * The week number(s) of the term.
    */
-  week: string;
+  weeks: number[];
   /**
-   * The short name of the quarter the week is in.
+   * The name of the term(s) the week is in.
    */
-  quarter: `${string} ${Quarter}`;
+  quarters: string[];
   /**
    * The display string for the given week.
    */
