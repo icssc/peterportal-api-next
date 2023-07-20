@@ -14,6 +14,7 @@ export const resolvers: ApolloServerOptions<BaseContext>["resolvers"] = {
     aggregateGrades: proxyRestApi("v1/rest/grades/aggregate"),
     gradesOptions: proxyRestApi("v1/rest/grades/options"),
     instructor: proxyRestApi("v1/rest/instructors", (args) => args, "ucinetid"),
+    larc: proxyRestApi("v1/rest/larc"),
     websoc: proxyRestApi("v1/rest/websoc", (args) => {
       if (args.ge) return { ...args, ge: args.ge.replace("_", "-") };
       delete args.ge;
