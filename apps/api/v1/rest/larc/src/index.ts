@@ -1,42 +1,66 @@
-import { createOKResult, type InternalHandler } from "ant-stack";
-import cheerio from "cheerio";
+import { createErrorResult, createOKResult } from "ant-stack";
+import type { InternalHandler } from "ant-stack";
+import { load } from "cheerio";
 import { fetch } from "cross-fetch";
+import { ZodError } from "zod";
+
+import { quarterToLarcSuffix } from "./lib";
+import { QuerySchema } from "./schema";
 
 export const GET: InternalHandler = async (request) => {
-  const html = await fetch("https://enroll.larc.uci.edu/").then((res) => res.text());
+  const { query, requestId } = request;
+  try {
+    const { year, quarter } = QuerySchema.parse(query);
 
-  const $ = cheerio.load(html);
+    // SS10wk does not have LARC sessions apparently
+    if (quarter === "Summer10wk") return createOKResult([], requestId);
 
-  const larcSections = $(".tutorial-group")
-    .toArray()
-    .map((card) => {
-      const match = $(card)
-        .find(".card-header")
-        .text()
-        .trim()
-        .match(/(?<courseCode>[^()]*)( \(same as (?<sameAs>.*)\))? - (.*) \((?<courseName>.*)\)/);
+    const html = await fetch(
+      `https://enroll.larc.uci.edu/${year}${quarterToLarcSuffix(quarter)}`,
+    ).then((res) => res.text());
 
-      const body = $(card)
-        .find(".list-group")
-        .toArray()
-        .map((group) => {
-          const rows = $(group).find(".col-lg-4");
+    const $ = load(html);
 
-          const [day, time] = $(rows[0])
-            .find(".col")
-            .map((_, col) => $(col).text().trim());
+    const larcSections = $(".tutorial-group")
+      .toArray()
+      .map((card) => {
+        const match = $(card)
+          .find(".card-header")
+          .text()
+          .trim()
+          .match(
+            /(?<courseNumber>[^()]*)( \(same as (?<sameAs>.*)\))? - (.*) \((?<courseName>.*)\)/,
+          );
 
-          const [instructor, building] = $(rows[1])
-            .find(".col")
-            .map((_, col) => $(col).text().trim());
+        const sections = $(card)
+          .find(".list-group")
+          .toArray()
+          .map((group) => {
+            const rows = $(group).find(".col-lg-4");
 
-          return { day, time, instructor, building };
-        });
+            const [day, time] = $(rows[0])
+              .find(".col")
+              .map((_, col) => $(col).text().trim());
 
-      return { header: { ...match?.groups }, body };
-    });
+            const [instructor, building] = $(rows[1])
+              .find(".col")
+              .map((_, col) => $(col).text().trim());
 
-  return createOKResult(larcSections, request.requestId);
+            return { day, time, instructor, building };
+          });
+
+        return { courseInfo: { ...match?.groups }, sections };
+      });
+
+    return createOKResult(larcSections, requestId);
+  } catch (e) {
+    if (e instanceof ZodError) {
+      const messages = e.issues.map((issue) => issue.message);
+      return createErrorResult(400, messages.join("; "), requestId);
+    }
+
+    return createErrorResult(400, e, requestId);
+  }
 };
 
 export const HEAD = GET;

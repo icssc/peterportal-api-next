@@ -9,6 +9,7 @@
   "dependencies": {
     "ant-stack": "workspace:*",
     "cheerio": "1.0.0-rc.12",
-    "cross-fetch": "4.0.0"
+    "cross-fetch": "4.0.0",
+    "zod": "3.21.4"
   }
 }
