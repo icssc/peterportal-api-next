@@ -13,6 +13,15 @@
     "inlineSourceMap": true,
     "isolatedModules": true,
     "moduleResolution": "Node",
+    "paths": {
+      "@libs/*": ["libs/*"],
+      "ant-stack": [
+        "packages/ant-stack/src",
+        "packages/ant-stack/src/lambda-core",
+        "packages/ant-stack/src/utils"
+      ],
+      "peterportal-api-next-types": ["packages/peterportal-api-next-types"]
+    },
     "resolveJsonModule": true,
     "noImplicitReturns": true,
     "noUnusedParameters": true,
@@ -34,7 +43,6 @@
     "**/dist/**/*",
     "**/node_modules/**/*",
     "**/*.template.ts",
-    "api/example/**/*",
     "apps/docs/**/*"
   ]
 }
