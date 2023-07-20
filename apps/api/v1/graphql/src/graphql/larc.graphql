@@ -1,0 +1,21 @@
+type LarcCourseInfo {
+  courseNumber: String!
+  sameAs: String
+  courseName: String!
+}
+
+type LarcSection {
+  days: String!
+  time: String!
+  instructor: String!
+  bldg: String!
+}
+
+type LarcCourse {
+  courseInfo: LarcCourseInfo!
+  sections: [LarcSection!]!
+}
+
+extend type Query {
+  larc(year: String!, quarter: Quarter!): [LarcCourse!]!
+}

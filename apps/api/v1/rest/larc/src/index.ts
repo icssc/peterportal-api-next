@@ -4,7 +4,7 @@ import { load } from "cheerio";
 import { fetch } from "cross-fetch";
 import { ZodError } from "zod";
 
-import { quarterToLarcSuffix } from "./lib";
+import { fmtBldg, fmtDays, fmtTime, quarterToLarcSuffix } from "./lib";
 import { QuerySchema } from "./schema";
 
 export const GET: InternalHandler = async (request) => {
@@ -14,6 +14,9 @@ export const GET: InternalHandler = async (request) => {
 
     // SS10wk does not have LARC sessions apparently
     if (quarter === "Summer10wk") return createOKResult([], requestId);
+
+    // TODO: move this code to its own scraper, and rewrite this route to fetch
+    // data from the DB.
 
     const html = await fetch(
       `https://enroll.larc.uci.edu/${year}${quarterToLarcSuffix(quarter)}`,
@@ -38,7 +41,7 @@ export const GET: InternalHandler = async (request) => {
           .map((group) => {
             const rows = $(group).find(".col-lg-4");
 
-            const [day, time] = $(rows[0])
+            const [days, time] = $(rows[0])
               .find(".col")
               .map((_, col) => $(col).text().trim());
 
@@ -46,7 +49,12 @@ export const GET: InternalHandler = async (request) => {
               .find(".col")
               .map((_, col) => $(col).text().trim());
 
-            return { day, time, instructor, building };
+            return {
+              days: fmtDays(days),
+              time: fmtTime(time),
+              instructor,
+              bldg: fmtBldg(building),
+            };
           });
 
         return { courseInfo: { ...match?.groups }, sections };
