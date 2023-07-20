@@ -12,7 +12,7 @@ permissions:
   deployments: write
   pull-requests: write
 concurrency:
-  group: ${{ github.head_ref }}
+  group: api-${{ github.head_ref }}
   cancel-in-progress: true
 jobs:
   deploy-api:
