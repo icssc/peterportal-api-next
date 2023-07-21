@@ -122,5 +122,3 @@ export const GET: InternalHandler = async (request) => {
     return createErrorResult(400, e, requestId);
   }
 };
-
-export const HEAD = GET;

@@ -39,5 +39,3 @@ export const GET: InternalHandler = async (request) => {
     return createErrorResult(400, "Instructor UCINetID not provided", requestId);
   }
 };
-
-export const HEAD = GET;
