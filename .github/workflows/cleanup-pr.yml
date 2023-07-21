@@ -49,7 +49,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build assets
-        run: pnpm build --filter="api-v1-*" --filter="docs-cdk"
+        run: pnpm build --filter="api-*" --filter="docs-cdk"
 
       - name: Wait for API stack to stabilize
         uses: ./.github/actions/stabilize-stack

@@ -54,8 +54,8 @@ jobs:
       - name: Install dependencies (again)
         run: pnpm install --frozen-lockfile
 
-      - name: Build assets
-        run: pnpm build
+      - name: Build docs assets
+        run: pnpm build --filter="docs-cdk"
 
       - name: Wait for docs stack to stabilize
         uses: ./.github/actions/stabilize-stack

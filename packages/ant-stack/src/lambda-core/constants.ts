@@ -30,16 +30,7 @@ export const months = [
   "Dec",
 ] as const;
 
-export const httpMethods = [
-  "ANY",
-  "DELETE",
-  "GET",
-  "HEAD",
-  "PATCH",
-  "POST",
-  "PUT",
-  "OPTIONS",
-] as const;
+export const httpMethods = ["ANY", "DELETE", "GET", "PATCH", "POST", "PUT", "OPTIONS"] as const;
 
 export type HttpMethod = (typeof httpMethods)[number];
 

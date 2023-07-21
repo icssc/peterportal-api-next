@@ -159,6 +159,11 @@ export class AntStack extends Stack {
 
         idResource.addMethod(httpMethod, lambdaIntegration);
 
+        if (httpMethod === "GET") {
+          resource.addMethod("HEAD", lambdaIntegration);
+          idResource.addMethod("HEAD", lambdaIntegration);
+        }
+
         const warmingTarget = new LambdaFunction(handler, {
           event: RuleTargetInput.fromObject({ body: warmerRequestBody }),
         });
