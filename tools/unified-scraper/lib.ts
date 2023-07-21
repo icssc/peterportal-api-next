@@ -40,7 +40,7 @@ const termMapping: Record<string, string> = {
 const isPrereq = (obj: Prerequisite | PrerequisiteTree): obj is Prerequisite => "type" in obj;
 
 const prereqToString = (prereq: Prerequisite) => {
-  switch (prereq.type) {
+  switch (prereq.prereqType) {
     case "course":
       return prereq.courseId ?? "";
     case "exam":
