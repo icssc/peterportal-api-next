@@ -1,24 +1,3 @@
-enum PrerequisiteType {
-  course
-  exam
-}
-
-type Prerequisite {
-  prereqType: PrerequisiteType
-  courseId: String
-  examName: String
-  minGrade: String
-  coreq: Boolean
-}
-
-union PrerequisiteNode = Prerequisite | PrerequisiteTree
-
-type PrerequisiteTree {
-  AND: [PrerequisiteNode!]
-  OR: [PrerequisiteNode!]
-  NOT: [PrerequisiteNode!]
-}
-
 type Course {
   id: String!
   department: String!
@@ -32,7 +11,7 @@ type Course {
   description: String!
   departmentName: String!
   instructorHistory: [String!]!
-  prerequisiteTree: PrerequisiteTree!
+  prerequisiteTree: JSON!
   prerequisiteList: [String!]!
   prerequisiteText: String!
   prerequisiteFor: [String!]!
