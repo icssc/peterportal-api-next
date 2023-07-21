@@ -7,7 +7,7 @@ export type Prerequisite = {
   /**
    * Type of prerequisite.
    */
-  type: "course" | "exam";
+  prereqType: "course" | "exam";
   /**
    * The ID of the prerequisite, if it is a course.
    */

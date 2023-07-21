@@ -4,7 +4,7 @@ enum PrerequisiteType {
 }
 
 type Prerequisite {
-  type: PrerequisiteType
+  prereqType: PrerequisiteType
   courseId: String
   examName: String
   minGrade: String

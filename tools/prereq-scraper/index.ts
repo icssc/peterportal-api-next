@@ -179,13 +179,13 @@ function buildANDLeaf(prereqTree: PrerequisiteTree, prereq: string) {
 }
 
 function createPrereq(
-  type: "course" | "exam",
+  prereqType: "course" | "exam",
   req: string,
   grade?: string,
   coreq?: boolean,
 ): Prerequisite {
-  const prereq: Prerequisite = { type };
-  if (type === "course") {
+  const prereq: Prerequisite = { prereqType };
+  if (prereqType === "course") {
     prereq.courseId = req;
   } else {
     prereq.examName = req;
