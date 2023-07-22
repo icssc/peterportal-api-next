@@ -54,11 +54,13 @@ export const GET: InternalHandler = async (request) => {
           );
           if (count > MAX_RECORDS_PER_QUERY) {
             for (let i = MAX_RECORDS_PER_QUERY; i < count; i += MAX_RECORDS_PER_QUERY) {
+              const { year, quarter, sectionCode } = res.slice(-1)[0];
               res.push(
                 ...(
                   await prisma.gradesSection.findMany({
-                    skip: i,
+                    skip: 1,
                     take: MAX_RECORDS_PER_QUERY,
+                    cursor: { idx: { year, quarter, sectionCode } },
                     where,
                     include: { instructors: true },
                   })
