@@ -1,8 +1,13 @@
+import { brotliCompressSync, deflateSync, gzipSync } from "zlib";
+
 import type { APIGatewayProxyResult } from "aws-lambda";
 import type { ErrorResponse, Response } from "peterportal-api-next-types";
 
 import { httpErrorCodes, months } from "../constants";
 import { logger } from "../logger";
+
+// The minimum size at which to start compressing the response.
+const MIN_COMPRESSION_SIZE = 128 * 1024;
 
 /**
  * Common response headers.
@@ -36,18 +41,42 @@ export function createTimestamp(date: Date = new Date()): string {
 /**
  * Log and create a "200 OK" response.
  * @param payload The payload to send in the response.
+ * @param requestHeaders The headers associated with the request.
  * @param requestId The request ID associated with the request.
  */
-export function createOKResult<T>(payload: T, requestId: string): APIGatewayProxyResult {
+export function createOKResult<T>(
+  payload: T,
+  requestHeaders: Record<string, string>,
+  requestId: string,
+): APIGatewayProxyResult {
   const statusCode = 200;
 
   const timestamp = createTimestamp();
 
-  const body: Response<T> = { statusCode, timestamp, requestId, payload };
+  const response: Response<T> = { statusCode, timestamp, requestId, payload };
+
+  let body = JSON.stringify(response);
+
+  const isBase64Encoded = body.length > MIN_COMPRESSION_SIZE;
+
+  if (isBase64Encoded) {
+    try {
+      // Prioritize Brotli if supported by the client, then gzip, then DEFLATE.
+      if (requestHeaders["accept-encoding"].includes("br")) {
+        body = brotliCompressSync(body).toString("base64");
+      } else if (requestHeaders["accept-encoding"].includes("gzip")) {
+        body = gzipSync(body).toString("base64");
+      } else if (requestHeaders["accept-encoding"].includes("deflate")) {
+        body = deflateSync(body).toString("base64");
+      }
+    } catch (e) {
+      return createErrorResult(500, e, requestId);
+    }
+  }
 
   logger.info("200 OK");
 
-  return { statusCode, body: JSON.stringify(body), headers };
+  return { body, headers, isBase64Encoded, statusCode };
 }
 
 /**
@@ -78,5 +107,5 @@ export function createErrorResult(
 
   logger.error(`${body.statusCode} ${body.error}: ${body.message}`);
 
-  return { statusCode, body: JSON.stringify(body), headers };
+  return { statusCode, body: JSON.stringify(body), headers: headers };
 }

@@ -68,7 +68,7 @@ export class AntStack extends Stack {
       },
       disableExecuteApiEndpoint: true,
       endpointTypes: [EndpointType.EDGE],
-      minimumCompressionSize: 128 * 1024, // 128 KiB
+      binaryMediaTypes: ["*/*"],
       restApiName: `${config.aws.id}-${config.env.stage}`,
     });
 
@@ -144,7 +144,7 @@ export class AntStack extends Stack {
           architecture: Architecture.ARM_64,
           environment: { ...handlerConfig.env, ...this.config.env, STAGE: this.config.env.stage },
           timeout: Duration.seconds(15),
-          memorySize: 1024,
+          memorySize: 512,
           role:
             handlerConfig.rolePropsMapping && handlerConfig.rolePropsMapping[route]
               ? new Role(this, `${functionName}-role`, handlerConfig.rolePropsMapping[route])

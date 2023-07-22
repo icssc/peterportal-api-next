@@ -25,14 +25,14 @@ const MAX_RECORDS_PER_QUERY = 21845;
 let prisma: PrismaClient;
 
 export const GET: InternalHandler = async (request) => {
-  const { params, query, requestId } = request;
+  const { headers, params, query, requestId } = request;
 
   prisma ??= new PrismaClient();
 
   if (request.isWarmerRequest) {
     try {
       await prisma.$connect();
-      return createOKResult("Warmed", requestId);
+      return createOKResult("Warmed", headers, requestId);
     } catch (e) {
       createErrorResult(500, e, requestId);
     }
@@ -77,9 +77,9 @@ export const GET: InternalHandler = async (request) => {
           }));
           switch (params.id) {
             case "raw":
-              return createOKResult<GradesRaw>(withInstructors, requestId);
+              return createOKResult<GradesRaw>(withInstructors, headers, requestId);
             case "aggregate":
-              return createOKResult(aggregateGrades(withInstructors), requestId);
+              return createOKResult(aggregateGrades(withInstructors), headers, requestId);
           }
         }
         break;
@@ -131,6 +131,7 @@ export const GET: InternalHandler = async (request) => {
                   .map((x) => x.name)
                   .sort(),
           },
+          headers,
           requestId,
         );
       }

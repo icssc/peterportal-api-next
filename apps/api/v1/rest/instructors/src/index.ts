@@ -7,14 +7,14 @@ import { normalizeInstructor } from "./lib";
 let prisma: PrismaClient;
 
 export const GET: InternalHandler = async (request) => {
-  const { params, requestId } = request;
+  const { headers, params, requestId } = request;
 
   prisma ??= new PrismaClient();
 
   if (request.isWarmerRequest) {
     try {
       await prisma.$connect();
-      return createOKResult("Warmed", requestId);
+      return createOKResult("Warmed", headers, requestId);
     } catch (e) {
       createErrorResult(500, e, requestId);
     }
@@ -29,6 +29,7 @@ export const GET: InternalHandler = async (request) => {
             where: { ucinetid: decodeURIComponent(params.id) },
           }),
         ),
+        headers,
         requestId,
       );
     } catch {

@@ -96,7 +96,12 @@ export function transformNodeRequest(event: APIGatewayProxyEvent, context: Conte
     request: event,
     context,
     body: event.body ? JSON.parse(event.body) : null,
-    headers: normalizeRecord(event.headers),
+    headers: Object.fromEntries(
+      Object.entries(normalizeRecord(event.headers)).map(([k, v]) => [
+        k.toLowerCase(),
+        v.toLowerCase(),
+      ]),
+    ),
     method: event.httpMethod,
     params: normalizeRecord(event.pathParameters ?? {}),
     path: event.path,

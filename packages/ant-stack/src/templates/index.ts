@@ -4,18 +4,18 @@
 
 import { createOKResult, type InternalHandler, zeroUUID } from "ant-stack";
 
-export const GET: InternalHandler = async (event) => {
-  return createOKResult(event.body, zeroUUID);
+export const GET: InternalHandler = async (request) => {
+  return createOKResult(request.body, request.headers, zeroUUID);
 };
 
-export const POST: InternalHandler = async (event) => {
-  return createOKResult(event.body, zeroUUID);
+export const POST: InternalHandler = async (request) => {
+  return createOKResult(request.body, request.headers, zeroUUID);
 };
 
-export const PUT: InternalHandler = async (event) => {
-  return createOKResult(event.body, zeroUUID);
+export const PUT: InternalHandler = async (request) => {
+  return createOKResult(request.body, request.headers, zeroUUID);
 };
 
-export const DELETE: InternalHandler = async (event) => {
-  return createOKResult(event.body, zeroUUID);
+export const DELETE: InternalHandler = async (request) => {
+  return createOKResult(request.body, request.headers, zeroUUID);
 };
