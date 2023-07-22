@@ -7,6 +7,8 @@ import { ZodError } from "zod";
 import { aggregateGrades, constructPrismaQuery, lexOrd } from "./lib";
 import { QuerySchema } from "./schema";
 
+const MAX_RECORDS_PER_QUERY = 21845; // 65535 / 3
+
 let prisma: PrismaClient;
 
 export const GET: InternalHandler = async (request) => {
@@ -28,15 +30,38 @@ export const GET: InternalHandler = async (request) => {
       case "raw":
       case "aggregate":
         {
-          const res = (
-            await prisma.gradesSection.findMany({
-              where: constructPrismaQuery(parsedQuery),
-              include: { instructors: true },
-            })
-          ).map((section) => ({
-            ...section,
-            instructors: section.instructors.map((instructor) => instructor.name),
-          }));
+          const where = constructPrismaQuery(parsedQuery);
+          const count = (await prisma.gradesSection.findMany({ where })).length;
+          const res: GradesRaw = [];
+          res.push(
+            ...(
+              await prisma.gradesSection.findMany({
+                take: MAX_RECORDS_PER_QUERY,
+                where,
+                include: { instructors: true },
+              })
+            ).map((section) => ({
+              ...section,
+              instructors: section.instructors.map((instructor) => instructor.name),
+            })),
+          );
+          if (count > MAX_RECORDS_PER_QUERY) {
+            for (let i = MAX_RECORDS_PER_QUERY; i < count; i += MAX_RECORDS_PER_QUERY) {
+              res.push(
+                ...(
+                  await prisma.gradesSection.findMany({
+                    skip: i,
+                    take: MAX_RECORDS_PER_QUERY,
+                    where,
+                    include: { instructors: true },
+                  })
+                ).map((section) => ({
+                  ...section,
+                  instructors: section.instructors.map((instructor) => instructor.name),
+                })),
+              );
+            }
+          }
           switch (params.id) {
             case "raw":
               return createOKResult<GradesRaw>(res, requestId);
