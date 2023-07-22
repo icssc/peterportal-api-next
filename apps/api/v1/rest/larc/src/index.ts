@@ -8,12 +8,12 @@ import { fmtBldg, fmtDays, fmtTime, quarterToLarcSuffix } from "./lib";
 import { QuerySchema } from "./schema";
 
 export const GET: InternalHandler = async (request) => {
-  const { headers, query, requestId } = request;
+  const { query, requestId } = request;
   try {
     const { year, quarter } = QuerySchema.parse(query);
 
     // SS10wk does not have LARC sessions apparently
-    if (quarter === "Summer10wk") return createOKResult([], headers, requestId);
+    if (quarter === "Summer10wk") return createOKResult([], requestId);
 
     // TODO: move this code to its own scraper, and rewrite this route to fetch
     // data from the DB.
@@ -60,7 +60,7 @@ export const GET: InternalHandler = async (request) => {
         return { courseInfo: { ...match?.groups }, sections };
       });
 
-    return createOKResult(larcSections, headers, requestId);
+    return createOKResult(larcSections, requestId);
   } catch (e) {
     if (e instanceof ZodError) {
       const messages = e.issues.map((issue) => issue.message);

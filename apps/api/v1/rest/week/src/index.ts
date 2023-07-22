@@ -10,14 +10,14 @@ import { QuerySchema } from "./schema";
 let prisma: PrismaClient;
 
 export const GET: InternalHandler = async (request) => {
-  const { headers, query, requestId } = request;
+  const { query, requestId } = request;
 
   prisma ??= new PrismaClient();
 
   if (request.isWarmerRequest) {
     try {
       await prisma.$connect();
-      return createOKResult("Warmed", headers, requestId);
+      return createOKResult("Warmed", requestId);
     } catch (error) {
       createErrorResult(500, error, requestId);
     }
@@ -51,7 +51,6 @@ export const GET: InternalHandler = async (request) => {
           quarters: ["N/A"],
           display: "Enjoy your break! 😎",
         },
-        headers,
         requestId,
       );
     // handle case of one term in progress and no terms in finals (quarters during regular school year and SS2)
@@ -65,7 +64,6 @@ export const GET: InternalHandler = async (request) => {
           quarters,
           display: `Week ${weeks[0]} • ${quarters[0]}`,
         },
-        headers,
         requestId,
       );
     }
@@ -79,7 +77,6 @@ export const GET: InternalHandler = async (request) => {
           quarters,
           display: `Finals Week • ${quarters[0]}. Good luck! 🤞`,
         },
-        headers,
         requestId,
       );
     }
@@ -101,7 +98,6 @@ export const GET: InternalHandler = async (request) => {
           quarters: [quarter1, quarter2],
           display,
         },
-        headers,
         requestId,
       );
     }
@@ -119,7 +115,6 @@ export const GET: InternalHandler = async (request) => {
           quarters,
           display: `Finals Week • ${quarters[1]}. Good luck! 🤞 | Week ${weeks[0]} • ${quarters[0]}`,
         },
-        headers,
         requestId,
       );
     }

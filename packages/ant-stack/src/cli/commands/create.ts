@@ -9,7 +9,7 @@ import { getClosestProjectDirectory } from "../../utils";
 
 const createHandlerTemplate = (httpMethod: string) => `\
 export const ${httpMethod}: InternalHandler = async (request) => {
-  return createOKResult({}, request.headers, zeroUUID);
+  return createOKResult({}, zeroUUID);
 }
 `;
 

@@ -21,14 +21,14 @@ const lambda = new LambdaClient({});
 const lambdaClient = new PeterPortalApiLambdaClient(lambda);
 
 export const GET: InternalHandler = async (request) => {
-  const { headers, params, query, requestId } = request;
+  const { params, query, requestId } = request;
 
   prisma ??= new PrismaClient();
 
   if (request.isWarmerRequest) {
     try {
       await prisma.$connect();
-      return createOKResult("Warmed", headers, requestId);
+      return createOKResult("Warmed", requestId);
     } catch (error) {
       createErrorResult(500, error, requestId);
     }
@@ -87,7 +87,7 @@ export const GET: InternalHandler = async (request) => {
           );
         });
 
-        return createOKResult(webSocTerms, headers, requestId);
+        return createOKResult(webSocTerms, requestId);
       }
 
       case "depts": {
@@ -120,7 +120,7 @@ export const GET: InternalHandler = async (request) => {
           return 0;
         });
 
-        return createOKResult(webSocDepts, headers, requestId);
+        return createOKResult(webSocDepts, requestId);
       }
     }
 
@@ -183,7 +183,7 @@ export const GET: InternalHandler = async (request) => {
 
           const combinedResponses = combineResponses(...responses);
 
-          return createOKResult(sortResponse(combinedResponses), headers, requestId);
+          return createOKResult(sortResponse(combinedResponses), requestId);
         }
 
         const websocApiResponses = websocSections
@@ -192,7 +192,7 @@ export const GET: InternalHandler = async (request) => {
 
         const combinedResponses = combineResponses(...websocApiResponses);
 
-        return createOKResult(sortResponse(combinedResponses), headers, requestId);
+        return createOKResult(sortResponse(combinedResponses), requestId);
       }
 
       /**
@@ -201,7 +201,7 @@ export const GET: InternalHandler = async (request) => {
        * querying WebSoc.
        */
       if (parsedQuery.cacheOnly) {
-        return createOKResult({ schools: [] }, headers, requestId);
+        return createOKResult({ schools: [] }, requestId);
       }
     }
 
@@ -211,7 +211,7 @@ export const GET: InternalHandler = async (request) => {
       queries: normalizeQuery(parsedQuery),
     });
 
-    return createOKResult(websocResults, headers, requestId);
+    return createOKResult(websocResults, requestId);
   } catch (error) {
     if (error instanceof ZodError) {
       const messages = error.issues.map((issue) => issue.message);

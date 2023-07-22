@@ -10,14 +10,14 @@ import { QuerySchema } from "./schema";
 let prisma: PrismaClient;
 
 export const GET: InternalHandler = async (request) => {
-  const { headers, query, requestId } = request;
+  const { query, requestId } = request;
 
   prisma ??= new PrismaClient();
 
   if (request.isWarmerRequest) {
     try {
       await prisma.$connect();
-      return createOKResult("Warmed", headers, requestId);
+      return createOKResult("Warmed", requestId);
     } catch (e) {
       createErrorResult(500, e, requestId);
     }
@@ -37,7 +37,7 @@ export const GET: InternalHandler = async (request) => {
     });
 
     if (res) {
-      return createOKResult<QuarterDates>(res, headers, requestId);
+      return createOKResult<QuarterDates>(res, requestId);
     }
 
     const termDateData = await getTermDateData(
@@ -60,7 +60,7 @@ export const GET: InternalHandler = async (request) => {
       );
     }
 
-    return createOKResult(termDateData[[where.year, where.quarter].join(" ")], headers, requestId);
+    return createOKResult(termDateData[[where.year, where.quarter].join(" ")], requestId);
   } catch (error) {
     if (error instanceof ZodError) {
       const messages = error.issues.map((issue) => issue.message);
