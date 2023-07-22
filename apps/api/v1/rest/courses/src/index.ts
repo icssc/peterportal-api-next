@@ -34,6 +34,7 @@ export const GET: InternalHandler = async (request) => {
     }
   } else {
     // TODO implement arbitrary filtering
-    return createErrorResult(400, "Course number not provided", requestId);
+    const courses = await prisma.course.findMany();
+    return createOKResult(courses.map(normalizeCourse), requestId);
   }
 };

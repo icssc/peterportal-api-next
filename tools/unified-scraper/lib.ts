@@ -77,7 +77,7 @@ export const transformTerm = (term: string) => {
   return `${(year >= 65 ? 1900 : 2000) + year} ${termMapping[term[0]]}`;
 };
 
-const sortTerms = (a: string, b: string) => {
+export const sortTerms = (a: string, b: string) => {
   const quarterOrder = ["Winter", "Spring", "Summer1", "Summer10wk", "Summer2", "Fall"];
   if (a.substring(0, 4) > b.substring(0, 4)) return -1;
   if (a.substring(0, 4) < b.substring(0, 4)) return 1;

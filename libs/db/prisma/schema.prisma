@@ -113,6 +113,7 @@ model Instructor {
   department         String
   schools            Json
   relatedDepartments Json
+  courseHistory      Json
 }
 
 model GradesInstructor {

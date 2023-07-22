@@ -1,5 +1,24 @@
-import { Course as PrismaCourse, CourseLevel as PrismaCourseLevel } from "@libs/db";
+import { Course as PrismaCourse, CourseLevel as PrismaCourseLevel, Prisma } from "@libs/db";
 import { Course, CourseLevel, GE, GECategory, PrerequisiteTree } from "peterportal-api-next-types";
+
+import { Query } from "./schema";
+
+/**
+ * Constructs a Prisma query for the given filter parameters.
+ * @param parsedQuery The query object parsed by Zod.
+ */
+export function constructPrismaQuery(parsedQuery: Query): Prisma.CourseWhereInput {
+  const AND: Prisma.CourseWhereInput[] = [];
+
+  if (parsedQuery.department) AND.push({ department: parsedQuery.department });
+
+  const OR: Prisma.CourseWhereInput[] = [];
+
+  return {
+    AND: AND.length ? AND : undefined,
+    OR: OR.length ? OR : undefined,
+  };
+}
 
 export function normalizeCourse(course: PrismaCourse): Course {
   let courseLevel: CourseLevel;

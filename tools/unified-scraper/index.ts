@@ -5,7 +5,7 @@ import { Instructor } from "peterportal-api-next-types";
 import type { CourseTree } from "prereq-scraper";
 
 import type { ScrapedCourse } from "./lib";
-import { createCourses, prereqTreeToList, transformTerm } from "./lib";
+import { createCourses, prereqTreeToList, sortTerms, transformTerm } from "./lib";
 
 const prisma = new PrismaClient({
   log: [
@@ -39,8 +39,25 @@ async function main() {
     string,
     ScrapedCourse
   >;
-  const instructorInfo = JSON.parse(readFileSync("./instructors.json", { encoding: "utf8" }))
-    .result as Record<string, Instructor>;
+  const instructorInfo = Object.fromEntries(
+    Object.entries(
+      JSON.parse(readFileSync("./instructors.json", { encoding: "utf8" })).result as Record<
+        string,
+        Instructor
+      >,
+    ).map(([ucinetid, instructor]) => [
+      ucinetid,
+      {
+        ...instructor,
+        courseHistory: Object.fromEntries(
+          Object.entries(instructor.courseHistory).map(([course, terms]) => [
+            course,
+            terms.map(transformTerm).sort(sortTerms),
+          ]),
+        ),
+      },
+    ]),
+  );
   const prereqInfo = Object.fromEntries(
     (
       Object.values(
@@ -72,12 +89,12 @@ async function main() {
     prisma.courseHistory.deleteMany({ where: { ucinetid: { in: Object.keys(instructorInfo) } } }),
     prisma.instructor.deleteMany({ where: { ucinetid: { in: Object.keys(instructorInfo) } } }),
     prisma.instructor.createMany({
-      data: Object.values(instructorInfo).map(({ courseHistory: _, ...data }) => data),
+      data: Object.values(instructorInfo),
     }),
     prisma.courseHistory.createMany({
       data: Object.entries(instructorInfo).flatMap(([ucinetid, { courseHistory }]) =>
         Object.entries(courseHistory).flatMap(([courseId, terms]) =>
-          terms.map((term) => ({ ucinetid, courseId, term: transformTerm(term) })),
+          terms.map((term) => ({ ucinetid, courseId, term })),
         ),
       ),
     }),

@@ -2,8 +2,6 @@ import { PrismaClient } from "@libs/db";
 import { createErrorResult, createOKResult } from "ant-stack";
 import type { InternalHandler } from "ant-stack";
 
-import { normalizeInstructor } from "./lib";
-
 let prisma: PrismaClient;
 
 export const GET: InternalHandler = async (request) => {
@@ -23,12 +21,9 @@ export const GET: InternalHandler = async (request) => {
   if (params?.id) {
     try {
       return createOKResult(
-        await normalizeInstructor(
-          prisma,
-          await prisma.instructor.findFirstOrThrow({
-            where: { ucinetid: decodeURIComponent(params.id) },
-          }),
-        ),
+        await prisma.instructor.findFirstOrThrow({
+          where: { ucinetid: decodeURIComponent(params.id) },
+        }),
         requestId,
       );
     } catch {
@@ -36,6 +31,7 @@ export const GET: InternalHandler = async (request) => {
     }
   } else {
     // TODO implement arbitrary filtering
-    return createErrorResult(400, "Instructor UCINetID not provided", requestId);
+    const instructors = await prisma.instructor.findMany();
+    return createOKResult(instructors, requestId);
   }
 };
