@@ -2,9 +2,23 @@ import { load } from "cheerio";
 import fetch from "cross-fetch";
 import { QuarterDates, quarters } from "peterportal-api-next-types";
 
+/* region types */
+
+type PropertiesToDate<T> = {
+  [K in keyof T]: ToDate<T[K]>;
+};
+
+type ToDate<T> = T extends string ? Date : T extends object ? PropertiesToDate<T> : string;
+
+type IndexablePartialQuarterDates = Partial<ToDate<QuarterDates> & { [p: string]: Date }>;
+
+/* endregion */
+
 /* region Constants */
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/* endregion */
 
 /* region Helper functions */
 
@@ -12,7 +26,7 @@ const addSingleDateRow = (
   data: string[][],
   index: number,
   key: string,
-  record: Record<string, Partial<QuarterDates & { [p: string]: Date }>>,
+  record: Record<string, IndexablePartialQuarterDates>,
   year: string,
   offset = 0,
 ): void => {
@@ -32,7 +46,7 @@ const addMultipleDateRow = (
   index: number,
   keyStart: string,
   keyEnd: string,
-  record: Record<string, Partial<QuarterDates & { [p: string]: Date }>>,
+  record: Record<string, IndexablePartialQuarterDates>,
   year: string,
   offset = 0,
 ): void => {
@@ -65,7 +79,9 @@ const addMultipleDateRow = (
 /* region Exported functions */
 
 // Returns relevant date data for each term in the given academic year.
-export const getTermDateData = async (year: string): Promise<Record<string, QuarterDates>> => {
+export const getTermDateData = async (
+  year: string,
+): Promise<Record<string, ToDate<QuarterDates>>> => {
   if (year.length !== 4 || isNaN(parseInt(year))) throw new Error("Error: Invalid year provided.");
   const shortYear = year.slice(2);
   const response = await fetch(
@@ -111,7 +127,7 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
         p[c] = {};
         return p;
       },
-      {} as Record<string, Partial<QuarterDates>>,
+      {} as Record<string, Partial<ToDate<QuarterDates>>>,
     );
   addSingleDateRow(quarterData, 2, "instructionStart", ret, year);
   addSingleDateRow(quarterData, 17, "instructionEnd", ret, year);
@@ -132,18 +148,18 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
   // Normalize all terms to start on a Monday, or a Thursday if it is Fall.
   for (const key in ret) {
     if (key.includes("Fall")) {
-      (ret[key] as QuarterDates).instructionStart.setDate(
-        (ret[key] as QuarterDates).instructionStart.getDate() -
-          ((ret[key] as QuarterDates).instructionStart.getDay() - 4),
+      (ret[key] as ToDate<QuarterDates>).instructionStart.setDate(
+        (ret[key] as ToDate<QuarterDates>).instructionStart.getDate() -
+          ((ret[key] as ToDate<QuarterDates>).instructionStart.getDay() - 4),
       );
     } else {
-      (ret[key] as QuarterDates).instructionStart.setDate(
-        (ret[key] as QuarterDates).instructionStart.getDate() -
-          ((ret[key] as QuarterDates).instructionStart.getDay() - 1),
+      (ret[key] as ToDate<QuarterDates>).instructionStart.setDate(
+        (ret[key] as ToDate<QuarterDates>).instructionStart.getDate() -
+          ((ret[key] as ToDate<QuarterDates>).instructionStart.getDay() - 1),
       );
     }
   }
-  return ret as Record<string, QuarterDates>;
+  return ret as Record<string, ToDate<QuarterDates>>;
 };
 
 /* endregion */
