@@ -20,7 +20,6 @@ import { Construct } from "constructs";
 export class DocsStack extends Stack {
   constructor(scope: Construct, id: string) {
     if (!process.env.CERTIFICATE_ARN) throw new Error("Certificate ARN not provided. Stop.");
-    if (!process.env.DATABASE_URL) throw new Error("Database URL not provided. Stop.");
     if (!process.env.HOSTED_ZONE_ID) throw new Error("Hosted Zone ID not provided. Stop.");
 
     let stage: string;
@@ -66,7 +65,7 @@ export class DocsStack extends Stack {
         principals: [
           new CanonicalUserPrincipal(cloudfrontOAI.cloudFrontOriginAccessIdentityS3CanonicalUserId),
         ],
-      })
+      }),
     );
 
     const distribution = new Distribution(this, "distribution", {

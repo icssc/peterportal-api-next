@@ -3,7 +3,7 @@ import "dotenv/config";
 
 import { App } from "aws-cdk-lib";
 
-import { DocsStack } from "./docsStack";
+import { DocsStack } from "./DocsStack";
 
 // Instantiate the CDK app and the documentation stack.
 

@@ -1,11 +1,9 @@
 ---
-name: Deploy PR to staging (Docs)
+name: Deploy docs to production
 on:
-  pull_request:
-    types:
-      - opened
-      - synchronize
-      - unlabeled
+  push:
+    branches:
+      - main
 permissions:
   id-token: write
   contents: read
@@ -16,11 +14,10 @@ concurrency:
   cancel-in-progress: true
 jobs:
   deploy-docs:
-    if: (!contains(github.event.pull_request.labels.*.name, 'no deploy'))
     runs-on: ubuntu-latest
     environment:
-      name: staging-${{ github.event.pull_request.number }}-docs
-      url: https://staging-${{ github.event.pull_request.number }}-docs.api-next.peterportal.org
+      name: production-docs
+      url: https://docs.api-next.peterportal.org
     env:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -28,8 +25,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
       CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
       HOSTED_ZONE_ID: ${{ secrets.HOSTED_ZONE_ID }}
-      NODE_ENV: staging
-      PR_NUM: ${{ github.event.pull_request.number }}
+      NODE_ENV: production
 
     steps:
       - name: Check out codebase
@@ -56,16 +52,9 @@ jobs:
       - name: Wait for docs stack to stabilize
         uses: ./.github/actions/stabilize-stack
         with:
-          stack_name: peterportal-api-next-docs-staging-${{ github.event.pull_request.number }}
+          stack_name: peterportal-api-next-docs-prod
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
       - name: Deploy stack
         run: pnpm run deploy --filter="docs-cdk"
-
-      - name: Comment docs staging URL
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: docsStagingURL
-          recreate: true
-          message: 🚀 Documentation staging instance deployed to https://staging-${{ github.event.pull_request.number }}-docs.api-next.peterportal.org
