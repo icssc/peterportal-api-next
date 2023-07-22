@@ -1,12 +1,12 @@
 ---
-name: Clean up staging PR
+name: Clean up staging PR (Docs)
 on:
   pull_request:
     types:
       - closed
       - labeled
 concurrency:
-  group: ${{ github.head_ref }}
+  group: docs-${{ github.head_ref }}
   cancel-in-progress: true
 permissions:
   id-token: write
