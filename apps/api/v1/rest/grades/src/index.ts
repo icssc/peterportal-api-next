@@ -7,8 +7,6 @@ import { ZodError } from "zod";
 import { aggregateGrades, constructPrismaQuery, lexOrd } from "./lib";
 import { QuerySchema } from "./schema";
 
-const MAX_RECORDS = 21845;
-
 let prisma: PrismaClient;
 
 export const GET: InternalHandler = async (request) => {
@@ -30,18 +28,9 @@ export const GET: InternalHandler = async (request) => {
       case "raw":
       case "aggregate":
         {
-          const where = constructPrismaQuery(parsedQuery);
-          const count = (await prisma.gradesSection.findMany({ where })).length;
-          if (count > MAX_RECORDS) {
-            return createErrorResult(
-              400,
-              "Your query returned too many entries. Please refine your search.",
-              requestId,
-            );
-          }
           const res = (
             await prisma.gradesSection.findMany({
-              where,
+              where: constructPrismaQuery(parsedQuery),
               include: { instructors: true },
             })
           ).map((section) => ({
@@ -120,6 +109,14 @@ export const GET: InternalHandler = async (request) => {
     }
     if (e instanceof Error) {
       logger.error(e.message);
+      // findMany failing due to too many placeholders
+      if (e.message.includes("1390")) {
+        return createErrorResult(
+          400,
+          "Your query returned too many entries. Please refine your search.",
+          requestId,
+        );
+      }
       return createErrorResult(400, e.message, requestId);
     }
     return createErrorResult(400, e, requestId);
