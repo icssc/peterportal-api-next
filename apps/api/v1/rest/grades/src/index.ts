@@ -7,7 +7,14 @@ import { ZodError } from "zod";
 import { aggregateGrades, constructPrismaQuery, lexOrd } from "./lib";
 import { QuerySchema } from "./schema";
 
-const MAX_RECORDS_PER_QUERY = 21845; // 65535 / 3
+/**
+ * The maximum number of grades records
+ * that can be returned for each `findMany` call.
+ * This number is the quotient of the maximum number of placeholders in prepared
+ * statements supported by MariaDB (2**16 - 1), and the number of placeholders
+ * needed for every grades record (3).
+ */
+const MAX_RECORDS_PER_QUERY = 21845;
 
 let prisma: PrismaClient;
 

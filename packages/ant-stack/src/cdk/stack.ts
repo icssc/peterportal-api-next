@@ -144,7 +144,7 @@ export class AntStack extends Stack {
           architecture: Architecture.ARM_64,
           environment: { ...handlerConfig.env, ...this.config.env, STAGE: this.config.env.stage },
           timeout: Duration.seconds(15),
-          memorySize: 512,
+          memorySize: 1024,
           role:
             handlerConfig.rolePropsMapping && handlerConfig.rolePropsMapping[route]
               ? new Role(this, `${functionName}-role`, handlerConfig.rolePropsMapping[route])
