@@ -20,11 +20,14 @@ const sidebars = {
           label: "Reference",
           items: [
             "developers-guide/rest-api/reference/grades",
+            "developers-guide/rest-api/reference/larc",
             "developers-guide/rest-api/reference/websoc",
+            "developers-guide/rest-api/reference/week",
           ],
         },
       ],
     },
+    "developers-guide/graphql-api",
   ],
   contributorsGuideSidebar: [
     "contributors-guide/getting-started",

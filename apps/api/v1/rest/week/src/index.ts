@@ -75,7 +75,9 @@ export const GET: InternalHandler = async (request) => {
         {
           weeks: [-1],
           quarters,
-          display: `Finals Week • ${quarters[0]}. Good luck! 🤞`,
+          display: `Finals${term.quarter === "Summer2" ? "" : " Week"} • ${
+            quarters[0]
+          }. Good luck! 🤞`,
         },
         requestId,
       );
@@ -101,7 +103,7 @@ export const GET: InternalHandler = async (request) => {
         requestId,
       );
     }
-    // handle case of one term in progress and one term in finals
+    // handle case of one term in progress and one term in finals (SS1+SS10wk or SS10wk+SS2)
     if (termsInProgress.length === 1 && termsInFinals.length === 1) {
       const [termInProgress] = termsInProgress;
       const [termInFinals] = termsInFinals;
@@ -113,7 +115,7 @@ export const GET: InternalHandler = async (request) => {
         {
           weeks,
           quarters,
-          display: `Finals Week • ${quarters[1]}. Good luck! 🤞 | Week ${weeks[0]} • ${quarters[0]}`,
+          display: `Finals • ${quarters[1]}. Good luck! 🤞 | Week ${weeks[0]} • ${quarters[0]}`,
         },
         requestId,
       );

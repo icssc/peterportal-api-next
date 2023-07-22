@@ -5,7 +5,7 @@ pagination_next: null
 
 # TypeScript Integration
 
-We provide a types package on NPM to provide intelligent code completion when working with response objects, as well as a way to safely protect against erroneous or failed requests.
+We provide a types package on the npm Registry to provide intelligent code completion when working with response objects, as well as a way to safely protect against erroneous or failed requests.
 
 To start using the package in your TypeScript project, run the following command:
 

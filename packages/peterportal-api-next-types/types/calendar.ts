@@ -1,23 +1,23 @@
 /**
  * An object that includes important dates for a specified quarter.
  * The type of the payload returned on a successful response from querying
- * ``/v1/rest/calendar/quarter``.
+ * ``/v1/rest/calendar``.
  */
 export type QuarterDates = {
   /**
    * When instruction begins for the given quarter.
    */
-  instructionStart: Date;
+  instructionStart: string;
   /**
    * When instruction ends for the given quarter.
    */
-  instructionEnd: Date;
+  instructionEnd: string;
   /**
    * When finals begin for the given quarter.
    */
-  finalsStart: Date;
+  finalsStart: string;
   /**
    * When finals end for the given quarter.
    */
-  finalsEnd: Date;
+  finalsEnd: string;
 };
