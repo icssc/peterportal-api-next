@@ -62,10 +62,3 @@ jobs:
 
       - name: Deploy stack
         run: pnpm run deploy --filter="docs-cdk"
-
-      - name: Comment docs staging URL
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: docsStagingURL
-          recreate: true
-          message: 🚀 Documentation staging instance deployed to https://staging-${{ github.event.pull_request.number }}-docs.api-next.peterportal.org
