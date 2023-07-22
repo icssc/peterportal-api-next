@@ -1,7 +1,13 @@
 import { PrismaClient } from "@libs/db";
 import { createErrorResult, createOKResult, logger } from "ant-stack";
 import type { InternalHandler } from "ant-stack";
-import type { GradesOptions, GradesRaw } from "peterportal-api-next-types";
+import type {
+  GradeDistribution,
+  GradeSection,
+  GradesOptions,
+  GradesRaw,
+  Quarter,
+} from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
 import { aggregateGrades, constructPrismaQuery, lexOrd } from "./lib";
@@ -39,43 +45,41 @@ export const GET: InternalHandler = async (request) => {
         {
           const where = constructPrismaQuery(parsedQuery);
           const count = (await prisma.gradesSection.findMany({ where })).length;
-          const res: GradesRaw = [];
+          const res: Array<
+            Omit<GradeSection & GradeDistribution, "instructors"> & {
+              instructors: { year: string; quarter: Quarter; sectionCode: string; name: string }[];
+            }
+          > = [];
           res.push(
-            ...(
-              await prisma.gradesSection.findMany({
-                take: MAX_RECORDS_PER_QUERY,
-                where,
-                include: { instructors: true },
-              })
-            ).map((section) => ({
-              ...section,
-              instructors: section.instructors.map((instructor) => instructor.name),
+            ...(await prisma.gradesSection.findMany({
+              take: MAX_RECORDS_PER_QUERY,
+              where,
+              include: { instructors: true },
             })),
           );
           if (count > MAX_RECORDS_PER_QUERY) {
-            for (let i = MAX_RECORDS_PER_QUERY; i < count; i += MAX_RECORDS_PER_QUERY) {
+            for (let _ = MAX_RECORDS_PER_QUERY; _ < count; _ += MAX_RECORDS_PER_QUERY) {
               const { year, quarter, sectionCode } = res.slice(-1)[0];
               res.push(
-                ...(
-                  await prisma.gradesSection.findMany({
-                    skip: 1,
-                    take: MAX_RECORDS_PER_QUERY,
-                    cursor: { idx: { year, quarter, sectionCode } },
-                    where,
-                    include: { instructors: true },
-                  })
-                ).map((section) => ({
-                  ...section,
-                  instructors: section.instructors.map((instructor) => instructor.name),
+                ...(await prisma.gradesSection.findMany({
+                  skip: 1,
+                  take: MAX_RECORDS_PER_QUERY,
+                  cursor: { idx: { year, quarter, sectionCode } },
+                  where,
+                  include: { instructors: true },
                 })),
               );
             }
           }
+          const withInstructors = res.map((section) => ({
+            ...section,
+            instructors: section.instructors.map((instructor) => instructor.name),
+          }));
           switch (params.id) {
             case "raw":
-              return createOKResult<GradesRaw>(res, requestId);
+              return createOKResult<GradesRaw>(withInstructors, requestId);
             case "aggregate":
-              return createOKResult(aggregateGrades(res), requestId);
+              return createOKResult(aggregateGrades(withInstructors), requestId);
           }
         }
         break;
