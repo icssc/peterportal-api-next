@@ -12,7 +12,7 @@ const MIN_COMPRESSION_SIZE = 128 * 1024;
 /**
  * Common response headers.
  */
-const headers = {
+const responseHeaders: Record<string, string> = {
   "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -50,32 +50,29 @@ export function createOKResult<T>(
   requestId: string,
 ): APIGatewayProxyResult {
   const statusCode = 200;
-
   const timestamp = createTimestamp();
-
   const response: Response<T> = { statusCode, timestamp, requestId, payload };
-
   let body = JSON.stringify(response);
-
   const isBase64Encoded = body.length > MIN_COMPRESSION_SIZE;
-
+  const headers = { ...responseHeaders };
   if (isBase64Encoded) {
     try {
       // Prioritize Brotli if supported by the client, then gzip, then DEFLATE.
       if (requestHeaders["accept-encoding"].includes("br")) {
         body = brotliCompressSync(body).toString("base64");
+        headers["content-encoding"] = "br";
       } else if (requestHeaders["accept-encoding"].includes("gzip")) {
         body = gzipSync(body).toString("base64");
+        headers["content-encoding"] = "gzip";
       } else if (requestHeaders["accept-encoding"].includes("deflate")) {
         body = deflateSync(body).toString("base64");
+        headers["content-encoding"] = "deflate";
       }
     } catch (e) {
       return createErrorResult(500, e, requestId);
     }
   }
-
   logger.info("200 OK");
-
   return { body, headers, isBase64Encoded, statusCode };
 }
 
@@ -107,5 +104,5 @@ export function createErrorResult(
 
   logger.error(`${body.statusCode} ${body.error}: ${body.message}`);
 
-  return { statusCode, body: JSON.stringify(body), headers: headers };
+  return { statusCode, body: JSON.stringify(body), headers: responseHeaders };
 }
