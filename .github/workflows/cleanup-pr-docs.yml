@@ -19,7 +19,6 @@ jobs:
     if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy')
       || github.event.action == 'closed'
     runs-on: ubuntu-latest
-    environment: staging-${{ github.event.pull_request.number }}-docs
     env:
       ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
       AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
