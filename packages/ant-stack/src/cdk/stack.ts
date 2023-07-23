@@ -1,5 +1,12 @@
 import { Duration, Stack } from "aws-cdk-lib";
-import { EndpointType, LambdaIntegration, ResponseType, RestApi } from "aws-cdk-lib/aws-apigateway";
+import {
+  ContentHandling,
+  EndpointType,
+  LambdaIntegration,
+  MockIntegration,
+  ResponseType,
+  RestApi,
+} from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
@@ -45,6 +52,8 @@ export class AntStack extends Stack {
 
   config: AntConfig;
 
+  mockIntegration: MockIntegration;
+
   constructor(scope: Construct, config: AntConfig) {
     super(scope, `${config.aws.id}-${config.env.stage}`, config.aws.stackProps);
 
@@ -53,11 +62,6 @@ export class AntStack extends Stack {
     this.config = config;
 
     this.api = new RestApi(this, `${config.aws.id}-${config.env.stage}`, {
-      defaultCorsPreflightOptions: {
-        allowOrigins: ["*"],
-        allowHeaders: ["Apollo-Require-Preflight", "Content-Type"],
-        allowMethods: ["GET", "HEAD", "POST"],
-      },
       domainName: {
         domainName: `${recordName}.${config.aws.zoneName}`,
         certificate: Certificate.fromCertificateArn(
@@ -99,6 +103,27 @@ export class AntStack extends Stack {
         }),
       },
     });
+
+    this.api.root.addMethod(
+      "OPTIONS",
+      (this.mockIntegration = new MockIntegration({
+        contentHandling: ContentHandling.CONVERT_TO_TEXT,
+        integrationResponses: [
+          {
+            responseParameters: {
+              "method.response.header.Access-Control-Allow-Headers":
+                "Apollo-Require-Preflight, Content-Type",
+              "method.response.header.Access-Control-Allow-Origin": "*",
+              "method.response.header.Access-Control-Allow-Methods": "GET, HEAD, POST",
+            },
+            statusCode: "204",
+          },
+        ],
+        requestTemplates: {
+          "application/json": '{ "statusCode": 204 }',
+        },
+      })),
+    );
 
     new ARecord(this, `${config.aws.id}-${config.env.stage}-a-record`, {
       zone: HostedZone.fromHostedZoneAttributes(this, "peterportal-hosted-zone", {
@@ -176,5 +201,7 @@ export class AntStack extends Stack {
 
         warmingRule.addTarget(warmingTarget);
       });
+
+    resource.addMethod("OPTIONS", this.mockIntegration);
   }
 }
