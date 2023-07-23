@@ -92,6 +92,8 @@ export function transformExpressRequest(req: ExpressRequest) {
  * Transform AWS Lambda event and context into an {@link InternalNodeRequest} from AWS Lambda's Node runtime.
  */
 export function transformNodeRequest(event: APIGatewayProxyEvent, context: Context) {
+  console.log(event);
+  console.log(context);
   const internalLambdaRequest: InternalNodeRequest = {
     request: event,
     context,
