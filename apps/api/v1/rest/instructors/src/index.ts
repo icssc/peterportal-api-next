@@ -5,14 +5,14 @@ import type { InternalHandler } from "ant-stack";
 let prisma: PrismaClient;
 
 export const GET: InternalHandler = async (request) => {
-  const { params, requestId } = request;
+  const { headers, params, requestId } = request;
 
   prisma ??= new PrismaClient();
 
   if (request.isWarmerRequest) {
     try {
       await prisma.$connect();
-      return createOKResult("Warmed", requestId);
+      return createOKResult("Warmed", headers, requestId);
     } catch (e) {
       createErrorResult(500, e, requestId);
     }
@@ -22,12 +22,13 @@ export const GET: InternalHandler = async (request) => {
     try {
       if (params.id === "all") {
         const instructors = await prisma.instructor.findMany();
-        return createOKResult(instructors, requestId);
+        return createOKResult(instructors, headers, requestId);
       }
       return createOKResult(
         await prisma.instructor.findFirstOrThrow({
           where: { ucinetid: decodeURIComponent(params.id) },
         }),
+        headers,
         requestId,
       );
     } catch {

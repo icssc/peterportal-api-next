@@ -12,9 +12,9 @@ export const handler = async (
   const body = JSON.parse(event.body ?? "{}");
   switch (body.function) {
     case "depts":
-      return createOKResult(await getDepts(), requestId);
+      return createOKResult(await getDepts(), {}, requestId);
     case "terms":
-      return createOKResult(await getTerms(), requestId);
+      return createOKResult(await getTerms(), {}, requestId);
     case "websoc": {
       const parsedQuery = body.parsedQuery;
       let queries: WebsocAPIOptions[] = body.queries;
@@ -61,9 +61,9 @@ export const handler = async (
           requestId,
         );
 
-      return createOKResult(sortResponse(websocResponseData), requestId);
+      return createOKResult(sortResponse(websocResponseData), {}, requestId);
     }
     default:
-      return createOKResult({}, requestId);
+      return createOKResult({}, {}, requestId);
   }
 };

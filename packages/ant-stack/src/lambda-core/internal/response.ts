@@ -1,3 +1,5 @@
+import { brotliCompressSync, deflateSync, gzipSync } from "zlib";
+
 import type { APIGatewayProxyResult } from "aws-lambda";
 import type { ErrorResponse, Response } from "peterportal-api-next-types";
 
@@ -5,12 +7,27 @@ import { httpErrorCodes, months } from "../constants";
 import { logger } from "../logger";
 
 /**
+ * The payload size above which we want to start compressing the response.
+ * Default: 128 KiB
+ */
+const MIN_COMPRESSION_SIZE = 128 * 1024;
+
+/**
  * Common response headers.
  */
-const headers = {
+const responseHeaders: Record<string, string> = {
   "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+};
+
+/**
+ * Mapping of compression algorithms to their function calls.
+ */
+const compressionAlgorithms: Record<string, (buf: string) => Buffer> = {
+  br: brotliCompressSync,
+  gzip: gzipSync,
+  deflate: deflateSync,
 };
 
 /**
@@ -36,18 +53,40 @@ export function createTimestamp(date: Date = new Date()): string {
 /**
  * Log and create a "200 OK" response.
  * @param payload The payload to send in the response.
+ * @param requestHeaders
  * @param requestId The request ID associated with the request.
  */
-export function createOKResult<T>(payload: T, requestId: string): APIGatewayProxyResult {
+export function createOKResult<T>(
+  payload: T,
+  requestHeaders: Record<string, string>,
+  requestId: string,
+): APIGatewayProxyResult {
   const statusCode = 200;
-
   const timestamp = createTimestamp();
-
-  const body: Response<T> = { statusCode, timestamp, requestId, payload };
-
+  const response: Response<T> = { statusCode, timestamp, requestId, payload };
+  const headers = { ...responseHeaders };
+  let body = JSON.stringify(response);
+  if (!requestHeaders["x-no-compression"] && body.length > MIN_COMPRESSION_SIZE) {
+    try {
+      // Prioritize Brotli if supported by the client, then gzip, then DEFLATE.
+      for (const [name, func] of Object.entries(compressionAlgorithms)) {
+        if (requestHeaders["accept-encoding"].includes(name)) {
+          body = func(body).toString("base64");
+          headers["Content-Encoding"] = name;
+          break;
+        }
+      }
+    } catch (e) {
+      return createErrorResult(500, e, requestId);
+    }
+  }
   logger.info("200 OK");
-
-  return { statusCode, body: JSON.stringify(body), headers };
+  return {
+    statusCode,
+    isBase64Encoded: !requestHeaders["x-no-compression"] && !!headers["Content-Encoding"],
+    body,
+    headers,
+  };
 }
 
 /**
@@ -78,5 +117,5 @@ export function createErrorResult(
 
   logger.error(`${body.statusCode} ${body.error}: ${body.message}`);
 
-  return { statusCode, body: JSON.stringify(body), headers };
+  return { statusCode, body: JSON.stringify(body), headers: responseHeaders };
 }

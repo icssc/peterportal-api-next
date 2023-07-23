@@ -74,7 +74,7 @@ export const transformTerm = (term: string) => {
    * When this breaks then it probably means it's also broken, or they've changed their term format.
    * Either way, not my problem at the moment.
    */
-  return `${(year >= 65 ? 1900 : 2000) + year} ${termMapping[term[0]]}`;
+  return termMapping[term[0]] ? `${(year >= 65 ? 1900 : 2000) + year} ${termMapping[term[0]]}` : "";
 };
 
 export const sortTerms = (a: string, b: string) => {
@@ -184,8 +184,6 @@ export const createCourses =
             .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
             .flatMap((x) => x.courseHistory[courseId]),
         ),
-      )
-        .map(transformTerm)
-        .sort(sortTerms),
+      ).sort(sortTerms),
     };
   };

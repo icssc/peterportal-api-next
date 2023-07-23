@@ -68,7 +68,7 @@ export class AntStack extends Stack {
       },
       disableExecuteApiEndpoint: true,
       endpointTypes: [EndpointType.EDGE],
-      minimumCompressionSize: 128 * 1024, // 128 KiB
+      binaryMediaTypes: ["*/*"],
       restApiName: `${config.aws.id}-${config.env.stage}`,
     });
 

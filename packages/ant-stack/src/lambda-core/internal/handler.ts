@@ -1,9 +1,20 @@
+import { brotliDecompressSync, gunzipSync, inflateSync } from "zlib";
+
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import type { RequestHandler } from "express";
 
 import { logger } from "../logger";
 
 import { type InternalRequest, transformExpressRequest, transformNodeRequest } from "./request";
+
+/**
+ * Mapping of decompression algorithms to their function calls.
+ */
+const decompressionAlgorithms: Record<string, (buf: Buffer) => Buffer> = {
+  br: brotliDecompressSync,
+  gzip: gunzipSync,
+  deflate: inflateSync,
+};
 
 /**
  * A runtime-agnostic handler function.
@@ -27,13 +38,21 @@ export const createExpressHandler =
 
     const result = await handler(request);
 
+    const body = result.isBase64Encoded
+      ? decompressionAlgorithms[result.headers?.["Content-Encoding"] as string](
+          Buffer.from(result.body, "base64"),
+        ).toString()
+      : result.body;
+
+    delete result.headers?.["Content-Encoding"];
+
     res.status(result.statusCode);
     res.set(result.headers);
 
     try {
-      res.send(JSON.parse(result.body));
+      res.send(JSON.parse(body));
     } catch {
-      res.send(result.body);
+      res.send(body);
     }
   };
 
