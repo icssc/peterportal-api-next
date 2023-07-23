@@ -3,6 +3,7 @@ import {
   ContentHandling,
   EndpointType,
   LambdaIntegration,
+  MethodOptions,
   MockIntegration,
   ResponseType,
   RestApi,
@@ -49,9 +50,8 @@ export interface HandlerConfig {
 
 export class AntStack extends Stack {
   api: RestApi;
-
   config: AntConfig;
-
+  methodOptions: MethodOptions;
   mockIntegration: MockIntegration;
 
   constructor(scope: Construct, config: AntConfig) {
@@ -123,6 +123,9 @@ export class AntStack extends Stack {
           "application/json": '{ "statusCode": 204 }',
         },
       })),
+      (this.methodOptions = {
+        methodResponses: [{ statusCode: "204" }],
+      }),
     );
 
     new ARecord(this, `${config.aws.id}-${config.env.stage}-a-record`, {
@@ -202,6 +205,12 @@ export class AntStack extends Stack {
         warmingRule.addTarget(warmingTarget);
       });
 
-    resource.addMethod("OPTIONS", this.mockIntegration);
+    resource.addMethod("OPTIONS", this.mockIntegration, this.methodOptions);
+
+    (resource.getResource("{id}") ?? resource.addResource("{id}")).addMethod(
+      "OPTIONS",
+      this.mockIntegration,
+      this.methodOptions,
+    );
   }
 }

@@ -128,7 +128,6 @@ export const getTermDateData = async (year: string): Promise<Record<string, Quar
   );
   addSingleDateRow(summerSessionData, 6, "instructionEnd", ret, year, 3);
   addMultipleDateRow(summerSessionData, 7, "finalsStart", "finalsEnd", ret, year, 3);
-  console.log(ret);
   // Normalize all terms to start on a Monday, or a Thursday if it is Fall.
   for (const key in ret) {
     if (key.includes("Fall")) {
