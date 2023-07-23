@@ -48,7 +48,6 @@ export type PrerequisiteTree = {
  * An object that represents a course.
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/courses/{courseId}``.
- * @alpha
  */
 export type Course = {
   /**
@@ -156,3 +155,9 @@ export type Course = {
    */
   terms: string[];
 };
+
+/**
+ * The type of the payload returned on a successful response from querying
+ * ``/v1/rest/courses/all``.
+ */
+export type CourseResponse = Course[];

@@ -36,10 +36,7 @@ const sidebars = {
       type: "category",
       label: "Application Architecture",
       link: { type: "doc", id: "contributors-guide/application-architecture/index" },
-      items: [
-        "contributors-guide/application-architecture/api",
-        "contributors-guide/application-architecture/tools",
-      ],
+      items: ["contributors-guide/application-architecture/tools"],
     },
   ],
 };

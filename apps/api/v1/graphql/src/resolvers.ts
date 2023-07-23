@@ -10,10 +10,12 @@ export const resolvers: ApolloServerOptions<BaseContext>["resolvers"] = {
   Query: {
     calendar: proxyRestApi("v1/rest/calendar"),
     course: proxyRestApi("v1/rest/courses/", (args) => args, "courseId"),
+    allCourses: proxyRestApi("v1/rest/courses/all"),
     rawGrades: proxyRestApi("v1/rest/grades/raw"),
     aggregateGrades: proxyRestApi("v1/rest/grades/aggregate"),
     gradesOptions: proxyRestApi("v1/rest/grades/options"),
     instructor: proxyRestApi("v1/rest/instructors", (args) => args, "ucinetid"),
+    allInstructors: proxyRestApi("v1/rest/instructors/all"),
     larc: proxyRestApi("v1/rest/larc"),
     websoc: proxyRestApi("v1/rest/websoc", (args) => {
       if (args.ge) return { ...args, ge: args.ge.replace("_", "-") };

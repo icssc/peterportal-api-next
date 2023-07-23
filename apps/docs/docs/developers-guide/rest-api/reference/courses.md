@@ -8,7 +8,7 @@ import TabItem from "@theme/TabItem";
 
 # Courses
 
-The courses endpoint allows users to get information on courses offered at UCI
+The courses endpoint allows users to get information on courses offered at UCI.
 
 ## Get a course with the given course number
 
@@ -93,7 +93,7 @@ curl "https://api-next.peterportal.org/v1/rest/courses/COMPSCI162"
 <TabItem value="ts" label="Payload schema">
 
 ```typescript
-// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/courses.ts
 type Course = {
   id: string;
   department: string;
@@ -122,6 +122,50 @@ type Course = {
   geText: string;
   terms: string[];
 };
+```
+
+</TabItem>
+</Tabs>
+
+## Get all courses
+
+### Code sample
+
+<Tabs>
+<TabItem value="bash" label="cURL">
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/courses/all"
+```
+
+</TabItem>
+</Tabs>
+
+### Response
+
+<Tabs>
+<TabItem value="json" label="Example response">
+
+```json
+[
+  {
+    "id": "ACENG139W",
+    "...": "..."
+  },
+  {
+    "id": "ACENG200",
+    "...": "..."
+  },
+  "..."
+]
+```
+
+</TabItem>
+<TabItem value="ts" label="Payload schema">
+
+```typescript
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/courses.ts
+type CourseResponse = Course[];
 ```
 
 </TabItem>

@@ -42,13 +42,18 @@ export type LarcSection = {
  * A set of LARC sections for a single course.
  */
 export type LarcCourse = {
+  /**
+   * The course info for the set of LARC sections.
+   */
   courseInfo: LarcCourseInfo;
+  /**
+   * The sections associated with this set.
+   */
   sections: LarcSection[];
 };
 
 /**
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/larc``.
- * @alpha
  */
 export type LarcResponse = LarcCourse[];

@@ -23,6 +23,7 @@ export const createExpressHandler =
     logger.info(`Path params: ${JSON.stringify(request.params)}`);
     logger.info(`Query: ${JSON.stringify(request.query)}`);
     logger.info(`Body: ${JSON.stringify(request.body)}`);
+    logger.info(`Referer: ${request.headers?.referer}`);
 
     const result = await handler(request);
 
@@ -43,7 +44,10 @@ export const createNodeHandler =
   (handler: InternalHandler) => async (event: APIGatewayProxyEvent, context: Context) => {
     const request = transformNodeRequest(event, context);
 
-    logger.info(`Request: ${JSON.stringify(request.params)}`);
+    logger.info(`Path params: ${JSON.stringify(request.params)}`);
+    logger.info(`Query: ${JSON.stringify(request.query)}`);
+    logger.info(`Body: ${JSON.stringify(request.body)}`);
+    logger.info(`Referer: ${request.headers?.referer}`);
 
     return handler(request);
   };

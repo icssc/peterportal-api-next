@@ -20,6 +20,10 @@ export const GET: InternalHandler = async (request) => {
 
   if (params?.id) {
     try {
+      if (params.id === "all") {
+        const instructors = await prisma.instructor.findMany();
+        return createOKResult(instructors, requestId);
+      }
       return createOKResult(
         await prisma.instructor.findFirstOrThrow({
           where: { ucinetid: decodeURIComponent(params.id) },
@@ -31,7 +35,6 @@ export const GET: InternalHandler = async (request) => {
     }
   } else {
     // TODO implement arbitrary filtering
-    const instructors = await prisma.instructor.findMany();
-    return createOKResult(instructors, requestId);
+    return createErrorResult(400, "Instructor UCInetID not provided", requestId);
   }
 };

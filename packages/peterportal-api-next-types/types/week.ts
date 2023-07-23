@@ -2,7 +2,6 @@
  * An object that represents the week that the specified day is in.
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/week``.
- * @alpha
  */
 export type WeekData = {
   /**

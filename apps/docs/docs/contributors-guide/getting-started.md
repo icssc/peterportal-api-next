@@ -55,7 +55,9 @@ You can also write commit messages manually using `git commit`, but do note that
 
 ## Drafting and testing
 
-After you've committed and pushed your first changes, we recommend that you create a draft pull request. This will help others to keep track of your progress, and also allows for your code to be deployed to staging if you so choose. The title of the pull request should also follow the Conventional Commits spec, as mentioned above.
+After you've committed and pushed your first changes, we strongly recommend that you create a draft pull request. This will help others to keep track of your progress, and also allows for your code to be deployed to staging if you so choose, so you can test your new feature as if it had been deployed to production. The title of the pull request should also follow the Conventional Commits spec, as mentioned above.
+
+Unlike some other projects, we do not require you to test any API-related changes locally, as the database is only accessible to members of the ICSSC Projects Committee and select external contributors. If you would like access to the database, feel free to ask in the relevant channel on our [Discord server](https://discord.gg/Zu8KZHERtJ). Alternatively, you can set up your own MariaDB instance locally, but that is beyond the scope of this tutorial.
 
 ## Review process
 
@@ -67,6 +69,6 @@ Your changes will typically be merged shortly after getting approved, and the ch
 
 ## Contact us
 
-Still lost after reading this guide? If you ever need help, please don't hesitate to ask around on our Discord server.
+Still lost after reading this guide? If you ever need help, please don't hesitate to ask around on our [Discord server](https://discord.gg/Zu8KZHERtJ).
 
 If you'd like to learn more about the technical details of PeterPortal API, feel free to read on!

@@ -7,11 +7,11 @@ pagination_next: null
 
 ## Grades Updater
 
-The `grades-updater` takes
+The `grades-updater` takes spreadsheets containing grades data, which we get from the UCI [Public Records Office](https://pro.uci.edu/), and sanitizes them. The sanitized data is then uploaded to our database so that users can consume the data.
 
 ## Unified Scraper
 
-The `unified-scraper` combines the three main scrapers--for courses, instructors, and course prerequisites--into one
+The `unified-scraper` combines the three main scrapers--for courses, instructors, and course prerequisites--into one component, which populates our course and instructor data.
 
 ## WebSoc Scraper
 
