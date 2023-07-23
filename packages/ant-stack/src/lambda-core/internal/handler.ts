@@ -1,4 +1,4 @@
-import { brotliDecompressSync, gunzipSync, inflateSync } from "zlib";
+import { gunzipSync, inflateSync } from "zlib";
 
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import type { RequestHandler } from "express";
@@ -11,7 +11,6 @@ import { type InternalRequest, transformExpressRequest, transformNodeRequest } f
  * Mapping of decompression algorithms to their function calls.
  */
 const decompressionAlgorithms: Record<string, (buf: Buffer) => Buffer> = {
-  br: brotliDecompressSync,
   gzip: gunzipSync,
   deflate: inflateSync,
 };

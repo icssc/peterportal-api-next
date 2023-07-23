@@ -1,4 +1,4 @@
-import { brotliCompressSync, deflateSync, gzipSync } from "zlib";
+import { deflateSync, gzipSync } from "zlib";
 
 import type { APIGatewayProxyResult } from "aws-lambda";
 import type { ErrorResponse, Response } from "peterportal-api-next-types";
@@ -25,7 +25,6 @@ const responseHeaders: Record<string, string> = {
  * Mapping of compression algorithms to their function calls.
  */
 const compressionAlgorithms: Record<string, (buf: string) => Buffer> = {
-  br: brotliCompressSync,
   gzip: gzipSync,
   deflate: deflateSync,
 };
@@ -66,15 +65,26 @@ export function createOKResult<T>(
   const response: Response<T> = { statusCode, timestamp, requestId, payload };
   const headers = { ...responseHeaders };
   let body = JSON.stringify(response);
-  if (!requestHeaders["x-no-compression"] && body.length > MIN_COMPRESSION_SIZE) {
+  if (body.length > MIN_COMPRESSION_SIZE) {
     try {
-      // Prioritize Brotli if supported by the client, then gzip, then DEFLATE.
-      for (const [name, func] of Object.entries(compressionAlgorithms)) {
-        if (requestHeaders["accept-encoding"].includes(name)) {
-          body = func(body).toString("base64");
-          headers["Content-Encoding"] = name;
-          break;
+      if (requestHeaders["accept-encoding"] !== undefined) {
+        if (requestHeaders["accept-encoding"] !== "") {
+          // If accept-encoding is present and not empty,
+          // prioritize gzip over deflate.
+          // Unfortunately API Gateway does not currently support Brotli :(
+          for (const [name, func] of Object.entries(compressionAlgorithms)) {
+            if (requestHeaders["accept-encoding"].includes(name)) {
+              body = func(body).toString("base64");
+              headers["Content-Encoding"] = name;
+              break;
+            }
+          }
         }
+      } else {
+        // Otherwise, we default to using gzip if
+        // the body size is greater than the threshold.
+        body = gzipSync(body).toString("base64");
+        headers["Content-Encoding"] = "gzip";
       }
     } catch (e) {
       return createErrorResult(500, e, requestId);
@@ -83,7 +93,7 @@ export function createOKResult<T>(
   logger.info("200 OK");
   return {
     statusCode,
-    isBase64Encoded: !requestHeaders["x-no-compression"] && !!headers["Content-Encoding"],
+    isBase64Encoded: !!headers["Content-Encoding"],
     body,
     headers,
   };
