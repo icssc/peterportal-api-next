@@ -114,7 +114,7 @@ export class AntStack extends Stack {
               "method.response.header.Access-Control-Allow-Headers":
                 "'Apollo-Require-Preflight,Content-Type'",
               "method.response.header.Access-Control-Allow-Origin": "'*'",
-              "method.response.header.Access-Control-Allow-Methods": "'GET,HEAD,POST'",
+              "method.response.header.Access-Control-Allow-Methods": "'*'",
             },
             statusCode: "204",
           },
