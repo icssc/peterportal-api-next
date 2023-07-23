@@ -58,8 +58,6 @@ async function start() {
       (config, index, configs) => configs.findIndex((c) => c.route === config.route) === index,
     );
 
-  console.log(handlerConfigs);
-
   const stack = new AntStack(app, config);
 
   await Promise.all(handlerConfigs.map((handlerConfig) => stack.addRoute(handlerConfig)));
