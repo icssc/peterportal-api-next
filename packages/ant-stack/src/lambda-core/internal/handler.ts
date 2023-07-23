@@ -1,19 +1,10 @@
-import { gunzipSync, inflateSync } from "zlib";
-
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import type { RequestHandler } from "express";
 
+import { decompress } from "../../utils";
 import { logger } from "../logger";
 
 import { type InternalRequest, transformExpressRequest, transformNodeRequest } from "./request";
-
-/**
- * Mapping of decompression algorithms to their function calls.
- */
-const decompressionAlgorithms: Record<string, (buf: Buffer) => Buffer> = {
-  gzip: gunzipSync,
-  deflate: inflateSync,
-};
 
 /**
  * A runtime-agnostic handler function.
@@ -38,9 +29,7 @@ export const createExpressHandler =
     const result = await handler(request);
 
     const body = result.isBase64Encoded
-      ? decompressionAlgorithms[result.headers?.["Content-Encoding"] as string](
-          Buffer.from(result.body, "base64"),
-        ).toString()
+      ? decompress(result.body, result.headers?.["Content-Encoding"] as string)
       : result.body;
 
     delete result.headers?.["Content-Encoding"];

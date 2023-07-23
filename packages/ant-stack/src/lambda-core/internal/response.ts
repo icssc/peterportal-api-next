@@ -1,16 +1,9 @@
-import { deflateSync, gzipSync } from "zlib";
-
 import type { APIGatewayProxyResult } from "aws-lambda";
 import type { ErrorResponse, Response } from "peterportal-api-next-types";
 
+import { compress } from "../../utils";
 import { httpErrorCodes, months } from "../constants";
 import { logger } from "../logger";
-
-/**
- * The payload size above which we want to start compressing the response.
- * Default: 128 KiB
- */
-const MIN_COMPRESSION_SIZE = 128 * 1024;
 
 /**
  * Common response headers.
@@ -19,14 +12,6 @@ const responseHeaders: Record<string, string> = {
   "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-};
-
-/**
- * Mapping of compression algorithms to their function calls.
- */
-const compressionAlgorithms: Record<string, (buf: string) => Buffer> = {
-  gzip: gzipSync,
-  deflate: deflateSync,
 };
 
 /**
@@ -64,39 +49,19 @@ export function createOKResult<T>(
   const timestamp = createTimestamp();
   const response: Response<T> = { statusCode, timestamp, requestId, payload };
   const headers = { ...responseHeaders };
-  let body = JSON.stringify(response);
-  if (body.length > MIN_COMPRESSION_SIZE) {
-    try {
-      if (requestHeaders["accept-encoding"] !== undefined) {
-        if (requestHeaders["accept-encoding"] !== "") {
-          // If accept-encoding is present and not empty,
-          // prioritize gzip over deflate.
-          // Unfortunately API Gateway does not currently support Brotli :(
-          for (const [name, func] of Object.entries(compressionAlgorithms)) {
-            if (requestHeaders["accept-encoding"].includes(name)) {
-              body = func(body).toString("base64");
-              headers["Content-Encoding"] = name;
-              break;
-            }
-          }
-        }
-      } else {
-        // Otherwise, we default to using gzip if
-        // the body size is greater than the threshold.
-        body = gzipSync(body).toString("base64");
-        headers["Content-Encoding"] = "gzip";
-      }
-    } catch (e) {
-      return createErrorResult(500, e, requestId);
-    }
+  try {
+    const { body, method } = compress(JSON.stringify(response), requestHeaders["accept-encoding"]);
+    if (method) headers["Content-Encoding"] = method;
+    logger.info("200 OK");
+    return {
+      statusCode,
+      isBase64Encoded: !!headers["Content-Encoding"],
+      body,
+      headers,
+    };
+  } catch (e) {
+    return createErrorResult(500, e, requestId);
   }
-  logger.info("200 OK");
-  return {
-    statusCode,
-    isBase64Encoded: !!headers["Content-Encoding"],
-    body,
-    headers,
-  };
 }
 
 /**
