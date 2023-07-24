@@ -37,7 +37,7 @@ const termMapping: Record<string, string> = {
   Z: "Summer2",
 };
 
-const isPrereq = (obj: Prerequisite | PrerequisiteTree): obj is Prerequisite => "type" in obj;
+const isPrereq = (obj: Prerequisite | PrerequisiteTree): obj is Prerequisite => "prereqType" in obj;
 
 const prereqToString = (prereq: Prerequisite) => {
   switch (prereq.prereqType) {
