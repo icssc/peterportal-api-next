@@ -1,13 +1,5 @@
 import { Duration, Stack } from "aws-cdk-lib";
-import {
-  ContentHandling,
-  EndpointType,
-  LambdaIntegration,
-  MethodOptions,
-  MockIntegration,
-  ResponseType,
-  RestApi,
-} from "aws-cdk-lib/aws-apigateway";
+import { EndpointType, LambdaIntegration, ResponseType, RestApi } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
@@ -51,8 +43,7 @@ export interface HandlerConfig {
 export class AntStack extends Stack {
   api: RestApi;
   config: AntConfig;
-  methodOptions: MethodOptions;
-  mockIntegration: MockIntegration;
+  optionsIntegration: LambdaIntegration;
 
   constructor(scope: Construct, config: AntConfig) {
     super(scope, `${config.aws.id}-${config.env.stage}`, config.aws.stackProps);
@@ -106,35 +97,16 @@ export class AntStack extends Stack {
 
     this.api.root.addMethod(
       "OPTIONS",
-      (this.mockIntegration = new MockIntegration({
-        contentHandling: ContentHandling.CONVERT_TO_TEXT,
-        integrationResponses: [
-          {
-            responseParameters: {
-              "method.response.header.Access-Control-Allow-Headers":
-                "'Apollo-Require-Preflight,Content-Type'",
-              "method.response.header.Access-Control-Allow-Origin": "'*'",
-              "method.response.header.Access-Control.Allow-Methods": "'GET,POST,OPTIONS'",
-            },
-            statusCode: "204",
-          },
-        ],
-        requestTemplates: {
-          "application/json": '{ "statusCode": 204 }',
-        },
-      })),
-      (this.methodOptions = {
-        methodResponses: [
-          {
-            responseParameters: {
-              "method.response.header.Access-Control-Allow-Headers": true,
-              "method.response.header.Access-Control-Allow-Methods": true,
-              "method.response.header.Access-Control-Allow-Origin": true,
-            },
-            statusCode: "204",
-          },
-        ],
-      }),
+      (this.optionsIntegration = new LambdaIntegration(
+        new lambda.Function(this, `${config.aws.id}-${config.env.stage}-options-handler`, {
+          code: Code.fromInline(
+            'exports.h=async _=>({body:"",headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Apollo-Require-Preflight,Content-Type","Access-Control-Allow-Methods":"GET,POST,OPTIONS"},statusCode:204});',
+          ),
+          handler: "index.h",
+          runtime: Runtime.NODEJS_18_X,
+          architecture: Architecture.ARM_64,
+        }),
+      )),
     );
 
     new ARecord(this, `${config.aws.id}-${config.env.stage}-a-record`, {
@@ -204,12 +176,10 @@ export class AntStack extends Stack {
         });
         warmingRule.addTarget(warmingTarget);
       });
-
-    resource.addMethod("OPTIONS", this.mockIntegration, this.methodOptions);
+    resource.addMethod("OPTIONS", this.optionsIntegration);
     (resource.getResource("{id}") ?? resource.addResource("{id}")).addMethod(
       "OPTIONS",
-      this.mockIntegration,
-      this.methodOptions,
+      this.optionsIntegration,
     );
   }
 }
