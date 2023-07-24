@@ -1,5 +1,3 @@
-import { deflateSync, gunzipSync } from "node:zlib";
-
 import { BaseContext } from "@apollo/server/dist/cjs";
 import { IFieldResolver } from "@graphql-tools/utils/typings";
 import { GraphQLError } from "graphql/error";
@@ -52,13 +50,5 @@ export const proxyRestApi =
       });
     }
 
-    try {
-      return data.payload;
-    } catch {
-      try {
-        return gunzipSync(Buffer.from(data.payload as string, "base64")).toString();
-      } catch {
-        return deflateSync(Buffer.from(data.payload as string, "base64")).toString();
-      }
-    }
+    return data.payload;
   };
