@@ -36,3 +36,11 @@ Erroneous responses will instead contain the following fields:
 | --------- | -------- | ------------------------------------------------------------ | ----------------------------- |
 | `error`   | `string` | The message phrase associated with the status code.          | `Bad Request`                 |
 | `message` | `string` | The error that occurred while trying to process the request. | `Parameter year not provided` |
+
+## Compression
+
+By default, the API compresses responses that are larger than 128 KB using gzip. This is done to improve performance and network efficiency.
+
+If your usecase does not support compressed responses, make sure to send the `Accept-Encoding` header with an empty value. This will ensure that the response will be returned in plaintext. Note that doing so may fail for endpoints that return large amounts of data.
+
+The API supports both gzip and DEFLATE. If only DEFLATE is passed in the `Accept-Encoding` header, then it will be used. Otherwise, gzip will be used.
