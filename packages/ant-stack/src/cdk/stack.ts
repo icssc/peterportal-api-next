@@ -111,10 +111,10 @@ export class AntStack extends Stack {
         integrationResponses: [
           {
             responseParameters: {
-              "integration.response.header.Access-Control-Allow-Headers":
+              "method.response.header.Access-Control-Allow-Headers":
                 "'Apollo-Require-Preflight,Content-Type'",
-              "integration.response.header.Access-Control-Allow-Origin": "'*'",
-              "integration.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
+              "method.response.header.Access-Control-Allow-Origin": "'*'",
+              "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
             },
             statusCode: "204",
           },
@@ -124,7 +124,12 @@ export class AntStack extends Stack {
         },
       })),
       (this.methodOptions = {
-        methodResponses: [{ statusCode: "204" }],
+        methodResponses: [
+          {
+            responseParameters: { "method.response.header.Access-Control-Allow-Methods": true },
+            statusCode: "204",
+          },
+        ],
       }),
     );
 
