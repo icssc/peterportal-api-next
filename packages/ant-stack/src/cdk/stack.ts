@@ -114,7 +114,6 @@ export class AntStack extends Stack {
               "method.response.header.Access-Control-Allow-Headers":
                 "'Apollo-Require-Preflight,Content-Type'",
               "method.response.header.Access-Control-Allow-Origin": "'*'",
-              "method.response.header.Access-Control-Allow-Methods": "'GET,POST,OPTIONS'",
             },
             statusCode: "204",
           },
@@ -124,12 +123,7 @@ export class AntStack extends Stack {
         },
       })),
       (this.methodOptions = {
-        methodResponses: [
-          {
-            responseParameters: { "method.response.header.Access-Control-Allow-Methods": true },
-            statusCode: "204",
-          },
-        ],
+        methodResponses: [{ statusCode: "204" }],
       }),
     );
 
@@ -161,9 +155,7 @@ export class AntStack extends Stack {
       .filter(isHttpMethod)
       .forEach((httpMethod) => {
         const route = handlerConfig.route.replace(/\//g, "-");
-
         const functionName = `${this.config.aws.id}-${this.config.env.stage}-${route}-${httpMethod}`;
-
         const handler = new lambda.Function(this, `${functionName}-handler`, {
           functionName,
           runtime: Runtime.NODEJS_18_X,
@@ -185,13 +177,9 @@ export class AntStack extends Stack {
         });
 
         const lambdaIntegration = new LambdaIntegration(handler);
-
         resource.addMethod(httpMethod, lambdaIntegration);
-
         const idResource = resource.getResource("{id}") ?? resource.addResource("{id}");
-
         idResource.addMethod(httpMethod, lambdaIntegration);
-
         if (httpMethod === "GET") {
           resource.addMethod("HEAD", lambdaIntegration);
           idResource.addMethod("HEAD", lambdaIntegration);
@@ -200,18 +188,14 @@ export class AntStack extends Stack {
         const warmingTarget = new LambdaFunction(handler, {
           event: RuleTargetInput.fromObject({ body: warmerRequestBody }),
         });
-
         const ruleName = `${functionName}-warming-rule`;
-
         const warmingRule = new Rule(this, ruleName, {
           schedule: Schedule.rate(Duration.minutes(5)),
         });
-
         warmingRule.addTarget(warmingTarget);
       });
 
     resource.addMethod("OPTIONS", this.mockIntegration, this.methodOptions);
-
     (resource.getResource("{id}") ?? resource.addResource("{id}")).addMethod(
       "OPTIONS",
       this.mockIntegration,
