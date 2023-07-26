@@ -20,6 +20,8 @@ const lambda = new LambdaClient({});
 
 const lambdaClient = new PeterPortalApiLambdaClient(lambda);
 
+const quarterOrder = ["Winter", "Spring", "Summer1", "Summer10wk", "Summer2", "Fall"];
+
 export const GET: InternalHandler = async (request) => {
   const { headers, params, query, requestId } = request;
 
@@ -75,8 +77,6 @@ export const GET: InternalHandler = async (request) => {
             });
           }
         });
-
-        const quarterOrder = ["Winter", "Spring", "Summer1", "Summer10wk", "Summer2", "Fall"];
 
         webSocTerms.sort((a, b) => {
           if (a.shortName.substring(0, 4) > b.shortName.substring(0, 4)) return -1;

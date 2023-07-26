@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// The list of short months, not including February.
+// The list of 1-indexed short months, not including February.
 const shortMonths = [4, 6, 9, 11];
 
 // Checks if the given year is a leap year.
@@ -12,12 +12,14 @@ export const QuerySchema = z
     month: z.coerce.number().int().gte(1).lte(12),
     day: z.coerce.number().int().gte(1).lte(31),
   })
-  .refine((x) => (x.month === 2 && x.day === 29 ? isLeap(x.year) : true), {
-    message: "The year provided is not a leap year",
-  })
-  .refine((x) => (shortMonths.includes(x.month) ? x.day < 31 : true), {
-    message: "The day provided is not valid for the month provided",
-  })
+  .refine(
+    (x) =>
+      (x.month === 2 ? (isLeap(x.year) ? x.day < 30 : x.day < 29) : true) &&
+      (shortMonths.includes(x.month) ? x.day < 31 : true),
+    {
+      message: "The day provided is not valid for the month provided",
+    },
+  )
   .or(
     z.object({
       year: z.undefined(),
