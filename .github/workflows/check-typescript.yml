@@ -28,4 +28,4 @@ jobs:
         run: pnpm build --filter="ant-stack"
 
       - name: Run TypeScript type checking
-        run: npx tsc -p . --noEmit && npx tsc -p apps/docs --noEmit && npx tsc -p apps/docs/cdk --noEmit
+        run: pnpm ci:tsc

@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "turbo run build",
+    "ci:tsc": "npx tsc -p . --noEmit && npx tsc -p apps/docs --noEmit && npx tsc -p apps/docs/cdk --noEmit",
     "commit": "cz",
     "create": "dotenv -v DATABASE_URL=null -v NODE_ENV=development -- pnpm exec ant-stack create",
     "deploy": "turbo run deploy",
@@ -16,34 +17,17 @@
     "lint": "eslint --fix .",
     "test": "turbo run test"
   },
-  "commitlint": {
-    "extends": [
-      "@commitlint/config-conventional"
-    ]
-  },
-  "lint-staged": {
-    "*.?(c|m){js,ts}?(x)": [
-      "eslint --quiet --fix",
-      "prettier --write"
-    ],
-    "*.{css,graphql,json,md,prisma,sql,yaml,yml}": [
-      "prettier --write"
-    ]
-  },
-  "config": {
-    "commitizen": {
-      "path": "cz-conventional-changelog"
-    }
-  },
   "devDependencies": {
     "@commitlint/cli": "17.6.6",
     "@commitlint/config-conventional": "17.6.6",
+    "@commitlint/types": "^17.4.4",
     "@libs/db": "workspace:*",
     "@libs/registrar-api": "workspace:*",
     "@libs/websoc-api-next": "workspace:*",
+    "@types/lint-staged": "^13.2.0",
     "@typescript-eslint/eslint-plugin": "6.1.0",
     "@typescript-eslint/parser": "6.1.0",
-    "ant-stack": "workspace:*",
+    "ant-stack": "^0.1.0",
     "cz-conventional-changelog": "3.3.0",
     "eslint": "8.45.0",
     "eslint-config-prettier": "8.8.0",

@@ -14,6 +14,9 @@ importers:
       '@commitlint/config-conventional':
         specifier: 17.6.6
         version: 17.6.6
+      '@commitlint/types':
+        specifier: ^17.4.4
+        version: 17.4.4
       '@libs/db':
         specifier: workspace:*
         version: link:libs/db
@@ -23,6 +26,9 @@ importers:
       '@libs/websoc-api-next':
         specifier: workspace:*
         version: link:libs/websoc-api-next
+      '@types/lint-staged':
+        specifier: ^13.2.0
+        version: 13.2.0
       '@typescript-eslint/eslint-plugin':
         specifier: 6.1.0
         version: 6.1.0(@typescript-eslint/parser@6.1.0)(eslint@8.45.0)(typescript@5.1.6)
@@ -30,7 +36,7 @@ importers:
         specifier: 6.1.0
         version: 6.1.0(eslint@8.45.0)(typescript@5.1.6)
       ant-stack:
-        specifier: workspace:*
+        specifier: ^0.1.0
         version: link:packages/ant-stack
       cz-conventional-changelog:
         specifier: 3.3.0
@@ -5358,6 +5364,10 @@ packages:
     dependencies:
       '@types/node': 18.16.19
     dev: false
+
+  /@types/lint-staged@13.2.0:
+    resolution: {integrity: sha512-rYHDtOV4BHb1hRH5dA7P+jarU/YFmQ9CGgwYPZNVRoxhrsrm2exEETeIEB+EmBk2AXIKAaK9JDzjpNCkceDGFQ==}
+    dev: true
 
   /@types/long@4.0.2:
     resolution: {integrity: sha512-MqTGEo5bj5t157U6fA/BiDynNkn0YknVdh48CMPkTSpFTVmvao5UQmm7uEF6xBEo7qIMAlY/JSleYaE6VOdpaA==}

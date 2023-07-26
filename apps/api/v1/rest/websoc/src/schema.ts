@@ -26,7 +26,7 @@ type TransformOutput = string[] | undefined;
 function flattenStringsAndSplit(value: TransformInput): TransformOutput {
   if (!value) return undefined;
   const unique = new Set(
-    Array.isArray(value) ? value.flatMap((x) => x.split(",")) : value.split(",")
+    Array.isArray(value) ? value.flatMap((x) => x.split(",")) : value.split(","),
   );
   return [...unique].sort();
 }
@@ -45,7 +45,7 @@ function flattenDayStringsAndSplit(value: TransformInput): TransformOutput {
   const unique = new Set(
     Array.isArray(value)
       ? value.flatMap((x) => days.filter((y) => y.includes(x)))
-      : days.filter((x) => value.includes(x))
+      : days.filter((x) => value.includes(x)),
   );
 
   return [...unique];
@@ -103,7 +103,7 @@ export const QuerySchema = z
     {
       message:
         'At least one of "ge", "department", "sectionCodes", or "instructorName" must be provided',
-    }
+    },
   )
   .refine((x) => x.cacheOnly || x.building || !x.room, {
     message: 'If "building" is provided, "room" must also be provided',
@@ -112,4 +112,4 @@ export const QuerySchema = z
 /**
  * Type of the parsed query: useful for passing the query as input to other functions.
  */
-export type Query = z.TypeOf<typeof QuerySchema>;
+export type Query = z.infer<typeof QuerySchema>;

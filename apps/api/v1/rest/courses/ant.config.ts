@@ -19,7 +19,7 @@ const outDir = resolve(cwd, "./dist");
 const config: AntConfigStub = {
   esbuild: {
     plugins: [
-      cleanCopy(cwd, outDir, prismaClientDir, prismaSchema),
+      cleanCopy({ cwd, outDir, prismaClientDir, prismaSchema }),
       selectDelete(env.NODE_ENV, outDir),
     ],
   },

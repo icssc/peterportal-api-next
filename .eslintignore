@@ -4,4 +4,3 @@ cdk.out
 coverage
 build
 dist
-**/*.template.ts

@@ -50,8 +50,8 @@ jobs:
       - name: Build AntStack
         run: pnpm build --filter="ant-stack"
 
-      - name: Install dependencies (again)
-        run: pnpm install --frozen-lockfile
+      - name: Link AntStack
+        run: pnpm link ant-stack
 
       - name: Build API assets
         run: pnpm build --filter="api-*"

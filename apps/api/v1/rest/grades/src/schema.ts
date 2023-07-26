@@ -18,4 +18,4 @@ export const QuerySchema = z.object({
   excludePNP: z.boolean().optional(),
 });
 
-export type Query = z.TypeOf<typeof QuerySchema>;
+export type Query = z.infer<typeof QuerySchema>;
