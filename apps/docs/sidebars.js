@@ -5,6 +5,7 @@ const sidebars = {
   developersGuideSidebar: [
     "developers-guide/getting-started",
     "developers-guide/fair-use-policy",
+    "developers-guide/api-versioning",
     {
       type: "category",
       label: "REST API",
