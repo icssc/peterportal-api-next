@@ -1,4 +1,5 @@
 import type { AppProps, StackProps } from "aws-cdk-lib";
+import { RoleProps } from "aws-cdk-lib/aws-iam";
 import type { BuildOptions } from "esbuild";
 import { loadConfig } from "unconfig";
 
@@ -8,13 +9,15 @@ import { loadConfig } from "unconfig";
 interface AntAWS {
   id: string;
 
-  stage: string;
-
   zoneName: string;
+
+  stage?: string;
 
   appProps?: AppProps;
 
   stackProps?: StackProps;
+
+  routeRolePropsMapping?: Record<string, RoleProps>;
 }
 
 /**
@@ -47,12 +50,6 @@ interface AntRuntime {
    * @example 'lambda-node-runtime.js'
    */
   nodeRuntimeFile: string;
-
-  /**
-   * Name of dynamically generated script for AWS Lambda's Bun runtime.
-   * @example 'lambda-bun-runtime.js'
-   */
-  bunRuntimeFile: string;
 }
 
 /**
@@ -96,6 +93,11 @@ export interface AntConfig {
 }
 
 /**
+ * Stub for the root AntStack config. Useful for customizing route build behavior.
+ */
+export type AntConfigStub = Partial<AntConfig>;
+
+/**
  * Helper function to create configuration with type information in the input.
  * FIXME: this is very slow when used with {@link loadConfig} !
  */
@@ -109,6 +111,7 @@ export async function getConfig() {
         extensions: ["ts", "js"],
       },
     ],
+    merge: true,
   });
 
   return loadedConfig.config;

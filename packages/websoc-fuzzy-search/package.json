@@ -1,0 +1,29 @@
+{
+  "name": "websoc-fuzzy-search",
+  "version": "1.0.0",
+  "description": "Fuzzy search for WebSoc data",
+  "license": "MIT",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist/index.d.ts"
+  ],
+  "scripts": {
+    "prebuild": "dotenv -e ../../.env.production -- tsx setup.ts",
+    "build": "tsup",
+    "prebuild:debug": "dotenv -e ../../.env.development -- tsx setup.ts -d",
+    "build:debug": "tsup"
+  },
+  "dependencies": {
+    "base64-arraybuffer": "1.0.2",
+    "pako": "2.1.0"
+  },
+  "devDependencies": {
+    "@libs/db": "*",
+    "@types/pluralize": "^0.0.30",
+    "pluralize": "8.0.0",
+    "tsup": "7.1.0",
+    "tsx": "3.12.7"
+  }
+}

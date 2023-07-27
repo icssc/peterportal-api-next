@@ -3,8 +3,9 @@
     "generate": {
       "cache": false
     },
+    "ant-stack#build": {},
     "build": {
-      "dependsOn": ["^build", "^generate"],
+      "dependsOn": ["ant-stack#build", "^build", "^generate"],
       "outputs": ["dist/**"]
     },
     "deploy": {
@@ -29,7 +30,7 @@
     },
     "dev": {
       "cache": false,
-      "dependsOn": ["^generate"],
+      "dependsOn": ["^build"],
       "env": ["API_PORT"]
     },
     "test": {}

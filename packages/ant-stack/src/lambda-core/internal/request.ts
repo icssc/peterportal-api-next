@@ -1,7 +1,7 @@
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import type { Request as ExpressRequest } from "express";
 
-import { zeroUUID } from "../constants.js";
+import { zeroUUID } from "../constants";
 
 /**
  * The body of a warming request to an AWS Lambda function.
@@ -36,7 +36,7 @@ export interface InternalRequest<T = unknown> {
   /**
    * Request path parameter(s).
    */
-  params: Record<string, string | undefined> | null;
+  params: Record<string, string> | null;
 
   /**
    * The absolute path of the request.
@@ -70,11 +70,6 @@ export type InternalExpressRequest = InternalRequest<ExpressRequest>;
 export type InternalNodeRequest = InternalRequest<APIGatewayProxyEvent> & { context: Context };
 
 /**
- * Internal requests from a local Bun HTTP development server only have the basic properties.
- */
-export type InternalBunRequest = InternalRequest<BunRequest>;
-
-/**
  * Transform an {@link ExpressRequest} into an {@link InternalExpressRequest}.
  */
 export function transformExpressRequest(req: ExpressRequest) {
@@ -100,10 +95,19 @@ export function transformNodeRequest(event: APIGatewayProxyEvent, context: Conte
   const internalLambdaRequest: InternalNodeRequest = {
     request: event,
     context,
-    body: event.body ? JSON.parse(event.body) : null,
-    headers: normalizeRecord(event.headers),
+    body: event.body
+      ? event.isBase64Encoded
+        ? JSON.parse(Buffer.from(event.body, "base64").toString())
+        : JSON.parse(event.body)
+      : null,
+    headers: Object.fromEntries(
+      Object.entries(normalizeRecord(event.headers)).map(([k, v]) => [
+        k.toLowerCase(),
+        v.toLowerCase(),
+      ]),
+    ),
     method: event.httpMethod,
-    params: event.pathParameters,
+    params: normalizeRecord(event.pathParameters ?? {}),
     path: event.path,
     query: normalizeRecord(event.multiValueQueryStringParameters ?? {}),
     requestId: context.awsRequestId,
@@ -111,31 +115,6 @@ export function transformNodeRequest(event: APIGatewayProxyEvent, context: Conte
   };
 
   return internalLambdaRequest;
-}
-
-/**
- * A request received from the AWS Lambda Bun runtime.
- * The `aws` property is actually only available when deployed on AWS Lambda.
- */
-export type BunRequest = Request & { aws: APIGatewayProxyEvent };
-
-/**
- * Transform received {@link BunRequest} into an {@link InternalBunRequest}.
- */
-export function transformBunRequest(request: BunRequest): InternalBunRequest {
-  const internalBunRequest: InternalBunRequest = {
-    request,
-    body: request.body,
-    headers: normalizeRecord({}),
-    method: request.method,
-    params: null,
-    path: request.url,
-    query: normalizeRecord({}),
-    requestId: zeroUUID,
-    isWarmerRequest: false,
-  };
-
-  return internalBunRequest;
 }
 
 /**

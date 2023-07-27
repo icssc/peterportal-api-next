@@ -1,0 +1,22 @@
+{
+  "name": "api-v1-graphql",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "ant-stack build"
+  },
+  "dependencies": {
+    "@apollo/server": "4.7.5",
+    "@graphql-tools/load-files": "7.0.0",
+    "@graphql-tools/merge": "9.0.0",
+    "@graphql-tools/utils": "10.0.3",
+    "ant-stack": "workspace:*",
+    "cross-fetch": "4.0.0",
+    "graphql": "16.7.1",
+    "peterportal-api-next-types": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "8.10.119"
+  }
+}

@@ -1,0 +1,8 @@
+{
+  "bio": ["BIO SCI"],
+  "cs": ["COMPSCI"],
+  "ess": ["EARTHSS"],
+  "ics": ["I&C SCI"],
+  "inf": ["IN4MATX"],
+  "wr": ["WRITING"]
+}

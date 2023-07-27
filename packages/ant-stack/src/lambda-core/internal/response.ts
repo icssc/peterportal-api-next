@@ -1,13 +1,14 @@
 import type { APIGatewayProxyResult } from "aws-lambda";
 import type { ErrorResponse, Response } from "peterportal-api-next-types";
 
-import { httpErrorCodes, months } from "../constants.js";
-import { logger } from "../logger.js";
+import { compress } from "../../utils";
+import { httpErrorCodes, months } from "../constants";
+import { logger } from "../logger";
 
 /**
  * Common response headers.
  */
-const headers = {
+const responseHeaders: Record<string, string> = {
   "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
@@ -36,18 +37,31 @@ export function createTimestamp(date: Date = new Date()): string {
 /**
  * Log and create a "200 OK" response.
  * @param payload The payload to send in the response.
+ * @param requestHeaders
  * @param requestId The request ID associated with the request.
  */
-export function createOKResult<T>(payload: T, requestId: string): APIGatewayProxyResult {
+export function createOKResult<T>(
+  payload: T,
+  requestHeaders: Record<string, string>,
+  requestId: string,
+): APIGatewayProxyResult {
   const statusCode = 200;
-
   const timestamp = createTimestamp();
-
-  const body: Response<T> = { statusCode, timestamp, requestId, payload };
-
-  logger.info("200 OK");
-
-  return { statusCode, body: JSON.stringify(body), headers };
+  const response: Response<T> = { statusCode, timestamp, requestId, payload };
+  const headers = { ...responseHeaders };
+  try {
+    const { body, method } = compress(JSON.stringify(response), requestHeaders["accept-encoding"]);
+    if (method) headers["Content-Encoding"] = method;
+    logger.info("200 OK");
+    return {
+      statusCode,
+      isBase64Encoded: !!headers["Content-Encoding"],
+      body,
+      headers,
+    };
+  } catch (e) {
+    return createErrorResult(500, e, requestId);
+  }
 }
 
 /**
@@ -61,7 +75,7 @@ export function createOKResult<T>(payload: T, requestId: string): APIGatewayProx
 export function createErrorResult(
   statusCode: number,
   e: unknown,
-  requestId: string
+  requestId: string,
 ): APIGatewayProxyResult {
   const timestamp = createTimestamp();
 
@@ -78,5 +92,5 @@ export function createErrorResult(
 
   logger.error(`${body.statusCode} ${body.error}: ${body.message}`);
 
-  return { statusCode, body: JSON.stringify(body), headers };
+  return { statusCode, body: JSON.stringify(body), headers: responseHeaders };
 }

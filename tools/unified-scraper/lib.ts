@@ -1,11 +1,6 @@
-import type { PrismaClient, PrismaPromise } from "@libs/db";
-import {
-  courseLevels,
-  divisionCodes,
-  Instructor,
-  Prerequisite,
-  PrerequisiteTree,
-} from "peterportal-api-next-types";
+import type { Prisma } from "@libs/db";
+import type { Instructor, Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
+import { courseLevels, divisionCodes } from "peterportal-api-next-types";
 
 export type ScrapedCourse = {
   department: string;
@@ -42,10 +37,10 @@ const termMapping: Record<string, string> = {
   Z: "Summer2",
 };
 
-const isPrereq = (obj: Prerequisite | PrerequisiteTree): obj is Prerequisite => "type" in obj;
+const isPrereq = (obj: Prerequisite | PrerequisiteTree): obj is Prerequisite => "prereqType" in obj;
 
 const prereqToString = (prereq: Prerequisite) => {
-  switch (prereq.type) {
+  switch (prereq.prereqType) {
     case "course":
       return prereq.courseId ?? "";
     case "exam":
@@ -56,17 +51,17 @@ const prereqToString = (prereq: Prerequisite) => {
 const prereqTreeToString = (tree: PrerequisiteTree): string => {
   if (tree.AND) {
     return `(${tree.AND.map((x) => (isPrereq(x) ? prereqToString(x) : prereqTreeToString(x))).join(
-      " AND "
+      " AND ",
     )})`;
   }
   if (tree.OR) {
     return `(${tree.OR.map((x) => (isPrereq(x) ? prereqToString(x) : prereqTreeToString(x))).join(
-      " OR "
+      " OR ",
     )})`;
   }
   if (tree.NOT) {
     return `(${tree.NOT.map((x) =>
-      isPrereq(x) ? `NOT ${prereqToString(x)}` : `NOT ${prereqTreeToString(x)}`
+      isPrereq(x) ? `NOT ${prereqToString(x)}` : `NOT ${prereqTreeToString(x)}`,
     ).join(" AND ")})`;
   }
   return "";
@@ -79,10 +74,10 @@ export const transformTerm = (term: string) => {
    * When this breaks then it probably means it's also broken, or they've changed their term format.
    * Either way, not my problem at the moment.
    */
-  return `${(year >= 65 ? 1900 : 2000) + year} ${termMapping[term[0]]}`;
+  return termMapping[term[0]] ? `${(year >= 65 ? 1900 : 2000) + year} ${termMapping[term[0]]}` : "";
 };
 
-const sortTerms = (a: string, b: string) => {
+export const sortTerms = (a: string, b: string) => {
   const quarterOrder = ["Winter", "Spring", "Summer1", "Summer10wk", "Summer2", "Fall"];
   if (a.substring(0, 4) > b.substring(0, 4)) return -1;
   if (a.substring(0, 4) < b.substring(0, 4)) return 1;
@@ -99,11 +94,11 @@ export const prereqTreeToList = (tree: PrerequisiteTree): string[] => {
   return [];
 };
 
-export const upsertCourses =
+export const createCourses =
   (
-    prisma: PrismaClient,
     instructorInfo: Record<string, Instructor>,
-    prereqInfo: Record<string, PrerequisiteTree>
+    prereqInfo: Record<string, PrerequisiteTree>,
+    prereqLists: Record<string, string[]>,
   ) =>
   ([
     id,
@@ -126,9 +121,9 @@ export const upsertCourses =
       ge_list,
       ge_text,
     },
-  ]: [string, ScrapedCourse]): PrismaPromise<unknown> => {
+  ]: [string, ScrapedCourse]): Prisma.CourseCreateManyInput => {
     const courseId = `${department} ${number}`;
-    const course = {
+    return {
       id,
       department,
       courseNumber: number,
@@ -146,6 +141,8 @@ export const upsertCourses =
         .map((x) => x.ucinetid),
       prerequisiteTree: prereqInfo[courseId] ?? {},
       prerequisiteText: prereqTreeToString(prereqInfo[courseId] ?? {}).slice(1, -1),
+      prerequisiteList: prereqLists[courseId] ?? [],
+      prerequisiteFor: Object.keys(prereqLists).filter((x) => prereqLists[x].includes(courseId)),
       repeatability,
       gradingOption: grading_option,
       concurrent,
@@ -153,40 +150,40 @@ export const upsertCourses =
       restriction,
       overlap,
       corequisites: corequisite,
-      geList: ge_list,
+      geList: ge_list.map((x) => {
+        switch (x) {
+          case "GE Ia: Lower Division Writing":
+            return "GE-1A";
+          case "GE Ib: Upper Division Writing":
+            return "GE-1B";
+          case "GE II: Science and Technology":
+            return "GE-2";
+          case "GE III: Social & Behavioral Sciences":
+            return "GE-3";
+          case "GE IV: Arts and Humanities":
+            return "GE-4";
+          case "GE Va: Quantitative Literacy":
+            return "GE-5A";
+          case "GE Vb: Formal Reasoning":
+            return "GE-5B";
+          case "GE VI: Language Other Than English":
+            return "GE-6";
+          case "GE VII: Multicultural Studies":
+            return "GE-7";
+          case "GE VIII: International/Global Issues":
+            return "GE-8";
+          // this branch should never happen
+          default:
+            throw new Error();
+        }
+      }),
       geText: ge_text,
       terms: Array.from(
         new Set(
           Object.values(instructorInfo)
             .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
-            .flatMap((x) => x.courseHistory[courseId])
-        )
-      )
-        .map(transformTerm)
-        .sort(sortTerms),
+            .flatMap((x) => x.courseHistory[courseId]),
+        ),
+      ).sort(sortTerms),
     };
-    return prisma.course.upsert({
-      where: { id },
-      create: course,
-      update: course,
-    });
   };
-
-export const deletePrereqs =
-  (prisma: PrismaClient) =>
-  (forCourseId: string): PrismaPromise<unknown> =>
-    prisma.coursePrereq.deleteMany({
-      where: { forCourseId },
-    });
-
-export const deleteInstructorsAndHistory =
-  (prisma: PrismaClient) =>
-  (ucinetid: string): PrismaPromise<unknown>[] =>
-    [
-      prisma.courseHistory.deleteMany({
-        where: { ucinetid },
-      }),
-      prisma.instructor.deleteMany({
-        where: { ucinetid },
-      }),
-    ];

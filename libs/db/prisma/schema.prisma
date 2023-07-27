@@ -1,6 +1,6 @@
 generator client {
   provider        = "prisma-client-js"
-  binaryTargets   = ["native", "rhel-openssl-1.0.x", "debian-openssl-1.1.x"]
+  binaryTargets   = ["native", "rhel-openssl-1.0.x", "linux-arm64-openssl-1.0.x"]
   previewFeatures = ["jsonProtocol"]
 }
 
@@ -113,6 +113,7 @@ model Instructor {
   department         String
   schools            Json
   relatedDepartments Json
+  courseHistory      Json
 }
 
 model GradesInstructor {

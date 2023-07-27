@@ -13,7 +13,7 @@ This directory contains the code for updating the grades cache for PeterPortal A
 | 2022-23 | Summer  | ...        | ...          | 12345      | ...         | 1   | 0   | 0   | 0   | 0   | 2   | 0   | 3   | 4.00   |
 | ...     | ...     | ...        | ...          | ...        | ...         | ... | ... | ... | ... | ... | ... | ... | ... | ...    |
 
-4. Run `npm run sanitize`.
+4. Run `pnpm sanitize`.
 5. The data should be present in the `outputData` directory, and logs under `logs`.
    - If for some reason the sanitization process failed, the processed data in the `outputData` directory may be incomplete. You may need to remove the processed entries from the input file, and manually merge the processed data.
 
@@ -21,6 +21,5 @@ This directory contains the code for updating the grades cache for PeterPortal A
 
 1. Make sure there are no major issues with the sanitized data in `outputData`.
 2. Add the `.env.grades` file to the project root. Note that this is only available to members of the ICSSC Projects Committee, since it grants write access to the production database.
-3. Run `dotenv -c grades -- npm run generate` in the project root.
-4. Run `npm run upload` in this directory.
-5. The logs should be present under `/logs`.
+3. Run `pnpm upload` in this directory.
+4. The logs should be present under `/logs`.

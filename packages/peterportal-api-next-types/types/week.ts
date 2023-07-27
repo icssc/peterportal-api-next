@@ -1,19 +1,20 @@
-import { Quarter } from "./constants";
 /**
  * An object that represents the week that the specified day is in.
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/week``.
- * @alpha
  */
 export type WeekData = {
   /**
-   * The week number.
+   * The week number(s) of the term(s) in session.
+   * If a term is in finals, then that term's week number will be -1.
+   * If there are no terms in session, then this will be equal to `[-1]`.
    */
-  week: string;
+  weeks: number[];
   /**
-   * The short name of the quarter the week is in.
+   * The name of the term(s) the week is in.
+   * If there are no terms in session, then this will be equal to `["N/A"]`.
    */
-  quarter: `${string} ${Quarter}`;
+  quarters: string[];
   /**
    * The display string for the given week.
    */

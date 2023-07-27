@@ -1,8 +1,16 @@
-import * as cdk from "aws-cdk-lib";
+import { Duration, Stack } from "aws-cdk-lib";
+import { EndpointType, LambdaIntegration, ResponseType, RestApi } from "aws-cdk-lib/aws-apigateway";
+import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
+import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
+import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import { Role, RoleProps } from "aws-cdk-lib/aws-iam";
+import lambda, { Architecture, Code, Runtime } from "aws-cdk-lib/aws-lambda";
+import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import type { Construct } from "constructs";
 
-import type { AntConfig } from "../config.js";
-import { type InternalHandler, isHttpMethod, warmerRequestBody } from "../lambda-core/index.js";
+import type { AntConfig } from "../config";
+import { type InternalHandler, isHttpMethod, warmerRequestBody } from "../lambda-core";
 
 export interface HandlerConfig {
   /**
@@ -25,42 +33,42 @@ export interface HandlerConfig {
    * Environment variables specific to the function.
    */
   env?: Record<string, string>;
+
+  /**
+   *
+   */
+  rolePropsMapping?: Record<string, RoleProps>;
 }
 
-export class PeterPortalAPI_SST_Stack extends cdk.Stack {
-  api: cdk.aws_apigateway.RestApi;
-
+export class AntStack extends Stack {
+  api: RestApi;
   config: AntConfig;
+  optionsIntegration: LambdaIntegration;
 
   constructor(scope: Construct, config: AntConfig) {
-    super(scope, `${config.aws.id}-${config.aws.stage}`, config.aws.stackProps);
+    super(scope, `${config.aws.id}-${config.env.stage}`, config.aws.stackProps);
 
-    const recordName = `${config.aws.stage === "prod" ? "" : `${config.aws.stage}.`}api-next`;
+    const recordName = `${config.env.stage === "prod" ? "" : `${config.env.stage}.`}api-next`;
 
     this.config = config;
 
-    this.api = new cdk.aws_apigateway.RestApi(this, `${config.aws.id}-${config.aws.stage}`, {
-      defaultCorsPreflightOptions: {
-        allowOrigins: ["*"],
-        allowHeaders: ["Apollo-Require-Preflight", "Content-Type"],
-        allowMethods: ["GET", "HEAD", "POST"],
-      },
+    this.api = new RestApi(this, `${config.aws.id}-${config.env.stage}`, {
       domainName: {
         domainName: `${recordName}.${config.aws.zoneName}`,
-        certificate: cdk.aws_certificatemanager.Certificate.fromCertificateArn(
+        certificate: Certificate.fromCertificateArn(
           this,
           "peterportal-cert",
-          config.env?.certificateArn
+          process.env.CERTIFICATE_ARN ?? "",
         ),
       },
       disableExecuteApiEndpoint: true,
-      endpointTypes: [cdk.aws_apigateway.EndpointType.EDGE],
-      minimumCompressionSize: 128 * 1024, // 128 KiB
-      restApiName: `${config.aws.id}-${config.aws.stage}`,
+      endpointTypes: [EndpointType.EDGE],
+      binaryMediaTypes: ["*/*"],
+      restApiName: `${config.aws.id}-${config.env.stage}`,
     });
 
-    this.api.addGatewayResponse(`${config.aws.id}-${config.aws.stage}-5xx`, {
-      type: cdk.aws_apigateway.ResponseType.DEFAULT_5XX,
+    this.api.addGatewayResponse(`${config.aws.id}-${config.env.stage}-5xx`, {
+      type: ResponseType.DEFAULT_5XX,
       statusCode: "500",
       templates: {
         "application/json": JSON.stringify({
@@ -73,8 +81,8 @@ export class PeterPortalAPI_SST_Stack extends cdk.Stack {
       },
     });
 
-    this.api.addGatewayResponse(`${config.aws.id}-${config.aws.stage}-404`, {
-      type: cdk.aws_apigateway.ResponseType.MISSING_AUTHENTICATION_TOKEN,
+    this.api.addGatewayResponse(`${config.aws.id}-${config.env.stage}-404`, {
+      type: ResponseType.MISSING_AUTHENTICATION_TOKEN,
       statusCode: "404",
       templates: {
         "application/json": JSON.stringify({
@@ -87,14 +95,28 @@ export class PeterPortalAPI_SST_Stack extends cdk.Stack {
       },
     });
 
-    // new cdk.aws_route53.ARecord(this, `${id}-a-record-${stage}`, {
-    //   zone: cdk.aws_route53.HostedZone.fromHostedZoneAttributes(this, "${id}-hosted-zone", {
-    //     zoneName,
-    //     hostedZoneId,
-    //   }),
-    //   recordName,
-    //   target: cdk.aws_route53.RecordTarget.fromAlias(new cdk.aws_route53_targets.ApiGateway(this.api)),
-    // });
+    this.api.root.addMethod(
+      "OPTIONS",
+      (this.optionsIntegration = new LambdaIntegration(
+        new lambda.Function(this, `${config.aws.id}-${config.env.stage}-options-handler`, {
+          code: Code.fromInline(
+            'exports.h=async _=>({body:"",headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Apollo-Require-Preflight,Content-Type","Access-Control-Allow-Methods":"GET,POST,OPTIONS"},statusCode:204});',
+          ),
+          handler: "index.h",
+          runtime: Runtime.NODEJS_18_X,
+          architecture: Architecture.ARM_64,
+        }),
+      )),
+    );
+
+    new ARecord(this, `${config.aws.id}-${config.env.stage}-a-record`, {
+      zone: HostedZone.fromHostedZoneAttributes(this, "peterportal-hosted-zone", {
+        zoneName: config.aws.zoneName,
+        hostedZoneId: process.env.HOSTED_ZONE_ID ?? "",
+      }),
+      recordName,
+      target: RecordTarget.fromAlias(new ApiGateway(this.api)),
+    });
   }
 
   /**
@@ -108,48 +130,56 @@ export class PeterPortalAPI_SST_Stack extends cdk.Stack {
     });
 
     const internalHandlers: Record<string, InternalHandler> = await import(
-      `${handlerConfig.directory}/src/index`
+      `${handlerConfig.directory}/dist/index.js`
     );
 
     Object.keys(internalHandlers)
       .filter(isHttpMethod)
       .forEach((httpMethod) => {
         const route = handlerConfig.route.replace(/\//g, "-");
-
-        const functionName = `${this.config.aws.id}-${this.config.aws.stage}-${route}-${httpMethod}`;
-
-        const handler = new cdk.aws_lambda.Function(this, `${functionName}-handler`, {
+        const functionName = `${this.config.aws.id}-${this.config.env.stage}-${route}-${httpMethod}`;
+        const handler = new lambda.Function(this, `${functionName}-handler`, {
           functionName,
-          runtime: cdk.aws_lambda.Runtime.NODEJS_18_X,
-          code: cdk.aws_lambda.Code.fromAsset(handlerConfig.directory, {
+          runtime: Runtime.NODEJS_18_X,
+          code: Code.fromAsset(handlerConfig.directory, {
             exclude: handlerConfig.exclude ?? ["node_modules"],
           }),
           handler: `${this.config.esbuild.outdir}/${this.config.runtime.nodeRuntimeFile.replace(
             "js",
-            httpMethod
+            httpMethod,
           )}`,
-          architecture: cdk.aws_lambda.Architecture.ARM_64,
-          environment: { ...handlerConfig.env, ...this.config.env, stage: this.config.aws.stage },
-          timeout: cdk.Duration.seconds(15),
+          architecture: Architecture.ARM_64,
+          environment: { ...handlerConfig.env, ...this.config.env, STAGE: this.config.env.stage },
+          timeout: Duration.seconds(15),
           memorySize: 512,
+          role:
+            handlerConfig.rolePropsMapping && handlerConfig.rolePropsMapping[route]
+              ? new Role(this, `${functionName}-role`, handlerConfig.rolePropsMapping[route])
+              : undefined,
         });
 
-        const lambdaIntegration = new cdk.aws_apigateway.LambdaIntegration(handler);
-
+        const lambdaIntegration = new LambdaIntegration(handler);
         resource.addMethod(httpMethod, lambdaIntegration);
+        const idResource = resource.getResource("{id}") ?? resource.addResource("{id}");
+        idResource.addMethod(httpMethod, lambdaIntegration);
+        if (httpMethod === "GET") {
+          resource.addMethod("HEAD", lambdaIntegration);
+          idResource.addMethod("HEAD", lambdaIntegration);
+        }
 
-        const warmingTarget = new cdk.aws_events_targets.LambdaFunction(handler, {
-          event: cdk.aws_events.RuleTargetInput.fromObject({ body: warmerRequestBody }),
+        const warmingTarget = new LambdaFunction(handler, {
+          event: RuleTargetInput.fromObject({ body: warmerRequestBody }),
         });
-
         const ruleName = `${functionName}-warming-rule`;
-
-        const warmingRule = new cdk.aws_events.Rule(this, ruleName, {
-          ruleName,
-          schedule: cdk.aws_events.Schedule.rate(cdk.Duration.minutes(5)),
+        const warmingRule = new Rule(this, ruleName, {
+          schedule: Schedule.rate(Duration.minutes(5)),
         });
-
         warmingRule.addTarget(warmingTarget);
       });
+    resource.addMethod("OPTIONS", this.optionsIntegration);
+    (resource.getResource("{id}") ?? resource.addResource("{id}")).addMethod(
+      "OPTIONS",
+      this.optionsIntegration,
+    );
   }
 }

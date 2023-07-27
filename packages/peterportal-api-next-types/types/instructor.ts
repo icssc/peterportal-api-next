@@ -2,7 +2,6 @@
  * An object representing an instructor.
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/instructors/{ucinetid}``.
- * @alpha
  */
 export type Instructor = {
   /**
@@ -38,14 +37,15 @@ export type Instructor = {
    */
   relatedDepartments: string[];
   /**
-   * Course(s) this instructor has taught in the past and the associated Quarter/Year.
+   * Course(s) this instructor has taught in the past.
+   * Keys are properly spaced course numbers; values are the term(s) in which
+   * the instructor taught the corresponding course.
    */
-  courseHistory: { [course_id: string]: string[] };
+  courseHistory: Record<string, string[]>;
 };
 
 /**
  * The type of the payload returned on a successful response from querying
- * ``/v1/rest/instructors``.
- * @alpha
+ * ``/v1/rest/instructors/all``.
  */
 export type Instructors = Instructor[];

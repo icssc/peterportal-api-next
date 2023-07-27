@@ -1,9 +1,11 @@
-import cheerio from "cheerio";
-import fetch from "cross-fetch";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
-import { Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
 import { fileURLToPath } from "url";
+
+import { load } from "cheerio";
+import type { Element } from "cheerio";
+import fetch from "cross-fetch";
+import { Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
 import winston from "winston";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -30,7 +32,7 @@ const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.json(),
-    winston.format.prettyPrint()
+    winston.format.prettyPrint(),
   ),
   transports: [
     new winston.transports.Console(),
@@ -50,7 +52,7 @@ export async function getPrereqs(): Promise<DepartmentCourses> {
   const deptCourses: DepartmentCourses = {};
   try {
     const response = await (await fetch(PREREQ_URL)).text();
-    const $ = cheerio.load(response);
+    const $ = load(response);
     // Get all department options
     const deptOptions = $("select[name='dept'] option");
     for (const deptOption of deptOptions) {
@@ -69,6 +71,20 @@ export async function getPrereqs(): Promise<DepartmentCourses> {
   } catch (error) {
     logger.error("Failed to scrape prerequisite data", { error: error });
   }
+  // normalize prereq trees
+  Object.values(deptCourses).forEach((courseList) => {
+    courseList.forEach(({ prereqTree }) => {
+      if (prereqTree.AND) {
+        if (!prereqTree.NOT && prereqTree.AND.length === 1 && "OR" in prereqTree.AND[0]) {
+          prereqTree.OR = prereqTree.AND[0].OR;
+          delete prereqTree.AND;
+        } else if (prereqTree.NOT) {
+          prereqTree.AND.push({ NOT: prereqTree.NOT });
+          delete prereqTree.NOT;
+        }
+      }
+    });
+  });
   logger.info("Finished scraping all course prerequisite data", { data: deptCourses });
   return deptCourses;
 }
@@ -86,8 +102,8 @@ async function parsePage(url: string): Promise<CourseList> {
   };
   try {
     const response = await (await fetch(url)).text();
-    const $ = cheerio.load(response);
-    $("table tbody tr").each(function (this: cheerio.Element) {
+    const $ = load(response);
+    $("table tbody tr").each(function (this: Element) {
       const entry = $(this).find("td");
       // Check if row entry is valid
       if ($(entry).length === 3) {
@@ -163,13 +179,13 @@ function buildANDLeaf(prereqTree: PrerequisiteTree, prereq: string) {
 }
 
 function createPrereq(
-  type: "course" | "exam",
+  prereqType: "course" | "exam",
   req: string,
   grade?: string,
-  coreq?: boolean
+  coreq?: boolean,
 ): Prerequisite {
-  const prereq: Prerequisite = { type };
-  if (type === "course") {
+  const prereq: Prerequisite = { prereqType };
+  if (prereqType === "course") {
     prereq.courseId = req;
   } else {
     prereq.examName = req;

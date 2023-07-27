@@ -1,4 +1,4 @@
-![PeterPortal API logo banner](docs/static/img/banner.png)
+![PeterPortal API logo banner](apps/docs/static/img/banner.png)
 
 ## ℹ️ About
 
@@ -18,7 +18,7 @@ The _Next_ version of the PeterPortal API is rewritten from the ground up, with 
 
 ## 📖 Documentation
 
-🚧 Our documentation is currently under construction. We apologize for the inconvenience.
+Our documentation can be found [here](https://docs.api-next.peterportal.org).
 
 ## 🤝 Contributing
 

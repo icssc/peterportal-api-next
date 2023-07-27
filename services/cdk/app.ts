@@ -4,7 +4,7 @@ import "dotenv/config";
 import type { StackProps } from "aws-cdk-lib";
 import { App } from "aws-cdk-lib";
 
-import { WebsocProxyServiceStack } from "./websocProxyServiceStack";
+import { WebsocProxyServiceStack } from "./WebsocProxyServiceStack";
 
 const app = new App({ autoSynth: true });
 const props: StackProps = {

@@ -4,8 +4,8 @@ import "dotenv/config";
 import type { StackProps } from "aws-cdk-lib";
 import { App } from "aws-cdk-lib";
 
-import { UnifiedScraperStack } from "./unifiedScraperStack";
-import { WebsocScraperV2Stack } from "./websocScraperV2Stack";
+import { UnifiedScraperStack } from "./UnifiedScraperStack";
+import { WebsocScraperV2Stack } from "./WebsocScraperV2Stack";
 
 const app = new App({ autoSynth: true });
 const props: StackProps = {

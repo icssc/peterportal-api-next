@@ -1,7 +1,7 @@
 /**
  * An object that includes important dates for a specified quarter.
  * The type of the payload returned on a successful response from querying
- * ``/v1/rest/calendar/quarter``.
+ * ``/v1/rest/calendar``.
  */
 export type QuarterDates = {
   /**

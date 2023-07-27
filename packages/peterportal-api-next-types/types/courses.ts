@@ -1,27 +1,27 @@
 import { CourseLevel, GECategory } from "./constants";
 
 /**
- * An object representing a course prerequisite.
+ * An object representing a prerequisite.
  */
 export type Prerequisite = {
   /**
-   * Type of requisite. {course, exam}
+   * Type of prerequisite.
    */
-  type: "course" | "exam";
+  prereqType: "course" | "exam";
   /**
-   * The course ID of the requisite.
+   * The ID of the prerequisite, if it is a course.
    */
   courseId?: string;
   /**
-   * The exam of the requisite.
+   * The name of the prerequisite, if it is an exam.
    */
   examName?: string;
   /**
-   * The minimum grade required for this requisite.
+   * The minimum grade required for this prerequisite.
    */
   minGrade?: string;
   /**
-   * If requisite is a coreqisite.
+   * If this node is a corequisite.
    */
   coreq?: boolean;
 };
@@ -48,7 +48,6 @@ export type PrerequisiteTree = {
  * An object that represents a course.
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/courses/{courseId}``.
- * @alpha
  */
 export type Course = {
   /**
@@ -156,3 +155,9 @@ export type Course = {
    */
   terms: string[];
 };
+
+/**
+ * The type of the payload returned on a successful response from querying
+ * ``/v1/rest/courses/all``.
+ */
+export type CourseResponse = Course[];

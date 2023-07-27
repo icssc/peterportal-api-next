@@ -1,44 +1,44 @@
 /** @type {import('eslint').Linter.Config} */
-module.exports = {
+const config = {
   root: true,
-  env: { es2020: true, node: true },
+  parser: "@typescript-eslint/parser",
   parserOptions: {
+    project: ["./tsconfig.json", "./apps/docs/tsconfig.json", "./apps/docs/cdk/tsconfig.json"],
     sourceType: "module",
   },
-  plugins: ["import", "simple-import-sort"],
-  extends: ["eslint:recommended", "turbo", "prettier"],
+  plugins: ["import", "@typescript-eslint"],
+  extends: [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "turbo",
+    "prettier",
+  ],
   rules: {
-    "prefer-const": "error",
-    "simple-import-sort/imports": "error",
-    "simple-import-sort/exports": "error",
+    "no-unused-vars": "off",
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      {
+        argsIgnorePattern: "^_",
+        varsIgnorePattern: "^_",
+        caughtErrorsIgnorePattern: "^_",
+      },
+    ],
     "import/first": "error",
     "import/newline-after-import": "error",
+    "import/order": [
+      "error",
+      {
+        alphabetize: { order: "asc" },
+        "newlines-between": "always",
+      },
+    ],
   },
-  overrides: [
-    {
-      files: ["**/*.ts", "**/*.tsx"],
-      env: { es2020: true, node: true },
-      parser: "@typescript-eslint/parser",
-      plugins: ["import", "simple-import-sort", "@typescript-eslint"],
-      extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended", "turbo", "prettier"],
-      rules: {
-        "prefer-const": "error",
-        "simple-import-sort/imports": "error",
-        "simple-import-sort/exports": "error",
-        "import/first": "error",
-        "import/newline-after-import": "error",
-      },
-      settings: {
-        "import/parsers": {
-          "@typescript-eslint/parser": [".ts", ".tsx"],
-        },
-        "import/resolver": {
-          typescript: {
-            alwaysTryTypes: true,
-            project: "./tsconfig.json",
-          },
-        },
-      },
-    },
-  ],
+  ignorePatterns: ["*.config.*", "*.cjs"],
+  env: {
+    es2020: true,
+    node: true,
+  },
 };
+
+module.exports = config;

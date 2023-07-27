@@ -1,0 +1,19 @@
+{
+  "name": "api-v1-rest-websoc",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "ant-stack build"
+  },
+  "dependencies": {
+    "@aws-sdk/client-lambda": "3.370.0",
+    "@libs/db": "workspace:*",
+    "ant-stack": "workspace:*",
+    "zod": "3.21.4"
+  },
+  "devDependencies": {
+    "@libs/build-tools": "workspace:*",
+    "peterportal-api-next-types": "workspace:*"
+  }
+}

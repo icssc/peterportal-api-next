@@ -5,20 +5,20 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "sanitize": "tsx sanitizeData.ts",
-    "upload": "dotenv -e ../../.env.grades -- tsx uploadData.ts"
+    "sanitize": "tsx sanitize-data.ts",
+    "upload": "dotenv -e ../../.env.grades -- tsx upload-data.ts"
   },
   "dependencies": {
-    "@libs/db": "*",
-    "csv-parse": "^5.3.5",
-    "csv-stringify": "^6.2.4",
-    "winston": "^3.8.2",
-    "winston-transport": "^4.5.0"
+    "@libs/db": "workspace:*",
+    "csv-parse": "5.4.0",
+    "csv-stringify": "6.4.0",
+    "winston": "3.10.0",
+    "winston-transport": "4.5.0"
   },
   "devDependencies": {
-    "@types/node": "^18.14.0",
-    "dotenv-cli": "^7.1.0",
-    "peterportal-api-next-types": "*",
-    "tsx": "^3.12.3"
+    "@types/node": "18.16.19",
+    "dotenv-cli": "7.2.1",
+    "peterportal-api-next-types": "workspace:*",
+    "tsx": "3.12.7"
   }
 }

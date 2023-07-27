@@ -13,6 +13,10 @@ export type GradeSection = {
    */
   quarter: Quarter;
   /**
+   * The section code of the section.
+   */
+  sectionCode: string;
+  /**
    * The department code.
    */
   department: string;
@@ -24,10 +28,6 @@ export type GradeSection = {
    * The numeric part of the course number.
    */
   courseNumeric: number;
-  /**
-   * The section code of the section.
-   */
-  sectionCode: string;
   /**
    * The shortened name(s) of the instructor(s) who taught the section.
    */
