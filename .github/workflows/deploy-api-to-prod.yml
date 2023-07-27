@@ -45,7 +45,7 @@ jobs:
           run_install: false
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: NODE_ENV=development pnpm install --frozen-lockfile
 
       - name: Build AntStack
         run: pnpm build --filter="ant-stack"

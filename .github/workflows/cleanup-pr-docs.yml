@@ -61,16 +61,8 @@ jobs:
         run: pnpm destroy --filter="docs-cdk"
 
       - name: Set environment as inactive
-        if: github.event.action == 'labeled' && github.event.label.name == 'no deploy'
         uses: strumwolf/delete-deployment-environment@v2.3.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: staging-${{ github.event.pull_request.number }}-docs
           onlyDeactivateDeployments: true
-
-      - name: Delete environment
-        if: github.event.action == 'closed'
-        uses: strumwolf/delete-deployment-environment@v2.3.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          environment: staging-${{ github.event.pull_request.number }}-docs
