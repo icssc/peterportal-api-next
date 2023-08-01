@@ -1,7 +1,7 @@
 import { LambdaClient } from "@aws-sdk/client-lambda";
 import { PrismaClient } from "@libs/db";
+import type { WebsocAPIResponse } from "@libs/websoc-api-next";
 import { createErrorResult, createOKResult, type InternalHandler } from "ant-stack";
-import type { WebsocAPIResponse } from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
 import {

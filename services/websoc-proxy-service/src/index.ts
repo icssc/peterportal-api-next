@@ -1,4 +1,5 @@
-import { callWebSocAPI, getDepts, getTerms, WebsocAPIOptions } from "@libs/websoc-api-next";
+import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
+import type { WebsocAPIResponse, WebsocAPIOptions } from "@libs/websoc-api-next";
 import { createErrorResult, createOKResult, logger } from "ant-stack";
 import {
   combineAndNormalizeResponses,
@@ -7,7 +8,6 @@ import {
   sortResponse,
 } from "api-v1-rest-websoc/src/lib";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
-import { WebsocAPIResponse } from "peterportal-api-next-types";
 
 export const handler = async (
   event: APIGatewayProxyEvent,
