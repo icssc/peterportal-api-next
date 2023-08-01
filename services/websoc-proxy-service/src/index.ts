@@ -31,8 +31,6 @@ export const handler = async (
       let successes: PromiseFulfilledResult<WebsocAPIResponse>[] = [];
       const failed: WebsocAPIOptions[] = [];
 
-      let websocResponseData: WebsocAPIResponse = { schools: [] };
-
       while (queries.length && retries < 3) {
         responses = await Promise.allSettled(
           queries.map((options) => callWebSocAPI(parsedQuery, options)),
@@ -49,11 +47,6 @@ export const handler = async (
         });
 
         successes = responses.filter(fulfilled);
-        websocResponseData = successes.reduce(
-          (acc, curr) => combineAndNormalizeResponses(acc, curr.value),
-          websocResponseData,
-        );
-
         queries = failed;
         if (queries.length) await sleep(1000 * 2 ** retries++);
       }
@@ -66,7 +59,11 @@ export const handler = async (
           requestId,
         );
 
-      return createOKResult(sortResponse(websocResponseData), {}, requestId);
+      return createOKResult(
+        sortResponse(combineAndNormalizeResponses(...successes.map((x) => x.value))),
+        {},
+        requestId,
+      );
     }
     default:
       return createOKResult({}, {}, requestId);

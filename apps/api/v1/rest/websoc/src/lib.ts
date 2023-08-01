@@ -97,7 +97,7 @@ function parseNonTBAStartAndEndTimes(time: string) {
 
 /**
  * Given all parent data about a section, isolate relevant data.
- * @returns ``EnhancedSection`` with all deduped, relevant metadata.
+ * @returns ``EnhancedNormalizedSection`` with all deduped, relevant metadata.
  */
 function isolateSection(data: EnhancedSection): EnhancedNormalizedSection {
   const section = {
@@ -446,7 +446,7 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
  * and sections are sorted in numerical order of their code.
  * @param response The response to sort.
  */
-export function sortResponse(response: NormalizedResponse): NormalizedResponse {
+export function sortResponse<T extends WebsocAPIResponse | NormalizedResponse>(response: T): T {
   response.schools.forEach((schools) => {
     schools.departments.forEach((department) => {
       department.courses.forEach((course) =>
