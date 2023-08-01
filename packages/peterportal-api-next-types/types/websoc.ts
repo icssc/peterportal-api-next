@@ -3,20 +3,55 @@ import { Quarter } from "./constants";
 /**
  * The meeting time for a section.
  */
-export type WebsocSectionMeeting = {
+export type WebsocSectionMeetingTime = {
   /**
-   * What day(s) the section meets on (e.g. ``MWF``).
+   * The hour (0-23).
    */
-  days: string;
+  hour: number;
   /**
-   * What time the section meets at.
+   * The minute (0-59).
    */
-  time: string;
+  minute: number;
+};
+
+/**
+ * The base type for the meeting details for a section.
+ * Contains all relevant attributes except for the meeting times.
+ */
+export type WebsocSectionMeetingBase = {
   /**
    * The building(s) the section meets in.
    */
   bldg: string[];
 };
+
+/**
+ * The type for a section which meeting time has yet to be announced.
+ */
+export type WebsocSectionMeetingWithTBATime = WebsocSectionMeetingBase & {
+  timeIsTBA: true;
+};
+
+/**
+ * The type for a section that has a defined start and end time.
+ */
+export type WebsocSectionMeetingWithTime = WebsocSectionMeetingBase & {
+  timeIsTBA: false;
+  /**
+   * What day(s) the section meets on (e.g. ``MWF``).
+   */
+  days: string;
+  /**
+   * The time at which the section begins.
+   */
+  startTime: WebsocSectionMeetingTime;
+  /**
+   * The time at which the section concludes.
+   */
+  endTime: WebsocSectionMeetingTime;
+};
+
+export type WebsocSectionMeeting = WebsocSectionMeetingWithTime | WebsocSectionMeetingWithTBATime;
 
 /**
  * The enrollment statistics for a section.

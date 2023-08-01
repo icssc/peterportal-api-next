@@ -1,27 +1,42 @@
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { Prisma } from "@libs/db";
-import { WebsocAPIOptions } from "@libs/websoc-api-next";
 import type {
-  Department,
-  TermData,
+  WebsocAPIOptions,
   WebsocAPIResponse,
   WebsocCourse,
   WebsocDepartment,
   WebsocSchool,
   WebsocSection,
   WebsocSectionMeeting,
+} from "@libs/websoc-api-next";
+import type {
+  Department,
+  TermData,
+  WebsocAPIResponse as NormalizedResponse,
+  WebsocCourse as NormalizedCourse,
+  WebsocDepartment as NormalizedDepartment,
+  WebsocSchool as NormalizedSchool,
+  WebsocSection as NormalizedSection,
+  WebsocSectionMeeting as NormalizedMeeting,
 } from "peterportal-api-next-types";
 
 import type { Query } from "./schema";
 
-/**
- * Section that also contains all relevant Websoc metadata.
- */
 type EnhancedSection = {
   school: WebsocSchool;
   department: WebsocDepartment;
   course: WebsocCourse;
   section: WebsocSection;
+};
+
+/**
+ * Normalized section that also contains all relevant WebSoc metadata.
+ */
+type EnhancedNormalizedSection = {
+  school: NormalizedSchool;
+  department: NormalizedDepartment;
+  course: NormalizedCourse;
+  section: NormalizedSection;
 };
 
 /**
@@ -60,14 +75,43 @@ export const notNull = <T>(x: T): x is NonNullable<T> => x != null;
 export const sleep = async (duration: number) =>
   new Promise((resolve) => setTimeout(resolve, duration));
 
+function parseNonTBAStartAndEndTimes(time: string) {
+  let startTime, endTime;
+  const [startTimeString, endTimeString] = time
+    .trim()
+    .split("-")
+    .map((x) => x.trim());
+  const [startTimeHour, startTimeMinute] = startTimeString.split(":");
+  startTime = (parseInt(startTimeHour, 10) % 12) * 60 + parseInt(startTimeMinute, 10);
+  const [endTimeHour, endTimeMinute] = endTimeString.split(":");
+  endTime = (parseInt(endTimeHour, 10) % 12) * 60 + parseInt(endTimeMinute, 10);
+  if (endTimeMinute.includes("p")) {
+    startTime += 12 * 60;
+    endTime += 12 * 60;
+  }
+  return {
+    startTime: { hour: Math.floor(startTime / 60), minute: startTime % 60 },
+    endTime: { hour: Math.floor(endTime / 60), minute: endTime % 60 },
+  };
+}
+
 /**
  * Given all parent data about a section, isolate relevant data.
  * @returns ``EnhancedSection`` with all deduped, relevant metadata.
  */
-function isolateSection(data: EnhancedSection) {
+function isolateSection(data: EnhancedSection): EnhancedNormalizedSection {
   const section = {
     ...data.section,
-    meetings: getUniqueMeetings(data.section.meetings),
+    meetings: getUniqueMeetings(data.section.meetings).map((meeting) => {
+      const normalizedMeeting: Record<string, unknown> = { bldg: meeting.bldg };
+      normalizedMeeting.timeIsTBA = meeting.time === "TBA";
+      if (!normalizedMeeting.timeIsTBA) {
+        const { startTime, endTime } = parseNonTBAStartAndEndTimes(meeting.time);
+        normalizedMeeting.startTime = startTime;
+        normalizedMeeting.endTime = endTime;
+      }
+      return normalizedMeeting as NormalizedMeeting;
+    }),
   };
 
   const course = {
@@ -93,15 +137,17 @@ function isolateSection(data: EnhancedSection) {
  * eliminating duplicates and merging substructures.
  * @param responses The responses to combine.
  */
-export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIResponse {
+export function combineAndNormalizeResponses(
+  ...responses: WebsocAPIResponse[]
+): NormalizedResponse {
   const allSections = responses.flatMap((response) =>
     response.schools.flatMap((school) =>
       school.departments.flatMap((department) =>
         department.courses.flatMap((course) =>
-          course.sections.map((section) => isolateSection({ school, department, course, section }))
-        )
-      )
-    )
+          course.sections.map((section) => isolateSection({ school, department, course, section })),
+        ),
+      ),
+    ),
   );
 
   /**
@@ -117,7 +163,7 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
     }
 
     const foundDept = foundSchool.departments.find(
-      (d) => d.deptCode === section.department.deptCode
+      (d) => d.deptCode === section.department.deptCode,
     );
     if (!foundDept) {
       foundSchool.departments.push(section.department);
@@ -127,7 +173,7 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
     const foundCourse = foundDept.courses.find(
       (c) =>
         c.courseNumber === section.course.courseNumber &&
-        c.courseTitle === section.course.courseTitle
+        c.courseTitle === section.course.courseTitle,
     );
     if (!foundCourse) {
       foundDept.courses.push(section.course);
@@ -135,7 +181,7 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
     }
 
     const foundSection = foundCourse.sections.find(
-      (s) => s.sectionCode === section.section.sectionCode
+      (s) => s.sectionCode === section.section.sectionCode,
     );
     if (!foundSection) {
       foundCourse.sections.push(section.section);
@@ -143,7 +189,7 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
     }
 
     return acc;
-  }, [] as WebsocSchool[]);
+  }, [] as NormalizedSchool[]);
 
   return { schools };
 }
@@ -191,8 +237,8 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
                 lte: parseInt(n.split("-")[1].replace(/\D/g, "")),
               },
             }
-          : { courseNumber: n }
-      )
+          : { courseNumber: n },
+      ),
     );
   }
 
@@ -270,7 +316,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
               },
             },
           },
-        }))
+        })),
     );
   }
 
@@ -326,7 +372,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
               lte: parseInt(code.split("-")[1], 10),
             }
           : parseInt(code),
-      }))
+      })),
     );
   }
 
@@ -334,7 +380,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
     OR.push(
       ...parsedQuery.units.map((u) => ({
         units: u === "VAR" ? { contains: "-" } : { startsWith: parseFloat(u).toString() },
-      }))
+      })),
     );
   }
 
@@ -385,7 +431,7 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
         queries.map((q) => ({
           ...q,
           sectionCodes: query.sectionCodes?.slice(k, k + 5).join(",") || "",
-        }))
+        })),
       );
   }
   return queries;
@@ -400,11 +446,11 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
  * and sections are sorted in numerical order of their code.
  * @param response The response to sort.
  */
-export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
+export function sortResponse(response: NormalizedResponse): NormalizedResponse {
   response.schools.forEach((schools) => {
     schools.departments.forEach((department) => {
       department.courses.forEach((course) =>
-        course.sections.sort((a, b) => parseInt(a.sectionCode, 10) - parseInt(b.sectionCode, 10))
+        course.sections.sort((a, b) => parseInt(a.sectionCode, 10) - parseInt(b.sectionCode, 10)),
       );
       department.courses.sort((a, b) => {
         const numOrd =
@@ -431,7 +477,7 @@ export async function invokeProxyService(client: LambdaClient, body: Record<stri
     new InvokeCommand({
       FunctionName: "peterportal-api-next-prod-websoc-proxy-service",
       Payload: new TextEncoder().encode(JSON.stringify({ body: JSON.stringify(body) })),
-    })
+    }),
   );
   const payload = JSON.parse(Buffer.from(res.Payload ?? []).toString());
   return JSON.parse(payload.body);

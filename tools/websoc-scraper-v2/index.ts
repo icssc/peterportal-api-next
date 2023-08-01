@@ -1,6 +1,5 @@
 import { PrismaClient } from "@libs/db";
 import { getTermDateData } from "@libs/registrar-api";
-import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
 import type {
   GE,
   Quarter,
@@ -11,8 +10,9 @@ import type {
   WebsocSchool,
   WebsocSection,
   WebsocSectionMeeting,
-} from "peterportal-api-next-types";
-import { geCodes, sectionTypes } from "peterportal-api-next-types";
+} from "@libs/websoc-api-next";
+import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
+import { geCodes, sectionTypes } from "@libs/websoc-api-next";
 import { createLogger, format, transports } from "winston";
 
 /**
@@ -148,7 +148,7 @@ const logger = createLogger({
       ? format.combine(
           format.colorize({ all: true }),
           format.timestamp(),
-          format.printf((info) => `${info.timestamp} [${info.level}] ${info.message}`)
+          format.printf((info) => `${info.timestamp} [${info.level}] ${info.message}`),
         )
       : format.printf((info) => `[${info.level}] ${info.message}`),
   transports: [new transports.Console()],
@@ -167,7 +167,7 @@ const sleep = async (duration: number) => new Promise((resolve) => setTimeout(re
  */
 async function getTermsToScrape(date: Date) {
   const termDateData = await Promise.all(
-    [-1, 0, 1].map((x) => getTermDateData((date.getFullYear() + x).toString()))
+    [-1, 0, 1].map((x) => getTermDateData((date.getFullYear() + x).toString())),
   );
   const quarterDates = termDateData.reduce((p, c) => Object.assign(p, c), {});
   const terms = await getTerms();
@@ -373,7 +373,7 @@ async function scrape(name: string, term: Term) {
                       daysString: m.days,
                       ...parseStartAndEndTimes(m.time),
                       bldg,
-                    }))
+                    })),
                   ),
                 },
                 data: {

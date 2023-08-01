@@ -5,7 +5,7 @@ import type { WebsocAPIResponse } from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
 import {
-  combineResponses,
+  combineAndNormalizeResponses,
   constructPrismaQuery,
   normalizeQuery,
   notNull,
@@ -181,7 +181,7 @@ export const GET: InternalHandler = async (request) => {
             .map((x) => x.data)
             .filter(notNull) as WebsocAPIResponse[];
 
-          const combinedResponses = combineResponses(...responses);
+          const combinedResponses = combineAndNormalizeResponses(...responses);
 
           return createOKResult(sortResponse(combinedResponses), headers, requestId);
         }
@@ -190,7 +190,7 @@ export const GET: InternalHandler = async (request) => {
           .map((x) => x.data)
           .filter(notNull) as WebsocAPIResponse[];
 
-        const combinedResponses = combineResponses(...websocApiResponses);
+        const combinedResponses = combineAndNormalizeResponses(...websocApiResponses);
 
         return createOKResult(sortResponse(combinedResponses), headers, requestId);
       }
