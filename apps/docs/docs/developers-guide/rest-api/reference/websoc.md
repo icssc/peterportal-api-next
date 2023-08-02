@@ -168,18 +168,17 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                       "bldg": ["SSH 100"],
                       "timeIsTBA": false,
                       "days": "Tu",
-                      "startTime": {
-                        "hour": 19,
-                        "minute": 0
-                      },
-                      "endTime": {
-                        "hour": 19,
-                        "minute": 50
-                      }
+                      "startTime": { "hour": 19, "minute": 0 },
+                      "endTime": { "hour": 19, "minute": 50 }
                     }
                   ],
                   "finalExam": {
-                    "examStatus": "N/A"
+                    "examStatus": "NO_FINAL",
+                    "bldg": null,
+                    "month": null,
+                    "day": null,
+                    "startTime": null,
+                    "endTime": null
                   },
                   "maxCapacity": "249",
                   "numCurrentlyEnrolled": {
@@ -240,8 +239,23 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   "sectionNum": "A",
                   "units": "4",
                   "instructors": ["BIC, L.", "GIYAHCHI, T.", "YI, S."],
-                  "meetings": [{ "bldg": ["ON LINE"], "timeIsTBA": true }],
-                  "finalExam": { "examStatus": "TBA" },
+                  "meetings": [
+                    {
+                      "bldg": ["ON LINE"],
+                      "timeIsTBA": true,
+                      "days": null,
+                      "startTime": null,
+                      "endTime": null
+                    }
+                  ],
+                  "finalExam": {
+                    "examStatus": "TBA_FINAL",
+                    "bldg": null,
+                    "month": null,
+                    "day": null,
+                    "startTime": null,
+                    "endTime": null
+                  },
                   "maxCapacity": "125",
                   "numCurrentlyEnrolled": { "totalEnrolled": "124", "sectionEnrolled": "" },
                   "numOnWaitlist": "",
@@ -308,12 +322,12 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                     }
                   ],
                   "finalExam": {
-                    "examStatus": "Present",
+                    "examStatus": "SCHEDULED_FINAL",
                     "month": 6,
                     "day": 12,
                     "startTime": { "hour": 10, "minute": 30 },
                     "endTime": { "hour": 12, "minute": 30 },
-                    "bldg": ["ALP 2300"]
+                    "bldg": "ALP 2300"
                   },
                   "maxCapacity": "249",
                   "numCurrentlyEnrolled": { "totalEnrolled": "170", "sectionEnrolled": "169" },
@@ -388,7 +402,7 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                     }
                   ],
                   "finalExam": {
-                    "examStatus": "Present",
+                    "examStatus": "SCHEDULED_FINAL",
                     "month": 6,
                     "day": 10,
                     "startTime": { "hour": 13, "minute": 30 },
@@ -442,41 +456,21 @@ type WebsocAPIResponse = {
           sectionNum: string;
           units: string;
           instructors: string[];
-          meetings: Array<
-            | {
-                bldg: string[];
-                timeIsTBA: true;
-              }
-            | {
-                bldg: string[];
-                timeIsTBA: false;
-                days: string;
-                startTime: {
-                  hour: number;
-                  minute: number;
-                };
-                endTime: {
-                  hour: number;
-                  minute: number;
-                };
-              }
-          >;
-          finalExam:
-            | { examStatus: "N/A" | "TBA" }
-            | {
-                examStatus: "Present";
-                month: number;
-                day: number;
-                startTime: {
-                  hour: number;
-                  minute: number;
-                };
-                endTime: {
-                  hour: number;
-                  minute: number;
-                };
-                bldg: string;
-              };
+          meetings: {
+            timeIsTBA: boolean;
+            bldg: string[];
+            days: string | null;
+            startTime: { hour: number; minute: number } | null;
+            endTime: { hour: number; minute: number } | null;
+          }[];
+          finalExam: {
+            examStatus: "NO_FINAL" | "TBA_FINAL" | "SCHEDULED_FINAL";
+            month: number | null;
+            day: number | null;
+            startTime: { hour: number; minute: number } | null;
+            endTime: { hour: number; minute: number } | null;
+            bldg: string | null;
+          };
           maxCapacity: string;
           numCurrentlyEnrolled: {
             totalEnrolled: string;
