@@ -240,20 +240,10 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   "sectionNum": "A",
                   "units": "4",
                   "instructors": ["BIC, L.", "GIYAHCHI, T.", "YI, S."],
-                  "meetings": [
-                    {
-                      "bldg": ["ON LINE"],
-                      "timeIsTBA": true
-                    }
-                  ],
-                  "finalExam": {
-                    "examStatus": "TBA"
-                  },
+                  "meetings": [{ "bldg": ["ON LINE"], "timeIsTBA": true }],
+                  "finalExam": { "examStatus": "TBA" },
                   "maxCapacity": "125",
-                  "numCurrentlyEnrolled": {
-                    "totalEnrolled": "124",
-                    "sectionEnrolled": ""
-                  },
+                  "numCurrentlyEnrolled": { "totalEnrolled": "124", "sectionEnrolled": "" },
                   "numOnWaitlist": "",
                   "numWaitlistCap": "",
                   "numRequested": "186",
@@ -313,35 +303,20 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                       "bldg": ["ALP 2300"],
                       "timeIsTBA": false,
                       "days": "MWF",
-                      "startTime": {
-                        "hour": 10,
-                        "minute": 0
-                      },
-                      "endTime": {
-                        "hour": 10,
-                        "minute": 50
-                      }
+                      "startTime": { "hour": 10, "minute": 0 },
+                      "endTime": { "hour": 10, "minute": 50 }
                     }
                   ],
                   "finalExam": {
                     "examStatus": "Present",
                     "month": 6,
                     "day": 12,
-                    "startTime": {
-                      "hour": 10,
-                      "minute": 30
-                    },
-                    "endTime": {
-                      "hour": 12,
-                      "minute": 30
-                    },
+                    "startTime": { "hour": 10, "minute": 30 },
+                    "endTime": { "hour": 12, "minute": 30 },
                     "bldg": ["ALP 2300"]
                   },
                   "maxCapacity": "249",
-                  "numCurrentlyEnrolled": {
-                    "totalEnrolled": "170",
-                    "sectionEnrolled": "169"
-                  },
+                  "numCurrentlyEnrolled": { "totalEnrolled": "170", "sectionEnrolled": "169" },
                   "numOnWaitlist": "",
                   "numWaitlistCap": "",
                   "numRequested": "246",
