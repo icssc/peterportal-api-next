@@ -1,4 +1,4 @@
 .apolloSandbox {
-  min-height: calc(100vh - var(--ifm-navbar-height));
+  min-height: calc(100vh - 60px);
   overflow: hidden;
 }
