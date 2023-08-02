@@ -1,9 +1,9 @@
 import { Quarter } from "./constants";
 
 /**
- * The meeting time for a section.
+ * A type that represents the hour and minute parts of a time.
  */
-export type WebsocSectionMeetingTime = {
+export type HourMinute = {
   /**
    * The hour (0-23).
    */
@@ -44,11 +44,11 @@ export type WebsocSectionMeetingWithTime = WebsocSectionMeetingBase & {
   /**
    * The time at which the section begins.
    */
-  startTime: WebsocSectionMeetingTime;
+  startTime: HourMinute;
   /**
    * The time at which the section concludes.
    */
-  endTime: WebsocSectionMeetingTime;
+  endTime: HourMinute;
 };
 
 export type WebsocSectionMeeting = WebsocSectionMeetingWithTime | WebsocSectionMeetingWithTBATime;
@@ -68,6 +68,47 @@ export type WebsocSectionEnrollment = {
    */
   sectionEnrolled: string;
 };
+
+/**
+ * The type for the "final exam data" of a section that does not have one.
+ */
+export type WebsocSectionFinalExamAbsent = {
+  /**
+   * Why this section does not have final exam data.
+   * N/A means that it does not have a final exam.
+   * TBA means that it may or may not have a final exam, but it has yet to be announced.
+   */
+  examStatus: "N/A" | "TBA";
+};
+
+/**
+ * The final exam data of a section.
+ */
+export type WebsocSectionFinalExamPresent = {
+  examStatus: "Present";
+  /**
+   * The month in which the final exam takes place.
+   */
+  month: number;
+  /**
+   * The day of the month in which the final exam takes place.
+   */
+  day: number;
+  /**
+   * When the final exam starts.
+   */
+  startTime: HourMinute;
+  /**
+   * When the final exam ends.
+   */
+  endTime: HourMinute;
+  /**
+   * Where the final exam takes place.
+   */
+  bldg: string;
+};
+
+export type WebsocSectionFinalExam = WebsocSectionFinalExamAbsent | WebsocSectionFinalExamPresent;
 
 /**
  * A WebSoc section object.
@@ -98,9 +139,9 @@ export type WebsocSection = {
    */
   meetings: WebsocSectionMeeting[];
   /**
-   * The date and time of the final exam for this section.
+   * The details for the final exam for this section.
    */
-  finalExam: string;
+  finalExam: WebsocSectionFinalExam;
   /**
    * The maximum capacity of this section.
    */

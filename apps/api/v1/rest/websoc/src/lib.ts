@@ -15,6 +15,7 @@ import type {
   WebsocAPIResponse as NormalizedResponse,
   WebsocCourse as NormalizedCourse,
   WebsocDepartment as NormalizedDepartment,
+  WebsocSectionFinalExam as NormalizedFinalExam,
   WebsocSchool as NormalizedSchool,
   WebsocSection as NormalizedSection,
   WebsocSectionMeeting as NormalizedMeeting,
@@ -28,6 +29,8 @@ type EnhancedSection = {
   course: WebsocCourse;
   section: WebsocSection;
 };
+
+const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**
  * Normalized section that also contains all relevant WebSoc metadata.
@@ -95,6 +98,23 @@ function parseNonTBAStartAndEndTimes(time: string) {
   };
 }
 
+function parseFinalExamString(section: WebsocSection): NormalizedFinalExam {
+  if (section.finalExam === "") return { examStatus: "N/A" };
+  if (section.finalExam === "TBA") return { examStatus: "TBA" };
+  const [dateTime, location] = section.finalExam.split("@").map((x) => x?.trim());
+  const [, month, day, time] = dateTime.split(" ");
+  const { startTime, endTime } = parseNonTBAStartAndEndTimes(time);
+  if (startTime.hour > endTime.hour) startTime.hour %= 12;
+  return {
+    examStatus: "Present",
+    month: months.indexOf(month) + 1,
+    day: parseInt(day, 10),
+    startTime,
+    endTime,
+    bldg: location ?? section.meetings[0].bldg,
+  };
+}
+
 /**
  * Given all parent data about a section, isolate relevant data.
  * @returns ``EnhancedNormalizedSection`` with all deduped, relevant metadata.
@@ -102,6 +122,7 @@ function parseNonTBAStartAndEndTimes(time: string) {
 function isolateSection(data: EnhancedSection): EnhancedNormalizedSection {
   const section = {
     ...data.section,
+    finalExam: parseFinalExamString(data.section),
     meetings: getUniqueMeetings(data.section.meetings).map((meeting) => {
       const normalizedMeeting: Record<string, unknown> = { bldg: meeting.bldg };
       normalizedMeeting.timeIsTBA = meeting.time === "TBA";
