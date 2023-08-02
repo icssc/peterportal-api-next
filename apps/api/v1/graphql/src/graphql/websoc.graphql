@@ -34,12 +34,6 @@ type WebsocSectionEnrollment {
   """
   sectionEnrolled: String!
 }
-"The status of a final exam."
-enum WebsocSectionFinalExamStatus {
-  NO_FINAL
-  TBA_FINAL
-  SCHEDULED_FINAL
-}
 "The final exam data for a section."
 type WebsocSectionFinalExam {
   """
