@@ -127,7 +127,7 @@ function parseFinalExamString(section: WebsocSection): NormalizedFinalExam {
     day: parseInt(day, 10),
     startTime,
     endTime,
-    bldg: location ?? section.meetings[0].bldg,
+    bldg: location ? location : section.meetings[0].bldg[0],
   };
 }
 
@@ -141,14 +141,13 @@ function isolateSection(data: EnhancedSection): EnhancedNormalizedSection {
     finalExam: parseFinalExamString(data.section),
     meetings: getUniqueMeetings(data.section.meetings).map((meeting): NormalizedMeeting => {
       const { bldg, days, time } = meeting;
-      const { startTime, endTime } = parseNonTBAStartAndEndTimes(time);
       const timeIsTBA = meeting.time === "TBA";
       return {
         bldg,
         timeIsTBA,
         ...(timeIsTBA
           ? { days: null, startTime: null, endTime: null }
-          : { days, startTime, endTime }),
+          : { days, ...parseNonTBAStartAndEndTimes(time) }),
       };
     }),
   };
