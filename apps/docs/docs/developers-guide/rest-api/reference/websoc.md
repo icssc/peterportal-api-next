@@ -366,7 +366,7 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
 <summary>Section with multiple meetings and final exam held in a different location</summary>
 
 ```bash
-curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&sectionCodes=44100"
+curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&sectionCodes=44000"
 ```
 
 ```json
@@ -386,66 +386,45 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
             {
               "deptCode": "MATH",
               "courseComment": "...",
-              "prerequisiteLink": "https://www.reg.uci.edu/cob/prrqcgi?term=202314&dept=MATH&action=view_by_term#2B",
-              "courseNumber": "2B",
-              "courseTitle": "CALCULUS II",
+              "prerequisiteLink": "https://www.reg.uci.edu/cob/prrqcgi?term=202314&dept=MATH&action=view_by_term#2A",
+              "courseNumber": "2A",
+              "courseTitle": "CALCULUS I",
               "sections": [
                 {
-                  "sectionCode": "44100",
+                  "sectionCode": "44000",
                   "sectionType": "Lec",
                   "sectionNum": "A",
                   "units": "4",
-                  "instructors": ["LEHMAN, R."],
+                  "instructors": ["HUBER, K."],
                   "meetings": [
                     {
                       "bldg": ["ON LINE"],
                       "timeIsTBA": false,
-                      "days": "MF",
-                      "startTime": {
-                        "hour": 10,
-                        "minute": 0
-                      },
-                      "endTime": {
-                        "hour": 10,
-                        "minute": 50
-                      }
+                      "days": "WF",
+                      "startTime": { "hour": 10, "minute": 0 },
+                      "endTime": { "hour": 10, "minute": 50 }
                     },
                     {
                       "bldg": ["ALP 1300"],
                       "timeIsTBA": false,
-                      "days": "W",
-                      "startTime": {
-                        "hour": 10,
-                        "minute": 0
-                      },
-                      "endTime": {
-                        "hour": 10,
-                        "minute": 50
-                      }
+                      "days": "M",
+                      "startTime": { "hour": 10, "minute": 0 },
+                      "endTime": { "hour": 10, "minute": 50 }
                     }
                   ],
                   "finalExam": {
                     "examStatus": "Present",
                     "month": 6,
                     "day": 10,
-                    "startTime": {
-                      "hour": 13,
-                      "minute": 30
-                    },
-                    "endTime": {
-                      "hour": 15,
-                      "minute": 30
-                    },
-                    "bldg": "ALP 1300"
+                    "startTime": { "hour": 13, "minute": 30 },
+                    "endTime": { "hour": 15, "minute": 30 },
+                    "bldg": "HIB 100"
                   },
                   "maxCapacity": "295",
-                  "numCurrentlyEnrolled": {
-                    "totalEnrolled": "271",
-                    "sectionEnrolled": ""
-                  },
+                  "numCurrentlyEnrolled": { "totalEnrolled": "282", "sectionEnrolled": "" },
                   "numOnWaitlist": "",
                   "numWaitlistCap": "",
-                  "numRequested": "442",
+                  "numRequested": "593",
                   "numNewOnlyReserved": "",
                   "restrictions": "A",
                   "status": "OPEN",
