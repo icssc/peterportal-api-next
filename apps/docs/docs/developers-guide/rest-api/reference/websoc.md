@@ -118,7 +118,7 @@ Which sections to exclude based on their cancellation status. Case-sensitive. De
 <TabItem value="bash" label="cURL">
 
 ```bash
-curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&sectionCodes=34270"
+curl "https://api-next.peterportal.org/v1/rest/websoc"
 ```
 
 </TabItem>
@@ -127,7 +127,14 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
 ### Response
 
 <Tabs>
-<TabItem value="json" label="Example response">
+<TabItem value="json" label="Example responses">
+
+<details>
+<summary>Section with no final exam</summary>
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&sectionCodes=34271"
+```
 
 ```json
 {
@@ -139,7 +146,152 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
         {
           "deptComment": "...",
           "sectionCodeRangeComments": [],
-          "courseNumberRangeComments": [],
+          "courseNumberRangeComments": ["..."],
+          "deptCode": "COMPSCI",
+          "deptName": "Computer Science",
+          "courses": [
+            {
+              "deptCode": "COMPSCI",
+              "courseComment": "",
+              "prerequisiteLink": "https://www.reg.uci.edu/cob/prrqcgi?term=202314&dept=COMPSCI&action=view_by_term#162",
+              "courseNumber": "162",
+              "courseTitle": "FORMAL LANG & AUTM",
+              "sections": [
+                {
+                  "sectionCode": "34271",
+                  "sectionType": "Dis",
+                  "sectionNum": "A",
+                  "units": "0",
+                  "instructors": ["DEES, M.", "CHIU, A.", "SHINDLER, M."],
+                  "meetings": [
+                    {
+                      "bldg": ["SSH 100"],
+                      "timeIsTBA": false,
+                      "days": "Tu",
+                      "startTime": {
+                        "hour": 19,
+                        "minute": 0
+                      },
+                      "endTime": {
+                        "hour": 19,
+                        "minute": 50
+                      }
+                    }
+                  ],
+                  "finalExam": {
+                    "examStatus": "N/A"
+                  },
+                  "maxCapacity": "249",
+                  "numCurrentlyEnrolled": {
+                    "totalEnrolled": "170",
+                    "sectionEnrolled": "169"
+                  },
+                  "numOnWaitlist": "",
+                  "numWaitlistCap": "",
+                  "numRequested": "219",
+                  "numNewOnlyReserved": "",
+                  "restrictions": "A",
+                  "status": "OPEN",
+                  "sectionComment": "\n\t\t\t    <p>Same as 65131 (LSCI 102, Dis A).</p>\n\t\t\t    "
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+</details>
+
+<details>
+<summary>Section with TBA meeting time and final exam</summary>
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&sectionCodes=34160"
+```
+
+```json
+{
+  "schools": [
+    {
+      "schoolName": "Donald Bren School of Information and Computer Sciences",
+      "schoolComment": "...",
+      "departments": [
+        {
+          "deptComment": "...",
+          "sectionCodeRangeComments": [],
+          "courseNumberRangeComments": ["..."],
+          "deptCode": "COMPSCI",
+          "deptName": "Computer Science",
+          "courses": [
+            {
+              "deptCode": "COMPSCI",
+              "courseComment": "",
+              "prerequisiteLink": "https://www.reg.uci.edu/cob/prrqcgi?term=202314&dept=COMPSCI&action=view_by_term#143A",
+              "courseNumber": "143A",
+              "courseTitle": "PRNCPLS OPERTNG SYS",
+              "sections": [
+                {
+                  "sectionCode": "34160",
+                  "sectionType": "Lec",
+                  "sectionNum": "A",
+                  "units": "4",
+                  "instructors": ["BIC, L.", "GIYAHCHI, T.", "YI, S."],
+                  "meetings": [
+                    {
+                      "bldg": ["ON LINE"],
+                      "timeIsTBA": true
+                    }
+                  ],
+                  "finalExam": {
+                    "examStatus": "TBA"
+                  },
+                  "maxCapacity": "125",
+                  "numCurrentlyEnrolled": {
+                    "totalEnrolled": "124",
+                    "sectionEnrolled": ""
+                  },
+                  "numOnWaitlist": "",
+                  "numWaitlistCap": "",
+                  "numRequested": "186",
+                  "numNewOnlyReserved": "",
+                  "restrictions": "A",
+                  "status": "OPEN",
+                  "sectionComment": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+</details>
+
+<details>
+<summary>Section with a final exam held in the same location as the lecture</summary>
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&sectionCodes=34270"
+```
+
+```json
+{
+  "schools": [
+    {
+      "schoolName": "Donald Bren School of Information and Computer Sciences",
+      "schoolComment": "...",
+      "departments": [
+        {
+          "deptComment": "...",
+          "sectionCodeRangeComments": [],
+          "courseNumberRangeComments": ["..."],
           "deptCode": "COMPSCI",
           "deptName": "Computer Science",
           "courses": [
@@ -158,22 +310,43 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   "instructors": ["SHINDLER, M."],
                   "meetings": [
                     {
+                      "bldg": ["ALP 2300"],
+                      "timeIsTBA": false,
                       "days": "MWF",
-                      "time": "10:00-10:50 ",
-                      "bldg": ["ALP 2300"]
+                      "startTime": {
+                        "hour": 10,
+                        "minute": 0
+                      },
+                      "endTime": {
+                        "hour": 10,
+                        "minute": 50
+                      }
                     }
                   ],
-                  "finalExam": "Mon Jun 12 10:30-12:30pm",
-                  "maxCapacity": "250",
-                  "numCurrentlyEnrolled": {
-                    "totalEnrolled": "168",
-                    "sectionEnrolled": "166"
+                  "finalExam": {
+                    "examStatus": "Present",
+                    "month": 6,
+                    "day": 12,
+                    "startTime": {
+                      "hour": 10,
+                      "minute": 30
+                    },
+                    "endTime": {
+                      "hour": 12,
+                      "minute": 30
+                    },
+                    "bldg": ["ALP 2300"]
                   },
-                  "numOnWaitlist": "0",
-                  "numWaitlistCap": "38",
-                  "numRequested": "191",
-                  "numNewOnlyReserved": "0",
-                  "restrictions": "J",
+                  "maxCapacity": "249",
+                  "numCurrentlyEnrolled": {
+                    "totalEnrolled": "170",
+                    "sectionEnrolled": "169"
+                  },
+                  "numOnWaitlist": "",
+                  "numWaitlistCap": "",
+                  "numRequested": "246",
+                  "numNewOnlyReserved": "",
+                  "restrictions": "A",
                   "status": "OPEN",
                   "sectionComment": "\n\t\t\t    <p>Same as 65130 (LSCI 102, Lec A).</p>\n\t\t\t    "
                 }
@@ -186,6 +359,109 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
   ]
 }
 ```
+
+</details>
+
+<details>
+<summary>Section with multiple meetings and final exam held in a different location</summary>
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&sectionCodes=44100"
+```
+
+```json
+{
+  "schools": [
+    {
+      "schoolName": "School of Physical Sciences",
+      "schoolComment": "...",
+      "departments": [
+        {
+          "deptComment": "...",
+          "sectionCodeRangeComments": [],
+          "courseNumberRangeComments": [],
+          "deptCode": "MATH",
+          "deptName": "Mathematics",
+          "courses": [
+            {
+              "deptCode": "MATH",
+              "courseComment": "...",
+              "prerequisiteLink": "https://www.reg.uci.edu/cob/prrqcgi?term=202314&dept=MATH&action=view_by_term#2B",
+              "courseNumber": "2B",
+              "courseTitle": "CALCULUS II",
+              "sections": [
+                {
+                  "sectionCode": "44100",
+                  "sectionType": "Lec",
+                  "sectionNum": "A",
+                  "units": "4",
+                  "instructors": ["LEHMAN, R."],
+                  "meetings": [
+                    {
+                      "bldg": ["ON LINE"],
+                      "timeIsTBA": false,
+                      "days": "MF",
+                      "startTime": {
+                        "hour": 10,
+                        "minute": 0
+                      },
+                      "endTime": {
+                        "hour": 10,
+                        "minute": 50
+                      }
+                    },
+                    {
+                      "bldg": ["ALP 1300"],
+                      "timeIsTBA": false,
+                      "days": "W",
+                      "startTime": {
+                        "hour": 10,
+                        "minute": 0
+                      },
+                      "endTime": {
+                        "hour": 10,
+                        "minute": 50
+                      }
+                    }
+                  ],
+                  "finalExam": {
+                    "examStatus": "Present",
+                    "month": 6,
+                    "day": 10,
+                    "startTime": {
+                      "hour": 13,
+                      "minute": 30
+                    },
+                    "endTime": {
+                      "hour": 15,
+                      "minute": 30
+                    },
+                    "bldg": "ALP 1300"
+                  },
+                  "maxCapacity": "295",
+                  "numCurrentlyEnrolled": {
+                    "totalEnrolled": "271",
+                    "sectionEnrolled": ""
+                  },
+                  "numOnWaitlist": "",
+                  "numWaitlistCap": "",
+                  "numRequested": "442",
+                  "numNewOnlyReserved": "",
+                  "restrictions": "A",
+                  "status": "OPEN",
+                  "sectionComment": ""
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+</details>
 
 </TabItem>
 <TabItem value="ts" label="Payload schema">
@@ -212,12 +488,41 @@ type WebsocAPIResponse = {
           sectionNum: string;
           units: string;
           instructors: string[];
-          meetings: {
-            days: string;
-            time: string;
-            bldg: string[];
-          }[];
-          finalExam: string;
+          meetings: Array<
+            | {
+                bldg: string[];
+                timeIsTBA: true;
+              }
+            | {
+                bldg: string[];
+                timeIsTBA: false;
+                days: string;
+                startTime: {
+                  hour: number;
+                  minute: number;
+                };
+                endTime: {
+                  hour: number;
+                  minute: number;
+                };
+              }
+          >;
+          finalExam:
+            | { examStatus: "N/A" | "TBA" }
+            | {
+                examStatus: "Present";
+                month: number;
+                day: number;
+                startTime: {
+                  hour: number;
+                  minute: number;
+                };
+                endTime: {
+                  hour: number;
+                  minute: number;
+                };
+                bldg: string;
+              };
           maxCapacity: string;
           numCurrentlyEnrolled: {
             totalEnrolled: string;
