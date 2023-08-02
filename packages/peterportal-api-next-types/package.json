@@ -1,6 +1,6 @@
 {
   "name": "peterportal-api-next-types",
-  "version": "1.0.0-rc.1.68",
+  "version": "1.0.0-rc.1.68.1",
   "license": "MIT",
   "type": "module",
   "main": "index.ts",
