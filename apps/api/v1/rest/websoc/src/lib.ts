@@ -127,6 +127,7 @@ function isolateSection(data: EnhancedSection): EnhancedNormalizedSection {
       const normalizedMeeting: Record<string, unknown> = { bldg: meeting.bldg };
       normalizedMeeting.timeIsTBA = meeting.time === "TBA";
       if (!normalizedMeeting.timeIsTBA) {
+        normalizedMeeting.days = meeting.days;
         const { startTime, endTime } = parseNonTBAStartAndEndTimes(meeting.time);
         normalizedMeeting.startTime = startTime;
         normalizedMeeting.endTime = endTime;
