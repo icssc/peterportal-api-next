@@ -92,6 +92,7 @@ function parseNonTBAStartAndEndTimes(time: string) {
     startTime += 12 * 60;
     endTime += 12 * 60;
   }
+  if (startTime > endTime) startTime -= 12 * 60;
   return {
     startTime: { hour: Math.floor(startTime / 60), minute: startTime % 60 },
     endTime: { hour: Math.floor(endTime / 60), minute: endTime % 60 },
@@ -104,7 +105,6 @@ function parseFinalExamString(section: WebsocSection): NormalizedFinalExam {
   const [dateTime, location] = section.finalExam.split("@").map((x) => x?.trim());
   const [, month, day, time] = dateTime.split(" ");
   const { startTime, endTime } = parseNonTBAStartAndEndTimes(time);
-  if (startTime.hour > endTime.hour) startTime.hour %= 12;
   return {
     examStatus: "Present",
     month: months.indexOf(month) + 1,

@@ -245,6 +245,7 @@ function parseStartAndEndTimes(time: string) {
       startTime += 12 * 60;
       endTime += 12 * 60;
     }
+    if (startTime > endTime) startTime -= 12 * 60;
   }
   return { startTime, endTime };
 }
