@@ -100,13 +100,29 @@ function parseNonTBAStartAndEndTimes(time: string) {
 }
 
 function parseFinalExamString(section: WebsocSection): NormalizedFinalExam {
-  if (section.finalExam === "") return { examStatus: "N/A" };
-  if (section.finalExam === "TBA") return { examStatus: "TBA" };
+  if (section.finalExam === "")
+    return {
+      examStatus: "NO_FINAL",
+      bldg: null,
+      month: null,
+      day: null,
+      startTime: null,
+      endTime: null,
+    };
+  if (section.finalExam === "TBA")
+    return {
+      examStatus: "TBA_FINAL",
+      bldg: null,
+      month: null,
+      day: null,
+      startTime: null,
+      endTime: null,
+    };
   const [dateTime, location] = section.finalExam.split("@").map((x) => x?.trim());
   const [, month, day, time] = dateTime.split(" ");
   const { startTime, endTime } = parseNonTBAStartAndEndTimes(time);
   return {
-    examStatus: "Present",
+    examStatus: "SCHEDULED_FINAL",
     month: months.indexOf(month) + 1,
     day: parseInt(day, 10),
     startTime,
@@ -123,16 +139,17 @@ function isolateSection(data: EnhancedSection): EnhancedNormalizedSection {
   const section = {
     ...data.section,
     finalExam: parseFinalExamString(data.section),
-    meetings: getUniqueMeetings(data.section.meetings).map((meeting) => {
-      const normalizedMeeting: Record<string, unknown> = { bldg: meeting.bldg };
-      normalizedMeeting.timeIsTBA = meeting.time === "TBA";
-      if (!normalizedMeeting.timeIsTBA) {
-        normalizedMeeting.days = meeting.days;
-        const { startTime, endTime } = parseNonTBAStartAndEndTimes(meeting.time);
-        normalizedMeeting.startTime = startTime;
-        normalizedMeeting.endTime = endTime;
-      }
-      return normalizedMeeting as NormalizedMeeting;
+    meetings: getUniqueMeetings(data.section.meetings).map((meeting): NormalizedMeeting => {
+      const { bldg, days, time } = meeting;
+      const { startTime, endTime } = parseNonTBAStartAndEndTimes(time);
+      const timeIsTBA = meeting.time === "TBA";
+      return {
+        bldg,
+        timeIsTBA,
+        ...(timeIsTBA
+          ? { days: null, startTime: null, endTime: null }
+          : { days, startTime, endTime }),
+      };
     }),
   };
 

@@ -15,43 +15,33 @@ export type HourMinute = {
 };
 
 /**
- * The base type for the meeting details for a section.
- * Contains all relevant attributes except for the meeting times.
+ * The meeting information for a section.
  */
-export type WebsocSectionMeetingBase = {
+export type WebsocSectionMeeting = {
   /**
-   * The building(s) the section meets in.
+   * Whether the meeting time is TBA.
+   *
+   * If this field is `false`, then `days`, `startTime`, and `endTime`
+   * are **guaranteed** to be non-null; otherwise, they are **guaranteed** to be null.
+   */
+  timeIsTBA: boolean;
+  /**
+   * The classroom(s) the section meets in.
    */
   bldg: string[];
-};
-
-/**
- * The type for a section which meeting time has yet to be announced.
- */
-export type WebsocSectionMeetingWithTBATime = WebsocSectionMeetingBase & {
-  timeIsTBA: true;
-};
-
-/**
- * The type for a section that has a defined start and end time.
- */
-export type WebsocSectionMeetingWithTime = WebsocSectionMeetingBase & {
-  timeIsTBA: false;
   /**
    * What day(s) the section meets on (e.g. ``MWF``).
    */
-  days: string;
+  days: string | null;
   /**
    * The time at which the section begins.
    */
-  startTime: HourMinute;
+  startTime: HourMinute | null;
   /**
    * The time at which the section concludes.
    */
-  endTime: HourMinute;
+  endTime: HourMinute | null;
 };
-
-export type WebsocSectionMeeting = WebsocSectionMeetingWithTime | WebsocSectionMeetingWithTBATime;
 
 /**
  * The enrollment statistics for a section.
@@ -70,45 +60,37 @@ export type WebsocSectionEnrollment = {
 };
 
 /**
- * The type for the "final exam data" of a section that does not have one.
+ * The final exam data for a section.
  */
-export type WebsocSectionFinalExamAbsent = {
+export type WebsocSectionFinalExam = {
   /**
-   * Why this section does not have final exam data.
-   * N/A means that it does not have a final exam.
-   * TBA means that it may or may not have a final exam, but it has yet to be announced.
+   * The status of the exam.
+   *
+   * If this field is `SCHEDULED_FINAL`, then all other fields are
+   * **guaranteed** to be non-null; otherwise, they are **guaranteed** to be null.
    */
-  examStatus: "N/A" | "TBA";
-};
-
-/**
- * The final exam data of a section.
- */
-export type WebsocSectionFinalExamPresent = {
-  examStatus: "Present";
+  examStatus: "NO_FINAL" | "TBA_FINAL" | "SCHEDULED_FINAL";
   /**
    * The month in which the final exam takes place.
    */
-  month: number;
+  month: number | null;
   /**
    * The day of the month in which the final exam takes place.
    */
-  day: number;
+  day: number | null;
   /**
    * When the final exam starts.
    */
-  startTime: HourMinute;
+  startTime: HourMinute | null;
   /**
    * When the final exam ends.
    */
-  endTime: HourMinute;
+  endTime: HourMinute | null;
   /**
    * Where the final exam takes place.
    */
-  bldg: string;
+  bldg: string | null;
 };
-
-export type WebsocSectionFinalExam = WebsocSectionFinalExamAbsent | WebsocSectionFinalExamPresent;
 
 /**
  * A WebSoc section object.
