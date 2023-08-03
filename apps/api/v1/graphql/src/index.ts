@@ -72,6 +72,7 @@ export const ANY: InternalHandler = async (request) => {
     );
     if (method) resultHeaders["Content-Encoding"] = method;
     return {
+      isBase64Encoded: !!method,
       statusCode: resultStatusCode,
       headers: resultHeaders,
       body,
