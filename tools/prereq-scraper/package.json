@@ -13,6 +13,6 @@
     "winston": "3.10.0"
   },
   "devDependencies": {
-    "peterportal-api-next-types": "workspace:*"
+    "peterportal-api-next-types": "*"
   }
 }
