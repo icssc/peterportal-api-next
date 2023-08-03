@@ -1,3 +1,4 @@
+import { flattenDayStringsAndSplit, flattenStringsAndSplit } from "ant-stack/utils";
 import {
   anyArray,
   cancelledCoursesOptions,
@@ -8,48 +9,6 @@ import {
   sectionTypes,
 } from "peterportal-api-next-types";
 import { z } from "zod";
-
-/**
- * Input to a transform function.
- */
-type TransformInput = string | string[] | undefined;
-
-/**
- * Output of a transform function.
- */
-type TransformOutput = string[] | undefined;
-
-/**
- * Get unique, sorted array of strings.
- * @param value String of comma-separated values or array of such strings.
- */
-function flattenStringsAndSplit(value: TransformInput): TransformOutput {
-  if (!value) return undefined;
-  const unique = new Set(
-    Array.isArray(value) ? value.flatMap((x) => x.split(",")) : value.split(","),
-  );
-  return [...unique].sort();
-}
-
-const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
-
-/**
- * Get unique, sorted array of day strings from input.
- * @param value String of combined days of the week (e.g. ``MWF``) or array of such strings.
- */
-function flattenDayStringsAndSplit(value: TransformInput): TransformOutput {
-  if (!value) {
-    return undefined;
-  }
-
-  const unique = new Set(
-    Array.isArray(value)
-      ? value.flatMap((x) => days.filter((y) => y.includes(x)))
-      : days.filter((x) => value.includes(x)),
-  );
-
-  return [...unique];
-}
 
 /**
  * Parse an unknown query to the websoc endpoint.
