@@ -1,18 +1,24 @@
+import { flattenStringsAndSplit } from "ant-stack/utils";
 import { divisionCodes, geCodes } from "peterportal-api-next-types";
 import { z } from "zod";
 
 export const QuerySchema = z.object({
   department: z.string().optional(),
   courseNumber: z.string().optional(),
-  courseNumeric: z.number().optional(),
+  courseNumeric: z.coerce.number().int().optional(),
   titleContains: z.string().optional(),
   courseLevel: z.enum(divisionCodes).optional(),
-  minUnits: z.number().optional(),
-  maxUnits: z.number().optional(),
+  minUnits: z.coerce.number().int().optional(),
+  maxUnits: z.coerce.number().int().optional(),
   descriptionContains: z.string().optional(),
-  taughtByInstructor: z.string().optional(),
+  taughtByInstructors: z
+    .string()
+    .array()
+    .or(z.string())
+    .optional()
+    .transform(flattenStringsAndSplit),
   geCategory: z.enum(geCodes).optional(),
-  taughtInTerm: z.string().optional(),
+  taughtInTerms: z.string().array().or(z.string()).optional().transform(flattenStringsAndSplit),
 });
 
 export type Query = z.infer<typeof QuerySchema>;

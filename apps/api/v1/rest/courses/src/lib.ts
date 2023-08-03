@@ -79,12 +79,19 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.CourseWhereInpu
   if (parsedQuery.descriptionContains)
     AND.push({ description: { contains: parsedQuery.descriptionContains } });
 
-  if (parsedQuery.taughtByInstructor)
-    AND.push({ instructorHistory: { array_contains: parsedQuery.taughtByInstructor } });
+  if (parsedQuery.taughtByInstructors)
+    AND.push({
+      OR: parsedQuery.taughtByInstructors.map((instructor) => ({
+        instructorHistory: { array_contains: instructor },
+      })),
+    });
 
   if (parsedQuery.geCategory) AND.push({ geList: { array_contains: parsedQuery.geCategory } });
 
-  if (parsedQuery.taughtInTerm) AND.push({ terms: { array_contains: parsedQuery.taughtInTerm } });
+  if (parsedQuery.taughtInTerms)
+    AND.push({
+      OR: parsedQuery.taughtInTerms.map((term) => ({ terms: { array_contains: term } })),
+    });
 
   return { AND: AND.length ? AND : undefined };
 }
