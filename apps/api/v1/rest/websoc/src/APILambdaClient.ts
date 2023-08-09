@@ -14,10 +14,10 @@ export class APILambdaClient {
 
   constructor(configuration: LambdaClientConfig = {}) {
     this.client = new LambdaClient(configuration);
-    if (process.env.NODE_ENV === "production") {
-      this.service = undefined;
-    } else {
+    if (process.env.NODE_ENV === "development") {
       import("@services/websoc-proxy-service").then((x) => (this.service = x.handler));
+    } else {
+      this.service = undefined;
     }
   }
 
