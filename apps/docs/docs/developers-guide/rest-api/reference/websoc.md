@@ -165,8 +165,8 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   "instructors": ["DEES, M.", "CHIU, A.", "SHINDLER, M."],
                   "meetings": [
                     {
-                      "bldg": ["SSH 100"],
                       "timeIsTBA": false,
+                      "bldg": ["SSH 100"],
                       "days": "Tu",
                       "startTime": { "hour": 19, "minute": 0 },
                       "endTime": { "hour": 19, "minute": 50 }
@@ -174,11 +174,12 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   ],
                   "finalExam": {
                     "examStatus": "NO_FINAL",
-                    "bldg": null,
+                    "dayOfWeek": null,
                     "month": null,
                     "day": null,
                     "startTime": null,
-                    "endTime": null
+                    "endTime": null,
+                    "bldg": null
                   },
                   "maxCapacity": "249",
                   "numCurrentlyEnrolled": {
@@ -241,8 +242,8 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   "instructors": ["BIC, L.", "GIYAHCHI, T.", "YI, S."],
                   "meetings": [
                     {
-                      "bldg": ["ON LINE"],
                       "timeIsTBA": true,
+                      "bldg": ["ON LINE"],
                       "days": null,
                       "startTime": null,
                       "endTime": null
@@ -250,11 +251,12 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   ],
                   "finalExam": {
                     "examStatus": "TBA_FINAL",
-                    "bldg": null,
+                    "dayOfWeek": null,
                     "month": null,
                     "day": null,
                     "startTime": null,
-                    "endTime": null
+                    "endTime": null,
+                    "bldg": null
                   },
                   "maxCapacity": "125",
                   "numCurrentlyEnrolled": { "totalEnrolled": "124", "sectionEnrolled": "" },
@@ -314,8 +316,8 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   "instructors": ["SHINDLER, M."],
                   "meetings": [
                     {
-                      "bldg": ["ALP 2300"],
                       "timeIsTBA": false,
+                      "bldg": ["ALP 2300"],
                       "days": "MWF",
                       "startTime": { "hour": 10, "minute": 0 },
                       "endTime": { "hour": 10, "minute": 50 }
@@ -323,11 +325,12 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   ],
                   "finalExam": {
                     "examStatus": "SCHEDULED_FINAL",
+                    "dayOfWeek": "Mon",
                     "month": 6,
                     "day": 12,
                     "startTime": { "hour": 10, "minute": 30 },
                     "endTime": { "hour": 12, "minute": 30 },
-                    "bldg": "ALP 2300"
+                    "bldg": ["ALP 2300"]
                   },
                   "maxCapacity": "249",
                   "numCurrentlyEnrolled": { "totalEnrolled": "170", "sectionEnrolled": "169" },
@@ -387,15 +390,15 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   "instructors": ["HUBER, K."],
                   "meetings": [
                     {
-                      "bldg": ["ON LINE"],
                       "timeIsTBA": false,
+                      "bldg": ["ON LINE"],
                       "days": "WF",
                       "startTime": { "hour": 10, "minute": 0 },
                       "endTime": { "hour": 10, "minute": 50 }
                     },
                     {
-                      "bldg": ["ALP 1300"],
                       "timeIsTBA": false,
+                      "bldg": ["ALP 1300"],
                       "days": "M",
                       "startTime": { "hour": 10, "minute": 0 },
                       "endTime": { "hour": 10, "minute": 50 }
@@ -403,11 +406,12 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   ],
                   "finalExam": {
                     "examStatus": "SCHEDULED_FINAL",
+                    "dayOfWeek": "Sat",
                     "month": 6,
                     "day": 10,
                     "startTime": { "hour": 13, "minute": 30 },
                     "endTime": { "hour": 15, "minute": 30 },
-                    "bldg": "HIB 100"
+                    "bldg": ["HIB 100"]
                   },
                   "maxCapacity": "295",
                   "numCurrentlyEnrolled": { "totalEnrolled": "282", "sectionEnrolled": "" },
@@ -469,7 +473,7 @@ type WebsocAPIResponse = {
             day: number | null;
             startTime: { hour: number; minute: number } | null;
             endTime: { hour: number; minute: number } | null;
-            bldg: string | null;
+            bldg: string[] | null;
           };
           maxCapacity: string;
           numCurrentlyEnrolled: {
