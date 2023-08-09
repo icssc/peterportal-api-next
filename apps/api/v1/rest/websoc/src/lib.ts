@@ -10,6 +10,7 @@ import type {
   WebsocSectionMeeting,
 } from "@libs/websoc-api-next";
 import type {
+  DayOfWeek,
   Department,
   TermData,
   WebsocAPIResponse as NormalizedResponse,
@@ -103,31 +104,34 @@ function parseFinalExamString(section: WebsocSection): NormalizedFinalExam {
   if (section.finalExam === "")
     return {
       examStatus: "NO_FINAL",
-      bldg: null,
+      dayOfWeek: null,
       month: null,
       day: null,
       startTime: null,
       endTime: null,
+      bldg: null,
     };
   if (section.finalExam === "TBA")
     return {
       examStatus: "TBA_FINAL",
-      bldg: null,
+      dayOfWeek: null,
       month: null,
       day: null,
       startTime: null,
       endTime: null,
+      bldg: null,
     };
-  const [dateTime, location] = section.finalExam.split("@").map((x) => x?.trim());
-  const [, month, day, time] = dateTime.split(" ");
+  const [dateTime, locations] = section.finalExam.split("@").map((x) => x?.trim());
+  const [dayOfWeek, month, day, time] = dateTime.split(" ");
   const { startTime, endTime } = parseNonTBAStartAndEndTimes(time);
   return {
     examStatus: "SCHEDULED_FINAL",
+    dayOfWeek: dayOfWeek as DayOfWeek,
     month: months.indexOf(month) + 1,
     day: parseInt(day, 10),
     startTime,
     endTime,
-    bldg: location ? location : section.meetings[0].bldg[0],
+    bldg: locations ? locations.split(",").map((x) => x?.trim()) : [section.meetings[0].bldg[0]],
   };
 }
 
@@ -143,8 +147,8 @@ function isolateSection(data: EnhancedSection): EnhancedNormalizedSection {
       const { bldg, days, time } = meeting;
       const timeIsTBA = meeting.time === "TBA";
       return {
-        bldg,
         timeIsTBA,
+        bldg,
         ...(timeIsTBA
           ? { days: null, startTime: null, endTime: null }
           : { days, ...parseNonTBAStartAndEndTimes(time) }),

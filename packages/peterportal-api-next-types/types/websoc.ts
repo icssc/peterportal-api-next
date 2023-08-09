@@ -1,4 +1,4 @@
-import { Quarter } from "./constants";
+import { DayOfWeek, Quarter } from "./constants";
 
 /**
  * A type that represents the hour and minute parts of a time.
@@ -71,6 +71,10 @@ export type WebsocSectionFinalExam = {
    */
   examStatus: "NO_FINAL" | "TBA_FINAL" | "SCHEDULED_FINAL";
   /**
+   * The day of the week in which the final exam takes place.
+   */
+  dayOfWeek: DayOfWeek | null;
+  /**
    * The month in which the final exam takes place.
    */
   month: number | null;
@@ -89,7 +93,7 @@ export type WebsocSectionFinalExam = {
   /**
    * Where the final exam takes place.
    */
-  bldg: string | null;
+  bldg: string[] | null;
 };
 
 /**
