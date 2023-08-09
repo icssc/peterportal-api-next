@@ -1,17 +1,17 @@
 {
-  "name": "websoc-proxy-service",
+  "name": "@services/websoc-proxy-service",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
   "type": "module",
-  "main": "index.ts",
+  "main": "src/index.ts",
   "scripts": {
     "build": "node build.mjs"
   },
   "dependencies": {
     "@libs/websoc-api-next": "workspace:*",
-    "ant-stack": "workspace:*",
-    "api-v1-rest-websoc": "workspace:*"
+    "@libs/websoc-utils": "workspace:*",
+    "ant-stack": "workspace:*"
   },
   "devDependencies": {
     "@types/aws-lambda": "8.10.119",

@@ -18,6 +18,7 @@ const outDir = resolve(cwd, "./dist");
 
 const config: AntConfigStub = {
   esbuild: {
+    external: ["@services/websoc-proxy-service"],
     plugins: [
       cleanCopy({ cwd, outDir, prismaClientDir, prismaSchema }),
       selectDelete(env.NODE_ENV, outDir),

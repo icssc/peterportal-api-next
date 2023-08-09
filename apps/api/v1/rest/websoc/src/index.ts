@@ -1,31 +1,23 @@
-import { LambdaClient } from "@aws-sdk/client-lambda";
 import { PrismaClient } from "@libs/db";
 import type { WebsocAPIResponse } from "@libs/websoc-api-next";
+import { combineAndNormalizeResponses, notNull, sortResponse } from "@libs/websoc-utils";
 import { createErrorResult, createOKResult, type InternalHandler } from "ant-stack";
 import { ZodError } from "zod";
 
-import {
-  combineAndNormalizeResponses,
-  constructPrismaQuery,
-  normalizeQuery,
-  notNull,
-  PeterPortalApiLambdaClient,
-  sortResponse,
-} from "./lib";
+import { APILambdaClient } from "./APILambdaClient";
+import { constructPrismaQuery, normalizeQuery } from "./lib";
 import { QuerySchema } from "./schema";
 
-let prisma: PrismaClient;
-
-const lambda = new LambdaClient({});
-
-const lambdaClient = new PeterPortalApiLambdaClient(lambda);
-
 const quarterOrder = ["Winter", "Spring", "Summer1", "Summer10wk", "Summer2", "Fall"];
+
+let prisma: PrismaClient;
+let lambdaClient: APILambdaClient;
 
 export const GET: InternalHandler = async (request) => {
   const { headers, params, query, requestId } = request;
 
   prisma ??= new PrismaClient();
+  lambdaClient ??= new APILambdaClient();
 
   if (request.isWarmerRequest) {
     try {

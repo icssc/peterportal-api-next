@@ -8,8 +8,8 @@
     "destroy": "cdk destroy --all --force"
   },
   "dependencies": {
-    "dotenv": "16.3.1",
-    "websoc-proxy-service": "*"
+    "@services/websoc-proxy-service": "*",
+    "dotenv": "16.3.1"
   },
   "devDependencies": {
     "@types/babel__traverse": "7.20.1",

@@ -9,11 +9,13 @@
   "dependencies": {
     "@aws-sdk/client-lambda": "3.370.0",
     "@libs/db": "workspace:*",
+    "@libs/websoc-utils": "workspace:*",
     "ant-stack": "workspace:*",
     "zod": "3.21.4"
   },
   "devDependencies": {
     "@libs/build-tools": "workspace:*",
+    "@services/websoc-proxy-service": "workspace:*",
     "peterportal-api-next-types": "workspace:*"
   }
 }
