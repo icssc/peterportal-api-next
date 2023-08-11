@@ -371,8 +371,8 @@ importers:
   libs/websoc-api-next:
     dependencies:
       '@ap0nia/camaro':
-        specifier: 6.2.4
-        version: 6.2.4
+        specifier: 6.2.5
+        version: 6.2.5
       cheerio:
         specifier: 1.0.0-rc.12
         version: 1.0.0-rc.12
@@ -842,8 +842,8 @@ packages:
     resolution: {integrity: sha512-sAPXKvlJFVQB4cvmdGoUa9IAavzRrm7N2ctxdD1GuAEIOZu8BRrv2SUzquGXTpRDUa0sY7OkkVHqhi6ySMnMTg==}
     dev: false
 
-  /@ap0nia/camaro@6.2.4:
-    resolution: {integrity: sha512-RSWuJeCZ6sE82lpRn5buk0My69LgYZYxkiTPYfIgdgXGXfczGHiFPgwrZN48mANEguFwFlXjgSQXXjHRZNXdXA==}
+  /@ap0nia/camaro@6.2.5:
+    resolution: {integrity: sha512-w7mMvo4meCeZ9uPo33Q4BmwOveZ9AcLlnjxmO/5pMzQ9foClkF8YXMv44taSI9jaEZ5b5JmD1dgutr3HhBao/w==}
     dev: false
 
   /@apollo/cache-control-types@1.0.3(graphql@16.7.1):
