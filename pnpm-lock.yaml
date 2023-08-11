@@ -41,6 +41,9 @@ importers:
       cz-conventional-changelog:
         specifier: 3.3.0
         version: 3.3.0
+      devmoji:
+        specifier: ^2.3.0
+        version: 2.3.0
       eslint:
         specifier: 8.45.0
         version: 8.45.0
@@ -6842,7 +6845,6 @@ packages:
   /commander@7.2.0:
     resolution: {integrity: sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==}
     engines: {node: '>= 10'}
-    dev: false
 
   /commander@8.3.0:
     resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
@@ -7562,6 +7564,15 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: false
+
+  /devmoji@2.3.0:
+    resolution: {integrity: sha512-ErQdYUsE7tKxqDzQzRos6fKWaRIFUOJvMkQODq9iYDI3o5X6nxD78XEdGNYaW5AaJW4uxj+XQTkCuJkV86Qg6g==}
+    hasBin: true
+    dependencies:
+      chalk: 4.1.2
+      commander: 7.2.0
+      ts-interface-checker: 1.0.0
+    dev: true
 
   /diff-sequences@29.4.3:
     resolution: {integrity: sha512-ofrBgwpPhCD85kMKtE9RYFFq6OC1A89oW2vvgWZNCwxrUpRUILopY7lsYyMDSjc8g6U6aiO0Qubg6r4Wgt5ZnA==}
@@ -12950,6 +12961,10 @@ packages:
 
   /ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
+    dev: true
+
+  /ts-interface-checker@1.0.0:
+    resolution: {integrity: sha512-yUeWbFBDiwPodNqrqpvQpGWheL6PvNu2/pVAb9yy2vzdkkflCgwVA4U2akByPCXzYTum3/5/nB92yKuiLpSo/Q==}
     dev: true
 
   /ts-node@10.9.1(@types/node@18.16.19)(typescript@5.1.6):
