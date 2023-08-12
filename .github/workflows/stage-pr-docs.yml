@@ -1,6 +1,7 @@
 name: Lint PR title and message
 
-permissions: write-all
+permissions:
+  pull-requests: write
 
 on:
   pull_request:
@@ -33,8 +34,10 @@ jobs:
       - uses: octokit/request-action@v2.x
         with:
           route: PATCH /repos/{owner}/{repo}/pulls/{pull_number}
+          owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
           pull_number: ${{ github.event.number }}
           title: ${{ toJSON(steps.devmoji.outputs.TITLE) }}
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
