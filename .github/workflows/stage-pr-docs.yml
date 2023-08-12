@@ -1,7 +1,6 @@
 name: Lint PR title and message
 
-permissions:
-  pull-requests: write
+permissions: write-all
 
 on:
   pull_request:
@@ -37,6 +36,5 @@ jobs:
           repo: ${{ github.event.repository.name }}
           pull_number: ${{ github.event.number }}
           title: ${{ toJSON(steps.devmoji.outputs.TITLE) }}
-
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
