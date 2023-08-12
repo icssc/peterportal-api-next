@@ -36,7 +36,7 @@ jobs:
           route: PATCH /repos/{owner}/{repo}/pulls/{pull_number}
           repo: ${{ github.event.repository.name }}
           pull_number: ${{ github.event.number }}
-          title: ${{ toJSON(steps.devmoji.outputs.TITLE) }}\"
+          title: ${{ toJSON(steps.devmoji.outputs.TITLE) }}
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
