@@ -1,13 +1,35 @@
 name: Lint PR title and message
+
 on:
   pull_request_target:
+
 jobs:
   lint-pr:
     runs-on: ubuntu-latest
     steps:
+      - name: Set up Node.js environment
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
       - uses: Namchee/conventional-pr@v0.12.1
         with:
           access_token: ${{ secrets.GITHUB_TOKEN }}
           close: false
           body: false
           issue: false
+
+      - name: Format PR Title
+        id: devmoji
+        run: |
+          echo TITLE=$(npx devmoji --format shortcode --text ${{ github.event.pull_request.title }}) >> "$GITHUB_OUTPUT"
+
+      - uses: octokit/request-action@v2.x
+        id: GitHub POST Request to Update PR Title
+        with:
+          route: PATCH /repos/{owner}/{repo}/pulls/{pull_number}
+          repo: ${{ github.event.repository.name }}
+          pull_number: ${{ github.event.number }}
+          title: ${{ steps.devmoji.outputs.TITLE }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
