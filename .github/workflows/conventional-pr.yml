@@ -27,7 +27,6 @@ jobs:
           echo TITLE=$(npx devmoji --format shortcode --text ${{ github.event.pull_request.title }}) >> "$GITHUB_OUTPUT"
 
       - uses: octokit/request-action@v2.x
-        id: GitHub POST Request to Update PR Title
         with:
           route: PATCH /repos/{owner}/{repo}/pulls/{pull_number}
           repo: ${{ github.event.repository.name }}
