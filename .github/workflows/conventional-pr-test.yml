@@ -3,8 +3,6 @@ name: Lint PR title and message
 on:
   pull_request_target:
 
-  workflow_dispatch:
-
 jobs:
   lint-pr:
     runs-on: ubuntu-latest
