@@ -1,9 +1,10 @@
 name: Lint PR title and message
 
+permissions:
+  pull-requests: write
+
 on:
   pull_request_target:
-
-  workflow_dispatch:
 
 jobs:
   lint-pr:
@@ -24,13 +25,14 @@ jobs:
       - name: Format PR Title
         id: devmoji
         run: |
-          echo TITLE=$(npx devmoji --format shortcode --text ${{ github.event.pull_request.title }}) >> "$GITHUB_OUTPUT"
+          echo TITLE=$(npx devmoji --format shortcode --text ${{ toJSON(github.event.pull_request.title) }}) >> "$GITHUB_OUTPUT"
 
       - uses: octokit/request-action@v2.x
         with:
           route: PATCH /repos/{owner}/{repo}/pulls/{pull_number}
+          owner: ${{ github.repository_owner }}
           repo: ${{ github.event.repository.name }}
           pull_number: ${{ github.event.number }}
-          title: ${{ steps.devmoji.outputs.TITLE }}
+          title: ${{ toJSON(steps.devmoji.outputs.TITLE) }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
