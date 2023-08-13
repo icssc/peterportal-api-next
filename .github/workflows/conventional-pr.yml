@@ -1,4 +1,5 @@
-name: Lint PR title and message
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
+name: Lint and format PR title and message
 
 permissions:
   pull-requests: write
@@ -7,8 +8,8 @@ on:
   pull_request:
 
 jobs:
-  lint-pr:
-    runs-on: ubuntu-latest
+  lint-and-format-pr:
+    runs-on: "ubuntu-latest"
     steps:
       - name: Check out codebase
         uses: actions/checkout@v3
@@ -20,21 +21,18 @@ jobs:
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
-        id: pnpm-install
         with:
           version: 8
           run_install: false
 
-      - name: Install devDependencies
-        run: pnpm install --dev --frozen-lockfile --ignore-scripts --workspace-root
-
       - name: Lint PR title
-        run: echo ${{ github.event.pull_request.title }} | npx --no -- commitlint
+        run: echo ${{ github.event.pull_request.title }} | npx commitlint
 
       - name: Format PR title
         id: devmoji
         run: |
-          echo TITLE=$(npx --no -- devmoji --format shortcode --text ${{ toJSON(github.event.pull_request.title) }}) >> "$GITHUB_OUTPUT"
+          TITLE=$(npx devmoji --format shortcode --text ${{ toJSON(github.event.pull_request.title) }})
+          echo TITLE=$TITLE >> "$GITHUB_OUTPUT"
 
       - name: Update PR title
         uses: octokit/request-action@v2.x
