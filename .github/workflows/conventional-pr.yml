@@ -1,5 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
-name: Lint and Format PR Title and Message
+---
+name: Lint and format PR title and message
 
 permissions:
   pull-requests: write
@@ -9,7 +10,10 @@ on:
 
 jobs:
   lint-and-format-pr:
+    name: Lint, format, and update PR title if needed
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out codebase
         uses: actions/checkout@v3
@@ -17,13 +21,25 @@ jobs:
       - name: Set up Node.js environment
         uses: actions/setup-node@v3
         with:
-          node-version: 18
+          node-version: lts/hydrogen
 
       - name: Install pnpm
         uses: pnpm/action-setup@v2
         with:
           version: 8
           run_install: false
+
+      - name: Get pnpm store directory
+        id: pnpm-cache
+        shell: bash
+        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm cache
+        uses: actions/cache@v3
+        with:
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: ${{ runner.os }}-pnpm-store-
 
       - name: Install devDependencies
         run: pnpm install --dev --frozen-lockfile --ignore-scripts --workspace-root
@@ -39,7 +55,7 @@ jobs:
 
       - name: Update PR title if needed
         if: toJSON(github.event.pull_request.title) != toJSON(steps.devmoji.outputs.TITLE)
-        uses: octokit/request-action@v2.x
+        uses: octokit/request-action@v2
         with:
           route: PATCH /repos/{owner}/{repo}/pulls/{pull_number}
           owner: ${{ github.repository_owner }}
