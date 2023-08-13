@@ -9,7 +9,7 @@ on:
 
 jobs:
   lint-and-format-pr:
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     steps:
       - name: Check out codebase
         uses: actions/checkout@v3
