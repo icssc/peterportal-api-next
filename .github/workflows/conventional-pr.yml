@@ -16,14 +16,14 @@ jobs:
           node-version: 18
 
       - name: Lint PR title
-        run: echo ${{ toJSON(github.event.pull_request.title) }} | npx commitlint
+        run: echo ${{ github.event.pull_request.title }} | npx commitlint
 
       - name: Format PR title
         id: devmoji
         run: |
           echo TITLE=$(npx devmoji --format shortcode --text ${{ toJSON(github.event.pull_request.title) }}) >> "$GITHUB_OUTPUT"
 
-      - name: Update Pr title
+      - name: Update PR title
         uses: octokit/request-action@v2.x
         with:
           route: PATCH /repos/{owner}/{repo}/pulls/{pull_number}
