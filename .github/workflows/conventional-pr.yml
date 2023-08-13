@@ -45,7 +45,7 @@ jobs:
         run: pnpm install --dev --frozen-lockfile --ignore-scripts --workspace-root
 
       - name: Lint PR title
-        run: echo ${{ github.event.pull_request.title }} | npx --no -- commitlint
+        run: echo ${{ toJSON(github.event.pull_request.title) }} | npx --no -- commitlint
 
       - name: Format PR title
         id: devmoji
