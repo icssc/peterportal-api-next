@@ -38,6 +38,7 @@ jobs:
           echo TITLE=$TITLE >> "$GITHUB_OUTPUT"
 
       - name: Update PR title
+        if: toJSON(github.event.pull_request.title) != toJSON(steps.devmoji.outputs.TITLE)
         uses: octokit/request-action@v2.x
         with:
           route: PATCH /repos/{owner}/{repo}/pulls/{pull_number}
