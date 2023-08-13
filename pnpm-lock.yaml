@@ -42,7 +42,7 @@ importers:
         specifier: 3.3.0
         version: 3.3.0
       devmoji:
-        specifier: ^2.3.0
+        specifier: 2.3.0
         version: 2.3.0
       eslint:
         specifier: 8.45.0
@@ -603,6 +603,8 @@ importers:
       cross-fetch:
         specifier: 4.0.0
         version: 4.0.0
+
+  tools/degreeworks-scraper: {}
 
   tools/grades-updater:
     dependencies:
