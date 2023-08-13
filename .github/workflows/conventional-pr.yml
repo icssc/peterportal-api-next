@@ -25,8 +25,8 @@ jobs:
           version: 8
           run_install: false
 
-      - name: Install devDpendencies
-        run: pnpm install --dev --frozen-lockfile --ignore-scripts --workspace
+      - name: Install devDependencies
+        run: pnpm install --dev --frozen-lockfile --ignore-scripts --workspace-root
 
       - name: Lint PR title
         run: echo ${{ github.event.pull_request.title }} | npx --no -- commitlint
