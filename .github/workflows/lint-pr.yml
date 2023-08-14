@@ -10,10 +10,7 @@ on:
 
 jobs:
   lint-and-format-pr:
-    name: Lint, format, and update PR title if needed
-
     runs-on: ubuntu-latest
-
     steps:
       - name: Check out codebase
         uses: actions/checkout@v3
