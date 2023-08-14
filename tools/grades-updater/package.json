@@ -2,7 +2,6 @@
   "name": "grades-updater",
   "version": "0.0.0",
   "private": true,
-  "license": "MIT",
   "type": "module",
   "scripts": {
     "sanitize": "tsx sanitize-data.ts",
