@@ -1,8 +1,10 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { normalize } from "path";
-import { gzipSync } from "zlib";
+import { normalize } from "node:path";
+import { gzipSync } from "node:zlib";
 
-import { PrismaClient } from "@libs/db";
+import fetch from "cross-fetch";
+import { isErrorResponse } from "peterportal-api-next-types";
+import type { Course, Instructor, RawResponse } from "peterportal-api-next-types";
 import pluralize from "pluralize";
 
 // data sources
@@ -208,66 +210,39 @@ function parseAndWriteData(d: DataObject) {
   );
   console.log(`Wrote index to file ${outputFile}`);
   console.timeEnd("Index built in");
-  process.exit(0);
 }
 
 async function main() {
   console.time("Index built in");
-  const prisma = new PrismaClient();
-  const d: DataObject = {
-    courses: {},
-    instructors: {},
-  };
-  (await prisma.course.findMany()).forEach(
+  const d: DataObject = { courses: {}, instructors: {} };
+  const coursesRes = await fetch("https://api-next.peterportal.org/v1/rest/courses/all");
+  const coursesJson: RawResponse<Course[]> = await coursesRes.json();
+  if (isErrorResponse(coursesJson)) throw new Error("Could not fetch courses from API.");
+  coursesJson.payload.forEach(
     ({ id, department, departmentName, courseNumber, geList, courseLevel, school, title }) => {
       d.courses[id] = {
         department,
         department_name: departmentName,
         number: courseNumber,
-        ge_list: (geList as []).map((x) => {
-          switch (x) {
-            case "GE-1A":
-              return "GE Ia: Lower Division Writing";
-            case "GE-1B":
-              return "GE Ib: Upper Division Writing";
-            case "GE-2":
-              return "GE II: Science and Technology";
-            case "GE-3":
-              return "GE III: Social & Behavioral Sciences";
-            case "GE-4":
-              return "GE IV: Arts and Humanities";
-            case "GE-5A":
-              return "GE Va: Quantitative Literacy";
-            case "GE-5B":
-              return "GE Vb: Formal Reasoning";
-            case "GE-6":
-              return "GE VI: Language Other Than English";
-            case "GE-7":
-              return "GE VII: Multicultural Studies";
-            case "GE-8":
-              return "GE VIII: International/Global Issues";
-            // this branch should never happen
-            default:
-              throw new Error();
-          }
-        }),
+        ge_list: geList,
         course_level: courseLevel,
         school,
         title,
       };
     },
   );
-  (await prisma.instructor.findMany()).forEach(
-    ({ ucinetid, shortenedName, name, schools, department }) => {
-      d.instructors[ucinetid] = {
-        ucinetid,
-        shortened_name: shortenedName,
-        name,
-        schools: schools as [],
-        department,
-      };
-    },
-  );
+  const instructorsRes = await fetch("https://api-next.peterportal.org/v1/rest/instructors/all");
+  const instructorsJson: RawResponse<Instructor[]> = await instructorsRes.json();
+  if (isErrorResponse(instructorsJson)) throw new Error("Could not fetch instructors from API.");
+  instructorsJson.payload.forEach(({ ucinetid, shortenedName, name, schools, department }) => {
+    d.instructors[ucinetid] = {
+      ucinetid,
+      shortened_name: shortenedName,
+      name,
+      schools: schools as [],
+      department,
+    };
+  });
   parseAndWriteData(d);
 }
 

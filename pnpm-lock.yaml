@@ -41,6 +41,9 @@ importers:
       cz-conventional-changelog:
         specifier: 3.3.0
         version: 3.3.0
+      devmoji:
+        specifier: 2.3.0
+        version: 2.3.0
       eslint:
         specifier: 8.45.0
         version: 8.45.0
@@ -374,8 +377,8 @@ importers:
   libs/websoc-api-next:
     dependencies:
       '@ap0nia/camaro':
-        specifier: 6.2.4
-        version: 6.2.4
+        specifier: 6.2.5
+        version: 6.2.5
       cheerio:
         specifier: 1.0.0-rc.12
         version: 1.0.0-rc.12
@@ -482,12 +485,12 @@ importers:
         specifier: 2.1.0
         version: 2.1.0
     devDependencies:
-      '@libs/db':
-        specifier: '*'
-        version: link:../../libs/db
       '@types/pluralize':
-        specifier: ^0.0.30
+        specifier: 0.0.30
         version: 0.0.30
+      cross-fetch:
+        specifier: 4.0.0
+        version: 4.0.0
       pluralize:
         specifier: 8.0.0
         version: 8.0.0
@@ -672,7 +675,7 @@ importers:
         version: 3.10.0
     devDependencies:
       peterportal-api-next-types:
-        specifier: workspace:*
+        specifier: '*'
         version: link:../../packages/peterportal-api-next-types
 
   tools/unified-scraper:
@@ -844,8 +847,8 @@ packages:
     resolution: {integrity: sha512-sAPXKvlJFVQB4cvmdGoUa9IAavzRrm7N2ctxdD1GuAEIOZu8BRrv2SUzquGXTpRDUa0sY7OkkVHqhi6ySMnMTg==}
     dev: false
 
-  /@ap0nia/camaro@6.2.4:
-    resolution: {integrity: sha512-RSWuJeCZ6sE82lpRn5buk0My69LgYZYxkiTPYfIgdgXGXfczGHiFPgwrZN48mANEguFwFlXjgSQXXjHRZNXdXA==}
+  /@ap0nia/camaro@6.2.5:
+    resolution: {integrity: sha512-w7mMvo4meCeZ9uPo33Q4BmwOveZ9AcLlnjxmO/5pMzQ9foClkF8YXMv44taSI9jaEZ5b5JmD1dgutr3HhBao/w==}
     dev: false
 
   /@apollo/cache-control-types@1.0.3(graphql@16.7.1):
@@ -6847,7 +6850,6 @@ packages:
   /commander@7.2.0:
     resolution: {integrity: sha512-QrWXB+ZQSVPmIWIhtEO9H+gwHaMGYiF5ChvoJ+K9ZGHG/sVsa6yiesAD1GC/x46sET00Xlwo1u49RVVVzvcSkw==}
     engines: {node: '>= 10'}
-    dev: false
 
   /commander@8.3.0:
     resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
@@ -7121,7 +7123,6 @@ packages:
       node-fetch: 2.6.12
     transitivePeerDependencies:
       - encoding
-    dev: false
 
   /cross-spawn@7.0.3:
     resolution: {integrity: sha512-iRDPJKUPVEND7dHPO8rkbOnPpyDygcDFtWjpeWNCgy8WP2rXcxXL8TskReQl6OrB2G7+UJrags1q15Fudc7G6w==}
@@ -7567,6 +7568,15 @@ packages:
     transitivePeerDependencies:
       - supports-color
     dev: false
+
+  /devmoji@2.3.0:
+    resolution: {integrity: sha512-ErQdYUsE7tKxqDzQzRos6fKWaRIFUOJvMkQODq9iYDI3o5X6nxD78XEdGNYaW5AaJW4uxj+XQTkCuJkV86Qg6g==}
+    hasBin: true
+    dependencies:
+      chalk: 4.1.2
+      commander: 7.2.0
+      ts-interface-checker: 1.0.0
+    dev: true
 
   /diff-sequences@29.4.3:
     resolution: {integrity: sha512-ofrBgwpPhCD85kMKtE9RYFFq6OC1A89oW2vvgWZNCwxrUpRUILopY7lsYyMDSjc8g6U6aiO0Qubg6r4Wgt5ZnA==}
@@ -10422,7 +10432,6 @@ packages:
         optional: true
     dependencies:
       whatwg-url: 5.0.0
-    dev: false
 
   /node-forge@1.3.1:
     resolution: {integrity: sha512-dPEtOeMvF9VMcYV/1Wb8CPoVAXtp6MKMlcbAt4ddqmGqUJ6fQZFXkNZNkNlfevtNkGtaSoXf/vNNNSvgrdXwtA==}
@@ -12909,7 +12918,6 @@ packages:
 
   /tr46@0.0.3:
     resolution: {integrity: sha512-N3WMsuqV66lT30CrXNbEjx4GEwlow3v6rr4mCcv6prnfwhS01rkgyFdjPNBYd9br7LpXV1+Emh01fHnq2Gdgrw==}
-    dev: false
 
   /tr46@1.0.1:
     resolution: {integrity: sha512-dTpowEjclQ7Kgx5SdBkqRzVhERQXov8/l9Ft9dVM9fmg0W0KQSVaXX9T4i6twCPNtYiZM53lpSSUAwJbFPOHxA==}
@@ -12955,6 +12963,10 @@ packages:
 
   /ts-interface-checker@0.1.13:
     resolution: {integrity: sha512-Y/arvbn+rrz3JCKl9C4kVNfTfSm2/mEp5FSz5EsZSANGPSlQrpRI5M4PKF+mJnE52jOO90PnPSc3Ur3bTQw0gA==}
+    dev: true
+
+  /ts-interface-checker@1.0.0:
+    resolution: {integrity: sha512-yUeWbFBDiwPodNqrqpvQpGWheL6PvNu2/pVAb9yy2vzdkkflCgwVA4U2akByPCXzYTum3/5/nB92yKuiLpSo/Q==}
     dev: true
 
   /ts-node@10.9.1(@types/node@18.16.19)(typescript@5.1.6):
@@ -13674,7 +13686,6 @@ packages:
 
   /webidl-conversions@3.0.1:
     resolution: {integrity: sha512-2JAn3z8AR6rjK8Sm8orRC0h/bcl/DqL7tRPdGZ4I1CjdF+EaMLmYxBHyXuKL849eucPFhvBoxMsflfOb8kxaeQ==}
-    dev: false
 
   /webidl-conversions@4.0.2:
     resolution: {integrity: sha512-YQ+BmxuTgd6UXZW3+ICGfyqRyHXVlD5GtQr5+qjiNW7bF0cqrzX500HVXPBOvgXb5YnzDd+h0zqyv61KUD7+Sg==}
@@ -13852,7 +13863,6 @@ packages:
     dependencies:
       tr46: 0.0.3
       webidl-conversions: 3.0.1
-    dev: false
 
   /whatwg-url@7.1.0:
     resolution: {integrity: sha512-WUu7Rg1DroM7oQvGWfOiAK21n74Gg+T4elXEQYkOhtyLeWiJFoOGLXPKI/9gzIie9CtwVLm8wtw6YJdKyxSjeg==}

@@ -12,7 +12,7 @@
     "test:watch": "vitest run --coverage --watch"
   },
   "dependencies": {
-    "@ap0nia/camaro": "6.2.4",
+    "@ap0nia/camaro": "6.2.5",
     "cheerio": "1.0.0-rc.12",
     "cross-fetch": "4.0.0",
     "peterportal-api-next-types": "*"
