@@ -604,6 +604,12 @@ importers:
         specifier: 4.0.0
         version: 4.0.0
 
+  tools/degreeworks-scraper:
+    dependencies:
+      cross-fetch:
+        specifier: 4.0.0
+        version: 4.0.0
+
   tools/grades-updater:
     dependencies:
       '@libs/db':
