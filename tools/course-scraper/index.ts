@@ -1,30 +1,64 @@
-import fs, { existsSync, readFileSync } from "fs";
-import { dirname, join } from "path";
-import { fileURLToPath } from "url";
+import { writeFile } from "node:fs/promises";
 
 import { load } from "cheerio";
-import type { Cheerio, Element } from "cheerio";
 import fetch from "cross-fetch";
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-
 // scrape links
-const CATALOGUE_BASE_URL = "https://catalogue.uci.edu";
-const URL_TO_ALL_COURSES: string = CATALOGUE_BASE_URL + "/allcourses/";
-const URL_TO_ALL_SCHOOLS: string = CATALOGUE_BASE_URL + "/schoolsandprograms/";
+const CATALOGUE_BASE_URL = "https://catalogue.uci.edu/";
+const URL_TO_ALL_COURSES = `${CATALOGUE_BASE_URL}/allcourses/`;
+const URL_TO_ALL_SCHOOLS = `${CATALOGUE_BASE_URL}/schoolsandprograms/`;
 
-// references
+const Ia = "GE Ia: Lower Division Writing";
+const Ib = "GE Ib: Upper Division Writing";
+const Va = "GE Va: Quantitative Literacy";
+const Vb = "GE Vb: Formal Reasoning";
+
 const GE_DICTIONARY: Record<string, string> = {
-  Ia: "GE Ia: Lower Division Writing",
-  Ib: "GE Ib: Upper Division Writing",
+  Ia,
+  IA: Ia,
+  Ib,
+  IB: Ib,
   II: "GE II: Science and Technology",
   III: "GE III: Social & Behavioral Sciences",
   IV: "GE IV: Arts and Humanities",
-  Va: "GE Va: Quantitative Literacy",
-  Vb: "GE Vb: Formal Reasoning",
+  Va,
+  VA: Va,
+  "V.A": Va,
+  Vb,
+  VB: Vb,
+  "V.B": Vb,
   VI: "GE VI: Language Other Than English",
   VII: "GE VII: Multicultural Studies",
   VIII: "GE VIII: International/Global Issues",
+};
+
+const GE_REGEXP =
+  /(I[Aa])|(I[Bb])|[( ](II)[) ]|[( ](III)[) ]|(IV)|(V\.?[Aa])|(V\.?[Bb])|[( ](VI)[) ]|[( ](VII)[) ]|(VIII)/g;
+
+type Course = {
+  department: string;
+  number: string;
+  school: string;
+  title: string;
+  course_level: string;
+  units: [number, number];
+  description: string;
+  department_name: string;
+  professor_history: string[];
+  prerequisite_tree: string;
+  prerequisite_list: string[];
+  prerequisite_text: string;
+  prerequisite_for: string[];
+  repeatability: string;
+  grading_option: string;
+  concurrent: string;
+  same_as: string;
+  restriction: string;
+  overlap: string;
+  corequisite: string;
+  ge_list: string[];
+  ge_text: string;
+  terms: string[];
 };
 
 /**
@@ -32,454 +66,197 @@ const GE_DICTIONARY: Record<string, string> = {
  */
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-async function safeFetch(url: string): Promise<Response> {
-  const requestSucceeded = false;
-  while (!requestSucceeded) {
-    try {
-      console.log(`Making request to ${url}`);
-      await sleep(500);
-      return await fetch(url);
-    } catch {
-      console.log("Request failed");
-      await sleep(1000);
-    }
-  }
-  return new Response();
+const normalized = (s?: string) => s?.normalize("NFKD") ?? "";
+
+const transformUnitCount = (s: string): [number, number] =>
+  s.includes("-")
+    ? (s.split("-").map((x) => Number.parseFloat(x)) as unknown as [number, number])
+    : [Number.parseFloat(s), Number.parseFloat(s)];
+
+const getAttribute = (body: string[], attr: string): string =>
+  body
+    .filter((x) => x.includes(attr))[0]
+    ?.replace(attr, "")
+    .trim() ?? "";
+
+function toCourseLevel(s: string) {
+  const courseNumeric = Number.parseInt(s.replace(/\D/g, ""), 10);
+  if (courseNumeric < 100) return "Lower Division (1-99)";
+  if (courseNumeric < 200) return "Upper Division (100-199)";
+  return "Graduate/Professional Only (200+)";
 }
 
-/**
- * @param {string} s: string to normalize (usually parsed from cheerio object)
- * @returns {string}: a normalized string that can be safely compared to other strings
- */
-export function normalizeString(s: string): string {
-  return s.normalize("NFKD");
-}
-
-/**
- * @returns {Promise<{ [key: string]: string }>}: a mapping from department code to school name. Uses the catalogue.
- * Example: {"I&C SCI":"Donald Bren School of Information and Computer Sciences","IN4MATX":"Donald Bren School of Information and Computer Sciences"}
- */
-export async function getDepartmentToSchoolMapping(): Promise<{ [key: string]: string }> {
-  /**
-   * helper function that takes a URL to a department page and maps the course page to each school on that page
-   * @param {string} departmentUrl: URL to a department page
-   * @param {string} school: school name
-   */
-  async function findSchoolNameFromDepartmentPage(departmentUrl: string, school: string) {
-    const response = await safeFetch(departmentUrl);
-    const $ = load(await response.text());
-    // if this department has the "Courses" tab
-    const departmentCourses = $("#courseinventorytab");
-    if (departmentCourses.text() != "") {
-      // map school cheerio
-      await mapCoursePageToSchool(mapping, school, departmentUrl);
-    }
-  }
-
-  /**
-   * helper function that takes a URL to a school page and maps the course page to each school on that page
-   * also checks for department links on the school page, and calls findSchoolNameFromDepartmentPage on each of them
-   * @param {string} schoolURL: URL to a school page
-   */
-  async function findSchoolName(schoolURL: string) {
-    const response = await safeFetch(schoolURL);
-    const $ = load(await response.text());
-    // get school name
-    const school: string = normalizeString($("#contentarea > h1").text());
-    if (debug) {
-      console.log("School: " + school);
-    }
-    // if this school has the "Courses" tab
-    const schoolCourses = $("#courseinventorytab");
-    if (schoolCourses.text() != "") {
-      // map school cheerio
-      await mapCoursePageToSchool(mapping, school, schoolURL);
-    }
-    // look for department links
-    const departmentLinks = $(".levelone");
-    const departmentURLList: string[] = [];
-    if ($(departmentLinks).text() != "") {
-      // go through each department link
-      $(departmentLinks)
-        .find("li")
-        .each((_, departmentLink) => {
-          // create department cheerio
-          const departmentUrl: string =
-            CATALOGUE_BASE_URL + $(departmentLink).find("a").attr("href") + "#courseinventory";
-          departmentURLList.push(departmentUrl);
-        });
-      const departmentLinksPromises: Promise<void>[] = departmentURLList.map((x) =>
-        findSchoolNameFromDepartmentPage(x, school),
+async function getDepartments(deptURL: string) {
+  const res = await fetch(deptURL);
+  await sleep(1000);
+  const $ = load(await res.text());
+  const departments: string[] = [];
+  $("#courseinventorycontainer > .courses").each((_, dept) => {
+    if (normalized($(dept).find("h3").text()) !== "") {
+      departments.push(
+        normalized($(dept).find(".courseblock > .courseblocktitle").first().text())
+          .split(".")[0]
+          .split(" ")
+          .slice(0, -1)
+          .join(" "),
       );
-      await Promise.all(departmentLinksPromises);
     }
-  }
-
-  console.log("Mapping Departments to Schools...");
-  // some need to be hard coded (These are mentioned in All Courses but not listed in their respective school catalogue)
-  const mapping: Record<string, string> = JSON.parse(
-    readFileSync(join(__dirname, "missingDepartments.json"), { encoding: "utf8" }),
-  );
-  const response = await safeFetch(URL_TO_ALL_SCHOOLS);
-  const $ = load(await response.text());
-  const schoolLinks: string[] = [];
-  // look through all the lis in the sidebar
-  $("#textcontainer > h4").each((_, lis) => {
-    // create new cheerio object based on each school
-    const schoolURL: string =
-      CATALOGUE_BASE_URL + $(lis).find("a").attr("href") + "#courseinventory";
-    schoolLinks.push(schoolURL);
   });
-  const schoolLinksPromises: Promise<void>[] = schoolLinks.map((x) => findSchoolName(x));
-  await Promise.all(schoolLinksPromises);
-  console.log("Successfully mapped " + Object.keys(mapping).length + " departments!");
-  return mapping;
+  return departments;
 }
 
-/**
- * @param {object} mapping: the object used to map department code to school name
- * @param {string} school: the school to map to
- * @param {string} courseURL: URL to a Courses page
- * @returns {void}: nothing, mutates the mapping passed in
- */
-export async function mapCoursePageToSchool(
-  mapping: { [key: string]: string },
-  school: string,
-  courseURL: string,
-) {
-  const response = await safeFetch(courseURL);
-  const $ = load(await response.text());
-  // get all the departments under this school
-  const courseBlocks: Element[] = [];
-  $("#courseinventorycontainer > .courses").each((_, schoolDepartment: Element) => {
-    // if department is not empty (why tf is Chemical Engr and Materials Science empty)
-    const department: string = $(schoolDepartment).find("h3").text();
-    if (department != "") {
-      // extract the first department code
-      courseBlocks.push($(schoolDepartment).find("div")[0]);
-    }
-  });
-  const courseBlockPromises: Promise<string[]>[] = courseBlocks.map((x) =>
-    getCourseInfo(x, courseURL),
-  );
-  const courseBlockResults: string[][] = await Promise.all(courseBlockPromises);
-  courseBlockResults.forEach((courseInfo: string[]) => {
-    // get the course ID from the returned array from getCourseInfo
-    const courseID: string = courseInfo[0];
-    const id_dept: string = courseID.split(" ").slice(0, -1).join(" ");
-    // set the mapping
-    if (debug) {
-      console.log(`\t${id_dept}`);
-    }
-    mapping[id_dept] = school;
-  });
-}
-
-/**
- * @returns {Promise<string[]>}: a list of class URLS from AllCourses
- * Example: ["http://catalogue.uci.edu/allcourses/ac_eng/","http://catalogue.uci.edu/allcourses/afam/",...]
- */
-export async function getAllCourseURLS(): Promise<string[]> {
-  console.log("Collecting Course URLs from {" + URL_TO_ALL_COURSES + "}...");
-  // store all URLS in list
-  const courseURLS: string[] = [];
-  // access the course website to parse info
-  const response = await safeFetch(URL_TO_ALL_COURSES);
-  const $ = load(await response.text());
-  // get all the unordered lists
-  $("#atozindex > ul").each((_, letterLists) => {
-    // get all the list items
-    $(letterLists)
+async function getSchoolNameAndDepartments(schoolURL: string): Promise<[string, string][]> {
+  const res = await fetch(schoolURL);
+  await sleep(1000);
+  const $ = load(await res.text());
+  const deptLinks = $(".levelone");
+  const deptURLList: string[] = [];
+  if (normalized($(deptLinks).text()) !== "") {
+    $(deptLinks)
       .find("li")
-      .each((_, letterList) => {
-        // prepend base url to relative path
-        courseURLS.push(CATALOGUE_BASE_URL + $(letterList).find("a").attr("href"));
-      });
-  });
-  console.log("Successfully found " + courseURLS.length + " course URLs!");
-  return courseURLS;
-}
-
-/**
- * @param {string} courseURL: URL to a Courses page
- * @param {{ [key: string]: Object }} json_data: maps class to its json data ({STATS 280: {metadata: {...}, data: {...}, node: Node}})
- * @param {{ [key: string]: string }} departmentToSchoolMapping: maps department code to its school {I&C SCI: Donald Bren School of Information and Computer Sciences}
- * @returns {void}: nothing, mutates the json_data passed in
- */
-export async function getAllCourses(
-  courseURL: string,
-  json_data: { [key: string]: Record<string, unknown> },
-  departmentToSchoolMapping: { [key: string]: string },
-) {
-  const response = await safeFetch(courseURL);
-
-  const responseText = await response.text();
-  const $ = load(responseText);
-  // department name
-  let department: string = normalizeString($("#contentarea > h1").text());
-  if (debug) {
-    console.log("Department: " + department);
-  }
-  // strip off department id
-  department = department.slice(0, department.indexOf("(")).trim();
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore
-  $("#courseinventorycontainer > .courses").each(async (_, course: Element) => {
-    // if page is empty for some reason??? (http://catalogue.uci.edu/allcourses/cbems/)
-    if ($(course).find("h3").text().length == 0) {
-      return;
-    }
-    //const courseBlocks: Element[] = [];
-    $(course)
-      .find("div > .courseblock")
-      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-      // @ts-ignore
-      .each(async (_, courseBlock: Element) => {
-        // course identification
-        //courseBlocks.push(courseBlock);
-        let courseInfo;
-        // wrap in try catch, and if fails sleep for a second and try again
-        while (courseInfo == null) {
-          try {
-            await getCourseInfo(courseBlock, courseURL).then((response) => {
-              courseInfo = response;
-            });
-          } catch (error) {
-            await sleep(1000);
-          }
-        }
-        let courseID: string = courseInfo[0];
-        const courseName: string = courseInfo[1];
-        const courseUnits: string = courseInfo[2];
-        if (debug) {
-          console.log("\t", courseID, courseName, courseUnits);
-        }
-        // get course body (0:Course Description, 1:Prerequisite)
-        const courseBody = $(courseBlock).find("div").find("p");
-        const courseDescription: string = normalizeString($(courseBody[0]).text());
-        // parse units
-        let unit_range: string[];
-        if (courseUnits.includes("-")) {
-          unit_range = courseUnits.split(" ")[0].split("-");
-        } else {
-          unit_range = [courseUnits.split(" ")[0], courseUnits.split(" ")[0]];
-        }
-        // parse course number and department
-        const splitID: string[] = courseID.split(" ");
-        const id_department: string = splitID.slice(0, -1).join(" ");
-        const id_number: string = splitID[splitID.length - 1];
-        // error detection
-        if (!(id_department in departmentToSchoolMapping)) {
-          noSchoolDepartment.add(id_department);
-        }
-        // store class data into object
-        const classInforamtion = {
-          id: courseID.replace(" ", ""),
-          department: id_department,
-          number: id_number,
-          school:
-            id_department in departmentToSchoolMapping
-              ? departmentToSchoolMapping[id_department]
-              : "",
-          title: courseName,
-          course_level: determineCourseLevel(courseID),
-          //"department_alias": ALIASES[id_department] if id_department in ALIASES else [],"department_alias": ALIASES[id_department] if id_department in ALIASES else [],
-          units: unit_range.map((x) => parseFloat(x)),
-          description: courseDescription,
-          department_name: department,
-          professor_history: [],
-          prerequisite_tree: "",
-          prerequisite_list: [],
-          prerequisite_text: "",
-          prerequisite_for: [],
-          repeatability: "",
-          grading_option: "",
-          concurrent: "",
-          same_as: "",
-          restriction: "",
-          overlap: "",
-          corequisite: "",
-          ge_list: [],
-          ge_text: "",
-          terms: [],
-        };
-        // key with no spaces
-        courseID = courseID.replace(" ", "");
-        // stores dictionaries in json_data to add dependencies later
-        json_data[courseID] = classInforamtion;
-        // populates the dic with simple information
-        await parseCourseBody(courseBody, responseText, classInforamtion);
-      });
-  });
-}
-
-/**
- * @param {Element} courseBlock: a courseblock tag
- * @param {string} courseURL: URL to a catalogue department page
- * @returns {Promise<string[]>}: array[courseID, courseName, courseUnits]
- * Example: ['I&C SCI 6B', "Boolean Logic and Discrete Structures", "4 Units."]
- */
-export async function getCourseInfo(courseBlock: Element, courseURL: string): Promise<string[]> {
-  const response = await safeFetch(courseURL);
-  const $ = load(await response.text());
-  // Regex filed into three categories (id, name, units) each representing an element in the return array
-  const courseInfoPatternWithUnits =
-    /(?<id>.*[0-9]+[^.]*)\. +(?<name>.*)\. +(?<units>\d*\.?\d.*Units?)\./;
-  const courseInfoPatternWithoutUnits = /(?<id>.*[0-9]+[^.]*)\. (?<name>.*)\./;
-  const courseBlockString: string = normalizeString($(courseBlock).find("p").text().trim());
-  if (courseBlockString.includes("Unit")) {
-    const res = courseBlockString.match(courseInfoPatternWithUnits);
-    if (res !== null && res.groups) {
-      return [res.groups.id.trim(), res.groups.name.trim(), res.groups.units.trim()];
-    } else {
-      throw new Error("Error: res object is either empty or does not contain the groups property");
-    }
-  } else {
-    const res = courseBlockString.match(courseInfoPatternWithoutUnits);
-    if (res !== null && res.groups) {
-      return [res.groups.id.trim(), res.groups.name.trim(), "0 Units."];
-    } else {
-      throw new Error("Error: res object is either empty or does not contain the groups property");
-    }
-  }
-}
-
-/**
- * @param {string} id_number: the number part of a course id (122A)
- * @returns {string}: one of the three strings: (Lower Division (1-99), Upper Division (100-199), Graduate/Professional Only (200+))
- * Example: "I&C Sci 33" => "(Lower Division (1-99)", "COMPSCI 143A" => "Upper Division (100-199)", "CompSci 206" => "Graduate/Professional Only (200+)"
- */
-export function determineCourseLevel(id_number: string) {
-  // extract only the number 122A => 122
-  const courseString: string = id_number.replace(/\D/g, "");
-  if (courseString === "") {
-    // if courseString is empty, then id_number did not contain any numbers
-    console.log("COURSE LEVEL ERROR, NO ID IN STRING", id_number);
-    return "";
-  }
-  const courseNumber = Number(courseString);
-  if (courseNumber < 100) {
-    return "Lower Division (1-99)";
-  } else if (courseNumber < 200) {
-    return "Upper Division (100-199)";
-  } else if (courseNumber >= 200) {
-    return "Graduate/Professional Only (200+)";
-  } else {
-    console.log("COURSE LEVEL ERROR", courseNumber);
-    return "";
-  }
-}
-
-/**
- * @param {Element} courseBody: a collection of ptags within a courseblock
- * @param {string} responseText: response text
- * @param {Record<string, unknown>} classInfo: a map to store parsed information
- * @returns {void}: nothing, mutates the mapping passed in
- */
-export async function parseCourseBody(
-  courseBody: Cheerio<Element>,
-  responseText: string,
-  classInfo: Record<string, unknown>,
-) {
-  const $ = load(responseText);
-  // iterate through each ptag for the course
-  $(courseBody).each((_, ptag) => {
-    let pTagText = normalizeString($(ptag).text().trim());
-    // if starts with ( and has I or V in it, probably a GE tag
-    if (
-      pTagText.length > 0 &&
-      pTagText[0] === "(" &&
-      (pTagText.includes("I") || pTagText.includes("V"))
-    ) {
-      // try to parse GE types
-      const ges = /(?<type>[IV]+)\.?(?<subtype>[abAB]?)/g;
-      if (debug) {
-        console.log("\t\tGE:");
-      }
-      let match: RegExpExecArray | null;
-      while ((match = ges.exec(pTagText)) !== null) {
-        // normalize IA and VA to Ia and Va
-        const extractedGE: string =
-          (match.groups?.type ?? "") + match.groups?.subtype.toLowerCase();
-        // normalize in full string also
-        pTagText = pTagText.replace(
-          (match.groups?.type ?? "") + match.groups?.subtype,
-          extractedGE,
+      .each((_, departmentLink) => {
+        deptURLList.push(
+          `${CATALOGUE_BASE_URL}${normalized(
+            $(departmentLink).find("a").attr("href"),
+          )}#courseinventory`,
         );
-        // add to ge_types
-        if (classInfo["ge_list"] instanceof Array) {
-          classInfo["ge_list"].push(GE_DICTIONARY[extractedGE]);
-        }
-        if (debug) {
-          console.log(`${GE_DICTIONARY[extractedGE]} `);
-        }
-      }
-      if (debug) {
-        console.log();
-      }
-      // store the full string
-      classInfo["ge_text"] = pTagText;
-    }
-    // try to match keywords like "grading option", "repeatability"
-    for (const keyWord of Object.keys(classInfo)) {
-      const possibleMatch: RegExpExecArray | null = RegExp(
-        `^${keyWord.replace("_", " ")}s?\\s?(with\\s)?(:\\s)?(?<value>.*)`,
-        "i",
-      ).exec(pTagText);
-      if (possibleMatch && (classInfo[keyWord] as []).length === 0) {
-        classInfo[keyWord] = possibleMatch.groups?.value;
-        break;
-      }
-    }
-  });
+      });
+  }
+  const departments = new Set(await getDepartments(schoolURL));
+  for (const url of deptURLList) (await getDepartments(url)).forEach((x) => departments.add(x));
+  const schoolName = normalized($("#contentarea > h1").text());
+  console.log(`Found ${departments.size} departments for ${schoolName}`);
+  return [...departments].map((x) => [x, schoolName]);
 }
 
-async function parseCourses(
-  departmentToSchoolMapping: { [key: string]: string },
-  JSON_data: Record<string, Record<string, unknown>>,
-) {
-  const allCourseURLS = await getAllCourseURLS();
-  console.log("\nParsing Each Course URL...");
-  // populate json_data
-  for (const classURL of allCourseURLS) {
-    await getAllCourses(classURL, JSON_data, departmentToSchoolMapping);
-  }
+async function getSchoolToDepartmentMapping() {
+  console.log("Scraping all schools");
+  const res = await fetch(URL_TO_ALL_SCHOOLS);
+  await sleep(1000);
+  const $ = load(await res.text());
+  const schoolURLs: string[] = [];
+  $("#textcontainer > h4").each((_, school) => {
+    schoolURLs.push(
+      `${CATALOGUE_BASE_URL}${normalized($(school).find("a").attr("href"))}#courseinventory`,
+    );
+  });
+  const schoolDataEntries: [string, string][] = [];
+  for (const url of schoolURLs) schoolDataEntries.push(...(await getSchoolNameAndDepartments(url)));
+  console.log(`Found ${schoolDataEntries.length} schools`);
+  return new Map(schoolDataEntries);
 }
-// whether to print out info
-const debug = false;
-// debugging information
-const noSchoolDepartment = new Set();
+
+async function getDepartmentToURLMapping() {
+  console.log("Scraping all courses");
+  const res = await fetch(URL_TO_ALL_COURSES);
+  await sleep(1000);
+  const $ = load(await res.text());
+  const deptURLEntries: [string, string][] = [];
+  $("#atozindex > ul > li > a").each((_, dept) => {
+    deptURLEntries.push([
+      normalized($(dept).text()).split("(")[1].slice(0, -1),
+      `${CATALOGUE_BASE_URL}${normalized($(dept).attr("href"))}`,
+    ]);
+  });
+  console.log(`Found ${deptURLEntries.length} departments`);
+  return new Map(deptURLEntries);
+}
+
+async function getCoursesOfDepartment(deptURL: string) {
+  console.log(`Scraping ${deptURL}`);
+  const res = await fetch(deptURL);
+  await sleep(1000);
+  const $ = load(await res.text());
+  const courses: [string, Course][] = [];
+  const deptName = normalized($(".page-title").text()).split("(")[0].trim();
+  $("#courseinventorycontainer > .courses > .courseblock").each((_, courseBlock) => {
+    const header: string[] = normalized($(courseBlock).find(".courseblocktitle").text())
+      .split("  ")
+      .map((x) => (x[x.length - 1] === "." ? x.slice(0, -1).trim() : x))
+      .filter((x) => x);
+    const courseId = header[0];
+    const courseName = header.length === 2 ? header[1] : header.slice(1, -1).join(" ");
+    const units =
+      header.length === 2
+        ? ([0, 0] as [number, number])
+        : transformUnitCount((header[header.length - 1]?.split(" ") ?? ["0"])[0]);
+    const courseBody: string[] = [];
+    $(courseBlock)
+      .find("> div > p")
+      .each((_, el) => {
+        const text = normalized($(el).text())
+          .split("\n")
+          .filter((x) => x);
+        if (text) courseBody.push(...text);
+      });
+    const courseIdMin = courseId.replace(/ /g, "");
+    const courseIdSplit = courseId.split(" ");
+    const courseNumber = courseIdSplit[courseIdSplit.length - 1];
+    courses.push([
+      courseIdMin,
+      {
+        department: courseIdSplit.slice(0, -1).join(" "),
+        number: courseNumber,
+        school: "",
+        title: courseName,
+        course_level: toCourseLevel(courseNumber),
+        units,
+        description: courseBody[0],
+        department_name: deptName,
+        professor_history: [],
+        prerequisite_tree: "",
+        prerequisite_list: [],
+        prerequisite_text: "",
+        prerequisite_for: [],
+        repeatability: getAttribute(courseBody, "Repeatability: "),
+        grading_option: getAttribute(courseBody, "Grading Option: "),
+        concurrent: getAttribute(courseBody, "Concurrent with "),
+        same_as: getAttribute(courseBody, "Same as "),
+        restriction: getAttribute(courseBody, "Restriction: "),
+        overlap: getAttribute(courseBody, "Overlaps with "),
+        corequisite: getAttribute(courseBody, "Corequisite: "),
+        ge_list: [
+          ...(courseBody.filter((x) => x.match(/^\({1,2}[IV]/))[0] ?? "").matchAll(GE_REGEXP),
+        ]
+          .map((x) => x.filter((y) => y)[1])
+          .map((x) => GE_DICTIONARY[x]),
+        ge_text: courseBody.filter((x) => x.match(/^\({1,2}[IV]/))[0] ?? "",
+        terms: [],
+      },
+    ]);
+  });
+  console.log(`Found ${courses.length} courses for ${deptName}`);
+  return new Map(courses);
+}
 
 export async function getCourses() {
-  if (process.env["DEBUG"] && existsSync(join(__dirname, "courses.json")))
-    return JSON.parse(readFileSync(join(__dirname, "courses.json"), { encoding: "utf8" }));
-  const json_data = {};
-  const departmentToSchoolMapping = await getDepartmentToSchoolMapping();
-  await parseCourses(departmentToSchoolMapping, json_data);
-  if (noSchoolDepartment.size > 0) throw new Error();
-  return Object.fromEntries(
-    Object.entries(json_data).map((x) => {
-      x[0] = x[0].replace(" ", "");
-      delete (x[1] as { id?: string }).id;
-      (x[1] as { title: string }).title = (x[1] as { title: string }).title
-        .split(".  ")[0]
-        .replace("  ", " ");
-      return x;
-    }),
-  );
+  const schoolMapping = await getSchoolToDepartmentMapping();
+  const deptMapping = await getDepartmentToURLMapping();
+  const missingDepartments = (await import("./missing-departments")).default;
+  console.log(`Read ${missingDepartments.size} missing departments from missing-departments.ts`);
+  missingDepartments.forEach((v, k) => schoolMapping.set(k, v));
+  const deptsWithoutSchools = new Set([...deptMapping.keys()].filter((x) => !schoolMapping.has(x)));
+  const allCourses = new Map<string, Course>();
+  for (const [dept, url] of deptMapping) {
+    const courses = await getCoursesOfDepartment(url);
+    if (!courses.size) deptsWithoutSchools.delete(dept);
+    courses.forEach((v, k) =>
+      allCourses.set(k, { ...v, school: schoolMapping.get(v.department) ?? "" }),
+    );
+  }
+  if (deptsWithoutSchools.size > 0) {
+    throw new Error(
+      `The departments ${[
+        ...deptsWithoutSchools,
+      ]} do not have a school associated with them. They must be hardcoded in 'missing-departments.ts'.`,
+    );
+  }
+  return Object.fromEntries(allCourses.entries());
 }
 
 async function main() {
-  try {
-    const data = await getCourses();
-    fs.writeFileSync(join("./courses.json"), JSON.stringify(data));
-  } catch {
-    console.log(
-      "FAILED!",
-      noSchoolDepartment,
-      "DO NOT HAVE A SCHOOL!! MUST HARD CODE IT IN missingDepartments.json",
-    );
-  }
+  const data = await getCourses();
+  await writeFile("./courses.json", JSON.stringify(data));
 }
 
 main();
