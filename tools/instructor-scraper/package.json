@@ -1,12 +1,9 @@
 {
   "name": "instructor-scraper",
-  "version": "0.1.0",
-  "description": "",
-  "license": "MIT",
-  "author": "",
+  "version": "0.0.0",
+  "private": true,
   "type": "module",
   "main": "index.ts",
-  "types": "index.ts",
   "dependencies": {
     "@types/he": "1.2.0",
     "cheerio": "1.0.0-rc.12",
