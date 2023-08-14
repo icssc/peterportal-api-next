@@ -4,75 +4,9 @@ import { fileURLToPath } from "node:url";
 
 import fetch from "cross-fetch";
 
+import type { Block, DWAuditResponse, DWMappingResponse } from "./types";
+
 const __dirname = dirname(fileURLToPath(import.meta.url));
-
-/**
- * The base type for all `Rule` objects.
- */
-type RuleBase = { label: string };
-/**
- * A group of `numberOfRules` rules,
- * of which `numberOfGroups` must be satisfied
- * in order to fulfill this rule.
- */
-type RuleGroup = {
-  ruleType: "Group";
-  requirement: { numberOfGroups: string; numberOfRules: string };
-  ruleArray: Rule[];
-};
-/**
- * An object that represents a (range of) course(s).
- */
-type Course = { discipline: string; number: string; numberEnd?: string };
-/**
- * A rule that is fulfilled by taking `creditsBegin` units
- * and/or `classesBegin` courses from the `courseArray`.
- */
-type RuleCourse = {
-  ruleType: "Course";
-  requirement: { creditsBegin?: string; classesBegin?: string; courseArray: Course[] };
-};
-/**
- * A rule that has different requirements depending on some boolean condition.
- * This seems to be used to denote all specializations that can be applied to a major.
- */
-type RuleIfStmt = {
-  ruleType: "IfStmt";
-  requirement: { ifPart: { ruleArray: Rule[] }; elsePart?: { ruleArray: Rule[] } };
-};
-/**
- * A rule that refers to another block (typically a specialization).
- */
-type RuleBlock = {
-  ruleType: "Block";
-  requirement: { numBlocks: string; type: string; value: string };
-};
-/**
- * A rule that is not a course.
- * This seems to be only used by Engineering majors
- * that have a design unit requirement.
- */
-type RuleNoncourse = {
-  ruleType: "Noncourse";
-  requirement: { numNoncourses: string; code: string };
-};
-type Rule = RuleBase & (RuleGroup | RuleCourse | RuleIfStmt | RuleBlock | RuleNoncourse);
-type Block = {
-  requirementType: string;
-  requirementValue: string;
-  title: string;
-  ruleArray: Rule[];
-};
-type DWAuditOKResponse = { blockArray: Block[] };
-type DWAuditErrorResponse = { error: never };
-/**
- * The type of the DegreeWorks audit response.
- */
-type DWAuditResponse = DWAuditOKResponse | DWAuditErrorResponse;
-
-type DWMappingResponse<T extends string> = {
-  _embedded: { [P in T]: { key: string; description: string }[] };
-};
 
 const DW_API_URL = "https://reg.uci.edu/RespDashboard/api";
 const AUDIT_URL = `${DW_API_URL}/audit`;
@@ -82,6 +16,8 @@ const HEADERS = {
   Origin: "https://reg.uci.edu",
 };
 const DELAY = 1000;
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 async function getMajorAudit(
   catalogYear: string,
@@ -171,8 +107,6 @@ async function getMapping<T extends string>(path: T): Promise<Map<string, string
   return new Map(json._embedded[path].map((x) => [x.key, x.description]));
 }
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
 async function main() {
   if (!process.env["STUDENT_ID"]) throw new Error("Student ID not set.");
   if (!process.env["X_AUTH_TOKEN"]) throw new Error("Auth cookie not set.");
@@ -200,10 +134,10 @@ async function main() {
   const minorPrograms = await getMapping("minors");
   console.log(`Fetched ${minorPrograms.size} minor programs`);
 
-  // const undergraduateDegrees = new Map(
-  //   [...degrees.entries()].filter(([k, _]) => k.startsWith("B")),
-  // );
-  // const graduateDegrees = new Map([...degrees.entries()].filter(([k, _]) => !k.startsWith("B")));
+  const undergraduateDegrees = new Set<string>();
+  const graduateDegrees = new Set<string>();
+  for (const degree of degrees.keys())
+    (degree.startsWith("B") ? undergraduateDegrees : graduateDegrees).add(degree);
 
   const minorProgramRequirements = new Map<string, Block>();
   console.log("Scraping minor program requirements");
@@ -214,7 +148,7 @@ async function main() {
       continue;
     }
     console.log(`Requirements block for "${audit.title}" found for code ${minorCode}`);
-    minorProgramRequirements.set(minorCode, {
+    minorProgramRequirements.set(`U-MINOR-${minorCode}`, {
       requirementType: audit.requirementType,
       requirementValue: audit.requirementValue,
       title: audit.title,
