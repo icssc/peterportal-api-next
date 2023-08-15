@@ -45,7 +45,8 @@ jobs:
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        # NODE_ENV needs to be set to not production so pnpm will install devDependencies!!!
+        run: NODE_ENV=development pnpm install --frozen-lockfile
 
       - name: Build AntStack
         run: pnpm build --filter="ant-stack"
@@ -83,7 +84,8 @@ jobs:
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        # NODE_ENV needs to be set to not production so pnpm will install devDependencies!!!
+        run: NODE_ENV=development pnpm install --frozen-lockfile
 
       - name: Build documentation
         run: pnpm build --filter="docs-cdk"
