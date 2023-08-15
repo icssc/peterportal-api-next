@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
 ---
-name: Clean up staging environments for pull request
+name: Destroy CloudFormation stacks and staging environment for pull request
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
       - labeled
 
 concurrency:
-  group: cleanup-${{ github.head_ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
@@ -31,18 +31,18 @@ env:
   PR_NUM: ${{ github.event.pull_request.number }}
 
 jobs:
-  cleanup-api:
-    name: Clean up API staging environment for pull request
+  destroy-api:
+    name: Destroy API CloudFormation stack and staging environment for pull request
 
     if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
 
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out codebase
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup NodeJS and pnpm
+      - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
@@ -61,10 +61,10 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Destroy API stack
+      - name: Destroy API CloudFormation stack
         run: pnpm destroy --filter="ant-stack"
 
-      - name: Set API staging environment as inactive
+      - name: Set API staging environment to inactive
         uses: strumwolf/delete-deployment-environment@v2.3.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -72,17 +72,17 @@ jobs:
           onlyDeactivateDeployments: true
 
   cleanup-documentation:
-    name: Clean up documentation staging environment for pull request
+    name: Destroy documentation CloudFormation stack and staging environment for pull request
 
     if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
 
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out codebase
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup NodeJS and pnpm
+      - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
@@ -98,10 +98,10 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Destroy documentation stack
+      - name: Destroy documentation CloudFormation stack
         run: pnpm destroy --filter="docs-cdk"
 
-      - name: Set environment as inactive
+      - name: Set documentation staging environment as inactive
         uses: strumwolf/delete-deployment-environment@v2.3.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}

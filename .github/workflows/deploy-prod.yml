@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
 ---
-name: Deploy API and documentation to production environment
+name: Deploy CloudFormation stacks and production environment
 
 on:
   push:
@@ -14,7 +14,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: api-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -29,7 +29,7 @@ env:
 
 jobs:
   deploy-api:
-    name: Deploy API to production environment
+    name: Deploy API CloudFormation stack and production environment
 
     runs-on: ubuntu-latest
 
@@ -38,14 +38,14 @@ jobs:
       url: https://api-next.peterportal.org
 
     steps:
-      - name: Check out codebase
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup NodeJS and pnpm
+      - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
-        # NODE_ENV needs to be set to not production so pnpm will install devDependencies!!!
+        # Ensure NODE_ENV != production so pnpm will install devDependencies!!!
         run: NODE_ENV=development pnpm install --frozen-lockfile
 
       - name: Build AntStack
@@ -64,11 +64,11 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Deploy API stack
+      - name: Deploy API CloudFormation stack
         run: pnpm run deploy --filter="ant-stack"
 
   deploy-documentation:
-    name: Deploy documentation to production environment
+    name: Deploy documentation CloudFormation stack and production environment
 
     runs-on: ubuntu-latest
 
@@ -77,17 +77,17 @@ jobs:
       url: https://docs.api-next.peterportal.org
 
     steps:
-      - name: Check out codebase
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup NodeJS and pnpm
+      - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
-        # NODE_ENV needs to be set to not production so pnpm will install devDependencies!!!
+        # Ensure NODE_ENV != production so pnpm will install devDependencies!!!
         run: NODE_ENV=development pnpm install --frozen-lockfile
 
-      - name: Build documentation
+      - name: Build documentation CDK
         run: pnpm build --filter="docs-cdk"
 
       - name: Wait for documentation CloudFormation stack to idle
@@ -97,5 +97,5 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Deploy documentation stack
+      - name: Deploy documentation CloudFormation stack
         run: pnpm run deploy --filter="docs-cdk"
