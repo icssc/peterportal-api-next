@@ -54,6 +54,10 @@ jobs:
       - name: Link AntStack
         run: pnpm link ant-stack
 
+      # Do not remove this step, as the API assets are required for `cdk destroy` to work properly.
+      - name: Build API assets
+        run: pnpm build --filter="api-*"
+
       - name: Wait for API CloudFormation stack to idle
         uses: ./.github/actions/wait-for-cloudformation-stack-idle
         with:
