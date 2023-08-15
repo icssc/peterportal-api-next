@@ -94,6 +94,26 @@ export const prereqTreeToList = (tree: PrerequisiteTree): string[] => {
   return [];
 };
 
+const createCoursePrereqs = (
+  courseId: string,
+  courseTitle: string,
+  prereqInfo: Record<string, PrerequisiteTree>,
+  prereqLists: Record<string, string[]>,
+) =>
+  courseTitle.includes("Special Topics")
+    ? {
+        prerequisiteTree: {},
+        prerequisiteText: "Prerequisites vary.",
+        prerequisiteList: [],
+        prerequisiteFor: [],
+      }
+    : {
+        prerequisiteTree: prereqInfo[courseId] ?? {},
+        prerequisiteText: prereqTreeToString(prereqInfo[courseId] ?? {}).slice(1, -1),
+        prerequisiteList: prereqLists[courseId] ?? [],
+        prerequisiteFor: Object.keys(prereqLists).filter((x) => prereqLists[x].includes(courseId)),
+      };
+
 export const createCourses =
   (
     instructorInfo: Record<string, Instructor>,
@@ -139,10 +159,7 @@ export const createCourses =
       instructorHistory: Object.values(instructorInfo)
         .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
         .map((x) => x.ucinetid),
-      prerequisiteTree: prereqInfo[courseId] ?? {},
-      prerequisiteText: prereqTreeToString(prereqInfo[courseId] ?? {}).slice(1, -1),
-      prerequisiteList: prereqLists[courseId] ?? [],
-      prerequisiteFor: Object.keys(prereqLists).filter((x) => prereqLists[x].includes(courseId)),
+      ...createCoursePrereqs(id, title, prereqInfo, prereqLists),
       repeatability,
       gradingOption: grading_option,
       concurrent,
