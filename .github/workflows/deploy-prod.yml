@@ -14,7 +14,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: api-${{ github.ref }}
+  group: deploy-prod-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -38,14 +38,14 @@ jobs:
       url: https://api-next.peterportal.org
 
     steps:
-      - name: Check out codebase
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup NodeJS and pnpm
+      - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
-        # NODE_ENV needs to be set to not production so pnpm will install devDependencies!!!
+        # Ensure NODE_ENV != production so pnpm will install devDependencies!!!
         run: NODE_ENV=development pnpm install --frozen-lockfile
 
       - name: Build AntStack
@@ -77,14 +77,14 @@ jobs:
       url: https://docs.api-next.peterportal.org
 
     steps:
-      - name: Check out codebase
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup NodeJS and pnpm
+      - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
-        # NODE_ENV needs to be set to not production so pnpm will install devDependencies!!!
+        # Ensure NODE_ENV != production so pnpm will install devDependencies!!!
         run: NODE_ENV=development pnpm install --frozen-lockfile
 
       - name: Build documentation

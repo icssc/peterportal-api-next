@@ -16,7 +16,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: staging-${{ github.head_ref }}
+  group: deploy-staging-${{ github.head_ref }}
   cancel-in-progress: true
 
 env:
@@ -43,10 +43,10 @@ jobs:
       url: https://staging-${{ github.event.pull_request.number }}.api-next.peterportal.org
 
     steps:
-      - name: Check out codebase
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup NodeJS and pnpm
+      - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
@@ -83,10 +83,10 @@ jobs:
       url: https://staging-${{ github.event.pull_request.number }}-docs.api-next.peterportal.org
 
     steps:
-      - name: Check out codebase
+      - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup NodeJS and pnpm
+      - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
