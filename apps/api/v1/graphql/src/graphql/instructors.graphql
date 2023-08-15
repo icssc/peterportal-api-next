@@ -27,6 +27,23 @@ type Instructor {
 extend type Query {
   "Get the instructor with the corresponding UCInetID."
   instructor(ucinetid: String!): Instructor!
+  "Get instructors that match the given constraints."
+  instructors(
+    "A substring of the instructors' full names."
+    nameContains: String
+    "The shortened/WebSoc name of the instructor (e.g., `SHINDLER, M.`)."
+    shortenedName: String
+    "A substring of the instructors' title."
+    titleContains: String
+    "A substring of the instructors' department."
+    departmentContains: String
+    "A comma-separated list of all schools that the instructors may be affiliated with."
+    schoolsContains: String
+    "A comma-separated list of all departments that the instructors may be affiliated with."
+    relatedDepartmentsContains: String
+    "A comma-separated list of all terms in which the instructors may have taught."
+    taughtInTerms: String
+  ): [Instructor!]!
   "Get all instructors."
   allInstructors: [Instructor!]!
 }

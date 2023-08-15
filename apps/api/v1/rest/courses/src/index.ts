@@ -1,12 +1,14 @@
 import { PrismaClient } from "@libs/db";
 import { createErrorResult, createOKResult, type InternalHandler } from "ant-stack";
+import { ZodError } from "zod";
 
-import { normalizeCourse } from "./lib";
+import { constructPrismaQuery, normalizeCourse } from "./lib";
+import { QuerySchema } from "./schema";
 
 let prisma: PrismaClient;
 
 export const GET: InternalHandler = async (request) => {
-  const { headers, params, requestId } = request;
+  const { headers, params, query, requestId } = request;
 
   prisma ??= new PrismaClient();
 
@@ -38,7 +40,19 @@ export const GET: InternalHandler = async (request) => {
       return createErrorResult(404, `Course ${params.id} not found`, requestId);
     }
   } else {
-    // TODO implement arbitrary filtering
-    return createErrorResult(400, "Course number not provided", requestId);
+    try {
+      const parsedQuery = QuerySchema.parse(query);
+      // The query object being empty shouldn't return all courses, since there's /courses/all for that.
+      if (!Object.keys(parsedQuery).length)
+        return createErrorResult(400, "Course number not provided", requestId);
+      const courses = await prisma.course.findMany({ where: constructPrismaQuery(parsedQuery) });
+      return createOKResult(courses.map(normalizeCourse), headers, requestId);
+    } catch (error) {
+      if (error instanceof ZodError) {
+        const messages = error.issues.map((issue) => issue.message);
+        return createErrorResult(400, messages.join("; "), requestId);
+      }
+      return createErrorResult(400, error, requestId);
+    }
   }
 };
