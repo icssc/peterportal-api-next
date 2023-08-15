@@ -8,8 +8,8 @@ export const QuerySchema = z.object({
   courseNumeric: z.coerce.number().int().optional(),
   titleContains: z.string().optional(),
   courseLevel: z.enum(divisionCodes).optional(),
-  minUnits: z.coerce.number().int().optional(),
-  maxUnits: z.coerce.number().int().optional(),
+  minUnits: z.coerce.number().optional(),
+  maxUnits: z.coerce.number().optional(),
   descriptionContains: z.string().optional(),
   taughtByInstructors: z
     .string()
