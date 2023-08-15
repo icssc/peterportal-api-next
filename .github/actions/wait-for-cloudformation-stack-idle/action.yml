@@ -6,7 +6,7 @@ description: Wait until the specified CloudFormation stack is idle.
 
 inputs:
   stack_name:
-    description: The name of the stack to await.
+    description: The name of the CloudFormation stack to await.
     required: true
 
   aws_access_key_id:
@@ -19,7 +19,7 @@ inputs:
 
 outputs:
   stack-exists:
-    description: Whether the stack exists or not.
+    description: Whether the CloudFormation stack exists.
     value: ${{ steps.check-stack-exists.outcome == 'success' && !steps.wait-for-stack-delete.outcome == 'success'}}
 
 runs:
@@ -34,7 +34,7 @@ runs:
         aws-region: us-east-1
         role-duration-seconds: 2400
 
-    - name: Check if stack exists
+    - name: Check if CloudFormation stack exists
       id: check-stack-exists
       continue-on-error: true
       shell: bash
@@ -42,19 +42,19 @@ runs:
         STACK_STATUS=$(aws cloudformation describe-stacks --stack-name ${{inputs.stack_name }} --query "Stacks[0].StackStatus" --output text)
         echo "STACK_STATUS=$STACK_STATUS" >> $GITHUB_ENV
 
-    - name: Wait for stack to finish creating
+    - name: Wait for CloudFormation stack to finish creating
       if: steps.check-stack-exists.outcome == 'success' && env.STACK_STATUS == 'CREATE_IN_PROGRESS'
       continue-on-error: true
       shell: bash
       run: aws cloudformation wait stack-create-complete --stack-name ${{ inputs.stack_name }}
 
-    - name: Wait for stack to finish updating
+    - name: Wait for CloudFormation stack to finish updating
       if: steps.check-stack-exists.outcome == 'success' && env.STACK_STATUS == 'UPDATE_IN_PROGRESS'
       continue-on-error: true
       shell: bash
       run: aws cloudformation wait stack-update-complete --stack-name ${{ inputs.stack_name }}
 
-    - name: Wait for stack to finish deleting
+    - name: Wait for CloudFormation stack to finish deleting
       id: wait-for-stack-delete
       if: steps.check-stack-exists.outcome == 'success' && env.STACK_STATUS == 'DELETE_IN_PROGRESS'
       continue-on-error: true
