@@ -1,13 +1,13 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    ":disableDependencyDashboard",
-    ":disableRateLimiting",
     "config:best-practices",
     "group:all",
     "helpers:disableTypesNodeMajor",
     "npm:unpublishSafe",
-    "schedule:monthly"
+    "schedule:monthly",
+    ":disableDependencyDashboard",
+    ":disableRateLimiting"
   ],
   "commitMessageAction": ":link: Update",
   "commitMessageTopic": "{{depName}}",
