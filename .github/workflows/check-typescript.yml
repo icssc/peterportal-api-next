@@ -1,8 +1,10 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
 ---
 name: Check for TypeScript errors
+
 on:
   pull_request:
+
 jobs:
   check-typescript:
     runs-on: ubuntu-latest

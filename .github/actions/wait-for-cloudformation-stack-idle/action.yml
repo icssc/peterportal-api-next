@@ -1,25 +1,25 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-action.json
 ---
-name: Wait for Stack to Stabilize
+name: Wait for CloudFormation stack idle
 
-description: Wait for all in-progress operations in the stack to complete
+description: Wait until the specified CloudFormation stack is idle.
 
 inputs:
   stack_name:
-    description: The name of the stack to await
+    description: The name of the stack to await.
     required: true
 
   aws_access_key_id:
-    description: The AWS Access Key ID
+    description: The AWS Access Key ID.
     required: true
 
   aws_secret_access_key:
-    description: The AWS Secret Access Key
+    description: The AWS Secret Access Key.
     required: true
 
 outputs:
   stack-exists:
-    description: Whether the stack exists or not
+    description: Whether the stack exists or not.
     value: ${{ steps.check-stack-exists.outcome == 'success' && !steps.wait-for-stack-delete.outcome == 'success'}}
 
 runs:
