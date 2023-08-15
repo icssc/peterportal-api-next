@@ -127,6 +127,190 @@ type Course = {
 </TabItem>
 </Tabs>
 
+## Get courses that match the specified constraints
+
+### Query parameters
+
+#### `department` string
+
+The department the course(s) are in.
+
+#### `courseNumber` string
+
+The course number of the course(s).
+
+#### `courseNumeric` string
+
+The numeric part of the course number of the course(s).
+
+#### `titleContains` string
+
+A substring of the courses' titles.
+
+#### `courseLevel` ANY | LowerDiv | UpperDiv | Graduate
+
+The course level of the courses. Case-sensitive. Defaults to ANY.
+
+#### `minUnits` string
+
+The minimum number of units that can be earned by taking any of the courses.
+
+#### `maxUnits` string
+
+The maximum number of units that can be earned by taking any of the courses.
+
+#### `descriptionContains` string
+
+A substring of the courses' descriptions.
+
+#### `taughtByInstructors` string | string[]
+
+The UCInetID(s) of the instructor(s), one of whom have taught one of the courses.
+
+#### `geCategory` ANY | GE-1A | GE-1B | GE-2 | GE-3 | GE-4 | GE-5A | GE-5B | GE-6 | GE-7 | GE-8
+
+The GE category of the courses. Case-sensitive. Defaults to ANY.
+
+#### `taughtInTerms` string | string[]
+
+The term(s) in which the course(s) were taught.
+
+### Code sample
+
+<Tabs>
+<TabItem value="bash" label="cURL">
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/courses"
+```
+
+</TabItem>
+</Tabs>
+
+### Response
+
+<Tabs>
+<TabItem value="json" label="Example responses">
+
+<details>
+<summary>Get all courses belonging to a department</summary>
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/courses?department=COMPSCI"
+```
+
+```json
+[{ "id": "COMPSCI103", "...": "..." }, "..."]
+```
+
+</details>
+
+<details>
+<summary>Get all COMPSCI courses with the same numeric part</summary>
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/courses?department=COMPSCI&courseNumeric=122"
+```
+
+```json
+[
+  { "id": "COMPSCI122A", "...": "..." },
+  { "id": "COMPSCI122B", "...": "..." },
+  { "id": "COMPSCI122C", "...": "..." },
+  { "id": "COMPSCI122D", "...": "..." }
+]
+```
+
+</details>
+
+<details>
+<summary>Get all graduate COMPSCI courses</summary>
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/courses?department=COMPSCI&courseLevel=Graduate"
+```
+
+```json
+[{ "id": "COMPSCI200S", "...": "..." }, "..."]
+```
+
+</details>
+
+<details>
+<summary>Get all courses taught by mikes and/or eppstein</summary>
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/courses?taughtByInstructors=mikes,eppstein"
+```
+
+```json
+[
+  {
+    "id": "COMPSCI161",
+    "foo": "...",
+    "instructorHistory": ["...", "eppstein", "...", "mikes", "..."],
+    "bar": "..."
+  },
+  {
+    "id": "COMPSCI162",
+    "foo": "...",
+    "instructorHistory": ["...", "mikes", "..."],
+    "bar": "..."
+  },
+  {
+    "id": "COMPSCI163",
+    "foo": "...",
+    "instructorHistory": ["...", "eppstein", "..."],
+    "bar": "..."
+  }
+]
+```
+
+</details>
+
+<details>
+<summary>Get all GE-2 courses</summary>
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/courses?geCategory=GE-2"
+```
+
+```json
+[{ "id": "ARTHIS55", "...": "..." }, "..."]
+```
+
+</details>
+
+<details>
+<summary>Get all COMPSCI upper division courses that were taught in 2023 Spring or 2023 Winter</summary>
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/courses?department=COMPSCI&courseLevel=UpperDiv&taughtInTerms=2023%20Spring,2023%20Winter"
+```
+
+```json
+[
+  { "id": "COMPSCI111", "...": "...", "terms": ["2023 Spring", "..."] },
+  "...",
+  { "id": "COMPSCI116", "...": "...", "terms": ["2023 Winter", "..."] },
+  "...",
+  { "id": "COMPSCI121", "...": "...", "terms": ["2023 Spring", "2023 Winter", "..."] }
+]
+```
+
+</details>
+
+</TabItem>
+<TabItem value="ts" label="Payload schema">
+
+```typescript
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/courses.ts
+type CourseResponse = Course[];
+```
+
+</TabItem>
+</Tabs>
+
 ## Get all courses
 
 ### Code sample
