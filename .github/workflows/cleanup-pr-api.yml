@@ -32,7 +32,7 @@ env:
 
 jobs:
   setup:
-    name: Setup the repository and AWS environment
+    name: Setup the repository
 
     if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
 
@@ -76,7 +76,7 @@ jobs:
           environment: staging-${{ github.event.pull_request.number }}
           onlyDeactivateDeployments: true
 
-  cleanup-docs:
+  cleanup-documentation:
     name: Clean up documentation staging environment for pull request
 
     runs-on: ubuntu-latest

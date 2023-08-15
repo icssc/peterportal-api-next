@@ -32,7 +32,7 @@ env:
 
 jobs:
   setup:
-    name: Setup the repository and AWS environment
+    name: Setup the repository
 
     if: (!contains(github.event.pull_request.labels.*.name, 'no deploy'))
 
