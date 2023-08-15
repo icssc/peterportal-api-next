@@ -9,7 +9,7 @@ on:
       - labeled
 
 concurrency:
-  group: destroy-staging-${{ github.head_ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:

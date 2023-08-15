@@ -16,7 +16,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: deploy-staging-${{ github.head_ref }}
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
