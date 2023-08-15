@@ -70,7 +70,8 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.CourseWhereInpu
 
   if (parsedQuery.titleContains) AND.push({ title: { contains: parsedQuery.titleContains } });
 
-  if (parsedQuery.courseLevel) AND.push({ courseLevel: parsedQuery.courseLevel });
+  if (parsedQuery.courseLevel && parsedQuery.courseLevel !== "ANY")
+    AND.push({ courseLevel: parsedQuery.courseLevel });
 
   if (parsedQuery.minUnits) AND.push({ minUnits: parsedQuery.minUnits });
 
@@ -86,7 +87,8 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.CourseWhereInpu
       })),
     });
 
-  if (parsedQuery.geCategory) AND.push({ geList: { array_contains: parsedQuery.geCategory } });
+  if (parsedQuery.geCategory && parsedQuery.geCategory !== "ANY")
+    AND.push({ geList: { array_contains: parsedQuery.geCategory } });
 
   if (parsedQuery.taughtInTerms)
     AND.push({
