@@ -62,7 +62,7 @@ jobs:
         run: pnpm build --filter="api-*"
 
       - name: Wait for API CloudFormation stack to idle
-        uses: ./.github/actions/stabilize-stack
+        uses: ./.github/actions/wait-for-cloudformation-stack-idle
         with:
           stack_name: peterportal-api-next-prod
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -85,7 +85,7 @@ jobs:
         run: pnpm build --filter="docs-cdk"
 
       - name: Wait for documentation CloudFormation stack to idle
-        uses: ./.github/actions/stabilize-stack
+        uses: ./.github/actions/wait-for-cloudformation-stack-idle
         with:
           stack_name: peterportal-api-next-docs-prod
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
