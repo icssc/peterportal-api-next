@@ -9,7 +9,7 @@ on:
       - labeled
 
 concurrency:
-  group: docs-${{ github.head_ref }}
+  group: cleanup-${{ github.head_ref }}
   cancel-in-progress: true
 
 permissions:
@@ -48,10 +48,9 @@ jobs:
   cleanup-api:
     name: Clean up API staging environment for pull request
 
-    needs:
-      - setup
-
     runs-on: ubuntu-latest
+
+    needs: setup
 
     steps:
       - name: Build AntStack
@@ -80,10 +79,9 @@ jobs:
   cleanup-docs:
     name: Clean up documentation staging environment for pull request
 
-    needs:
-      - setup
-
     runs-on: ubuntu-latest
+
+    needs: setup
 
     steps:
       - name: Build documentation CDK
