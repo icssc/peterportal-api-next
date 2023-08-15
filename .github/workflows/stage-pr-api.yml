@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
 ---
-name: Deploy API staging environment for pull request
+name: Deploy staging environment for pull request
 
 on:
   pull_request:
@@ -31,12 +31,16 @@ env:
   PR_NUM: ${{ github.event.pull_request.number }}
 
 jobs:
-  setup:
-    name: Setup the repository
+  deploy-api:
+    name: Deploy API staging environment for pull request
 
     if: (!contains(github.event.pull_request.labels.*.name, 'no deploy'))
 
     runs-on: ubuntu-latest
+
+    environment:
+      name: staging-${{ github.event.pull_request.number }}
+      url: https://staging-${{ github.event.pull_request.number }}.api-next.peterportal.org
 
     steps:
       - name: Check out codebase
@@ -48,18 +52,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-  deploy-api:
-    name: Deploy API staging environment for pull request
-
-    runs-on: ubuntu-latest
-
-    needs: setup
-
-    environment:
-      name: staging-${{ github.event.pull_request.number }}
-      url: https://staging-${{ github.event.pull_request.number }}.api-next.peterportal.org
-
-    steps:
       - name: Build AntStack
         run: pnpm build --filter="ant-stack"
 
@@ -82,15 +74,24 @@ jobs:
   deploy-documentation:
     name: Deploy documentation staging environment for pull request
 
-    runs-on: ubuntu-latest
+    if: (!contains(github.event.pull_request.labels.*.name, 'no deploy'))
 
-    needs: setup
+    runs-on: ubuntu-latest
 
     environment:
       name: staging-${{ github.event.pull_request.number }}-docs
       url: https://staging-${{ github.event.pull_request.number }}-docs.api-next.peterportal.org
 
     steps:
+      - name: Check out codebase
+        uses: actions/checkout@v3
+
+      - name: Setup NodeJS and pnpm
+        uses: ./.github/actions/setup-node-and-pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Build documentation
         run: pnpm build --filter="docs-cdk"
 
