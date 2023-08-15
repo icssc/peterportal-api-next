@@ -16,9 +16,9 @@ export type TransformOutput = string[] | undefined;
  */
 export const flattenStringsAndSplit = (value: TransformInput): TransformOutput =>
   value
-    ? [
-        ...new Set(Array.isArray(value) ? value.flatMap((x) => x.split(",")) : value.split(",")),
-      ].sort()
+    ? Array.from(
+        new Set(Array.isArray(value) ? value.flatMap((x) => x.split(",")) : value.split(",")),
+      ).sort()
     : undefined;
 
 /**
@@ -27,11 +27,11 @@ export const flattenStringsAndSplit = (value: TransformInput): TransformOutput =
  */
 export const flattenDayStringsAndSplit = (value: TransformInput): TransformOutput =>
   value
-    ? [
-        ...new Set(
+    ? Array.from(
+        new Set(
           Array.isArray(value)
             ? value.flatMap((x) => days.filter((y) => y.includes(x)))
             : days.filter((x) => value.includes(x)),
         ),
-      ]
+      )
     : undefined;
