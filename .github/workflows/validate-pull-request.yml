@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
 ---
-name: Lint and format PR title and message
+name: Validate pull request
 
 permissions:
   pull-requests: write
@@ -14,8 +14,11 @@ on:
       - reopened
 
 jobs:
-  lint-and-format-pr:
+  validate:
+    name: Validate pull request title and contents
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out codebase
         uses: actions/checkout@v3
@@ -26,16 +29,16 @@ jobs:
       - name: Install devDependencies
         run: pnpm install --dev --frozen-lockfile --ignore-scripts --workspace-root
 
-      - name: Lint PR title
+      - name: Lint pull request title
         run: echo ${{ toJSON(github.event.pull_request.title) }} | npx --no -- commitlint
 
-      - name: Format PR title
+      - name: Format pull request title
         id: devmoji
         run: |
           TITLE=$(npx --no -- devmoji --format shortcode --text ${{ toJSON(github.event.pull_request.title) }})
           echo TITLE=$TITLE >> "$GITHUB_OUTPUT"
 
-      - name: Update PR title if needed
+      - name: Update pull request title if needed
         if: toJSON(github.event.pull_request.title) != toJSON(steps.devmoji.outputs.TITLE)
         uses: octokit/request-action@v2.x
         with:
