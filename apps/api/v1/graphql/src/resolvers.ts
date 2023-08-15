@@ -16,6 +16,7 @@ export const resolvers: ApolloServerOptions<BaseContext>["resolvers"] = {
     aggregateGrades: proxyRestApi("v1/rest/grades/aggregate"),
     gradesOptions: proxyRestApi("v1/rest/grades/options"),
     instructor: proxyRestApi("v1/rest/instructors", { pathArg: "courseId" }),
+    instructors: proxyRestApi("v1/rest/instructors"),
     allInstructors: proxyRestApi("v1/rest/instructors/all"),
     larc: proxyRestApi("v1/rest/larc"),
     websoc: proxyRestApi("v1/rest/websoc", { argsTransform: geTransform }),
