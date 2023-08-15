@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
 ---
-name: Deploy staging environment for pull request
+name: Deploy CloudFormation stacks and staging environments for pull request
 
 on:
   pull_request:
@@ -32,7 +32,7 @@ env:
 
 jobs:
   deploy-api:
-    name: Deploy API staging environment for pull request
+    name: Deploy API CloudFormation stack and staging environment for pull request
 
     if: (!contains(github.event.pull_request.labels.*.name, 'no deploy'))
 
@@ -68,11 +68,11 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Deploy API stack
+      - name: Deploy API CloudFormation stack
         run: pnpm run deploy --filter="ant-stack"
 
   deploy-documentation:
-    name: Deploy documentation staging environment for pull request
+    name: Deploy documentation CloudFormation stack and staging environment for pull request
 
     if: (!contains(github.event.pull_request.labels.*.name, 'no deploy'))
 
@@ -92,7 +92,7 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build documentation
+      - name: Build documentation CDK
         run: pnpm build --filter="docs-cdk"
 
       - name: Wait for documentation CloudFormation stack to idle
@@ -102,5 +102,5 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Deploy documentation stack
+      - name: Deploy documentation CloudFormation stack
         run: pnpm run deploy --filter="docs-cdk"

@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
 ---
-name: Cleanup staging environment for pull request
+name: Destroy CloudFormation stacks and staging environment for pull request
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ on:
       - labeled
 
 concurrency:
-  group: cleanup-staging-${{ github.head_ref }}
+  group: destroy-staging-${{ github.head_ref }}
   cancel-in-progress: true
 
 permissions:
@@ -31,8 +31,8 @@ env:
   PR_NUM: ${{ github.event.pull_request.number }}
 
 jobs:
-  cleanup-api:
-    name: Cleanup API staging environment for pull request
+  destroy-api:
+    name: Destroy API CloudFormation stacks and staging environment for pull request
 
     if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
 
@@ -61,7 +61,7 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Destroy API stack
+      - name: Destroy API CloudFormation stack
         run: pnpm destroy --filter="ant-stack"
 
       - name: Set API staging environment to inactive
@@ -72,7 +72,7 @@ jobs:
           onlyDeactivateDeployments: true
 
   cleanup-documentation:
-    name: Clean up documentation staging environment for pull request
+    name: Destroy documentation CloudFormation stacks and staging environment for pull request
 
     if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
 
@@ -98,7 +98,7 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Destroy documentation stack
+      - name: Destroy documentation CloudFormation stack
         run: pnpm destroy --filter="docs-cdk"
 
       - name: Set documentation staging environment as inactive
