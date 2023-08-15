@@ -59,7 +59,7 @@ jobs:
       - name: Link AntStack
         run: pnpm link ant-stack
 
-      - name: Wait for API's CloudFormation stack to idle
+      - name: Wait for API CloudFormation stack to idle
         uses: ./.github/actions/stabilize-stack
         with:
           stack_name: peterportal-api-next-staging-${{ github.event.pull_request.number }}
@@ -69,7 +69,7 @@ jobs:
       - name: Destroy API stack
         run: pnpm destroy --filter="ant-stack"
 
-      - name: Set environment as inactive
+      - name: Set API staging environment as inactive
         uses: strumwolf/delete-deployment-environment@v2.3.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -87,7 +87,7 @@ jobs:
       - name: Build documentation CDK
         run: pnpm build --filter="docs-cdk"
 
-      - name: Wait for documentation's CloudFormation stack to idle
+      - name: Wait for documentation CloudFormation stack to idle
         uses: ./.github/actions/stabilize-stack
         with:
           stack_name: peterportal-api-next-docs-staging-${{ github.event.pull_request.number }}

@@ -1,6 +1,6 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
 ---
-name: Deploy API to production
+name: Deploy API and documentation to production environment
 
 on:
   push:
@@ -40,8 +40,8 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-  deploy-prod-api:
-    name: Deploy API production environment
+  deploy-api:
+    name: Deploy API to production environment
 
     runs-on: ubuntu-latest
 
@@ -68,11 +68,11 @@ jobs:
           aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
 
-      - name: Deploy stack
+      - name: Deploy API stack
         run: pnpm run deploy --filter="ant-stack"
 
-  deploy-prod-documentation:
-    name: Deploy documentation to production
+  deploy-documentation:
+    name: Deploy documentation to production environment
 
     runs-on: ubuntu-latest
 
