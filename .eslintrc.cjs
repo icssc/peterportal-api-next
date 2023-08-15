@@ -1,4 +1,8 @@
-/** @type {import('eslint').Linter.Config} */
+// @ts-check
+
+/**
+ * @type {import('eslint').Linter.Config}
+ */
 const config = {
   root: true,
   parser: "@typescript-eslint/parser",

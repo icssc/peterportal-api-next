@@ -1,5 +1,7 @@
+// @ts-check
+
 /**
- * `cjs` format is required for plugins to work in VSCode.
+ * Prettier plugins only work in VSCode with the `cjs` format.
  * @see {@link https://github.com/tailwindlabs/prettier-plugin-tailwindcss/issues/113}
  */
 
@@ -9,7 +11,6 @@
 const config = {
   printWidth: 100,
   plugins: ["prettier-plugin-packagejson", "prettier-plugin-prisma"],
-  pluginSearchDirs: false,
 };
 
 module.exports = config;
