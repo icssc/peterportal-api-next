@@ -32,7 +32,7 @@ env:
 
 jobs:
   destroy-api:
-    name: Destroy API CloudFormation stacks and staging environment for pull request
+    name: Destroy API CloudFormation stack and staging environment for pull request
 
     if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
 
@@ -72,7 +72,7 @@ jobs:
           onlyDeactivateDeployments: true
 
   cleanup-documentation:
-    name: Destroy documentation CloudFormation stacks and staging environment for pull request
+    name: Destroy documentation CloudFormation stack and staging environment for pull request
 
     if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
 
