@@ -12,8 +12,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository and setup pnpm
-        uses: ./.github/actions/checkout-pnpm
+      - name: Check out codebase
+        uses: actions/checkout@v3
+
+      - name: Setup NodeJS and pnpm
+        uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

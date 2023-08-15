@@ -1,16 +1,13 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-action.json
 ---
-name: Checkout repository and setup pnpm
+name: Setup Node.JS and pnpm
 
-description: Checks out the repository, sets up Node.JS, pnpm, and pnpm cache. Does not install dependencies.
+description: Sets up Node.JS and pnpm + pnpm cache. Does not install dependencies.
 
 runs:
   using: composite
 
   steps:
-    - name: Check out codebase
-      uses: actions/checkout@v3
-
     - name: Set up Node.js environment
       uses: actions/setup-node@v3
       with:
