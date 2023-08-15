@@ -6,10 +6,12 @@
     "helpers:disableTypesNodeMajor",
     "npm:unpublishSafe",
     ":disableDependencyDashboard",
-    ":disableRateLimiting"
+    ":disableRateLimiting",
+    ":pinAllExceptPeerDependencies"
   ],
   "commitMessageAction": ":link: Update",
   "commitMessageTopic": "{{depName}}",
+  "dockerfile": { "enabled": false },
   "ignorePaths": ["**/templates/**"],
   "labels": ["no deploy", "type: dependency"],
   "nvm": { "enabled": false },
@@ -38,6 +40,5 @@
       "enabled": false
     }
   ],
-  "pin": { "commitMessageSuffix": "[skip ci]" },
-  "rangeStrategy": "pin"
+  "pin": { "commitMessageSuffix": "[skip ci]" }
 }
