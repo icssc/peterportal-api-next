@@ -36,7 +36,7 @@ jobs:
         id: devmoji
         run: |
           TITLE=$(npx --no -- devmoji --format shortcode --text ${{ toJSON(github.event.pull_request.title) }})
-          echo TITLE=$TITLE >> "$GITHUB_OUTPUT"
+          echo "TITLE=$TITLE" >> $GITHUB_OUTPUT
 
       - name: Update pull request title if needed
         if: toJSON(github.event.pull_request.title) != toJSON(steps.devmoji.outputs.TITLE)
