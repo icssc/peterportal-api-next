@@ -28,10 +28,14 @@ env:
   NODE_ENV: production
 
 jobs:
-  setup:
-    name: Setup the repository
+  deploy-api:
+    name: Deploy API to production environment
 
     runs-on: ubuntu-latest
+
+    environment:
+      name: production
+      url: https://api-next.peterportal.org
 
     steps:
       - name: Check out codebase
@@ -43,18 +47,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-  deploy-api:
-    name: Deploy API to production environment
-
-    runs-on: ubuntu-latest
-
-    needs: setup
-
-    environment:
-      name: production
-      url: https://api-next.peterportal.org
-
-    steps:
       - name: Build AntStack
         run: pnpm build --filter="ant-stack"
 
@@ -84,6 +76,15 @@ jobs:
       url: https://docs.api-next.peterportal.org
 
     steps:
+      - name: Check out codebase
+        uses: actions/checkout@v3
+
+      - name: Setup NodeJS and pnpm
+        uses: ./.github/actions/setup-node-and-pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - name: Build documentation
         run: pnpm build --filter="docs-cdk"
 
