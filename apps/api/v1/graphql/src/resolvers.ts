@@ -1,6 +1,6 @@
 import type { ApolloServerOptions, BaseContext } from "@apollo/server";
 
-import { proxyRestApi } from "./lib";
+import { geTransform, proxyRestApi } from "./lib";
 
 /**
  * Convention: either the route provided to {@link proxyRestApi} should start with a slash,
@@ -9,19 +9,15 @@ import { proxyRestApi } from "./lib";
 export const resolvers: ApolloServerOptions<BaseContext>["resolvers"] = {
   Query: {
     calendar: proxyRestApi("v1/rest/calendar"),
-    course: proxyRestApi("v1/rest/courses/", (args) => args, "courseId"),
+    course: proxyRestApi("v1/rest/courses", { pathArg: "courseId" }),
     allCourses: proxyRestApi("v1/rest/courses/all"),
     rawGrades: proxyRestApi("v1/rest/grades/raw"),
     aggregateGrades: proxyRestApi("v1/rest/grades/aggregate"),
     gradesOptions: proxyRestApi("v1/rest/grades/options"),
-    instructor: proxyRestApi("v1/rest/instructors", (args) => args, "ucinetid"),
+    instructor: proxyRestApi("v1/rest/instructors", { pathArg: "courseId" }),
     allInstructors: proxyRestApi("v1/rest/instructors/all"),
     larc: proxyRestApi("v1/rest/larc"),
-    websoc: proxyRestApi("v1/rest/websoc", (args) => {
-      if (args.ge) return { ...args, ge: args.ge.replace("_", "-") };
-      delete args.ge;
-      return args;
-    }),
+    websoc: proxyRestApi("v1/rest/websoc", { argsTransform: geTransform }),
     week: proxyRestApi("v1/rest/week"),
   },
 };

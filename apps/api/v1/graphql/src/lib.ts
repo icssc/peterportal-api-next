@@ -18,13 +18,22 @@ function getBaseUrl() {
   }
 }
 
+export const geTransform = (args: Record<string, string>) => {
+  if (args.ge) return { ...args, ge: args.ge.replace("_", "-") };
+  delete args.ge;
+  return args;
+};
+
 export const proxyRestApi =
   (
     route: string,
-    argsTransform: (args: Record<string, string>) => Record<string, string> = (args) => args,
-    pathArg?: string,
+    proxyArgs?: {
+      argsTransform?: (args: Record<string, string>) => Record<string, string>;
+      pathArg?: string;
+    },
   ): IFieldResolver<never, BaseContext> =>
   async (_source, args, _context, _info) => {
+    const { argsTransform = (args: Record<string, string>) => args, pathArg } = proxyArgs ?? {};
     const urlSearchParams = new URLSearchParams(argsTransform(args));
 
     const query = urlSearchParams.toString();
