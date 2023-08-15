@@ -7,6 +7,8 @@ on:
 
 jobs:
   check-typescript:
+    name: Check for TypeScript errors
+
     runs-on: ubuntu-latest
 
     steps:
