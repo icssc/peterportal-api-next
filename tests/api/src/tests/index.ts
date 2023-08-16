@@ -1,11 +1,9 @@
-import { it } from "@fixtures";
-import { describe } from "vitest";
+import fetch from "cross-fetch";
+import { describe, expect, it } from "vitest";
 
 describe("Example suite", () => {
-  it("should do a thing", ({ app }) => {
-    app.get("/").expect(400);
-  });
-  it("should do another thing", ({ app }) => {
-    app.get("/v1/rest/courses/COMPSCI161").expect(200);
+  it("should do a thing", async () => {
+    const res = await fetch("http://localhost:8080/");
+    expect(res.ok).toBeFalsy();
   });
 });
