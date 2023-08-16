@@ -5,6 +5,7 @@
     "group:all",
     "helpers:disableTypesNodeMajor",
     "npm:unpublishSafe",
+    "schedule:monthly",
     ":disableDependencyDashboard",
     ":disableRateLimiting",
     ":pinAllExceptPeerDependencies"
