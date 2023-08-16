@@ -10,13 +10,14 @@ const config = {
     project: ["./tsconfig.json", "./apps/docs/tsconfig.json", "./apps/docs/cdk/tsconfig.json"],
     sourceType: "module",
   },
-  plugins: ["import", "@typescript-eslint"],
+  plugins: ["@typescript-eslint", "import", "vitest"],
   extends: [
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
-    "turbo",
+    "plugin:vitest/recommended",
     "prettier",
+    "turbo",
   ],
   rules: {
     "no-unused-vars": "off",

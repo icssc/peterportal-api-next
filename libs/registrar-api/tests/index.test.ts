@@ -3,11 +3,11 @@ import { describe, expect, test } from "vitest";
 import { getTermDateData } from "../src";
 
 describe("registrar-api tests", () => {
-  test("getTermData on invalid year throws error", () => {
-    expect(getTermDateData("0")).rejects.toThrow();
+  test("getTermData on invalid year throws error", async () => {
+    await expect(getTermDateData("0")).rejects.toThrow();
   });
-  test("getTermData on non-numeric year throws error", () => {
-    expect(getTermDateData("asdf")).rejects.toThrow();
+  test("getTermData on non-numeric year throws error", async () => {
+    await expect(getTermDateData("asdf")).rejects.toThrow();
   });
   test("getTermData return for 2022-23 AY is correct", async () => {
     const data = await getTermDateData("2022");
