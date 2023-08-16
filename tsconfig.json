@@ -30,11 +30,11 @@
   },
   "include": [
     "*.ts",
-    "api/**/*",
     "apps/**/*",
     "libs/**/*",
     "packages/**/*",
     "services/**/*",
+    "tests/**/*",
     "tools/**/*"
   ],
   "exclude": [

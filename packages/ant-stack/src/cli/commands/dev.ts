@@ -10,35 +10,14 @@ import { RequestHandler, Router } from "express";
 
 import { getConfig } from "../../config";
 import { createExpressHandler, createErrorResult, logger, zeroUUID } from "../../lambda-core";
-import { findAllProjects, getClosestProjectDirectory, searchForWorkspaceRoot } from "../../utils";
-
-/**
- * Translates the HTTP verbs exported by the lambda-core into Express methods.
- */
-const MethodsToExpress = {
-  DELETE: "delete",
-  GET: "get",
-  HEAD: "head",
-  PATCH: "patch",
-  POST: "post",
-  PUT: "put",
-  OPTIONS: "options",
-  ANY: "use",
-} as const;
-
-/**
- * TODO: move to some location for "express-adapter" related stuff?
- */
-function isMethod(method: string): method is keyof typeof MethodsToExpress {
-  return method in MethodsToExpress;
-}
-
-/**
- * TODO: move to utils.
- */
-function isStringArray(value: Array<unknown>): value is string[] {
-  return value.every((v) => typeof v === "string");
-}
+import {
+  findAllProjects,
+  getClosestProjectDirectory,
+  isMethod,
+  isStringArray,
+  MethodsToExpress,
+  searchForWorkspaceRoot,
+} from "../../utils";
 
 const notFoundHandler: RequestHandler = (req, res) => {
   logger.info(

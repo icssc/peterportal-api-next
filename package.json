@@ -15,7 +15,7 @@
     "format": "prettier --write .",
     "postinstall": "husky install",
     "lint": "eslint --fix .",
-    "test": "turbo run test"
+    "test": "dotenv -c development -- turbo run test"
   },
   "devDependencies": {
     "@commitlint/cli": "17.7.1",

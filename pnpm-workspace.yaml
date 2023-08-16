@@ -5,4 +5,5 @@ packages:
   - libs/*
   - packages/*
   - services/*
+  - tests/*
   - tools/*
