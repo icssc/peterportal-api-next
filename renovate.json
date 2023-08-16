@@ -33,10 +33,9 @@
         "course-scraper",
         "instructor-scraper",
         "prereq-scraper",
-        "websoc-proxy-service",
         "websoc-scraper-v2"
       ],
-      "matchDepPatterns": ["^@libs"],
+      "matchDepPatterns": ["^@libs", "^@services"],
       "groupName": "Internal packages",
       "enabled": false
     }
