@@ -40,7 +40,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3
 
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
@@ -69,7 +69,7 @@ jobs:
         run: pnpm destroy --filter="ant-stack"
 
       - name: Set API staging environment to inactive
-        uses: strumwolf/delete-deployment-environment@v2.3.0
+        uses: strumwolf/delete-deployment-environment@195215d2c5602aee6fb4b9cf0853970decca9e7a # v2.3.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: staging-${{ github.event.pull_request.number }}
@@ -84,7 +84,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3
 
       - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
@@ -106,7 +106,7 @@ jobs:
         run: pnpm destroy --filter="docs-cdk"
 
       - name: Set documentation staging environment as inactive
-        uses: strumwolf/delete-deployment-environment@v2.3.0
+        uses: strumwolf/delete-deployment-environment@195215d2c5602aee6fb4b9cf0853970decca9e7a # v2.3.0
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: staging-${{ github.event.pull_request.number }}-docs
