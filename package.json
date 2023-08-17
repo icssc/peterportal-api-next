@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "turbo run build",
+    "ci:test": "turbo run test",
     "ci:tsc": "npx tsc -p . --noEmit && npx tsc -p apps/docs --noEmit && npx tsc -p apps/docs/cdk --noEmit",
     "commit": "cz",
     "create": "dotenv -v DATABASE_URL=null -v NODE_ENV=development -- pnpm exec ant-stack create",
