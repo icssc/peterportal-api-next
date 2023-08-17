@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import jwtDecode from "jwt-decode";
 import type { JwtPayload } from "jwt-decode";
 
-import { getMajorAudit, getMapping, getMinorAudit } from "./lib";
-import type { Block } from "./types";
+import { getMajorAudit, getMapping, getMinorAudit, parseBlock } from "./lib";
+import type { Program } from "./types";
 
 import "dotenv/config";
 
@@ -14,8 +14,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   if (!process.env["X_AUTH_TOKEN"]) throw new Error("Auth cookie not set.");
-  const studentId = jwtDecode<JwtPayload>(process.env["X_AUTH_TOKEN"].slice(7))?.sub;
-  if (!studentId) throw new Error("Could not parse student ID from auth cookie.");
+  const studentId = jwtDecode<JwtPayload>(process.env["X_AUTH_TOKEN"].slice("Bearer+".length))?.sub;
+  if (!studentId || studentId.length !== 8)
+    throw new Error("Could not parse student ID from auth cookie.");
   const headers = {
     "Content-Type": "application/json",
     Cookie: `X-AUTH-TOKEN=${process.env["X_AUTH_TOKEN"]}`,
@@ -47,9 +48,9 @@ async function main() {
 
   const degrees = await getMapping("degrees", headers);
   console.log(`Fetched ${degrees.size} degrees`);
-  const majorPrograms = await getMapping("majors", headers);
+  const majorPrograms = new Set((await getMapping("majors", headers)).keys());
   console.log(`Fetched ${majorPrograms.size} major programs`);
-  const minorPrograms = await getMapping("minors", headers);
+  const minorPrograms = new Set((await getMapping("minors", headers)).keys());
   console.log(`Fetched ${minorPrograms.size} minor programs`);
 
   const undergraduateDegrees = new Set<string>();
@@ -57,27 +58,22 @@ async function main() {
   for (const degree of degrees.keys())
     (degree.startsWith("B") ? undergraduateDegrees : graduateDegrees).add(degree);
 
-  const minorProgramRequirements = new Map<string, Block>();
+  const parsedMinorPrograms = new Map<string, Program>();
   console.log("Scraping minor program requirements");
-  for (const minorCode of minorPrograms.keys()) {
+  for (const minorCode of minorPrograms) {
     const audit = await getMinorAudit(catalogYear, minorCode, studentId, headers);
     if (!audit) {
       console.log(`Minor program not found for code ${minorCode}`);
       continue;
     }
     console.log(`Requirements block for "${audit.title}" found for code ${minorCode}`);
-    minorProgramRequirements.set(`U-MINOR-${minorCode}`, {
-      requirementType: audit.requirementType,
-      requirementValue: audit.requirementValue,
-      title: audit.title,
-      ruleArray: [...audit.ruleArray],
-    });
+    parsedMinorPrograms.set(`U-MINOR-${minorCode}`, await parseBlock(audit));
   }
   await mkdir(join(__dirname, "../output"), { recursive: true });
   await writeFile(
-    join(__dirname, "../output/minorProgramRequirements.json"),
-    JSON.stringify(Object.fromEntries(minorProgramRequirements.entries())),
+    join(__dirname, "../output/parsedMinorPrograms.json"),
+    JSON.stringify(Object.fromEntries(parsedMinorPrograms.entries())),
   );
 }
 
-main().then(() => []);
+main().then();

@@ -82,7 +82,7 @@ export type ProgramId = {
   degreeType?: string;
 };
 
-export type Program = ProgramId & {
+export type Program = {
   /**
    * The display name of the program.
    * @example "Major in Computer Science"
@@ -100,7 +100,7 @@ export type CourseRequirement = {
    * The number of `courses` required to fulfill this requirement.
    */
   courseCount: number;
-  courses: { include: string[]; exclude?: string[] };
+  courses: string[];
 };
 
 export type UnitRequirement = {
@@ -109,7 +109,7 @@ export type UnitRequirement = {
    * The number of units earned from taking `courses` that are required to fulfill this requirement.
    */
   unitCount: number;
-  courses: { include: string[]; exclude?: string[] };
+  courses: string[];
 };
 
 export type GroupRequirement = {

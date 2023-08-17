@@ -10,10 +10,10 @@
   "dependencies": {
     "cross-fetch": "4.0.0",
     "dotenv": "16.3.1",
-    "jwt-decode": "3.1.2"
+    "jwt-decode": "3.1.2",
+    "peterportal-api-next-types": "workspace:*"
   },
   "devDependencies": {
-    "peterportal-api-next-types": "workspace:*",
     "tsx": "3.12.7"
   }
 }
