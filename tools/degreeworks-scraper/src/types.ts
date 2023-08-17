@@ -79,6 +79,7 @@ export type ProgramId = {
   school: "U" | "G";
   programType: "MAJOR" | "MINOR" | "SPEC";
   code: string;
+  degreeType?: string;
 };
 
 export type Program = ProgramId & {
