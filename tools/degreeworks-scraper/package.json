@@ -4,10 +4,16 @@
   "private": true,
   "type": "module",
   "main": "src/index.ts",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
   "dependencies": {
-    "cross-fetch": "4.0.0"
+    "cross-fetch": "4.0.0",
+    "dotenv": "16.3.1",
+    "jwt-decode": "3.1.2"
   },
   "devDependencies": {
-    "peterportal-api-next-types": "workspace:*"
+    "peterportal-api-next-types": "workspace:*",
+    "tsx": "3.12.7"
   }
 }
