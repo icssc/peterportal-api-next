@@ -21,6 +21,8 @@ const electiveMatcher = /ELECTIVE @+/;
 const wildcardMatcher = /\d+@+/;
 const rangeMatcher = /\d+-\d+/;
 
+const lexOrd = new Intl.Collator().compare;
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const parseSpecs = (ruleArray: Rule[]) =>
@@ -64,28 +66,30 @@ function flattenIfStmt(ruleArray: Rule[]): Rule[] {
   return ret;
 }
 
-async function getCourseId(courseNumber: string): Promise<string | undefined> {
+async function getCourse(courseNumber: string): Promise<Course | undefined> {
   const res = await fetch(`${PPAPI_REST_URL}/courses/${courseNumber}`);
+  await sleep(DELAY);
   const json: RawResponse<Course> = await res.json();
-  return isErrorResponse(json) ? undefined : json.payload.id;
+  return isErrorResponse(json) ? undefined : json.payload;
 }
 
-async function getCourseIds(
+async function getCourses(
   department: string,
   predicate: (x: Course) => boolean,
-): Promise<string[] | undefined> {
+): Promise<Course[] | undefined> {
   const res = await fetch(`${PPAPI_REST_URL}/courses/?department=${department}`);
+  await sleep(DELAY);
   const json: RawResponse<Course[]> = await res.json();
-  return isErrorResponse(json) ? undefined : json.payload.filter(predicate).map((x) => x.id);
+  return isErrorResponse(json) ? undefined : json.payload.filter(predicate);
 }
 
-async function normalizeCourseId(courseIdLike: string): Promise<string[]> {
+async function normalizeCourseId(courseIdLike: string): Promise<Course[]> {
   // "ELECTIVE @" is typically used as a pseudo-course and can be safely ignored.
   if (courseIdLike.match(electiveMatcher)) return [];
   const [department, courseNumber] = courseIdLike.split(" ");
   if (courseNumber.match(wildcardMatcher)) {
     // Wildcard course numbers.
-    const courseIds = await getCourseIds(
+    const courseIds = await getCourses(
       department,
       (x) => !!x.courseNumber.match(new RegExp(courseNumber.replace(/@/g, "."))),
     );
@@ -94,7 +98,7 @@ async function normalizeCourseId(courseIdLike: string): Promise<string[]> {
   if (courseNumber.match(rangeMatcher)) {
     // Course number ranges.
     const [minCourseNumber, maxCourseNumber] = courseNumber.split("-");
-    const courseIds = await getCourseIds(
+    const courseIds = await getCourses(
       department,
       (x) =>
         x.courseNumeric >= Number.parseInt(minCourseNumber, 10) &&
@@ -103,7 +107,7 @@ async function normalizeCourseId(courseIdLike: string): Promise<string[]> {
     return courseIds ? courseIds : [];
   }
   // Probably a normal course, just make sure that it exists.
-  const courseId = await getCourseId(`${department}${courseNumber}`);
+  const courseId = await getCourse(`${department}${courseNumber}`);
   return courseId ? [courseId] : [];
 }
 
@@ -112,20 +116,29 @@ async function ruleArrayToRequirements(ruleArray: Rule[]) {
   for (const rule of ruleArray) {
     switch (rule.ruleType) {
       case "Course": {
-        const includedCourses = await Promise.all(
-          rule.requirement.courseArray.map((x) =>
-            normalizeCourseId(`${x.discipline} ${x.number}${x.numberEnd ? `-${x.numberEnd}` : ""}`),
-          ),
+        const includedCourses = rule.requirement.courseArray.map(
+          (x) => `${x.discipline} ${x.number}${x.numberEnd ? `-${x.numberEnd}` : ""}`,
         );
-        const excludedCourses = await Promise.all(
-          rule.requirement.except?.courseArray.map((x) =>
-            normalizeCourseId(`${x.discipline} ${x.number}${x.numberEnd ? `-${x.numberEnd}` : ""}`),
-          ) ?? [],
-        );
-        const toExclude = new Set(excludedCourses.flat());
-        const courses = Array.from(includedCourses.flat())
-          .filter((x) => !toExclude.has(x))
-          .sort();
+        const toInclude = new Set<Course>();
+        for (const id of includedCourses) {
+          (await normalizeCourseId(id)).forEach((x) => toInclude.add(x));
+        }
+        const excludedCourses =
+          rule.requirement.except?.courseArray.map(
+            (x) => `${x.discipline} ${x.number}${x.numberEnd ? `-${x.numberEnd}` : ""}`,
+          ) ?? [];
+        const toExclude = new Set<string>();
+        for (const id of excludedCourses) {
+          (await normalizeCourseId(id)).map((x) => x.id).forEach((x) => toExclude.add(x));
+        }
+        const courses = Array.from(toInclude)
+          .filter((x) => !toExclude.has(x.id))
+          .sort((a, b) =>
+            a.department === b.department
+              ? a.courseNumeric - b.courseNumeric
+              : lexOrd(a.department, b.department),
+          )
+          .map((x) => x.id);
         if (rule.requirement.classesBegin) {
           ret[rule.label] = {
             requirementType: "Course",

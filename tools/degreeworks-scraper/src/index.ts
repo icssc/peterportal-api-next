@@ -63,11 +63,11 @@ async function main() {
   for (const minorCode of minorPrograms) {
     const audit = await getMinorAudit(catalogYear, minorCode, studentId, headers);
     if (!audit) {
-      console.log(`Minor program not found for code ${minorCode}`);
+      console.log(`Requirements block not found for minor program with code ${minorCode}`);
       continue;
     }
-    console.log(`Requirements block for "${audit.title}" found for code ${minorCode}`);
     parsedMinorPrograms.set(`U-MINOR-${minorCode}`, await parseBlock(audit));
+    console.log(`Requirements block found and parsed for "${audit.title}" (code ${minorCode})`);
   }
   await mkdir(join(__dirname, "../output"), { recursive: true });
   await writeFile(
