@@ -103,7 +103,7 @@ export class AuditParser {
           x.courseNumeric <= Number.parseInt(maxCourseNumber, 10),
       );
     }
-    // Probably a normal course, just make sure that it exists.=
+    // Probably a normal course, just make sure that it exists.
     const course = this.ppapi.getCourse(`${department}${courseNumber}`);
     return course ? [course] : [];
   }
