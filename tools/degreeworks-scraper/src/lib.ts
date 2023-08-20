@@ -110,20 +110,16 @@ function ruleArrayToRequirements(ruleArray: Rule[]) {
         const includedCourses = rule.requirement.courseArray.map(
           (x) => `${x.discipline} ${x.number}${x.numberEnd ? `-${x.numberEnd}` : ""}`,
         );
-        const toInclude = new Map<string, Course>();
-        for (const id of includedCourses) {
-          normalizeCourseId(id).forEach((x) => toInclude.set(x.id, x));
-        }
+        const toInclude = new Map<string, Course>(
+          includedCourses.flatMap(normalizeCourseId).map((x) => [x.id, x]),
+        );
         const excludedCourses =
           rule.requirement.except?.courseArray.map(
             (x) => `${x.discipline} ${x.number}${x.numberEnd ? `-${x.numberEnd}` : ""}`,
           ) ?? [];
-        const toExclude = new Set<string>();
-        for (const id of excludedCourses) {
-          normalizeCourseId(id)
-            .map((x) => x.id)
-            .forEach((x) => toExclude.add(x));
-        }
+        const toExclude = new Set<string>(
+          excludedCourses.flatMap(normalizeCourseId).map((x) => x.id),
+        );
         const courses = Array.from(toInclude)
           .filter(([x]) => !toExclude.has(x))
           .sort(([, a], [, b]) =>
