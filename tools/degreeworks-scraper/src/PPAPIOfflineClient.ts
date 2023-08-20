@@ -4,6 +4,7 @@ import type { Course, RawResponse } from "peterportal-api-next-types";
 
 export class PPAPIOfflineClient {
   private cache = new Map<string, Course>();
+
   private constructor() {}
 
   static async new(): Promise<PPAPIOfflineClient> {

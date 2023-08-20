@@ -4,9 +4,9 @@ import { PPAPIOfflineClient } from "./PPAPIOfflineClient";
 import type { Block, Program, ProgramId, Requirement, Rule } from "./types";
 
 export class AuditParser {
-  private static electiveMatcher = /ELECTIVE @+/;
-  private static wildcardMatcher = /\w@/;
-  private static rangeMatcher = /-\w+/;
+  private static readonly electiveMatcher = /ELECTIVE @+/;
+  private static readonly wildcardMatcher = /\w@/;
+  private static readonly rangeMatcher = /-\w+/;
 
   /**
    * This will always be properly initialized using the static async factory function (`new()`).

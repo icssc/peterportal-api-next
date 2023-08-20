@@ -6,6 +6,7 @@ export class DegreeworksClient {
   private static readonly API_URL = "https://reg.uci.edu/RespDashboard/api";
   private static readonly AUDIT_URL = `${DegreeworksClient.API_URL}/audit`;
   private catalogYear: string = "";
+
   private constructor(
     private readonly studentId: string,
     private readonly headers: HeadersInit,
