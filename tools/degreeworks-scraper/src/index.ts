@@ -50,11 +50,58 @@ async function main() {
       `Requirements block found and parsed for "${audit.title}" (minorCode = ${minorCode})`,
     );
   }
+  const parsedUgradPrograms = new Map<string, Program>();
+  const degreesAwarded = new Map<string, string>();
+  console.log("Scraping undergraduate program requirements");
+  for (const degree of undergraduateDegrees) {
+    for (const majorCode of majorPrograms) {
+      const audit = await dw.getMajorAudit(degree, "U", majorCode);
+      if (!audit) {
+        console.log(`Requirements block not found (majorCode = ${majorCode}, degree = ${degree})`);
+        continue;
+      }
+      degreesAwarded.set(degree, degrees.get(degree) ?? "");
+      parsedUgradPrograms.set(`U-MAJOR-${majorCode}-${degree}`, parseBlock(audit));
+      console.log(
+        `Requirements block found and parsed for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
+      );
+    }
+  }
+  const parsedGradPrograms = new Map<string, Program>();
+  console.log("Scraping graduate program requirements");
+  for (const degree of graduateDegrees) {
+    for (const majorCode of majorPrograms) {
+      const audit = await dw.getMajorAudit(degree, "G", majorCode);
+      if (!audit) {
+        console.log(`Requirements block not found (majorCode = ${majorCode}, degree = ${degree})`);
+        continue;
+      }
+      degreesAwarded.set(degree, degrees.get(degree) ?? "");
+      parsedGradPrograms.set(`G-MAJOR-${majorCode}-${degree}`, parseBlock(audit));
+      console.log(
+        `Requirements block found and parsed for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
+      );
+    }
+  }
   await mkdir(join(__dirname, "../output"), { recursive: true });
-  await writeFile(
-    join(__dirname, "../output/parsedMinorPrograms.json"),
-    JSON.stringify(Object.fromEntries(parsedMinorPrograms.entries())),
-  );
+  await Promise.all([
+    writeFile(
+      join(__dirname, "../output/parsedMinorPrograms.json"),
+      JSON.stringify(Object.fromEntries(parsedMinorPrograms.entries())),
+    ),
+    writeFile(
+      join(__dirname, "../output/parsedUgradPrograms.json"),
+      JSON.stringify(Object.fromEntries(parsedUgradPrograms.entries())),
+    ),
+    writeFile(
+      join(__dirname, "../output/parsedGradPrograms.json"),
+      JSON.stringify(Object.fromEntries(parsedGradPrograms.entries())),
+    ),
+    writeFile(
+      join(__dirname, "../output/degreesAwarded.json"),
+      JSON.stringify(Object.fromEntries(degreesAwarded.entries())),
+    ),
+  ]);
 }
 
 main().then();

@@ -67,7 +67,7 @@ function normalizeCourseId(courseIdLike: string): Course[] {
   const [department, courseNumber] = courseIdLike.split(" ");
   if (courseNumber.match(wildcardMatcher)) {
     // Wildcard course numbers.
-    const courses = ppapi.getCourses(
+    return ppapi.getCoursesByDepartment(
       department,
       (x) =>
         !!x.courseNumber.match(
@@ -80,18 +80,16 @@ function normalizeCourseId(courseIdLike: string): Course[] {
           ),
         ),
     );
-    return courses ?? [];
   }
   if (courseNumber.match(rangeMatcher)) {
     // Course number ranges.
     const [minCourseNumber, maxCourseNumber] = courseNumber.split("-");
-    const courses = ppapi.getCourses(
+    return ppapi.getCoursesByDepartment(
       department,
       (x) =>
         x.courseNumeric >= Number.parseInt(minCourseNumber, 10) &&
         x.courseNumeric <= Number.parseInt(maxCourseNumber, 10),
     );
-    return courses ?? [];
   }
   // Probably a normal course, just make sure that it exists.
   const course = ppapi.getCourse(`${department}${courseNumber}`);

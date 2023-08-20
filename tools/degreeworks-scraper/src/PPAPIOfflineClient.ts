@@ -3,7 +3,7 @@ import { isErrorResponse } from "peterportal-api-next-types";
 import type { Course, RawResponse } from "peterportal-api-next-types";
 
 export class PPAPIOfflineClient {
-  private cache: Map<string, Course> = new Map();
+  private cache = new Map<string, Course>();
   constructor() {
     fetch("https://api-next.peterportal.org/v1/rest/courses/all")
       .then((x) => x.json() as Promise<RawResponse<Course[]>>)
@@ -19,10 +19,10 @@ export class PPAPIOfflineClient {
 
   getCourse = (courseNumber: string): Course | undefined => this.cache.get(courseNumber);
 
-  getCourses = (
+  getCoursesByDepartment = (
     department: string,
     predicate: (x: Course) => boolean = () => true,
-  ): Course[] | undefined =>
+  ): Course[] =>
     Array.from(this.cache.values())
       .filter((x) => x.id.startsWith(department))
       .filter(predicate);
