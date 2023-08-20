@@ -103,7 +103,7 @@ export class AuditParser {
           x.courseNumeric <= Number.parseInt(maxCourseNumber, 10),
       );
     }
-    // Probably a normal course, just make sure that it exists.
+    // Probably a normal course, just make sure that it exists.=
     const course = this.ppapi.getCourse(`${department}${courseNumber}`);
     return course ? [course] : [];
   }
@@ -121,14 +121,14 @@ export class AuditParser {
             (x) => `${x.discipline} ${x.number}${x.numberEnd ? `-${x.numberEnd}` : ""}`,
           );
           const toInclude = new Map<string, Course>(
-            includedCourses.flatMap(this.normalizeCourseId).map((x) => [x.id, x]),
+            includedCourses.flatMap(this.normalizeCourseId.bind(this)).map((x) => [x.id, x]),
           );
           const excludedCourses =
             rule.requirement.except?.courseArray.map(
               (x) => `${x.discipline} ${x.number}${x.numberEnd ? `-${x.numberEnd}` : ""}`,
             ) ?? [];
           const toExclude = new Set<string>(
-            excludedCourses.flatMap(this.normalizeCourseId).map((x) => x.id),
+            excludedCourses.flatMap(this.normalizeCourseId.bind(this)).map((x) => x.id),
           );
           const courses = Array.from(toInclude)
             .filter(([x]) => !toExclude.has(x))
