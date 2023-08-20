@@ -5,7 +5,8 @@ import { fileURLToPath } from "node:url";
 import jwtDecode from "jwt-decode";
 import type { JwtPayload } from "jwt-decode";
 
-import { getMajorAudit, getMapping, getMinorAudit, parseBlock } from "./lib";
+import { DegreeworksClient } from "./DegreeworksClient";
+import { parseBlock, sleep } from "./lib";
 import type { Program } from "./types";
 
 import "dotenv/config";
@@ -23,34 +24,12 @@ async function main() {
     Origin: "https://reg.uci.edu",
   };
   console.log("degreeworks-scraper starting");
-  const currentYear = new Date().getUTCFullYear();
-  /**
-   * The current catalog year.
-   *
-   * Depending on when we are scraping, this may be the academic year that started
-   * the previous calendar year, or the one that will start this calendar year.
-   *
-   * We determine the catalog year by seeing if we can fetch the major data for the
-   * B.S. in Computer Science for the latter. If it is available, then we use that
-   * as the catalog year. Otherwise, we use the former.
-   */
-  const catalogYear = (await getMajorAudit(
-    `${currentYear}${currentYear + 1}`,
-    "BS",
-    "U",
-    "201",
-    studentId,
-    headers,
-  ))
-    ? `${currentYear}${currentYear + 1}`
-    : `${currentYear - 1}${currentYear}`;
-  console.log(`Set catalogYear to ${catalogYear}`);
-
-  const degrees = await getMapping("degrees", headers);
+  const dw = new DegreeworksClient(studentId, headers);
+  const degrees = await dw.getMapping("degrees");
   console.log(`Fetched ${degrees.size} degrees`);
-  const majorPrograms = new Set((await getMapping("majors", headers)).keys());
+  const majorPrograms = new Set((await dw.getMapping("majors")).keys());
   console.log(`Fetched ${majorPrograms.size} major programs`);
-  const minorPrograms = new Set((await getMapping("minors", headers)).keys());
+  const minorPrograms = new Set((await dw.getMapping("minors")).keys());
   console.log(`Fetched ${minorPrograms.size} minor programs`);
 
   const undergraduateDegrees = new Set<string>();
@@ -61,13 +40,16 @@ async function main() {
   const parsedMinorPrograms = new Map<string, Program>();
   console.log("Scraping minor program requirements");
   for (const minorCode of minorPrograms) {
-    const audit = await getMinorAudit(catalogYear, minorCode, studentId, headers);
+    const audit = await dw.getMinorAudit(minorCode);
     if (!audit) {
-      console.log(`Requirements block not found for minor program with code ${minorCode}`);
+      console.log(`Requirements block not found (minorCode = ${minorCode})`);
+      await sleep(1000);
       continue;
     }
     parsedMinorPrograms.set(`U-MINOR-${minorCode}`, await parseBlock(audit));
-    console.log(`Requirements block found and parsed for "${audit.title}" (code ${minorCode})`);
+    console.log(
+      `Requirements block found and parsed for "${audit.title}" (minorCode = ${minorCode})`,
+    );
   }
   await mkdir(join(__dirname, "../output"), { recursive: true });
   await writeFile(

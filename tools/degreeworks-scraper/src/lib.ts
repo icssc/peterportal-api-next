@@ -2,28 +2,24 @@ import fetch from "cross-fetch";
 import { isErrorResponse } from "peterportal-api-next-types";
 import type { Course, RawResponse } from "peterportal-api-next-types";
 
-import type {
-  Block,
-  DWAuditResponse,
-  DWMappingResponse,
-  Program,
-  ProgramId,
-  Requirement,
-  Rule,
-} from "./types";
+import type { Block, Program, Requirement, Rule } from "./types";
+import { ProgramId } from "./types";
 
 const PPAPI_REST_URL = "https://api-next.peterportal.org/v1/rest";
-const DW_API_URL = "https://reg.uci.edu/RespDashboard/api";
-const AUDIT_URL = `${DW_API_URL}/audit`;
-const DELAY = 1000;
 
 const electiveMatcher = /ELECTIVE @+/;
 const wildcardMatcher = /\d+@+/;
 const rangeMatcher = /\d+-\d+/;
 
-const lexOrd = new Intl.Collator().compare;
+export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+export const parseBlock = async (block: Block): Promise<Program> => ({
+  name: block.title,
+  requirements: await ruleArrayToRequirements(block.ruleArray),
+  specs: parseSpecs(block.ruleArray),
+});
+
+const lexOrd = new Intl.Collator().compare;
 
 const parseSpecs = (ruleArray: Rule[]) =>
   ruleArray
@@ -68,17 +64,17 @@ function flattenIfStmt(ruleArray: Rule[]): Rule[] {
 
 async function getCourse(courseNumber: string): Promise<Course | undefined> {
   const res = await fetch(`${PPAPI_REST_URL}/courses/${courseNumber}`);
-  await sleep(DELAY);
+  await sleep(1000);
   const json: RawResponse<Course> = await res.json();
   return isErrorResponse(json) ? undefined : json.payload;
 }
 
 async function getCourses(
   department: string,
-  predicate: (x: Course) => boolean,
+  predicate: (x: Course) => boolean = () => true,
 ): Promise<Course[] | undefined> {
   const res = await fetch(`${PPAPI_REST_URL}/courses/?department=${department}`);
-  await sleep(DELAY);
+  await sleep(1000);
   const json: RawResponse<Course[]> = await res.json();
   return isErrorResponse(json) ? undefined : json.payload.filter(predicate);
 }
@@ -89,26 +85,35 @@ async function normalizeCourseId(courseIdLike: string): Promise<Course[]> {
   const [department, courseNumber] = courseIdLike.split(" ");
   if (courseNumber.match(wildcardMatcher)) {
     // Wildcard course numbers.
-    const courseIds = await getCourses(
+    const courses = await getCourses(
       department,
-      (x) => !!x.courseNumber.match(new RegExp(courseNumber.replace(/@/g, "."))),
+      (x) =>
+        !!x.courseNumber.match(
+          new RegExp(
+            "^" +
+              courseNumber.replace(
+                /@+/g,
+                `.{${[...courseNumber].filter((y) => y === "@").length},}`,
+              ),
+          ),
+        ),
     );
-    return courseIds ? courseIds : [];
+    return courses ?? [];
   }
   if (courseNumber.match(rangeMatcher)) {
     // Course number ranges.
     const [minCourseNumber, maxCourseNumber] = courseNumber.split("-");
-    const courseIds = await getCourses(
+    const courses = await getCourses(
       department,
       (x) =>
         x.courseNumeric >= Number.parseInt(minCourseNumber, 10) &&
         x.courseNumeric <= Number.parseInt(maxCourseNumber, 10),
     );
-    return courseIds ? courseIds : [];
+    return courses ?? [];
   }
   // Probably a normal course, just make sure that it exists.
-  const courseId = await getCourse(`${department}${courseNumber}`);
-  return courseId ? [courseId] : [];
+  const course = await getCourse(`${department}${courseNumber}`);
+  return course ? [course] : [];
 }
 
 async function ruleArrayToRequirements(ruleArray: Rule[]) {
@@ -163,7 +168,7 @@ async function ruleArrayToRequirements(ruleArray: Rule[]) {
         break;
       case "IfStmt": {
         const rules = flattenIfStmt([rule]);
-        if (rules.length > 1 && !rules.find((x) => x.ruleType === "Block")) {
+        if (rules.length > 1 && !rules.some((x) => x.ruleType === "Block")) {
           ret["Select 1 of the following"] = {
             requirementType: "Group",
             requirementCount: 1,
@@ -175,112 +180,6 @@ async function ruleArrayToRequirements(ruleArray: Rule[]) {
     }
   }
   return ret;
-}
-
-export const parseBlock = async (block: Block): Promise<Program> => ({
-  name: block.title,
-  requirements: await ruleArrayToRequirements(block.ruleArray),
-  specs: parseSpecs(block.ruleArray),
-});
-
-export async function getMajorAudit(
-  catalogYear: string,
-  degree: string,
-  school: string,
-  majorCode: string,
-  studentId: string,
-  headers: HeadersInit,
-): Promise<Block | undefined> {
-  const res = await fetch(AUDIT_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      catalogYear,
-      degree,
-      school,
-      studentId,
-      classes: [],
-      goals: [{ code: "MAJOR", value: majorCode }],
-    }),
-    headers,
-  });
-  await sleep(DELAY);
-  const json: DWAuditResponse = await res.json().catch(() => ({ error: "" }));
-  return "error" in json
-    ? undefined
-    : json.blockArray.find(
-        (x) => x.requirementType === "MAJOR" && x.requirementValue === majorCode,
-      );
-}
-
-export async function getMinorAudit(
-  catalogYear: string,
-  minorCode: string,
-  studentId: string,
-  headers: HeadersInit,
-): Promise<Block | undefined> {
-  const res = await fetch(AUDIT_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      catalogYear,
-      studentId,
-      degree: "BA",
-      school: "U",
-      classes: [],
-      goals: [
-        { code: "MAJOR", value: "000" },
-        { code: "MINOR", value: minorCode },
-      ],
-    }),
-    headers,
-  });
-  await sleep(DELAY);
-  const json: DWAuditResponse = await res.json().catch(() => ({ error: "" }));
-  return "error" in json
-    ? undefined
-    : json.blockArray.find(
-        (x) => x.requirementType === "MINOR" && x.requirementValue === minorCode,
-      );
-}
-
-export async function getSpecAudit(
-  catalogYear: string,
-  degree: string,
-  school: string,
-  majorCode: string,
-  specCode: string,
-  studentId: string,
-  headers: HeadersInit,
-): Promise<Block | undefined> {
-  const res = await fetch(AUDIT_URL, {
-    method: "POST",
-    body: JSON.stringify({
-      catalogYear,
-      degree,
-      school,
-      studentId,
-      classes: [],
-      goals: [
-        { code: "MAJOR", value: majorCode },
-        { code: "SPEC", value: specCode },
-      ],
-    }),
-    headers,
-  });
-  await sleep(DELAY);
-  const json: DWAuditResponse = await res.json().catch(() => ({ error: "" }));
-  return "error" in json
-    ? undefined
-    : json.blockArray.find((x) => x.requirementType === "SPEC" && x.requirementValue === specCode);
-}
-
-export async function getMapping<T extends string>(
-  path: T,
-  headers: HeadersInit,
-): Promise<Map<string, string>> {
-  const res = await fetch(`${DW_API_URL}/${path}`, { headers });
-  await sleep(DELAY);
-  const json: DWMappingResponse<T> = await res.json();
-  return new Map(json._embedded[path].map((x) => [x.key, x.description]));
 }
 
 export function parseBlockId(blockId: string) {

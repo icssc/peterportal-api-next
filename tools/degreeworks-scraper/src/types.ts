@@ -121,13 +121,4 @@ export type GroupRequirement = {
   requirements: Record<string, Requirement>;
 };
 
-export type IfStmtRequirement = {
-  requirementType: "IfStmt";
-  rules: Rule[];
-};
-
-export type Requirement =
-  | CourseRequirement
-  | UnitRequirement
-  | GroupRequirement
-  | IfStmtRequirement;
+export type Requirement = CourseRequirement | UnitRequirement | GroupRequirement;
