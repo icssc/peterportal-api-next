@@ -51,7 +51,7 @@ async function main() {
       `Requirements block found and parsed for "${audit.title}" (minorCode = ${minorCode})`,
     );
   }
-  const parsedUgradPrograms = new Map<string, Program>();
+  const parsedMajorsAndSpecs = new Map<string, Program>();
   const degreesAwarded = new Map<string, string>();
   console.log("Scraping undergraduate program requirements");
   for (const degree of undergraduateDegrees) {
@@ -62,13 +62,12 @@ async function main() {
         continue;
       }
       degreesAwarded.set(degree, degrees.get(degree) ?? "");
-      parsedUgradPrograms.set(`U-MAJOR-${majorCode}-${degree}`, ap.parseBlock(audit));
+      parsedMajorsAndSpecs.set(`U-MAJOR-${majorCode}-${degree}`, ap.parseBlock(audit));
       console.log(
         `Requirements block found and parsed for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
       );
     }
   }
-  const parsedGradPrograms = new Map<string, Program>();
   console.log("Scraping graduate program requirements");
   for (const degree of graduateDegrees) {
     for (const majorCode of majorPrograms) {
@@ -78,9 +77,27 @@ async function main() {
         continue;
       }
       degreesAwarded.set(degree, degrees.get(degree) ?? "");
-      parsedGradPrograms.set(`G-MAJOR-${majorCode}-${degree}`, ap.parseBlock(audit));
+      parsedMajorsAndSpecs.set(`G-MAJOR-${majorCode}-${degree}`, ap.parseBlock(audit));
       console.log(
         `Requirements block found and parsed for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
+      );
+    }
+  }
+  console.log("Scraping all specialization requirements");
+  for (const [blockId, { specs }] of parsedMajorsAndSpecs) {
+    const { school, code: majorCode, degreeType: degree } = ap.parseBlockId(blockId);
+    if (!degree) throw new Error(`Could not parse degree type from malformed blockId "${blockId}"`);
+    for (const specCode of specs) {
+      const audit = await dw.getSpecAudit(degree, school, majorCode, specCode);
+      if (!audit) {
+        console.log(
+          `Requirements block not found (school = ${school}, majorCode = ${majorCode}, specCode = ${specCode}, degree = ${degree})`,
+        );
+        continue;
+      }
+      parsedMajorsAndSpecs.set(`${school}-SPEC-${specCode}-${degree}`, ap.parseBlock(audit));
+      console.log(
+        `Requirements block found and parsed for "${audit.title}" (school = ${school}, majorCode = ${majorCode}, specCode = ${specCode}, degree = ${degree})`,
       );
     }
   }
@@ -91,12 +108,8 @@ async function main() {
       JSON.stringify(Object.fromEntries(parsedMinorPrograms.entries())),
     ),
     writeFile(
-      join(__dirname, "../output/parsedUgradPrograms.json"),
-      JSON.stringify(Object.fromEntries(parsedUgradPrograms.entries())),
-    ),
-    writeFile(
-      join(__dirname, "../output/parsedGradPrograms.json"),
-      JSON.stringify(Object.fromEntries(parsedGradPrograms.entries())),
+      join(__dirname, "../output/parsedMajorsAndSpecs.json"),
+      JSON.stringify(Object.fromEntries(parsedMajorsAndSpecs.entries())),
     ),
     writeFile(
       join(__dirname, "../output/degreesAwarded.json"),
