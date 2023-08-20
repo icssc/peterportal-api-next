@@ -124,7 +124,7 @@ function ruleArrayToRequirements(ruleArray: Rule[]) {
           .filter(([x]) => !toExclude.has(x))
           .sort(([, a], [, b]) =>
             a.department === b.department
-              ? a.courseNumeric - b.courseNumeric
+              ? a.courseNumeric - b.courseNumeric || lexOrd(a.courseNumber, b.courseNumber)
               : lexOrd(a.department, b.department),
           )
           .map(([x]) => x);
