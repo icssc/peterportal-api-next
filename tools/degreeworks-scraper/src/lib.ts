@@ -1,21 +1,20 @@
-import fetch from "cross-fetch";
-import { isErrorResponse } from "peterportal-api-next-types";
-import type { Course, RawResponse } from "peterportal-api-next-types";
+import type { Course } from "peterportal-api-next-types";
 
+import { PPAPIOfflineClient } from "./PPAPIOfflineClient";
 import type { Block, Program, Requirement, Rule } from "./types";
 import { ProgramId } from "./types";
 
-const PPAPI_REST_URL = "https://api-next.peterportal.org/v1/rest";
-
 const electiveMatcher = /ELECTIVE @+/;
-const wildcardMatcher = /\d+@+/;
-const rangeMatcher = /\d+-\d+/;
+const wildcardMatcher = /\w@/;
+const rangeMatcher = /-\w+/;
+
+const ppapi = new PPAPIOfflineClient();
 
 export const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-export const parseBlock = async (block: Block): Promise<Program> => ({
+export const parseBlock = (block: Block): Program => ({
   name: block.title,
-  requirements: await ruleArrayToRequirements(block.ruleArray),
+  requirements: ruleArrayToRequirements(block.ruleArray),
   specs: parseSpecs(block.ruleArray),
 });
 
@@ -62,30 +61,13 @@ function flattenIfStmt(ruleArray: Rule[]): Rule[] {
   return ret;
 }
 
-async function getCourse(courseNumber: string): Promise<Course | undefined> {
-  const res = await fetch(`${PPAPI_REST_URL}/courses/${courseNumber}`);
-  await sleep(1000);
-  const json: RawResponse<Course> = await res.json();
-  return isErrorResponse(json) ? undefined : json.payload;
-}
-
-async function getCourses(
-  department: string,
-  predicate: (x: Course) => boolean = () => true,
-): Promise<Course[] | undefined> {
-  const res = await fetch(`${PPAPI_REST_URL}/courses/?department=${department}`);
-  await sleep(1000);
-  const json: RawResponse<Course[]> = await res.json();
-  return isErrorResponse(json) ? undefined : json.payload.filter(predicate);
-}
-
-async function normalizeCourseId(courseIdLike: string): Promise<Course[]> {
+function normalizeCourseId(courseIdLike: string): Course[] {
   // "ELECTIVE @" is typically used as a pseudo-course and can be safely ignored.
   if (courseIdLike.match(electiveMatcher)) return [];
   const [department, courseNumber] = courseIdLike.split(" ");
   if (courseNumber.match(wildcardMatcher)) {
     // Wildcard course numbers.
-    const courses = await getCourses(
+    const courses = ppapi.getCourses(
       department,
       (x) =>
         !!x.courseNumber.match(
@@ -103,7 +85,7 @@ async function normalizeCourseId(courseIdLike: string): Promise<Course[]> {
   if (courseNumber.match(rangeMatcher)) {
     // Course number ranges.
     const [minCourseNumber, maxCourseNumber] = courseNumber.split("-");
-    const courses = await getCourses(
+    const courses = ppapi.getCourses(
       department,
       (x) =>
         x.courseNumeric >= Number.parseInt(minCourseNumber, 10) &&
@@ -112,21 +94,25 @@ async function normalizeCourseId(courseIdLike: string): Promise<Course[]> {
     return courses ?? [];
   }
   // Probably a normal course, just make sure that it exists.
-  const course = await getCourse(`${department}${courseNumber}`);
+  const course = ppapi.getCourse(`${department}${courseNumber}`);
   return course ? [course] : [];
 }
 
-async function ruleArrayToRequirements(ruleArray: Rule[]) {
+function ruleArrayToRequirements(ruleArray: Rule[]) {
   const ret: Record<string, Requirement> = {};
   for (const rule of ruleArray) {
     switch (rule.ruleType) {
+      case "Block":
+        break;
+      case "Noncourse":
+        break;
       case "Course": {
         const includedCourses = rule.requirement.courseArray.map(
           (x) => `${x.discipline} ${x.number}${x.numberEnd ? `-${x.numberEnd}` : ""}`,
         );
-        const toInclude = new Set<Course>();
+        const toInclude = new Map<string, Course>();
         for (const id of includedCourses) {
-          (await normalizeCourseId(id)).forEach((x) => toInclude.add(x));
+          normalizeCourseId(id).forEach((x) => toInclude.set(x.id, x));
         }
         const excludedCourses =
           rule.requirement.except?.courseArray.map(
@@ -134,16 +120,18 @@ async function ruleArrayToRequirements(ruleArray: Rule[]) {
           ) ?? [];
         const toExclude = new Set<string>();
         for (const id of excludedCourses) {
-          (await normalizeCourseId(id)).map((x) => x.id).forEach((x) => toExclude.add(x));
+          normalizeCourseId(id)
+            .map((x) => x.id)
+            .forEach((x) => toExclude.add(x));
         }
         const courses = Array.from(toInclude)
-          .filter((x) => !toExclude.has(x.id))
-          .sort((a, b) =>
+          .filter(([x]) => !toExclude.has(x))
+          .sort(([, a], [, b]) =>
             a.department === b.department
               ? a.courseNumeric - b.courseNumeric
               : lexOrd(a.department, b.department),
           )
-          .map((x) => x.id);
+          .map(([x]) => x);
         if (rule.requirement.classesBegin) {
           ret[rule.label] = {
             requirementType: "Course",
@@ -163,7 +151,7 @@ async function ruleArrayToRequirements(ruleArray: Rule[]) {
         ret[rule.label] = {
           requirementType: "Group",
           requirementCount: Number.parseInt(rule.requirement.numberOfGroups),
-          requirements: await ruleArrayToRequirements(rule.ruleArray),
+          requirements: ruleArrayToRequirements(rule.ruleArray),
         };
         break;
       case "IfStmt": {
@@ -172,7 +160,7 @@ async function ruleArrayToRequirements(ruleArray: Rule[]) {
           ret["Select 1 of the following"] = {
             requirementType: "Group",
             requirementCount: 1,
-            requirements: await ruleArrayToRequirements(rules),
+            requirements: ruleArrayToRequirements(rules),
           };
         }
         break;

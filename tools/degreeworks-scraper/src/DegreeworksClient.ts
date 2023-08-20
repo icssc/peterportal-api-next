@@ -21,10 +21,9 @@ export class DegreeworksClient {
      * as the catalog year. Otherwise, we use the former.
      */
     const currentYear = new Date().getUTCFullYear();
+    this.catalogYear = `${currentYear}${currentYear + 1}`;
     this.getMajorAudit("BS", "U", "201").then((x) => {
-      this.catalogYear = x
-        ? `${currentYear}${currentYear + 1}`
-        : `${currentYear - 1}${currentYear}`;
+      if (!x) this.catalogYear = `${currentYear - 1}${currentYear}`;
       console.log(`[DegreeworksClient] Set catalogYear to ${this.catalogYear}`);
     });
   }
@@ -45,6 +44,7 @@ export class DegreeworksClient {
       }),
       headers: this.headers,
     });
+    await sleep(this.delay);
     const json: DWAuditResponse = await res.json().catch(() => ({ error: "" }));
     return "error" in json
       ? undefined
@@ -69,6 +69,7 @@ export class DegreeworksClient {
       }),
       headers: this.headers,
     });
+    await sleep(this.delay);
     const json: DWAuditResponse = await res.json().catch(() => ({ error: "" }));
     return "error" in json
       ? undefined
@@ -98,6 +99,7 @@ export class DegreeworksClient {
       }),
       headers: this.headers,
     });
+    await sleep(this.delay);
     const json: DWAuditResponse = await res.json().catch(() => ({ error: "" }));
     return "error" in json
       ? undefined

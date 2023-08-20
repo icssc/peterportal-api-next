@@ -6,7 +6,7 @@ import jwtDecode from "jwt-decode";
 import type { JwtPayload } from "jwt-decode";
 
 import { DegreeworksClient } from "./DegreeworksClient";
-import { parseBlock, sleep } from "./lib";
+import { parseBlock } from "./lib";
 import type { Program } from "./types";
 
 import "dotenv/config";
@@ -43,10 +43,9 @@ async function main() {
     const audit = await dw.getMinorAudit(minorCode);
     if (!audit) {
       console.log(`Requirements block not found (minorCode = ${minorCode})`);
-      await sleep(1000);
       continue;
     }
-    parsedMinorPrograms.set(`U-MINOR-${minorCode}`, await parseBlock(audit));
+    parsedMinorPrograms.set(`U-MINOR-${minorCode}`, parseBlock(audit));
     console.log(
       `Requirements block found and parsed for "${audit.title}" (minorCode = ${minorCode})`,
     );
