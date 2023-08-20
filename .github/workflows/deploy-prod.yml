@@ -1,0 +1,101 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
+---
+name: Deploy CloudFormation stacks and production environment
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  id-token: write
+  contents: read
+  deployments: write
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  ACCOUNT_ID: ${{ secrets.ACCOUNT_ID }}
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_REGION: us-east-1
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  CERTIFICATE_ARN: ${{ secrets.CERTIFICATE_ARN }}
+  DATABASE_URL: ${{ secrets.DATABASE_URL_PRODUCTION }}
+  HOSTED_ZONE_ID: ${{ secrets.HOSTED_ZONE_ID }}
+  NODE_ENV: production
+
+jobs:
+  deploy-api:
+    name: Deploy API CloudFormation stack and production environment
+
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production
+      url: https://api-next.peterportal.org
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-and-pnpm
+
+      - name: Install dependencies
+        # Ensure NODE_ENV != production so pnpm will install devDependencies!!!
+        run: NODE_ENV=development pnpm install --frozen-lockfile
+
+      - name: Build AntStack
+        run: pnpm build --filter="ant-stack"
+
+      - name: Link AntStack
+        run: pnpm link ant-stack
+
+      - name: Build API assets
+        run: pnpm build --filter="api-*"
+
+      - name: Wait for API CloudFormation stack to idle
+        uses: ./.github/actions/wait-for-cloudformation-stack-idle
+        with:
+          stack_name: peterportal-api-next-prod
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
+
+      - name: Deploy API CloudFormation stack
+        run: pnpm run deploy --filter="ant-stack"
+
+  deploy-documentation:
+    name: Deploy documentation CloudFormation stack and production environment
+
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production-docs
+      url: https://docs.api-next.peterportal.org
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-and-pnpm
+
+      - name: Install dependencies
+        # Ensure NODE_ENV != production so pnpm will install devDependencies!!!
+        run: NODE_ENV=development pnpm install --frozen-lockfile
+
+      - name: Build documentation CDK
+        run: pnpm build --filter="docs-cdk"
+
+      - name: Wait for documentation CloudFormation stack to idle
+        uses: ./.github/actions/wait-for-cloudformation-stack-idle
+        with:
+          stack_name: peterportal-api-next-docs-prod
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
+
+      - name: Deploy documentation CloudFormation stack
+        run: pnpm run deploy --filter="docs-cdk"

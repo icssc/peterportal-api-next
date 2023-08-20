@@ -1,0 +1,45 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    "group:all",
+    "helpers:disableTypesNodeMajor",
+    "npm:unpublishSafe",
+    "schedule:monthly",
+    ":disableDependencyDashboard",
+    ":disableRateLimiting",
+    ":pinAllExceptPeerDependencies"
+  ],
+  "commitMessageAction": ":link: Update",
+  "commitMessageTopic": "{{depName}}",
+  "dockerfile": { "enabled": false },
+  "ignorePaths": ["**/templates/**"],
+  "labels": ["no deploy", "type: dependency"],
+  "nvm": { "enabled": false },
+  "packageRules": [
+    {
+      "matchPackagePatterns": ["react(?:-router)?"],
+      "groupName": "Docusaurus v2: React dependencies",
+      "allowedVersions": "<18.0.0"
+    },
+    {
+      "matchPackageNames": ["@mdx-js/react", "clsx", "prism-react-renderer", "prismjs"],
+      "groupName": "Docusaurus v2: other dependencies",
+      "allowedVersions": "<2.0.0"
+    },
+    {
+      "matchDepNames": [
+        "ant-stack",
+        "course-scraper",
+        "instructor-scraper",
+        "prereq-scraper",
+        "websoc-proxy-service",
+        "websoc-scraper-v2"
+      ],
+      "matchDepPatterns": ["^@libs"],
+      "groupName": "Internal packages",
+      "enabled": false
+    }
+  ],
+  "pin": { "commitMessageSuffix": "[skip ci]" }
+}

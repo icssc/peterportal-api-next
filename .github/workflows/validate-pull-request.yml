@@ -1,56 +1,44 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
 ---
-name: Lint and format PR title and message
+name: Validate pull request
 
 permissions:
   pull-requests: write
 
 on:
   pull_request:
+    types:
+      - opened
+      - edited
+      - synchronize
+      - reopened
 
 jobs:
-  lint-and-format-pr:
+  validate:
+    name: Validate pull request title and contents
+
     runs-on: ubuntu-latest
+
     steps:
       - name: Check out codebase
-        uses: actions/checkout@v3
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3
 
-      - name: Set up Node.js environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: lts/hydrogen
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 8
-          run_install: false
-
-      - name: Get pnpm store directory
-        id: pnpm-cache
-        shell: bash
-        run: echo "STORE_PATH=$(pnpm store path)" >> $GITHUB_OUTPUT
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v3
-        with:
-          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: ${{ runner.os }}-pnpm-store-
+      - name: Setup NodeJS and pnpm
+        uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install devDependencies
         run: pnpm install --dev --frozen-lockfile --ignore-scripts --workspace-root
 
-      - name: Lint PR title
+      - name: Lint pull request title
         run: echo ${{ toJSON(github.event.pull_request.title) }} | npx --no -- commitlint
 
-      - name: Format PR title
+      - name: Format pull request title
         id: devmoji
         run: |
           TITLE=$(npx --no -- devmoji --format shortcode --text ${{ toJSON(github.event.pull_request.title) }})
-          echo TITLE=$TITLE >> "$GITHUB_OUTPUT"
+          echo "TITLE=$TITLE" >> $GITHUB_OUTPUT
 
-      - name: Update PR title if needed
+      - name: Update pull request title if needed
         if: toJSON(github.event.pull_request.title) != toJSON(steps.devmoji.outputs.TITLE)
         uses: octokit/request-action@v2.x
         with:

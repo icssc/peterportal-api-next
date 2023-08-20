@@ -2,7 +2,6 @@
   "name": "grades-updater",
   "version": "0.0.0",
   "private": true,
-  "license": "MIT",
   "type": "module",
   "scripts": {
     "sanitize": "tsx sanitize-data.ts",
@@ -16,7 +15,7 @@
     "winston-transport": "4.5.0"
   },
   "devDependencies": {
-    "@types/node": "18.16.19",
+    "@types/node": "18.17.5",
     "dotenv-cli": "7.2.1",
     "peterportal-api-next-types": "workspace:*",
     "tsx": "3.12.7"

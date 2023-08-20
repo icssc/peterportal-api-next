@@ -7,10 +7,10 @@
     "build": "ant-stack build"
   },
   "dependencies": {
-    "@apollo/server": "4.7.5",
+    "@apollo/server": "4.9.1",
     "@graphql-tools/load-files": "7.0.0",
     "@graphql-tools/merge": "9.0.0",
-    "@graphql-tools/utils": "10.0.3",
+    "@graphql-tools/utils": "10.0.5",
     "ant-stack": "workspace:*",
     "cross-fetch": "4.0.0",
     "graphql": "16.7.1",

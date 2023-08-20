@@ -20,10 +20,10 @@
     "pako": "2.1.0"
   },
   "devDependencies": {
-    "@libs/db": "*",
-    "@types/pluralize": "^0.0.30",
+    "@types/pluralize": "0.0.30",
+    "cross-fetch": "4.0.0",
     "pluralize": "8.0.0",
-    "tsup": "7.1.0",
+    "tsup": "7.2.0",
     "tsx": "3.12.7"
   }
 }

@@ -57,6 +57,31 @@ type Course {
 extend type Query {
   "Get the course with the given ID."
   course(courseId: String!): Course!
+  "Get courses that match the given constraints."
+  courses(
+    "The department the courses are in."
+    department: String
+    "The course number of the courses."
+    courseNumber: String
+    "The numeric part of the course number."
+    courseNumeric: Int
+    "A substring of the courses' titles."
+    titleContains: String
+    "The level of the courses."
+    courseLevel: Division
+    "The minimum units of the courses."
+    minUnits: Float
+    "The maximum units of the courses."
+    maxUnits: Float
+    "A substring of the courses' descriptions."
+    descriptionContains: String
+    "A comma-separated list of all instructors that may have taught these courses."
+    taughtByInstructors: String
+    "The GE category that the courses fulfill."
+    geCategory: GE
+    "A comma-separated list of all terms that the courses may have been taught in."
+    taughtInTerms: String
+  ): [Course!]!
   "Get all courses."
   allCourses: [Course!]!
 }

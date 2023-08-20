@@ -1,25 +1,22 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/SchemaStore/schemastore/master/src/schemas/json/github-workflow.json
+---
 name: Check for TypeScript errors
+
 on:
   pull_request:
+
 jobs:
   check-typescript:
+    name: Check for TypeScript errors
+
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check out codebase
-        uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3
 
-      - name: Set up Node.js environment
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        id: pnpm-install
-        with:
-          version: 8
-          run_install: false
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
