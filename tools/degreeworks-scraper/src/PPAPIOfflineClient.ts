@@ -4,17 +4,19 @@ import type { Course, RawResponse } from "peterportal-api-next-types";
 
 export class PPAPIOfflineClient {
   private cache = new Map<string, Course>();
-  constructor() {
-    fetch("https://api-next.peterportal.org/v1/rest/courses/all")
-      .then((x) => x.json() as Promise<RawResponse<Course[]>>)
-      .then((x) => {
-        if (isErrorResponse(x))
-          throw new Error("Could not fetch courses cache from PeterPortal API");
-        x.payload.forEach((y) => this.cache.set(y.id, y));
-        console.log(
-          `[PPAPIOfflineClient] Fetched and stored ${x.payload.length} courses from PeterPortal API`,
-        );
-      });
+  private constructor() {}
+
+  static async new(): Promise<PPAPIOfflineClient> {
+    const ppapi = new PPAPIOfflineClient();
+    const res = await fetch("https://api-next.peterportal.org/v1/rest/courses/all");
+    const json: RawResponse<Course[]> = await res.json();
+    if (isErrorResponse(json))
+      throw new Error("Could not fetch courses cache from PeterPortal API");
+    json.payload.forEach((y) => ppapi.cache.set(y.id, y));
+    console.log(
+      `[PPAPIOfflineClient.new] Fetched and stored ${json.payload.length} courses from PeterPortal API`,
+    );
+    return ppapi;
   }
 
   getCourse = (courseNumber: string): Course | undefined => this.cache.get(courseNumber);

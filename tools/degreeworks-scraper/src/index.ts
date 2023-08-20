@@ -5,8 +5,8 @@ import { fileURLToPath } from "node:url";
 import jwtDecode from "jwt-decode";
 import type { JwtPayload } from "jwt-decode";
 
+import { AuditParser } from "./AuditParser";
 import { DegreeworksClient } from "./DegreeworksClient";
-import { parseBlock } from "./lib";
 import type { Program } from "./types";
 
 import "dotenv/config";
@@ -24,7 +24,7 @@ async function main() {
     Origin: "https://reg.uci.edu",
   };
   console.log("degreeworks-scraper starting");
-  const dw = new DegreeworksClient(studentId, headers);
+  const dw = await DegreeworksClient.new(studentId, headers);
   const degrees = await dw.getMapping("degrees");
   console.log(`Fetched ${degrees.size} degrees`);
   const majorPrograms = new Set((await dw.getMapping("majors")).keys());
@@ -37,6 +37,7 @@ async function main() {
   for (const degree of degrees.keys())
     (degree.startsWith("B") ? undergraduateDegrees : graduateDegrees).add(degree);
 
+  const ap = await AuditParser.new();
   const parsedMinorPrograms = new Map<string, Program>();
   console.log("Scraping minor program requirements");
   for (const minorCode of minorPrograms) {
@@ -45,7 +46,7 @@ async function main() {
       console.log(`Requirements block not found (minorCode = ${minorCode})`);
       continue;
     }
-    parsedMinorPrograms.set(`U-MINOR-${minorCode}`, parseBlock(audit));
+    parsedMinorPrograms.set(`U-MINOR-${minorCode}`, ap.parseBlock(audit));
     console.log(
       `Requirements block found and parsed for "${audit.title}" (minorCode = ${minorCode})`,
     );
@@ -61,7 +62,7 @@ async function main() {
         continue;
       }
       degreesAwarded.set(degree, degrees.get(degree) ?? "");
-      parsedUgradPrograms.set(`U-MAJOR-${majorCode}-${degree}`, parseBlock(audit));
+      parsedUgradPrograms.set(`U-MAJOR-${majorCode}-${degree}`, ap.parseBlock(audit));
       console.log(
         `Requirements block found and parsed for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
       );
@@ -77,7 +78,7 @@ async function main() {
         continue;
       }
       degreesAwarded.set(degree, degrees.get(degree) ?? "");
-      parsedGradPrograms.set(`G-MAJOR-${majorCode}-${degree}`, parseBlock(audit));
+      parsedGradPrograms.set(`G-MAJOR-${majorCode}-${degree}`, ap.parseBlock(audit));
       console.log(
         `Requirements block found and parsed for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
       );
