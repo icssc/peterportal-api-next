@@ -82,7 +82,7 @@ export type ProgramId = {
   degreeType?: string;
 };
 
-export type Program = {
+export type Program = ProgramId & {
   /**
    * The display name of the program.
    * @example "Major in Computer Science"

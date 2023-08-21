@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import deepEqual from "deep-equal";
 import jwtDecode from "jwt-decode";
 import type { JwtPayload } from "jwt-decode";
 
@@ -12,6 +13,37 @@ import type { Program } from "./types";
 import "dotenv/config";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+async function scrapePrograms(
+  ap: AuditParser,
+  dw: DegreeworksClient,
+  degrees: Set<string>,
+  majorPrograms: Set<string>,
+  school: string,
+) {
+  const ret = new Map<string, Program>();
+  for (const degree of degrees) {
+    for (const majorCode of majorPrograms) {
+      const audit = await dw.getMajorAudit(degree, school, majorCode);
+      if (!audit) {
+        console.log(`Requirements block not found (majorCode = ${majorCode}, degree = ${degree})`);
+        continue;
+      }
+      const parsedBlock = ap.parseBlock(`${school}-MAJOR-${majorCode}-${degree}`, audit);
+      const program = ret.get(audit.title);
+      if (deepEqual(parsedBlock, program)) {
+        console.log(
+          `Requirements block already exists for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
+        );
+      }
+      ret.set(audit.title, parsedBlock);
+      console.log(
+        `Requirements block found and parsed for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
+      );
+    }
+  }
+  return ret;
+}
 
 async function main() {
   if (!process.env["X_AUTH_TOKEN"]) throw new Error("Auth cookie not set.");
@@ -46,45 +78,24 @@ async function main() {
       console.log(`Requirements block not found (minorCode = ${minorCode})`);
       continue;
     }
-    parsedMinorPrograms.set(`U-MINOR-${minorCode}`, ap.parseBlock(audit));
+    parsedMinorPrograms.set(audit.title, ap.parseBlock(`U-MINOR-${minorCode}`, audit));
     console.log(
       `Requirements block found and parsed for "${audit.title}" (minorCode = ${minorCode})`,
     );
   }
-  const parsedMajorsAndSpecs = new Map<string, Program>();
-  const degreesAwarded = new Map<string, string>();
   console.log("Scraping undergraduate program requirements");
-  for (const degree of undergraduateDegrees) {
-    for (const majorCode of majorPrograms) {
-      const audit = await dw.getMajorAudit(degree, "U", majorCode);
-      if (!audit) {
-        console.log(`Requirements block not found (majorCode = ${majorCode}, degree = ${degree})`);
-        continue;
-      }
-      degreesAwarded.set(degree, degrees.get(degree) ?? "");
-      parsedMajorsAndSpecs.set(`U-MAJOR-${majorCode}-${degree}`, ap.parseBlock(audit));
-      console.log(
-        `Requirements block found and parsed for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
-      );
-    }
-  }
+  const parsedUgradPrograms = await scrapePrograms(
+    ap,
+    dw,
+    undergraduateDegrees,
+    majorPrograms,
+    "U",
+  );
   console.log("Scraping graduate program requirements");
-  for (const degree of graduateDegrees) {
-    for (const majorCode of majorPrograms) {
-      const audit = await dw.getMajorAudit(degree, "G", majorCode);
-      if (!audit) {
-        console.log(`Requirements block not found (majorCode = ${majorCode}, degree = ${degree})`);
-        continue;
-      }
-      degreesAwarded.set(degree, degrees.get(degree) ?? "");
-      parsedMajorsAndSpecs.set(`G-MAJOR-${majorCode}-${degree}`, ap.parseBlock(audit));
-      console.log(
-        `Requirements block found and parsed for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
-      );
-    }
-  }
+  const parsedGradPrograms = await scrapePrograms(ap, dw, undergraduateDegrees, majorPrograms, "U");
+  const parsedSpecializations = new Map<string, Program>();
   console.log("Scraping all specialization requirements");
-  for (const [blockId, { specs }] of parsedMajorsAndSpecs) {
+  for (const [blockId, { specs }] of [...parsedUgradPrograms, ...parsedGradPrograms]) {
     const { school, code: majorCode, degreeType: degree } = ap.parseBlockId(blockId);
     if (!degree) throw new Error(`Could not parse degree type from malformed blockId "${blockId}"`);
     for (const specCode of specs) {
@@ -95,12 +106,24 @@ async function main() {
         );
         continue;
       }
-      parsedMajorsAndSpecs.set(`${school}-SPEC-${specCode}-${degree}`, ap.parseBlock(audit));
+      parsedSpecializations.set(
+        specCode,
+        ap.parseBlock(`${school}-SPEC-${specCode}-${degree}`, audit),
+      );
       console.log(
-        `Requirements block found and parsed for "${audit.title}" (school = ${school}, majorCode = ${majorCode}, specCode = ${specCode}, degree = ${degree})`,
+        `Requirements block found and parsed for "${audit.title}" (specCode = ${specCode})`,
       );
     }
   }
+  const degreesAwarded = new Map(
+    Array.from(
+      new Set(
+        [...parsedUgradPrograms, ...parsedGradPrograms]
+          .map(([, x]) => x.degreeType)
+          .filter((x) => x) as string[],
+      ),
+    ).map((x) => [x, degrees.get(x) as string]),
+  );
   await mkdir(join(__dirname, "../output"), { recursive: true });
   await Promise.all([
     writeFile(
@@ -108,8 +131,16 @@ async function main() {
       JSON.stringify(Object.fromEntries(parsedMinorPrograms.entries())),
     ),
     writeFile(
-      join(__dirname, "../output/parsedMajorsAndSpecs.json"),
-      JSON.stringify(Object.fromEntries(parsedMajorsAndSpecs.entries())),
+      join(__dirname, "../output/parsedUgradPrograms.json"),
+      JSON.stringify(Object.fromEntries(parsedUgradPrograms.entries())),
+    ),
+    writeFile(
+      join(__dirname, "../output/parsedGradPrograms.json"),
+      JSON.stringify(Object.fromEntries(parsedGradPrograms.entries())),
+    ),
+    writeFile(
+      join(__dirname, "../output/parsedSpecializations.json"),
+      JSON.stringify(Object.fromEntries(parsedSpecializations.entries())),
     ),
     writeFile(
       join(__dirname, "../output/degreesAwarded.json"),

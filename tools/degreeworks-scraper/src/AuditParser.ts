@@ -24,7 +24,8 @@ export class AuditParser {
     return ap;
   }
 
-  parseBlock = (block: Block): Program => ({
+  parseBlock = (blockId: string, block: Block): Program => ({
+    ...this.parseBlockId(blockId),
     name: block.title,
     requirements: this.ruleArrayToRequirements(block.ruleArray),
     specs: this.parseSpecs(block.ruleArray),
