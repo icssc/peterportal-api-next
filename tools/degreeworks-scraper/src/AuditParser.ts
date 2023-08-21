@@ -9,12 +9,7 @@ export class AuditParser {
   private static readonly wildcardMatcher = /\w@/;
   private static readonly rangeMatcher = /-\w+/;
 
-  /**
-   * This will always be properly initialized using the static async factory function (`new()`).
-   */
-  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-  // @ts-ignore TS2564
-  private ppapi: PPAPIOfflineClient;
+  private ppapi!: PPAPIOfflineClient;
 
   private constructor() {}
 
