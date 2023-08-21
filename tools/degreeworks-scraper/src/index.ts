@@ -92,7 +92,7 @@ async function main() {
     "U",
   );
   console.log("Scraping graduate program requirements");
-  const parsedGradPrograms = await scrapePrograms(ap, dw, undergraduateDegrees, majorPrograms, "U");
+  const parsedGradPrograms = await scrapePrograms(ap, dw, graduateDegrees, majorPrograms, "G");
   const parsedSpecializations = new Map<string, Program>();
   console.log("Scraping all specialization requirements");
   for (const [, { specs, school, code: majorCode, degreeType: degree }] of [
