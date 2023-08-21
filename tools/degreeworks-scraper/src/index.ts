@@ -5,8 +5,9 @@ import { fileURLToPath } from "node:url";
 import jwtDecode from "jwt-decode";
 import type { JwtPayload } from "jwt-decode";
 
+import { Scraper } from "./components/Scraper";
+
 import "dotenv/config";
-import { Scraper } from "./Scraper";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 

@@ -1,6 +1,7 @@
+import { Program } from "../types";
+
 import { AuditParser } from "./AuditParser";
 import { DegreeworksClient } from "./DegreeworksClient";
-import { Program } from "./types";
 
 export class Scraper {
   private ap!: AuditParser;

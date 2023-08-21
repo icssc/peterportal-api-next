@@ -1,6 +1,6 @@
 import fetch from "cross-fetch";
 
-import type { Block, DWAuditResponse, DWMappingResponse } from "./types";
+import type { Block, DWAuditResponse, DWMappingResponse } from "../types";
 
 export class DegreeworksClient {
   private static readonly API_URL = "https://reg.uci.edu/RespDashboard/api";

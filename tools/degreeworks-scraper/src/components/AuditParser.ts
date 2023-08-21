@@ -1,7 +1,8 @@
 import type { Course } from "peterportal-api-next-types";
 
+import type { Block, Program, ProgramId, Requirement, Rule } from "../types";
+
 import { PPAPIOfflineClient } from "./PPAPIOfflineClient";
-import type { Block, Program, ProgramId, Requirement, Rule } from "./types";
 
 export class AuditParser {
   private static readonly specMatcher = /"type":"SPEC","value":"\w+"/g;
