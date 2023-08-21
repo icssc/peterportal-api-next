@@ -2,7 +2,6 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import deepEqual from "deep-equal";
 import jwtDecode from "jwt-decode";
 import type { JwtPayload } from "jwt-decode";
 
@@ -29,14 +28,13 @@ async function scrapePrograms(
         console.log(`Requirements block not found (majorCode = ${majorCode}, degree = ${degree})`);
         continue;
       }
-      const parsedBlock = ap.parseBlock(`${school}-MAJOR-${majorCode}-${degree}`, audit);
-      const program = ret.get(audit.title);
-      if (deepEqual(parsedBlock, program)) {
+      if (ret.has(audit.title)) {
         console.log(
           `Requirements block already exists for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
         );
+        continue;
       }
-      ret.set(audit.title, parsedBlock);
+      ret.set(audit.title, ap.parseBlock(`${school}-MAJOR-${majorCode}-${degree}`, audit));
       console.log(
         `Requirements block found and parsed for "${audit.title}" (majorCode = ${majorCode}, degree = ${degree})`,
       );
@@ -64,10 +62,10 @@ async function main() {
   const minorPrograms = new Set((await dw.getMapping("minors")).keys());
   console.log(`Fetched ${minorPrograms.size} minor programs`);
 
-  const undergraduateDegrees = new Set<string>();
-  const graduateDegrees = new Set<string>();
+  const ugradDegrees = new Set<string>();
+  const gradDegrees = new Set<string>();
   for (const degree of degrees.keys())
-    (degree.startsWith("B") ? undergraduateDegrees : graduateDegrees).add(degree);
+    (degree.startsWith("B") ? ugradDegrees : gradDegrees).add(degree);
 
   const ap = await AuditParser.new();
   const parsedMinorPrograms = new Map<string, Program>();
@@ -84,15 +82,9 @@ async function main() {
     );
   }
   console.log("Scraping undergraduate program requirements");
-  const parsedUgradPrograms = await scrapePrograms(
-    ap,
-    dw,
-    undergraduateDegrees,
-    majorPrograms,
-    "U",
-  );
+  const parsedUgradPrograms = await scrapePrograms(ap, dw, ugradDegrees, majorPrograms, "U");
   console.log("Scraping graduate program requirements");
-  const parsedGradPrograms = await scrapePrograms(ap, dw, graduateDegrees, majorPrograms, "G");
+  const parsedGradPrograms = await scrapePrograms(ap, dw, gradDegrees, majorPrograms, "G");
   const parsedSpecializations = new Map<string, Program>();
   console.log("Scraping all specialization requirements");
   for (const [, { specs, school, code: majorCode, degreeType: degree }] of [
