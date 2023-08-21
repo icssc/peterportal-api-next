@@ -95,9 +95,11 @@ async function main() {
   const parsedGradPrograms = await scrapePrograms(ap, dw, undergraduateDegrees, majorPrograms, "U");
   const parsedSpecializations = new Map<string, Program>();
   console.log("Scraping all specialization requirements");
-  for (const [blockId, { specs }] of [...parsedUgradPrograms, ...parsedGradPrograms]) {
-    const { school, code: majorCode, degreeType: degree } = ap.parseBlockId(blockId);
-    if (!degree) throw new Error(`Could not parse degree type from malformed blockId "${blockId}"`);
+  for (const [, { specs, school, code: majorCode, degreeType: degree }] of [
+    ...parsedUgradPrograms,
+    ...parsedGradPrograms,
+  ]) {
+    if (!degree) throw new Error(`Degree type is undefined`);
     for (const specCode of specs) {
       const audit = await dw.getSpecAudit(degree, school, majorCode, specCode);
       if (!audit) {
