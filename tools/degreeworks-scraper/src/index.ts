@@ -91,7 +91,7 @@ async function main() {
     ...parsedUgradPrograms,
     ...parsedGradPrograms,
   ]) {
-    if (!degree) throw new Error(`Degree type is undefined`);
+    if (!degree) throw new Error("Degree type is undefined");
     for (const specCode of specs) {
       const audit = await dw.getSpecAudit(degree, school, majorCode, specCode);
       if (!audit) {
