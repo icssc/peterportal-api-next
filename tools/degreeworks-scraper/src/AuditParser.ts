@@ -4,6 +4,7 @@ import { PPAPIOfflineClient } from "./PPAPIOfflineClient";
 import type { Block, Program, ProgramId, Requirement, Rule } from "./types";
 
 export class AuditParser {
+  private static readonly specMatcher = /"type":"SPEC","value":"\w+"/g;
   private static readonly electiveMatcher = /ELECTIVE @+/;
   private static readonly wildcardMatcher = /\w@/;
   private static readonly rangeMatcher = /-\w+/;
@@ -28,34 +29,15 @@ export class AuditParser {
     ...this.parseBlockId(blockId),
     name: block.title,
     requirements: this.ruleArrayToRequirements(block.ruleArray),
-    specs: this.parseSpecs(block.ruleArray),
+    specs: this.parseSpecs(block),
   });
 
   lexOrd = new Intl.Collator().compare;
 
-  parseSpecs = (ruleArray: Rule[]) =>
-    ruleArray
-      .filter((x) => x.ruleType === "IfStmt")
-      .flatMap((x) => this.ifStmtToSpecArray([x]))
+  parseSpecs = (block: Block): string[] =>
+    Array.from(JSON.stringify(block).matchAll(AuditParser.specMatcher))
+      .map((x) => JSON.parse(`{${x[0]}}`).value)
       .sort();
-
-  ifStmtToSpecArray(ruleArray: Rule[]): string[] {
-    const ret = [];
-    for (const rule of ruleArray) {
-      switch (rule.ruleType) {
-        case "IfStmt":
-          ret.push(
-            ...this.ifStmtToSpecArray(rule.requirement.ifPart.ruleArray),
-            ...this.ifStmtToSpecArray(rule.requirement.elsePart?.ruleArray ?? []),
-          );
-          break;
-        case "Block":
-          ret.push(rule.requirement.value);
-          break;
-      }
-    }
-    return ret;
-  }
 
   flattenIfStmt(ruleArray: Rule[]): Rule[] {
     const ret = [];
