@@ -9,13 +9,11 @@
   },
   "dependencies": {
     "cross-fetch": "4.0.0",
-    "deep-equal": "^2.2.2",
     "dotenv": "16.3.1",
     "jwt-decode": "3.1.2",
     "peterportal-api-next-types": "workspace:*"
   },
   "devDependencies": {
-    "@types/deep-equal": "^1.0.1",
     "tsx": "3.12.7"
   }
 }
