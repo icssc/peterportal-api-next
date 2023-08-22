@@ -182,7 +182,7 @@ function parseFinalExamString(section: WebsocSection): NormalizedFinalExam {
   return {
     examStatus: "SCHEDULED_FINAL",
     dayOfWeek: dayOfWeek as DayOfWeek,
-    month: months.indexOf(month) + 1,
+    month: months.indexOf(month),
     day: parseInt(day, 10),
     startTime,
     endTime,

@@ -326,7 +326,7 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   "finalExam": {
                     "examStatus": "SCHEDULED_FINAL",
                     "dayOfWeek": "Mon",
-                    "month": 6,
+                    "month": 5,
                     "day": 12,
                     "startTime": { "hour": 10, "minute": 30 },
                     "endTime": { "hour": 12, "minute": 30 },
@@ -407,7 +407,7 @@ curl "https://api-next.peterportal.org/v1/rest/websoc?year=2023&quarter=Spring&s
                   "finalExam": {
                     "examStatus": "SCHEDULED_FINAL",
                     "dayOfWeek": "Sat",
-                    "month": 6,
+                    "month": 5,
                     "day": 10,
                     "startTime": { "hour": 13, "minute": 30 },
                     "endTime": { "hour": 15, "minute": 30 },

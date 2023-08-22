@@ -75,7 +75,7 @@ export type WebsocSectionFinalExam = {
    */
   dayOfWeek: DayOfWeek | null;
   /**
-   * The month in which the final exam takes place.
+   * The zero-indexed month (e.g. January = 0) in which the final exam takes place.
    */
   month: number | null;
   /**
