@@ -54,7 +54,12 @@ export type RuleNoncourse = {
   ruleType: "Noncourse";
   requirement: { numNoncourses: string; code: string };
 };
-export type Rule = RuleBase & (RuleGroup | RuleCourse | RuleIfStmt | RuleBlock | RuleNoncourse);
+export type RuleSubset = {
+  ruleType: "Subset";
+  ruleArray: Rule[];
+};
+export type Rule = RuleBase &
+  (RuleGroup | RuleCourse | RuleIfStmt | RuleBlock | RuleNoncourse | RuleSubset);
 export type Block = {
   requirementType: string;
   requirementValue: string;

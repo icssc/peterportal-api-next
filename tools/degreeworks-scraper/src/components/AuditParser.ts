@@ -92,7 +92,6 @@ export class AuditParser {
     for (const rule of ruleArray) {
       switch (rule.ruleType) {
         case "Block":
-          break;
         case "Noncourse":
           break;
         case "Course": {
@@ -132,13 +131,14 @@ export class AuditParser {
           }
           break;
         }
-        case "Group":
+        case "Group": {
           ret[rule.label] = {
             requirementType: "Group",
             requirementCount: Number.parseInt(rule.requirement.numberOfGroups),
             requirements: this.ruleArrayToRequirements(rule.ruleArray),
           };
           break;
+        }
         case "IfStmt": {
           const rules = this.flattenIfStmt([rule]);
           if (rules.length > 1 && !rules.some((x) => x.ruleType === "Block")) {
@@ -149,6 +149,14 @@ export class AuditParser {
             };
           }
           break;
+        }
+        case "Subset": {
+          const requirements = this.ruleArrayToRequirements(rule.ruleArray);
+          ret[rule.label] = {
+            requirementType: "Group",
+            requirementCount: Object.keys(requirements).length,
+            requirements,
+          };
         }
       }
     }
