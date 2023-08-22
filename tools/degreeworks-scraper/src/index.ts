@@ -27,7 +27,7 @@ async function main() {
   await mkdir(join(__dirname, "../output"), { recursive: true });
   for (const [fileName, contents] of scraper.get())
     await writeFile(
-      join(__dirname, `../output/${fileName}`),
+      join(__dirname, `../output/${fileName}.json`),
       JSON.stringify(Object.fromEntries(contents)),
     );
 }
