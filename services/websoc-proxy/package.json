@@ -4,7 +4,8 @@
   "private": true,
   "license": "MIT",
   "type": "module",
-  "main": "index.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "scripts": {
     "build": "node build.mjs"
   },
