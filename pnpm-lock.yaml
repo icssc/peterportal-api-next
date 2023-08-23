@@ -495,12 +495,18 @@ importers:
 
   services/cdk:
     dependencies:
+      '@services/registrar-scraper':
+        specifier: workspace:*
+        version: link:../registrar-scraper
+      '@services/websoc-proxy':
+        specifier: workspace:*
+        version: link:../websoc-proxy
+      '@services/websoc-scraper-v2':
+        specifier: workspace:*
+        version: link:../websoc-scraper-v2
       dotenv:
         specifier: 16.3.1
         version: 16.3.1
-      websoc-proxy-service:
-        specifier: '*'
-        version: link:../websoc-proxy-service
     devDependencies:
       '@types/babel__traverse':
         specifier: 7.20.1
@@ -530,7 +536,38 @@ importers:
         specifier: 5.1.6
         version: 5.1.6
 
-  services/websoc-proxy-service:
+  services/registrar-scraper:
+    dependencies:
+      '@libs/db':
+        specifier: workspace:*
+        version: link:../../libs/db
+      '@types/he':
+        specifier: 1.2.0
+        version: 1.2.0
+      cheerio:
+        specifier: 1.0.0-rc.12
+        version: 1.0.0-rc.12
+      he:
+        specifier: 1.2.0
+        version: 1.2.0
+      p-limit:
+        specifier: 4.0.0
+        version: 4.0.0
+      string-similarity-js:
+        specifier: 2.1.4
+        version: 2.1.4
+      winston:
+        specifier: 3.10.0
+        version: 3.10.0
+    devDependencies:
+      esbuild:
+        specifier: 0.19.1
+        version: 0.19.1
+      peterportal-api-next-types:
+        specifier: workspace:*
+        version: link:../../packages/peterportal-api-next-types
+
+  services/websoc-proxy:
     dependencies:
       '@libs/websoc-api-next':
         specifier: workspace:*
@@ -554,6 +591,28 @@ importers:
       peterportal-api-next-types:
         specifier: workspace:*
         version: link:../../packages/peterportal-api-next-types
+
+  services/websoc-scraper-v2:
+    dependencies:
+      '@libs/db':
+        specifier: workspace:*
+        version: link:../../libs/db
+      '@libs/registrar-api':
+        specifier: workspace:*
+        version: link:../../libs/registrar-api
+      '@libs/websoc-api-next':
+        specifier: workspace:*
+        version: link:../../libs/websoc-api-next
+      peterportal-api-next-types:
+        specifier: workspace:*
+        version: link:../../packages/peterportal-api-next-types
+      winston:
+        specifier: 3.10.0
+        version: 3.10.0
+    devDependencies:
+      esbuild:
+        specifier: 0.19.1
+        version: 0.19.1
 
   tests/api:
     devDependencies:
@@ -594,55 +653,6 @@ importers:
         specifier: 0.34.1
         version: 0.34.1
 
-  tools/cdk:
-    dependencies:
-      dotenv:
-        specifier: 16.3.1
-        version: 16.3.1
-      websoc-proxy-service:
-        specifier: '*'
-        version: link:../../services/websoc-proxy-service
-      websoc-scraper-v2:
-        specifier: '*'
-        version: link:../websoc-scraper-v2
-    devDependencies:
-      '@types/babel__traverse':
-        specifier: 7.20.1
-        version: 7.20.1
-      '@types/node':
-        specifier: 18.17.5
-        version: 18.17.5
-      aws-cdk:
-        specifier: 2.91.0
-        version: 2.91.0
-      aws-cdk-lib:
-        specifier: 2.91.0
-        version: 2.91.0(constructs@10.2.69)
-      constructs:
-        specifier: 10.2.69
-        version: 10.2.69
-      peterportal-api-next-types:
-        specifier: workspace:*
-        version: link:../../packages/peterportal-api-next-types
-      source-map-support:
-        specifier: 0.5.21
-        version: 0.5.21
-      tsx:
-        specifier: 3.12.7
-        version: 3.12.7
-      typescript:
-        specifier: 5.1.6
-        version: 5.1.6
-
-  tools/course-scraper:
-    dependencies:
-      cheerio:
-        specifier: 1.0.0-rc.12
-        version: 1.0.0-rc.12
-      cross-fetch:
-        specifier: 4.0.0
-        version: 4.0.0
-
   tools/grades-updater:
     dependencies:
       '@libs/db':
@@ -673,81 +683,6 @@ importers:
       tsx:
         specifier: 3.12.7
         version: 3.12.7
-
-  tools/instructor-scraper:
-    dependencies:
-      '@types/he':
-        specifier: 1.2.0
-        version: 1.2.0
-      cheerio:
-        specifier: 1.0.0-rc.12
-        version: 1.0.0-rc.12
-      he:
-        specifier: 1.2.0
-        version: 1.2.0
-      p-limit:
-        specifier: 4.0.0
-        version: 4.0.0
-      string-similarity-js:
-        specifier: 2.1.4
-        version: 2.1.4
-      winston:
-        specifier: 3.10.0
-        version: 3.10.0
-    devDependencies:
-      peterportal-api-next-types:
-        specifier: '*'
-        version: link:../../packages/peterportal-api-next-types
-
-  tools/prereq-scraper:
-    dependencies:
-      cheerio:
-        specifier: 1.0.0-rc.12
-        version: 1.0.0-rc.12
-      winston:
-        specifier: 3.10.0
-        version: 3.10.0
-    devDependencies:
-      peterportal-api-next-types:
-        specifier: '*'
-        version: link:../../packages/peterportal-api-next-types
-
-  tools/unified-scraper:
-    dependencies:
-      '@libs/db':
-        specifier: '*'
-        version: link:../../libs/db
-      course-scraper:
-        specifier: '*'
-        version: link:../course-scraper
-      instructor-scraper:
-        specifier: '*'
-        version: link:../instructor-scraper
-      prereq-scraper:
-        specifier: '*'
-        version: link:../prereq-scraper
-    devDependencies:
-      peterportal-api-next-types:
-        specifier: '*'
-        version: link:../../packages/peterportal-api-next-types
-
-  tools/websoc-scraper-v2:
-    dependencies:
-      '@libs/db':
-        specifier: '*'
-        version: link:../../libs/db
-      '@libs/registrar-api':
-        specifier: '*'
-        version: link:../../libs/registrar-api
-      '@libs/websoc-api-next':
-        specifier: '*'
-        version: link:../../libs/websoc-api-next
-      peterportal-api-next-types:
-        specifier: '*'
-        version: link:../../packages/peterportal-api-next-types
-      winston:
-        specifier: 3.10.0
-        version: 3.10.0
 
 packages:
 
@@ -3020,6 +2955,7 @@ packages:
   /@commitlint/load@17.7.1:
     resolution: {integrity: sha512-S/QSOjE1ztdogYj61p6n3UbkUvweR17FQ0zDbNtoTLc+Hz7vvfS7ehoTMQ27hPSjVBpp7SzEcOQu081RLjKHJQ==}
     engines: {node: '>=v14'}
+    requiresBuild: true
     dependencies:
       '@commitlint/config-validator': 17.6.7
       '@commitlint/execute-rule': 17.4.0

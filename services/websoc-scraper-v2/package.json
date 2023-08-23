@@ -1,0 +1,20 @@
+{
+  "name": "@services/websoc-scraper-v2",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "main": "index.ts",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@libs/db": "workspace:*",
+    "@libs/registrar-api": "workspace:*",
+    "@libs/websoc-api-next": "workspace:*",
+    "peterportal-api-next-types": "workspace:*",
+    "winston": "3.10.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.19.1"
+  }
+}

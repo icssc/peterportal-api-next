@@ -28,15 +28,8 @@
       "allowedVersions": "<2.0.0"
     },
     {
-      "matchDepNames": [
-        "ant-stack",
-        "course-scraper",
-        "instructor-scraper",
-        "prereq-scraper",
-        "websoc-proxy-service",
-        "websoc-scraper-v2"
-      ],
-      "matchDepPatterns": ["^@libs"],
+      "matchDepNames": ["ant-stack"],
+      "matchDepPatterns": ["^@libs", "^@services"],
       "groupName": "Internal packages",
       "enabled": false
     }

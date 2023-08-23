@@ -98,10 +98,10 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
     response.schools.flatMap((school) =>
       school.departments.flatMap((department) =>
         department.courses.flatMap((course) =>
-          course.sections.map((section) => isolateSection({ school, department, course, section }))
-        )
-      )
-    )
+          course.sections.map((section) => isolateSection({ school, department, course, section })),
+        ),
+      ),
+    ),
   );
 
   /**
@@ -117,7 +117,7 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
     }
 
     const foundDept = foundSchool.departments.find(
-      (d) => d.deptCode === section.department.deptCode
+      (d) => d.deptCode === section.department.deptCode,
     );
     if (!foundDept) {
       foundSchool.departments.push(section.department);
@@ -127,7 +127,7 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
     const foundCourse = foundDept.courses.find(
       (c) =>
         c.courseNumber === section.course.courseNumber &&
-        c.courseTitle === section.course.courseTitle
+        c.courseTitle === section.course.courseTitle,
     );
     if (!foundCourse) {
       foundDept.courses.push(section.course);
@@ -135,7 +135,7 @@ export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIRe
     }
 
     const foundSection = foundCourse.sections.find(
-      (s) => s.sectionCode === section.section.sectionCode
+      (s) => s.sectionCode === section.section.sectionCode,
     );
     if (!foundSection) {
       foundCourse.sections.push(section.section);
@@ -191,8 +191,8 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
                 lte: parseInt(n.split("-")[1].replace(/\D/g, "")),
               },
             }
-          : { courseNumber: n }
-      )
+          : { courseNumber: n },
+      ),
     );
   }
 
@@ -270,7 +270,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
               },
             },
           },
-        }))
+        })),
     );
   }
 
@@ -326,7 +326,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
               lte: parseInt(code.split("-")[1], 10),
             }
           : parseInt(code),
-      }))
+      })),
     );
   }
 
@@ -334,7 +334,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
     OR.push(
       ...parsedQuery.units.map((u) => ({
         units: u === "VAR" ? { contains: "-" } : { startsWith: parseFloat(u).toString() },
-      }))
+      })),
     );
   }
 
@@ -385,7 +385,7 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
         queries.map((q) => ({
           ...q,
           sectionCodes: query.sectionCodes?.slice(k, k + 5).join(",") || "",
-        }))
+        })),
       );
   }
   return queries;
@@ -404,7 +404,7 @@ export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
   response.schools.forEach((schools) => {
     schools.departments.forEach((department) => {
       department.courses.forEach((course) =>
-        course.sections.sort((a, b) => parseInt(a.sectionCode, 10) - parseInt(b.sectionCode, 10))
+        course.sections.sort((a, b) => parseInt(a.sectionCode, 10) - parseInt(b.sectionCode, 10)),
       );
       department.courses.sort((a, b) => {
         const numOrd =
@@ -429,9 +429,9 @@ export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
 export async function invokeProxyService(client: LambdaClient, body: Record<string, unknown>) {
   const res = await client.send(
     new InvokeCommand({
-      FunctionName: "peterportal-api-next-prod-websoc-proxy-service",
+      FunctionName: "peterportal-api-next-services-prod-websoc-proxy",
       Payload: new TextEncoder().encode(JSON.stringify({ body: JSON.stringify(body) })),
-    })
+    }),
   );
   const payload = JSON.parse(Buffer.from(res.Payload ?? []).toString());
   return JSON.parse(payload.body);
