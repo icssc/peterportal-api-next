@@ -1,9 +1,18 @@
+import jwtDecode from "jwt-decode";
+import type { JwtPayload } from "jwt-decode";
+
 import { Program } from "../types";
 
 import { AuditParser } from "./AuditParser";
 import { DegreeworksClient } from "./DegreeworksClient";
 
 export class Scraper {
+  private static readonly headers = {
+    "Content-Type": "application/json",
+    Cookie: `X-AUTH-TOKEN=${process.env["X_AUTH_TOKEN"]}`,
+    Origin: "https://reg.uci.edu",
+  };
+
   private ap!: AuditParser;
   private dw!: DegreeworksClient;
 
@@ -47,6 +56,7 @@ export class Scraper {
     return ret;
   }
   async run() {
+    console.log("[Scraper] degreeworks-scraper starting");
     if (this.done) throw new Error("This scraper instance has already finished its run.");
     this.degrees = await this.dw.getMapping("degrees");
     console.log(`Fetched ${this.degrees.size} degrees`);
@@ -122,10 +132,15 @@ export class Scraper {
       }),
     ) as Map<string, Map<string, Program>>;
   }
-  static async new(studentId: string, headers: HeadersInit): Promise<Scraper> {
+  static async new(): Promise<Scraper> {
+    if (!process.env["X_AUTH_TOKEN"]) throw new Error("Auth cookie not set.");
+    const studentId = jwtDecode<JwtPayload>(process.env["X_AUTH_TOKEN"].slice("Bearer+".length))
+      ?.sub;
+    if (!studentId || studentId.length !== 8)
+      throw new Error("Could not parse student ID from auth cookie.");
     const scraper = new Scraper();
     scraper.ap = await AuditParser.new();
-    scraper.dw = await DegreeworksClient.new(studentId, headers);
+    scraper.dw = await DegreeworksClient.new(studentId, Scraper.headers);
     return scraper;
   }
 }
