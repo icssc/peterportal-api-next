@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -22,7 +22,7 @@ export type CourseTree = {
   prereqTree: PrerequisiteTree;
 };
 
-type CourseList = Array<CourseTree>;
+export type CourseList = Array<CourseTree>;
 
 /**
  * Logger object to log info, errors, and warnings
@@ -235,10 +235,3 @@ function parseAntiRequisite(requisite: string): Prerequisite | null {
   }
   return null;
 }
-
-async function main() {
-  const prereqs = await getPrereqs();
-  writeFileSync("./prerequisites.json", JSON.stringify(prereqs));
-}
-
-main();

@@ -1,10 +1,15 @@
 {
-  "name": "instructor-scraper",
+  "name": "@services/registrar-scraper",
   "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "main": "index.ts",
+  "scripts": {
+    "build": "node build.mjs"
+  },
   "dependencies": {
+    "@libs/db": "workspace:*",
     "@types/he": "1.2.0",
     "cheerio": "1.0.0-rc.12",
     "he": "1.2.0",
@@ -13,6 +18,7 @@
     "winston": "3.10.0"
   },
   "devDependencies": {
-    "peterportal-api-next-types": "*"
+    "esbuild": "0.19.1",
+    "peterportal-api-next-types": "workspace:*"
   }
 }

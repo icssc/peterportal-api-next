@@ -1,5 +1,5 @@
 {
-  "name": "services-cdk",
+  "name": "@services/cdk",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -8,7 +8,9 @@
     "destroy": "cdk destroy --all --force"
   },
   "dependencies": {
-    "@services/websoc-proxy-service": "*",
+    "@services/registrar-scraper": "workspace:*",
+    "@services/websoc-proxy": "workspace:*",
+    "@services/websoc-scraper-v2": "workspace:*",
     "dotenv": "16.3.1"
   },
   "devDependencies": {

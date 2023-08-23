@@ -62,7 +62,10 @@ export function normalizeCourse(course: PrismaCourse): Course {
 export function constructPrismaQuery(parsedQuery: Query): Prisma.CourseWhereInput {
   const AND: Prisma.CourseWhereInput[] = [];
 
-  if (parsedQuery.department) AND.push({ department: parsedQuery.department });
+  if (parsedQuery.department)
+    AND.push({
+      OR: [{ department: parsedQuery.department }, { id: { startsWith: parsedQuery.department } }],
+    });
 
   if (parsedQuery.courseNumber) AND.push({ courseNumber: parsedQuery.courseNumber });
 

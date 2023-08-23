@@ -15,7 +15,7 @@
   },
   "devDependencies": {
     "@libs/build-tools": "workspace:*",
-    "@services/websoc-proxy-service": "workspace:*",
+    "@services/websoc-proxy": "workspace:*",
     "peterportal-api-next-types": "workspace:*"
   }
 }

@@ -1,8 +1,152 @@
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { Prisma } from "@libs/db";
-import type { WebsocAPIOptions } from "@libs/websoc-api-next";
-import { notNull } from "@libs/websoc-utils";
+import { WebsocAPIOptions } from "@libs/websoc-api-next";
+import type {
+  Department,
+  TermData,
+  WebsocAPIResponse,
+  WebsocCourse,
+  WebsocDepartment,
+  WebsocSchool,
+  WebsocSection,
+  WebsocSectionMeeting,
+} from "peterportal-api-next-types";
 
 import type { Query } from "./schema";
+
+/**
+ * Section that also contains all relevant Websoc metadata.
+ */
+type EnhancedSection = {
+  school: WebsocSchool;
+  department: WebsocDepartment;
+  course: WebsocCourse;
+  section: WebsocSection;
+};
+
+/**
+ * Returns the lexicographical ordering of two elements.
+ * @param a The left hand side of the comparison.
+ * @param b The right hand side of the comparison.
+ */
+const lexOrd = (a: string, b: string): number => (a === b ? 0 : a > b ? 1 : -1);
+
+/**
+ * Get unique array of meetings.
+ */
+const getUniqueMeetings = (meetings: WebsocSectionMeeting[]) =>
+  meetings.reduce((acc, meeting) => {
+    if (!acc.find((m) => m.days === meeting.days && m.time === meeting.time)) {
+      acc.push(meeting);
+    }
+    return acc;
+  }, [] as WebsocSectionMeeting[]);
+
+/**
+ * type guard that asserts that the settled promise was fulfilled
+ */
+export const fulfilled = <T>(value: PromiseSettledResult<T>): value is PromiseFulfilledResult<T> =>
+  value.status === "fulfilled";
+
+/**
+ * type guard that asserts input is defined
+ */
+export const notNull = <T>(x: T): x is NonNullable<T> => x != null;
+
+/**
+ * Sleep for the given number of milliseconds.
+ * @param duration Duration in ms.
+ */
+export const sleep = async (duration: number) =>
+  new Promise((resolve) => setTimeout(resolve, duration));
+
+/**
+ * Given all parent data about a section, isolate relevant data.
+ * @returns ``EnhancedSection`` with all deduped, relevant metadata.
+ */
+function isolateSection(data: EnhancedSection) {
+  const section = {
+    ...data.section,
+    meetings: getUniqueMeetings(data.section.meetings),
+  };
+
+  const course = {
+    ...data.course,
+    sections: [section],
+  };
+
+  const department = {
+    ...data.department,
+    courses: [course],
+  };
+
+  const school = {
+    ...data.school,
+    departments: [department],
+  };
+
+  return { school, department, course, section };
+}
+
+/**
+ * Combines all given response objects into a single response object,
+ * eliminating duplicates and merging substructures.
+ * @param responses The responses to combine.
+ */
+export function combineResponses(...responses: WebsocAPIResponse[]): WebsocAPIResponse {
+  const allSections = responses.flatMap((response) =>
+    response.schools.flatMap((school) =>
+      school.departments.flatMap((department) =>
+        department.courses.flatMap((course) =>
+          course.sections.map((section) => isolateSection({ school, department, course, section })),
+        ),
+      ),
+    ),
+  );
+
+  /**
+   * for each section:
+   * if one of its parent structures hasn't been declared,
+   * append the corresponding structure of the section
+   */
+  const schools = allSections.reduce((acc, section) => {
+    const foundSchool = acc.find((s) => s.schoolName === section.school.schoolName);
+    if (!foundSchool) {
+      acc.push(section.school);
+      return acc;
+    }
+
+    const foundDept = foundSchool.departments.find(
+      (d) => d.deptCode === section.department.deptCode,
+    );
+    if (!foundDept) {
+      foundSchool.departments.push(section.department);
+      return acc;
+    }
+
+    const foundCourse = foundDept.courses.find(
+      (c) =>
+        c.courseNumber === section.course.courseNumber &&
+        c.courseTitle === section.course.courseTitle,
+    );
+    if (!foundCourse) {
+      foundDept.courses.push(section.course);
+      return acc;
+    }
+
+    const foundSection = foundCourse.sections.find(
+      (s) => s.sectionCode === section.section.sectionCode,
+    );
+    if (!foundSection) {
+      foundCourse.sections.push(section.section);
+      return acc;
+    }
+
+    return acc;
+  }, [] as WebsocSchool[]);
+
+  return { schools };
+}
 
 /**
  * Converts a 12-hour time string into number of minutes since midnight.
@@ -245,4 +389,73 @@ export function normalizeQuery(query: Query): WebsocAPIOptions[] {
       );
   }
   return queries;
+}
+
+/**
+ * Deeply sorts the provided response and returns the sorted response.
+ *
+ * Schools are sorted in lexicographical order of their name, departments are
+ * sorted in lexicographical order of their code, courses are sorted in
+ * numerical order of their number (with lexicographical tiebreaks),
+ * and sections are sorted in numerical order of their code.
+ * @param response The response to sort.
+ */
+export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
+  response.schools.forEach((schools) => {
+    schools.departments.forEach((department) => {
+      department.courses.forEach((course) =>
+        course.sections.sort((a, b) => parseInt(a.sectionCode, 10) - parseInt(b.sectionCode, 10)),
+      );
+      department.courses.sort((a, b) => {
+        const numOrd =
+          parseInt(a.courseNumber.replace(/\D/g, ""), 10) -
+          parseInt(b.courseNumber.replace(/\D/g, ""), 10);
+        return numOrd ? numOrd : lexOrd(a.courseNumber, b.courseNumber);
+      });
+    });
+    schools.departments.sort((a, b) => lexOrd(a.deptCode, b.deptCode));
+  });
+
+  response.schools.sort((a, b) => lexOrd(a.schoolName, b.schoolName));
+
+  return response;
+}
+
+/**
+ * Wraps the Lambda client to invoke the WebSoc proxy service.
+ * @param client The Lambda Client to use.
+ * @param body The body to send to the proxy service.
+ */
+export async function invokeProxyService(client: LambdaClient, body: Record<string, unknown>) {
+  const res = await client.send(
+    new InvokeCommand({
+      FunctionName: "peterportal-api-next-services-prod-websoc-proxy",
+      Payload: new TextEncoder().encode(JSON.stringify({ body: JSON.stringify(body) })),
+    }),
+  );
+  const payload = JSON.parse(Buffer.from(res.Payload ?? []).toString());
+  return JSON.parse(payload.body);
+}
+
+export class PeterPortalApiLambdaClient {
+  constructor(private readonly client: LambdaClient) {}
+
+  private async invoke(body: Record<string, unknown>) {
+    return invokeProxyService(this.client, body);
+  }
+
+  async getDepts(body: Record<string, unknown>): Promise<Department[]> {
+    const invocationResponse = await this.invoke(body);
+    return invocationResponse.payload;
+  }
+
+  async getTerms(body: Record<string, unknown>): Promise<TermData[]> {
+    const invocationResponse = await this.invoke(body);
+    return invocationResponse.payload;
+  }
+
+  async getWebsoc(body: Record<string, unknown>): Promise<WebsocAPIResponse> {
+    const invocationResponse = await this.invoke(body);
+    return invocationResponse.payload;
+  }
 }
