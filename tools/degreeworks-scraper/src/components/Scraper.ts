@@ -52,27 +52,32 @@ export class Scraper {
   private cleanUpPrograms(programs: Map<string, Program>) {
     const ret = new Map<string, Program>();
     for (const [name, program] of programs) {
-      if (!Object.keys(program.requirements).length && program.specs.length === 2) {
-        program.requirements = {
-          "Select 1 of the following": {
-            requirementType: "Group",
-            requirementCount: 1,
-            requirements: Object.fromEntries(
-              program.specs.map((x) => [
-                this.parsedSpecializations?.get(x)?.name,
-                this.parsedSpecializations?.get(x)?.requirements,
-              ]),
-            ),
-          },
-        };
+      if (!Object.keys(program.requirements).length) {
+        if (program.specs.length === 1) {
+          program.requirements = this.parsedSpecializations!.get(program.specs[0])!.requirements;
+        } else {
+          program.requirements = {
+            "Select 1 of the following": {
+              requirementType: "Group",
+              requirementCount: 1,
+              requirements: Object.fromEntries(
+                program.specs.map((x) => [
+                  this.parsedSpecializations?.get(x)?.name,
+                  this.parsedSpecializations?.get(x)?.requirements,
+                ]),
+              ),
+            },
+          };
+        }
+        program.specs = [];
       }
       ret.set(name, program);
     }
     return ret;
   }
   async run() {
-    console.log("[Scraper] degreeworks-scraper starting");
     if (this.done) throw new Error("This scraper instance has already finished its run.");
+    console.log("[Scraper] degreeworks-scraper starting");
     this.degrees = await this.dw.getMapping("degrees");
     console.log(`Fetched ${this.degrees.size} degrees`);
     this.majorPrograms = new Set((await this.dw.getMapping("majors")).keys());
@@ -154,7 +159,7 @@ export class Scraper {
       this.parsedUgradPrograms.set("Major in Art History", x);
     }
 
-    // Some programs have an empty requirements block and exactly two specializations.
+    // Some programs have an empty requirements block and more than one specialization.
     // They can be simplified into a "Select 1 of the following" group requirement.
     this.parsedUgradPrograms = this.cleanUpPrograms(this.parsedUgradPrograms);
     this.parsedGradPrograms = this.cleanUpPrograms(this.parsedGradPrograms);
