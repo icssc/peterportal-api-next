@@ -116,11 +116,10 @@ export class DegreeworksClient {
     return "error" in json
       ? undefined
       : json.blockArray.find(
-          (x) => x.requirementType === "SPEC" && x.requirementValue === specCode,
-        ) ||
-          json.blockArray.find(
-            (x) => x.requirementType === "OTHER" && x.requirementValue === specCode,
-          );
+          (x) =>
+            (x.requirementType === "SPEC" || x.requirementType === "OTHER") &&
+            x.requirementValue === specCode,
+        );
   }
 
   async getMapping<T extends string>(path: T): Promise<Map<string, string>> {
