@@ -99,3 +99,41 @@ jobs:
 
       - name: Deploy documentation CloudFormation stack
         run: pnpm run deploy --filter="docs-cdk"
+
+  deploy-services:
+    name: Deploy services CloudFormation stack and production environment
+
+    runs-on: ubuntu-latest
+
+    environment:
+      name: production-services
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js and pnpm
+        uses: ./.github/actions/setup-node-and-pnpm
+
+      - name: Install dependencies
+        # Ensure NODE_ENV != production so pnpm will install devDependencies!!!
+        run: NODE_ENV=development pnpm install --frozen-lockfile
+
+      - name: Build AntStack
+        run: pnpm build --filter="ant-stack"
+
+      - name: Link AntStack
+        run: pnpm link ant-stack
+
+      - name: Build services
+        run: pnpm build --filter="@services/*"
+
+      - name: Wait for services CloudFormation stack to idle
+        uses: ./.github/actions/wait-for-cloudformation-stack-idle
+        with:
+          stack_name: peterportal-api-next-services-prod
+          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
+
+      - name: Deploy stack
+        run: pnpm run deploy --filter="@services/*"

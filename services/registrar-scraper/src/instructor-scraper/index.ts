@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -819,10 +819,3 @@ async function parseHistoryPage(
   }
   return entryFound;
 }
-
-async function main() {
-  const instructors = await getInstructors();
-  writeFileSync("./instructors.json", JSON.stringify(instructors));
-}
-
-main();
