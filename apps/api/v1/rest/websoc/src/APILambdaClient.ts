@@ -31,7 +31,7 @@ export class APILambdaClient {
     }
     const res = await this.client.send(
       new InvokeCommand({
-        FunctionName: "peterportal-api-next-prod-websoc-proxy-service",
+        FunctionName: "peterportal-api-next-prod-websoc-proxy-service-function",
         Payload: new TextEncoder().encode(JSON.stringify({ body: JSON.stringify(body) })),
       }),
     );
