@@ -5,8 +5,7 @@ import type { Block, Program, ProgramId, Requirement, Rule } from "../types";
 import { PPAPIOfflineClient } from "./PPAPIOfflineClient";
 
 export class AuditParser {
-  private static readonly specMatcher = /"type":"SPEC","value":"\w+"/g;
-  private static readonly otherMatcher = /"type":"OTHER","value":"\w+"/g;
+  private static readonly specOrOtherMatcher = /"type":"(?:SPEC|OTHER)","value":"\w+"/g;
   private static readonly electiveMatcher = /ELECTIVE @+/;
   private static readonly wildcardMatcher = /\w@/;
   private static readonly rangeMatcher = /-\w+/;
@@ -27,18 +26,12 @@ export class AuditParser {
     name: block.title,
     requirements: this.ruleArrayToRequirements(block.ruleArray),
     specs: this.parseSpecs(block),
-    otherBlocks: this.parseOtherBlocks(block),
   });
 
   lexOrd = new Intl.Collator().compare;
 
   parseSpecs = (block: Block): string[] =>
-    Array.from(JSON.stringify(block).matchAll(AuditParser.specMatcher))
-      .map((x) => JSON.parse(`{${x[0]}}`).value)
-      .sort();
-
-  parseOtherBlocks = (block: Block): string[] =>
-    Array.from(JSON.stringify(block).matchAll(AuditParser.otherMatcher))
+    Array.from(JSON.stringify(block).matchAll(AuditParser.specOrOtherMatcher))
       .map((x) => JSON.parse(`{${x[0]}}`).value)
       .sort();
 

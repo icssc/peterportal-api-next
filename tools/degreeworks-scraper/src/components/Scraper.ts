@@ -55,6 +55,27 @@ export class Scraper {
     }
     return ret;
   }
+  private cleanUpPrograms(programs: Map<string, Program>) {
+    const ret = new Map<string, Program>();
+    for (const [name, program] of programs) {
+      if (!Object.keys(program.requirements).length && program.specs.length === 2) {
+        program.requirements = {
+          "Select 1 of the following": {
+            requirementType: "Group",
+            requirementCount: 1,
+            requirements: Object.fromEntries(
+              program.specs.map((x) => [
+                this.parsedSpecializations?.get(x)?.name,
+                this.parsedSpecializations?.get(x)?.requirements,
+              ]),
+            ),
+          },
+        };
+      }
+      ret.set(name, program);
+    }
+    return ret;
+  }
   async run() {
     console.log("[Scraper] degreeworks-scraper starting");
     if (this.done) throw new Error("This scraper instance has already finished its run.");
@@ -118,6 +139,32 @@ export class Scraper {
         ),
       ).map((x) => [x, this.degrees?.get(x) as string]),
     );
+
+    // Post-processing steps.
+
+    // As of this commit, the only program which seems to require both of
+    // its "specializations" is the B.A. in Art History. There's probably a
+    // cleaner way to address this, but this is such an insanely niche case
+    // that it's probably not worth the effort to write a general solution.
+
+    let x, y, z;
+    if (
+      (x = this.parsedUgradPrograms.get("Major in Art History") as Program) &&
+      (y = this.parsedSpecializations.get("AHGEO") as Program) &&
+      (z = this.parsedSpecializations.get("AHPER") as Program)
+    ) {
+      x.specs = [];
+      x.requirements = { ...x.requirements, ...y.requirements, ...z.requirements };
+      this.parsedSpecializations.delete("AHGEO");
+      this.parsedSpecializations.delete("AHPER");
+      this.parsedUgradPrograms.set("Major in Art History", x);
+    }
+
+    // Some programs have an empty requirements block and exactly two specializations.
+    // They can be simplified into a "Select 1 of the following" group requirement.
+    this.parsedUgradPrograms = this.cleanUpPrograms(this.parsedUgradPrograms);
+    this.parsedGradPrograms = this.cleanUpPrograms(this.parsedGradPrograms);
+
     this.done = true;
   }
   get() {

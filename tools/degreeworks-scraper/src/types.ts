@@ -97,7 +97,6 @@ export type Program = ProgramId & {
   name: string;
   requirements: Record<string, Requirement>;
   specs: string[];
-  otherBlocks: string[];
 };
 
 export type CourseRequirement = {

@@ -106,6 +106,7 @@ export class DegreeworksClient {
         goals: [
           { code: "MAJOR", value: majorCode },
           { code: "SPEC", value: specCode },
+          { code: "OTHER", value: specCode },
         ],
       }),
       headers: this.headers,
@@ -116,7 +117,10 @@ export class DegreeworksClient {
       ? undefined
       : json.blockArray.find(
           (x) => x.requirementType === "SPEC" && x.requirementValue === specCode,
-        );
+        ) ||
+          json.blockArray.find(
+            (x) => x.requirementType === "OTHER" && x.requirementValue === specCode,
+          );
   }
 
   async getMapping<T extends string>(path: T): Promise<Map<string, string>> {
