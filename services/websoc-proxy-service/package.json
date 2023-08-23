@@ -1,5 +1,5 @@
 {
-  "name": "websoc-proxy-service",
+  "name": "@services/websoc-proxy-service",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
