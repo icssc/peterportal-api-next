@@ -61,7 +61,8 @@ export const handler = async (
           requestId,
         );
 
-      return createOKResult(sortResponse(websocResponseData), {}, requestId);
+      // Do not compress responses.
+      return createOKResult(sortResponse(websocResponseData), { "accept-encoding": "" }, requestId);
     }
     default:
       return createOKResult({}, {}, requestId);
