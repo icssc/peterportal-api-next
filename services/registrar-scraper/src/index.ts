@@ -1,47 +1,37 @@
-import { readFileSync } from "fs";
-
 import { PrismaClient } from "@libs/db";
 import { Instructor } from "peterportal-api-next-types";
-import type { CourseTree } from "prereq-scraper";
 
-import type { ScrapedCourse } from "./lib";
+import { getCourses } from "./course-scraper";
+import { getInstructors } from "./instructor-scraper";
 import { createCourses, prereqTreeToList, sortTerms, transformTerm } from "./lib";
+import type { CourseList } from "./prereq-scraper";
+import { getPrereqs } from "./prereq-scraper";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const courseInfo = JSON.parse(readFileSync("./courses.json", { encoding: "utf8" })) as Record<
-    string,
-    ScrapedCourse
-  >;
+  const courseInfo = await getCourses();
   const instructorInfo = Object.fromEntries(
-    Object.entries(
-      JSON.parse(readFileSync("./instructors.json", { encoding: "utf8" })).result as Record<
-        string,
-        Instructor
-      >,
-    ).map(([ucinetid, instructor]) => [
-      ucinetid,
-      {
-        ...instructor,
-        courseHistory: Object.fromEntries(
-          Object.entries(instructor.courseHistory).map(([course, terms]) => [
-            course,
-            terms
-              .map(transformTerm)
-              .filter((x) => x.length)
-              .sort(sortTerms),
-          ]),
-        ),
-      },
-    ]),
+    Object.entries((await getInstructors()).result as Record<string, Instructor>).map(
+      ([ucinetid, instructor]) => [
+        ucinetid,
+        {
+          ...instructor,
+          courseHistory: Object.fromEntries(
+            Object.entries(instructor.courseHistory).map(([course, terms]) => [
+              course,
+              terms
+                .map(transformTerm)
+                .filter((x) => x.length)
+                .sort(sortTerms),
+            ]),
+          ),
+        },
+      ],
+    ),
   );
   const prereqInfo = Object.fromEntries(
-    (
-      Object.values(
-        JSON.parse(readFileSync("./prerequisites.json", { encoding: "utf8" })),
-      ) as CourseTree[]
-    )
+    (Object.values(await getPrereqs()) as CourseList[])
       .flat()
       .map(({ courseId, prereqTree }) => [courseId, prereqTree]),
   );

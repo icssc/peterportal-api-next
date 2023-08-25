@@ -1,5 +1,5 @@
 {
-  "name": "websoc-proxy-service",
+  "name": "@services/registrar-scraper",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",
@@ -9,13 +9,15 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "@libs/websoc-api-next": "workspace:*",
-    "ant-stack": "workspace:*",
-    "api-v1-rest-websoc": "workspace:*"
+    "@libs/db": "workspace:*",
+    "@types/he": "1.2.0",
+    "cheerio": "1.0.0-rc.12",
+    "he": "1.2.0",
+    "p-limit": "4.0.0",
+    "string-similarity-js": "2.1.4",
+    "winston": "3.10.0"
   },
   "devDependencies": {
-    "@types/aws-lambda": "8.10.119",
-    "@types/node": "18.17.5",
     "esbuild": "0.19.1",
     "peterportal-api-next-types": "workspace:*"
   }

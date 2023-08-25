@@ -1,10 +1,8 @@
-import { writeFile } from "node:fs/promises";
-
 import { load } from "cheerio";
 import fetch from "cross-fetch";
 
 // scrape links
-const CATALOGUE_BASE_URL = "https://catalogue.uci.edu/";
+const CATALOGUE_BASE_URL = "https://catalogue.uci.edu";
 const URL_TO_ALL_COURSES = `${CATALOGUE_BASE_URL}/allcourses/`;
 const URL_TO_ALL_SCHOOLS = `${CATALOGUE_BASE_URL}/schoolsandprograms/`;
 
@@ -253,10 +251,3 @@ export async function getCourses() {
   }
   return Object.fromEntries(allCourses.entries());
 }
-
-async function main() {
-  const data = await getCourses();
-  await writeFile("./courses.json", JSON.stringify(data));
-}
-
-main();
