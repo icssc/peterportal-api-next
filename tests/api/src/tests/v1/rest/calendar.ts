@@ -1,5 +1,4 @@
-import type { QuarterDates, Response } from "peterportal-api-next-types";
-import { describe, expect, it } from "vitest";
+import { assert, describe, expect, it } from "vitest";
 
 describe("/v1/rest/calendar tests", () => {
   const isValidDate = (s: string) => !Number.isNaN(Date.parse(s));
@@ -42,24 +41,36 @@ describe("/v1/rest/calendar tests", () => {
   it("returns payload with date strings in fields", async () => {
     const res = await get("/v1/rest/calendar?year=2023&quarter=Fall");
     expect(res).toHaveProperty("statusCode", 200);
-    const payload = (res as Response<QuarterDates>).payload;
-    expect(payload.instructionStart).toSatisfy(isValidDate);
-    expect(payload.instructionEnd).toSatisfy(isValidDate);
-    expect(payload.finalsStart).toSatisfy(isValidDate);
-    expect(payload.finalsEnd).toSatisfy(isValidDate);
+    assert("payload" in res);
+    assert(typeof res.payload === "object");
+    assert(res.payload !== null);
+    assert("instructionStart" in res.payload);
+    assert("instructionEnd" in res.payload);
+    assert("finalsStart" in res.payload);
+    assert("finalsEnd" in res.payload);
+    expect(res.payload.instructionStart).toSatisfy(isValidDate);
+    expect(res.payload.instructionEnd).toSatisfy(isValidDate);
+    expect(res.payload.finalsStart).toSatisfy(isValidDate);
+    expect(res.payload.finalsEnd).toSatisfy(isValidDate);
   });
   it("returns dates that are nondecreasing", async () => {
     const res = await get("/v1/rest/calendar?year=2023&quarter=Spring");
     expect(res).toHaveProperty("statusCode", 200);
-    const payload = (res as Response<QuarterDates>).payload;
-    expect(Date.parse(payload.finalsEnd as unknown as string)).toBeGreaterThanOrEqual(
-      Date.parse(payload.finalsStart as unknown as string),
+    assert("payload" in res);
+    assert(typeof res.payload === "object");
+    assert(res.payload !== null);
+    assert("instructionStart" in res.payload);
+    assert("instructionEnd" in res.payload);
+    assert("finalsStart" in res.payload);
+    assert("finalsEnd" in res.payload);
+    expect(Date.parse(res.payload.finalsEnd as unknown as string)).toBeGreaterThanOrEqual(
+      Date.parse(res.payload.finalsStart as unknown as string),
     );
-    expect(Date.parse(payload.finalsStart as unknown as string)).toBeGreaterThanOrEqual(
-      Date.parse(payload.instructionEnd as unknown as string),
+    expect(Date.parse(res.payload.finalsStart as unknown as string)).toBeGreaterThanOrEqual(
+      Date.parse(res.payload.instructionEnd as unknown as string),
     );
-    expect(Date.parse(payload.instructionEnd as unknown as string)).toBeGreaterThanOrEqual(
-      Date.parse(payload.instructionStart as unknown as string),
+    expect(Date.parse(res.payload.instructionEnd as unknown as string)).toBeGreaterThanOrEqual(
+      Date.parse(res.payload.instructionStart as unknown as string),
     );
   });
 });
