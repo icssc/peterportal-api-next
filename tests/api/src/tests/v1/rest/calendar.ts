@@ -63,14 +63,18 @@ describe("/v1/rest/calendar tests", () => {
     assert("instructionEnd" in res.payload);
     assert("finalsStart" in res.payload);
     assert("finalsEnd" in res.payload);
-    expect(Date.parse(res.payload.finalsEnd as unknown as string)).toBeGreaterThanOrEqual(
-      Date.parse(res.payload.finalsStart as unknown as string),
+    assert(typeof res.payload.instructionStart === "string");
+    assert(typeof res.payload.instructionEnd === "string");
+    assert(typeof res.payload.finalsStart === "string");
+    assert(typeof res.payload.finalsEnd === "string");
+    expect(Date.parse(res.payload.finalsEnd)).toBeGreaterThanOrEqual(
+      Date.parse(res.payload.finalsStart),
     );
-    expect(Date.parse(res.payload.finalsStart as unknown as string)).toBeGreaterThanOrEqual(
-      Date.parse(res.payload.instructionEnd as unknown as string),
+    expect(Date.parse(res.payload.finalsStart)).toBeGreaterThanOrEqual(
+      Date.parse(res.payload.instructionEnd),
     );
-    expect(Date.parse(res.payload.instructionEnd as unknown as string)).toBeGreaterThanOrEqual(
-      Date.parse(res.payload.instructionStart as unknown as string),
+    expect(Date.parse(res.payload.instructionEnd)).toBeGreaterThanOrEqual(
+      Date.parse(res.payload.instructionStart),
     );
   });
 });
