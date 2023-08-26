@@ -92,7 +92,7 @@ export function aggregateGrades(grades: GradesRaw): GradesAggregate {
         ).map((key) => [key, grades.reduce((a, { [key]: b }) => a + b, 0)]),
       ) as Omit<GradeDistribution, "averageGPA">),
       averageGPA:
-        grades.reduce((a, { averageGPA: b }) => a + b, 0) / grades.filter(isNotPNPOnly).length,
+        grades.reduce((a, { averageGPA: b }) => a + b, 0) / grades.filter(isNotPNPOnly).length || 0,
     },
   };
 }

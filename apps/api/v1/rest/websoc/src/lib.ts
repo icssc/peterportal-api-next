@@ -429,7 +429,7 @@ export function sortResponse(response: WebsocAPIResponse): WebsocAPIResponse {
 export async function invokeProxyService(client: LambdaClient, body: Record<string, unknown>) {
   const res = await client.send(
     new InvokeCommand({
-      FunctionName: "peterportal-api-next-services-prod-websoc-proxy",
+      FunctionName: "peterportal-api-next-services-prod-websoc-proxy-function",
       Payload: new TextEncoder().encode(JSON.stringify({ body: JSON.stringify(body) })),
     }),
   );
