@@ -8,7 +8,19 @@
  * @type {import('devmoji/lib/config-options').ConfigOptions}
  */
 const config = {
-  types: ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore", "build", "ci"],
+  types: [
+    "feat",
+    "fix",
+    "docs",
+    "style",
+    "refactor",
+    "perf",
+    "test",
+    "chore",
+    "build",
+    "ci",
+    "revert",
+  ],
   devmoji: [
     {
       code: "feat",
@@ -104,6 +116,11 @@ const config = {
       code: "remove",
       emoji: "heavy_minus_sign",
       description: "remove something",
+    },
+    {
+      code: "revert",
+      emoji: "rewind",
+      description: "revert changes",
     },
   ],
 };
