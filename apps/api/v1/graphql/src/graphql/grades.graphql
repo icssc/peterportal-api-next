@@ -91,6 +91,33 @@ type GradesOptions {
   "The list of instructors that matched the given filters."
   instructors: [String!]!
 }
+"An object that represents aggregate grades statistics for a course taught by an instructor."
+type AggregateGroupedGrade {
+  "The department code."
+  department: String!
+  "The course number the section belongs to."
+  courseNumber: String!
+  "The shortened name of the instructor who taught the section."
+  instructors: String!
+  "How many students attained an A+/A/A-."
+  gradeACount: Int!
+  "How many students attained a B+/B/B-."
+  gradeBCount: Int!
+  "How many students attained a C+/C/C-."
+  gradeCCount: Int!
+  "How many students attained a D+/D/D-."
+  gradeDCount: Int!
+  "How many students attained an F."
+  gradeFCount: Int!
+  "How many students attained a P."
+  gradePCount: Int!
+  "How many students attained an NP."
+  gradeNPCount: Int!
+  "How many students attained a W."
+  gradeWCount: Int!
+  "The average GPA of all assigned grades in the course."
+  averageGPA: Float!
+}
 
 extend type Query {
   "Get the raw grade info for the given parameters."
@@ -126,4 +153,15 @@ extend type Query {
     division: Division
     excludePNP: Boolean
   ): GradesOptions!
+  "Get the aggregate grade info, grouped by course and instructor, for the given parameters."
+  aggregateGroupedGrades(
+    year: String
+    quarter: Quarter
+    instructor: String
+    department: String
+    courseNumber: String
+    sectionCode: String
+    division: Division
+    excludePNP: Boolean
+  ): [AggregateGroupedGrade!]!
 }
