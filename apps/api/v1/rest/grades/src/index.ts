@@ -1,10 +1,10 @@
 import { PrismaClient } from "@libs/db";
 import { createErrorResult, createOKResult, logger } from "ant-stack";
 import type { InternalHandler } from "ant-stack";
-import type { GradesOptions, GradesRaw } from "peterportal-api-next-types";
+import type { AggregateGroupedGrades, GradesOptions, RawGrades } from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
-import { aggregateGrades, constructPrismaQuery, lexOrd } from "./lib";
+import { aggregateGrades, aggregateGroupedGrades, constructPrismaQuery, lexOrd } from "./lib";
 import { QuerySchema } from "./schema";
 
 let prisma: PrismaClient;
@@ -39,7 +39,7 @@ export const GET: InternalHandler = async (request) => {
           }));
           switch (params.id) {
             case "raw":
-              return createOKResult<GradesRaw>(res, headers, requestId);
+              return createOKResult<RawGrades>(res, headers, requestId);
             case "aggregate":
               return createOKResult(aggregateGrades(res), headers, requestId);
           }
@@ -93,6 +93,23 @@ export const GET: InternalHandler = async (request) => {
                   .map((x) => x.name)
                   .sort(),
           },
+          headers,
+          requestId,
+        );
+      }
+      case "aggregateGrouped": {
+        return createOKResult<AggregateGroupedGrades>(
+          aggregateGroupedGrades(
+            (
+              await prisma.gradesSection.findMany({
+                where: constructPrismaQuery(parsedQuery),
+                include: { instructors: true },
+              })
+            ).map((section) => ({
+              ...section,
+              instructors: section.instructors.map((instructor) => instructor.name),
+            })),
+          ),
           headers,
           requestId,
         );
