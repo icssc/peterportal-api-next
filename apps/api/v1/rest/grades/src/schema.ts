@@ -18,7 +18,7 @@ export const QuerySchema = z.object({
   excludePNP: z
     .string()
     .optional()
-    .transform((x) => !(x === "false")),
+    .transform((x) => x === "true"),
 });
 
 export type Query = z.infer<typeof QuerySchema>;

@@ -51,7 +51,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.GradesSectionWh
     courseNumber,
     courseNumeric,
     sectionCode,
-    ...excludePNPFilters,
+    NOT: excludePNP ? { ...excludePNPFilters } : undefined,
   };
 }
 
