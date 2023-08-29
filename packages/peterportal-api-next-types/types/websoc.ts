@@ -94,6 +94,10 @@ export type WebsocSectionFinalExam = {
    * Where the final exam takes place.
    */
   bldg: string[] | null;
+  /**
+   * Whether the final exam takes place in the same location as its parent section.
+   */
+  sameBldgAsSection: boolean | null;
 };
 
 /**

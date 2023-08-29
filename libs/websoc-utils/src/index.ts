@@ -165,6 +165,7 @@ function parseFinalExamString(section: WebsocSection): NormalizedFinalExam {
       startTime: null,
       endTime: null,
       bldg: null,
+      sameBldgAsSection: null,
     };
   if (section.finalExam === "TBA")
     return {
@@ -175,6 +176,7 @@ function parseFinalExamString(section: WebsocSection): NormalizedFinalExam {
       startTime: null,
       endTime: null,
       bldg: null,
+      sameBldgAsSection: null,
     };
   const [dateTime, locations] = section.finalExam.split("@").map((x) => x?.trim());
   const [dayOfWeek, month, day, time] = dateTime.split(" ");
@@ -186,7 +188,10 @@ function parseFinalExamString(section: WebsocSection): NormalizedFinalExam {
     day: parseInt(day, 10),
     startTime,
     endTime,
-    bldg: locations ? locations.split(",").map((x) => x?.trim()) : [section.meetings[0].bldg[0]],
+    bldg: locations
+      ? locations.split(",").map((x) => x?.trim())
+      : section.meetings.flatMap((x) => x.bldg),
+    sameBldgAsSection: !locations,
   };
 }
 
