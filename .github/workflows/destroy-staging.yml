@@ -75,7 +75,7 @@ jobs:
           environment: staging-${{ github.event.pull_request.number }}
           onlyDeactivateDeployments: true
 
-  cleanup-documentation:
+  destroy-documentation:
     name: Destroy documentation CloudFormation stack and staging environment for pull request
 
     if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
