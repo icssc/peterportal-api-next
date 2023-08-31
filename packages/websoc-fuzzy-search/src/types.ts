@@ -12,39 +12,39 @@ export type GECategory =
   | "GE-8";
 export type ResultType = "GE_CATEGORY" | "DEPARTMENT" | "COURSE" | "INSTRUCTOR";
 export interface FilterOptions {
-  readonly courseLevel?: CourseLevel[];
-  readonly geList?: GECategory[];
-  readonly department?: string[];
-  readonly school?: string[];
+  courseLevel?: CourseLevel[];
+  geList?: GECategory[];
+  department?: string[];
+  school?: string[];
 }
 export interface SearchParams {
-  readonly query?: string;
-  readonly numResults?: number;
-  readonly resultType?: ResultType;
-  readonly filterOptions?: FilterOptions;
+  query?: string;
+  numResults?: number;
+  resultType?: ResultType;
+  filterOptions?: FilterOptions;
 }
 export interface SearchResult {
-  readonly type: ResultType;
-  readonly name: string;
-  readonly metadata: CourseMetadata | InstructorMetadata;
+  type: ResultType;
+  name: string;
+  metadata: CourseMetadata | InstructorMetadata;
 }
 export interface CourseMetadata {
-  readonly department: string;
-  readonly number: string;
-  readonly geList: GECategory[];
-  readonly courseLevel: CourseLevel;
-  readonly school: string;
+  department: string;
+  number: string;
+  geList: GECategory[];
+  courseLevel: CourseLevel;
+  school: string;
 }
 export interface InstructorMetadata {
-  readonly ucinetid: string;
-  readonly school: string[];
-  readonly department: string;
+  ucinetid: string;
+  school: string[];
+  department: string;
 }
 export interface CourseSearchResult extends SearchResult {
-  readonly metadata: CourseMetadata;
+  metadata: CourseMetadata;
 }
 export interface InstructorSearchResult extends SearchResult {
-  readonly metadata: InstructorMetadata;
+  metadata: InstructorMetadata;
 }
 
 export function isCourseSearchResult(sr: SearchResult): sr is CourseSearchResult {

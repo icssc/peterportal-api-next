@@ -1,10 +1,20 @@
 # websoc-fuzzy-search
 
-A fuzzy search module for cached WebSoc data.
+A fuzzy search module for various course (including department, GE category) and instructor data from UCI.
+
+The module name is a misnomer, since we don't get our data from WebSoc at all (but rather from the Catalogue), but it's stuck.
 
 ## Installation
 
-`$ npm install --save websoc-fuzzy-search`
+`npm install --save websoc-fuzzy-search`
+
+or
+
+`yarn add websoc-fuzzy-search`
+
+or
+
+`pnpm install websoc-fuzzy-search`
 
 ## Documentation
 
