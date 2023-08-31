@@ -62,7 +62,7 @@ enum EnrollmentStatus {
   FULL
   NewOnly
 }
-"The status of a final exam."
+"The set of valid final exam statuses for a section."
 enum WebsocSectionFinalExamStatus {
   NO_FINAL
   TBA_FINAL
