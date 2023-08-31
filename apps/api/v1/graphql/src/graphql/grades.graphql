@@ -98,7 +98,7 @@ type AggregateGroupedGrade {
   "The course number the section belongs to."
   courseNumber: String!
   "The shortened name of the instructor who taught the section."
-  instructors: String!
+  instructor: String!
   "How many students attained an A+/A/A-."
   gradeACount: Int!
   "How many students attained a B+/B/B-."
