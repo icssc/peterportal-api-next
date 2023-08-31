@@ -1,6 +1,6 @@
 import fs from "fs";
 import { EOL } from "os";
-import { basename, resolve } from "path";
+import { basename, resolve } from "node:path";
 
 import { callWebSocAPI } from "@libs/websoc-api-next";
 import type { WebsocAPIResponse, WebsocSection } from "@libs/websoc-api-next";

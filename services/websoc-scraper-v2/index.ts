@@ -11,8 +11,7 @@ import type {
   WebsocSection,
   WebsocSectionMeeting,
 } from "@libs/websoc-api-next";
-import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
-import { geCodes, sectionTypes } from "@libs/websoc-api-next";
+import { callWebSocAPI, getDepts, getTerms, geCodes, sectionTypes } from "@libs/websoc-api-next";
 import { createLogger, format, transports } from "winston";
 
 /**
