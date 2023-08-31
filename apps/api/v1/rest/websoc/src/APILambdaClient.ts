@@ -4,21 +4,37 @@ import { zeroUUID } from "ant-stack";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 import type { Department, TermData } from "peterportal-api-next-types";
 
+/**
+ * A {@link `LambdaClient`} wrapper for the API to interface with the WebSoc proxy service.
+ *
+ * This class behaves slightly differently depending on the environment.
+ * In the development environment, instead of talking to the proxy service in AWS, it takes the code
+ * of the proxy service and executes it directly.
+ *
+ * Since the import process is asynchronous, instances of this class have to be created using
+ * the static {@link `new`} method, rather than invoking the constructor. For the same reason,
+ * the constructor is private, and doesn't actually do anything other than return an empty instance.
+ */
 export class APILambdaClient {
-  private client: LambdaClient;
+  private client!: LambdaClient;
 
   private service?: (
     event: APIGatewayProxyEvent,
     context: Context,
   ) => Promise<APIGatewayProxyResult>;
 
-  constructor(configuration: LambdaClientConfig = {}) {
-    this.client = new LambdaClient(configuration);
+  private constructor() {}
+
+  static async new(configuration: LambdaClientConfig = {}) {
+    const client = new APILambdaClient();
+    client.client = new LambdaClient(configuration);
     if (process.env.NODE_ENV === "development") {
-      import("@services/websoc-proxy").then((x) => (this.service = x.handler));
+      const { handler } = await import("@services/websoc-proxy");
+      client.service = handler;
     } else {
-      this.service = undefined;
+      client.service = undefined;
     }
+    return client;
   }
 
   private async invoke(body: Record<string, unknown>) {

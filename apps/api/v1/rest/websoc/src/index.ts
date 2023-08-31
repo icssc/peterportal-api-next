@@ -17,7 +17,7 @@ export const GET: InternalHandler = async (request) => {
   const { headers, params, query, requestId } = request;
 
   prisma ??= new PrismaClient();
-  lambdaClient ??= new APILambdaClient();
+  lambdaClient ??= await APILambdaClient.new();
 
   if (request.isWarmerRequest) {
     try {
