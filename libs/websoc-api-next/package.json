@@ -18,8 +18,8 @@
     "peterportal-api-next-types": "*"
   },
   "devDependencies": {
-    "@vitest/coverage-istanbul": "0.34.1",
+    "@vitest/coverage-istanbul": "0.34.3",
     "tsup": "7.2.0",
-    "vitest": "0.34.1"
+    "vitest": "0.34.3"
   }
 }
