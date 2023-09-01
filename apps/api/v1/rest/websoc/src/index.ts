@@ -11,6 +11,7 @@ import { QuerySchema } from "./schema";
 const quarterOrder = ["Winter", "Spring", "Summer1", "Summer10wk", "Summer2", "Fall"];
 
 let prisma: PrismaClient;
+let connected = false;
 let lambdaClient: APILambdaClient;
 
 export const GET: InternalHandler = async (request) => {
@@ -19,12 +20,15 @@ export const GET: InternalHandler = async (request) => {
   prisma ??= new PrismaClient();
   lambdaClient ??= await APILambdaClient.new();
 
-  if (request.isWarmerRequest) {
+  if (!connected) {
     try {
       await prisma.$connect();
-      return createOKResult("Warmed", headers, requestId);
-    } catch (error) {
-      createErrorResult(500, error, requestId);
+      connected = true;
+      if (request.isWarmerRequest) {
+        return createOKResult("Warmed", headers, requestId);
+      }
+    } catch {
+      // no-op
     }
   }
 
@@ -32,14 +36,16 @@ export const GET: InternalHandler = async (request) => {
     switch (params?.id) {
       case "terms": {
         const [gradesTerms, webSocTerms] = await Promise.all([
-          prisma.gradesSection.findMany({
-            distinct: ["year", "quarter"],
-            select: {
-              year: true,
-              quarter: true,
-            },
-            orderBy: [{ year: "desc" }, { quarter: "desc" }],
-          }),
+          connected
+            ? prisma.gradesSection.findMany({
+                distinct: ["year", "quarter"],
+                select: {
+                  year: true,
+                  quarter: true,
+                },
+                orderBy: [{ year: "desc" }, { quarter: "desc" }],
+              })
+            : [],
           lambdaClient.getTerms({ function: "terms" }),
         ]);
 
@@ -84,12 +90,14 @@ export const GET: InternalHandler = async (request) => {
 
       case "depts": {
         const [gradesDepts, webSocDepts] = await Promise.all([
-          prisma.gradesSection.findMany({
-            distinct: ["department"],
-            select: {
-              department: true,
-            },
-          }),
+          connected
+            ? prisma.gradesSection.findMany({
+                distinct: ["department"],
+                select: {
+                  department: true,
+                },
+              })
+            : [],
           lambdaClient.getDepts({ function: "depts" }),
         ]);
 
@@ -118,7 +126,7 @@ export const GET: InternalHandler = async (request) => {
 
     const parsedQuery = QuerySchema.parse(query);
 
-    if (parsedQuery.cache) {
+    if (connected && parsedQuery.cache) {
       const websocSections = await prisma.websocSection.findMany({
         where: constructPrismaQuery(parsedQuery),
         select: { department: true, courseNumber: true, data: true },
