@@ -6,6 +6,6 @@
   "type": "module",
   "main": "src/index.ts",
   "devDependencies": {
-    "esbuild": "0.19.1"
+    "esbuild": "0.19.2"
   }
 }
