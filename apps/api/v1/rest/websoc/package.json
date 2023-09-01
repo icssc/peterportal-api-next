@@ -7,11 +7,11 @@
     "build": "ant-stack build"
   },
   "dependencies": {
-    "@aws-sdk/client-lambda": "3.388.0",
+    "@aws-sdk/client-lambda": "3.398.0",
     "@libs/db": "workspace:*",
     "@libs/websoc-utils": "workspace:*",
     "ant-stack": "workspace:*",
-    "zod": "3.21.4"
+    "zod": "3.22.2"
   },
   "devDependencies": {
     "@libs/build-tools": "workspace:*",

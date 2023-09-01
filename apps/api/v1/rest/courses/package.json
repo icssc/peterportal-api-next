@@ -9,7 +9,7 @@
   "dependencies": {
     "@libs/db": "workspace:*",
     "ant-stack": "workspace:*",
-    "zod": "3.21.4"
+    "zod": "3.22.2"
   },
   "devDependencies": {
     "@libs/build-tools": "workspace:*",

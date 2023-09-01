@@ -1,5 +1,5 @@
 // mapping of types to numbers for compare
-export const types = {
+export const types: Record<string, number> = {
   GE_CATEGORY: 4,
   DEPARTMENT: 3,
   COURSE: 2,
@@ -8,7 +8,7 @@ export const types = {
 
 // Roman numeral map
 // Stops at 8 because that's the highest Roman numeral encountered in the cache (as of 2022-04-08)
-export const romans = {
+export const romans: Record<string, string> = {
   i: "1",
   ii: "2",
   iii: "3",
