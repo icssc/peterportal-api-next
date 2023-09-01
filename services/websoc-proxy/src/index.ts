@@ -57,7 +57,7 @@ export const handler = async (
       // Do not compress responses.
       return createOKResult(
         sortResponse(combineAndNormalizeResponses(...successes.map((x) => x.value))),
-        { "Accept-Encoding": "" },
+        { "accept-encoding": "" },
         requestId,
       );
     }
