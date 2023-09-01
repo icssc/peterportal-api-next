@@ -14,7 +14,7 @@
   "commitMessageTopic": "{{depName}}",
   "dockerfile": { "enabled": false },
   "ignorePaths": ["**/templates/**"],
-  "labels": ["no deploy", "type: dependency"],
+  "labels": ["type: dependency"],
   "nvm": { "enabled": false },
   "packageRules": [
     {
