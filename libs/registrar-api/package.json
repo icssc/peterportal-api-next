@@ -16,9 +16,9 @@
     "cross-fetch": "4.0.0"
   },
   "devDependencies": {
-    "@vitest/coverage-istanbul": "0.34.1",
+    "@vitest/coverage-istanbul": "0.34.3",
     "peterportal-api-next-types": "*",
     "tsup": "7.2.0",
-    "vitest": "0.34.1"
+    "vitest": "0.34.3"
   }
 }

@@ -1,18 +1,7 @@
 import { transform } from "@ap0nia/camaro";
 import { load } from "cheerio";
 import fetch from "cross-fetch";
-import type {
-  CancelledCourses,
-  Department,
-  Division,
-  FullCourses,
-  GE,
-  SectionType,
-  Term,
-  TermData,
-  WebsocAPIResponse,
-  WebsocSectionMeeting,
-} from "peterportal-api-next-types";
+import type { Department, TermData } from "peterportal-api-next-types";
 
 /* region Constants */
 
@@ -79,6 +68,8 @@ const template = {
   ],
 };
 
+/* endregion */
+
 /* region Internal type declarations */
 
 type RequireAtLeastOne<T, R extends keyof T = keyof T> = Omit<T, R> &
@@ -124,7 +115,325 @@ type OptionalOptions = {
 /* region Exported type declarations */
 
 /**
- * The type alias for the options object accepted by `callWebSocAPI`.
+ * The list of quarters in an academic year.
+ */
+export const quarters = ["Fall", "Winter", "Spring", "Summer1", "Summer10wk", "Summer2"] as const;
+/**
+ * The list of all section types.
+ */
+export const sectionTypes = [
+  "Act",
+  "Col",
+  "Dis",
+  "Fld",
+  "Lab",
+  "Lec",
+  "Qiz",
+  "Res",
+  "Sem",
+  "Stu",
+  "Tap",
+  "Tut",
+] as const;
+/**
+ * The list of options for filtering full courses.
+ */
+export const fullCoursesOptions = [
+  "SkipFull",
+  "SkipFullWaitlist",
+  "FullOnly",
+  "OverEnrolled",
+] as const;
+/**
+ * The list of options for filtering cancelled courses.
+ */
+export const cancelledCoursesOptions = ["Exclude", "Include", "Only"] as const;
+/**
+ * The list of GE category codes.
+ */
+export const geCodes = [
+  "GE-1A",
+  "GE-1B",
+  "GE-2",
+  "GE-3",
+  "GE-4",
+  "GE-5A",
+  "GE-5B",
+  "GE-6",
+  "GE-7",
+  "GE-8",
+] as const;
+/**
+ * The list of GE category names.
+ */
+export const geCategories = [
+  "GE Ia: Lower Division Writing",
+  "GE Ib: Upper Division Writing",
+  "GE II: Science and Technology",
+  "GE III: Social & Behavioral Sciences",
+  "GE IV: Arts and Humanities",
+  "GE Va: Quantitative Literacy",
+  "GE Vb: Formal Reasoning",
+  "GE VI: Language Other Than English",
+  "GE VII: Multicultural Studies",
+  "GE VIII: International/Global Issues",
+] as const;
+/**
+ * The list of division codes.
+ */
+export const divisionCodes = ["LowerDiv", "UpperDiv", "Graduate"] as const;
+/**
+ * The list of course level (division) names.
+ */
+export const courseLevels = [
+  "Lower Division (1-99)",
+  "Upper Division (100-199)",
+  "Graduate/Professional Only (200+)",
+] as const;
+
+/**
+ * Represents the absence of a particular value to filter for.
+ */
+export const anyArray = ["ANY"] as const;
+export type Any = (typeof anyArray)[number];
+/**
+ * The quarter in an academic year.
+ */
+export type Quarter = (typeof quarters)[number];
+/**
+ * The type of the section.
+ */
+export type SectionType = Any | (typeof sectionTypes)[number];
+/**
+ * The option to filter full courses by.
+ */
+export type FullCourses = Any | (typeof fullCoursesOptions)[number];
+/**
+ * The option to filter cancelled courses by.
+ */
+export type CancelledCourses = (typeof cancelledCoursesOptions)[number];
+/**
+ * The GE category code.
+ */
+export type GE = Any | (typeof geCodes)[number];
+/**
+ * The division code.
+ */
+export type Division = Any | (typeof divisionCodes)[number];
+/**
+ * The course level name.
+ */
+export type CourseLevel = (typeof courseLevels)[number];
+
+/**
+ * The meeting time for a section.
+ */
+export type WebsocSectionMeeting = {
+  /**
+   * What day(s) the section meets on (e.g. ``MWF``).
+   */
+  days: string;
+  /**
+   * What time the section meets at.
+   */
+  time: string;
+  /**
+   * The building(s) the section meets in.
+   */
+  bldg: string[];
+};
+
+/**
+ * The enrollment statistics for a section.
+ */
+export type WebsocSectionEnrollment = {
+  /**
+   * The total number of students enrolled in this section.
+   */
+  totalEnrolled: string;
+  /**
+   * The number of students enrolled in the section referred to by this section
+   * code, if the section is cross-listed. If the section is not cross-listed,
+   * this field is the empty string.
+   */
+  sectionEnrolled: string;
+};
+
+/**
+ * A WebSoc section object.
+ */
+export type WebsocSection = {
+  /**
+   * The section code.
+   */
+  sectionCode: string;
+  /**
+   * The section type (e.g. ``Lec``, ``Dis``, ``Lab``, etc.)
+   */
+  sectionType: string;
+  /**
+   * The section number (e.g. ``A1``).
+   */
+  sectionNum: string;
+  /**
+   * The number of units afforded by taking this section.
+   */
+  units: string;
+  /**
+   * The name(s) of the instructor(s) teaching this section.
+   */
+  instructors: string[];
+  /**
+   * The meeting time(s) of this section.
+   */
+  meetings: WebsocSectionMeeting[];
+  /**
+   * The date and time of the final exam for this section.
+   */
+  finalExam: string;
+  /**
+   * The maximum capacity of this section.
+   */
+  maxCapacity: string;
+  /**
+   * The number of students currently enrolled (cross-listed or otherwise) in
+   * this section.
+   */
+  numCurrentlyEnrolled: WebsocSectionEnrollment;
+  /**
+   * The number of students currently on the waitlist for this section.
+   */
+  numOnWaitlist: string;
+  /**
+   * The maximum number of students that can be on the waitlist for this section.
+   */
+  numWaitlistCap: string;
+  /**
+   * The number of students who have requested to be enrolled in this section.
+   */
+  numRequested: string;
+  /**
+   * The number of seats in this section reserved for new students.
+   */
+  numNewOnlyReserved: string;
+  /**
+   * The restriction code(s) for this section.
+   */
+  restrictions: string;
+  /**
+   * The enrollment status.
+   */
+  status: "OPEN" | "Waitl" | "FULL" | "NewOnly";
+  /**
+   * Any comments for the section.
+   */
+  sectionComment: string;
+};
+
+/**
+ * A WebSoc course object.
+ */
+export type WebsocCourse = {
+  /**
+   * The code of the department the course belongs to.
+   */
+  deptCode: string;
+  /**
+   * The course number.
+   */
+  courseNumber: string;
+  /**
+   * The title of the course.
+   */
+  courseTitle: string;
+  /**
+   * Any comments for the course.
+   */
+  courseComment: string;
+  /**
+   * The link to the WebReg Course Prerequisites page for this course.
+   */
+  prerequisiteLink: string;
+  /**
+   * All sections of the course.
+   */
+  sections: WebsocSection[];
+};
+
+/**
+ * A WebSoc department object.
+ */
+export type WebsocDepartment = {
+  /**
+   * The name of the department.
+   */
+  deptName: string;
+  /**
+   * The department code.
+   */
+  deptCode: string;
+  /**
+   * Any comments from the department.
+   */
+  deptComment: string;
+  /**
+   * All courses of the department.
+   */
+  courses: WebsocCourse[];
+  /**
+   * Any comments for section code(s) under the department.
+   */
+  sectionCodeRangeComments: string[];
+  /**
+   * Any comments for course number(s) under the department.
+   */
+  courseNumberRangeComments: string[];
+};
+
+/**
+ * A WebSoc school object.
+ */
+export type WebsocSchool = {
+  /**
+   * The name of the school.
+   */
+  schoolName: string;
+  /**
+   * Any comments from the school.
+   */
+  schoolComment: string;
+  /**
+   * All departments of the school.
+   */
+  departments: WebsocDepartment[];
+};
+
+/**
+ * An object that represents a specific term.
+ */
+export type Term = {
+  /**
+   * The year of the term.
+   */
+  year: string;
+  /**
+   * The quarter of the term.
+   */
+  quarter: Quarter;
+};
+
+/**
+ * The type alias for the response from {@link `callWebSocAPI`}.
+ */
+export type WebsocAPIResponse = {
+  /**
+   * All schools matched by the query.
+   */
+  schools: WebsocSchool[];
+};
+
+/**
+ * The type alias for the options object accepted by {@link `callWebSocAPI`}.
  *
  * If your editor supports intelligent code completion, the fully expanded
  * initial type will probably look horrifying. But it's really not that bad.
@@ -177,7 +486,7 @@ const getCodedDiv = (div: Division): string => {
 
 export const callWebSocAPI = async (
   term: Term,
-  options: WebsocAPIOptions
+  options: WebsocAPIOptions,
 ): Promise<WebsocAPIResponse> => {
   const {
     ge = "ANY",
@@ -238,9 +547,9 @@ export const callWebSocAPI = async (
             meeting.bldg = [meeting.bldg].flat();
           });
           section.meetings = getUniqueMeetings(section.meetings);
-        })
-      )
-    )
+        }),
+      ),
+    ),
   );
   return json;
 };
@@ -329,7 +638,7 @@ export const getDepts = async (): Promise<Department[]> => {
       x
         .split(".")
         .filter((y) => y != " ")
-        .map((y) => y.trim())
+        .map((y) => y.trim()),
     )
     .filter((x) => x[0].length)
     .map((x): Department => {

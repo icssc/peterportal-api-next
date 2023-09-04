@@ -58,8 +58,8 @@
   },
   "dependencies": {
     "arktype": "1.0.16-alpha",
-    "aws-cdk": "2.91.0",
-    "aws-cdk-lib": "2.91.0",
+    "aws-cdk": "2.93.0",
+    "aws-cdk-lib": "2.93.0",
     "body-parser": "1.20.2",
     "chalk": "5.3.0",
     "chokidar": "3.5.3",
@@ -68,7 +68,7 @@
     "constructs": "10.2.69",
     "cors": "2.8.5",
     "defu": "6.1.2",
-    "esbuild": "0.19.1",
+    "esbuild": "0.19.2",
     "express": "4.18.2",
     "unconfig": "0.3.10",
     "winston": "3.10.0"
@@ -81,6 +81,6 @@
     "peterportal-api-next-types": "*",
     "tsup": "7.2.0",
     "tsx": "3.12.7",
-    "typescript": "5.1.6"
+    "typescript": "5.2.2"
   }
 }

@@ -1,11 +1,27 @@
-"The meeting time for a section."
+"A type that represents the hour and minute parts of a time."
+type HourMinute {
+  "The hour (0-23)."
+  hour: Int!
+  "The minute (0-59)."
+  minute: Int!
+}
+"The meeting information for a section."
 type WebsocSectionMeeting {
-  "What day(s) the section meets on (e.g. ``MWF``)."
-  days: String!
-  "What time the section meets at."
-  time: String!
-  "The building(s) the section meets in."
+  """
+  Whether the meeting time is TBA.
+
+  If this field is `false`, then `days`, `startTime`, and `endTime`
+  are **guaranteed** to be non-null; otherwise, they are **guaranteed** to be null.
+  """
+  timeIsTBA: Boolean!
+  "The classroom(s) the section meets in."
   bldg: [String!]!
+  "What day(s) the section meets on (e.g. ``MWF``)."
+  days: String
+  "The time at which the section begins."
+  startTime: HourMinute
+  "The time at which the section concludes."
+  endTime: HourMinute
 }
 "The enrollment statistics for a section."
 type WebsocSectionEnrollment {
@@ -17,6 +33,26 @@ type WebsocSectionEnrollment {
   this field is the empty string.
   """
   sectionEnrolled: String!
+}
+"The final exam data for a section."
+type WebsocSectionFinalExam {
+  """
+  The status of the exam.
+
+  If this field is `SCHEDULED_FINAL`, then all other fields are
+  **guaranteed** to be non-null; otherwise, they are **guaranteed** to be null.
+  """
+  examStatus: WebsocSectionFinalExamStatus!
+  "The month in which the final exam takes place."
+  month: Int
+  "The day of the month in which the final exam takes place."
+  day: Int
+  "When the final exam starts."
+  startTime: HourMinute
+  "When the final exam ends."
+  endTime: HourMinute
+  "Where the final exam takes place."
+  bldg: String
 }
 "A WebSoc section object."
 type WebsocSection {
@@ -33,7 +69,7 @@ type WebsocSection {
   "The meeting time(s) of this section."
   meetings: [WebsocSectionMeeting!]!
   "The date and time of the final exam for this section."
-  finalExam: String!
+  finalExam: WebsocSectionFinalExam!
   "The maximum capacity of this section."
   maxCapacity: String!
   """

@@ -75,6 +75,8 @@ export const courseLevels = [
   "Graduate/Professional Only (200+)",
 ] as const;
 
+export const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"] as const;
+
 /**
  * Represents the absence of a particular value to filter for.
  */
@@ -112,3 +114,5 @@ export type Division = Any | (typeof divisionCodes)[number];
  * The course level name.
  */
 export type CourseLevel = (typeof courseLevels)[number];
+
+export type DayOfWeek = (typeof daysOfWeek)[number];

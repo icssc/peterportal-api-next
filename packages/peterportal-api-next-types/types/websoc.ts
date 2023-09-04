@@ -1,21 +1,46 @@
-import { Quarter } from "./constants";
+import { DayOfWeek, Quarter } from "./constants";
 
 /**
- * The meeting time for a section.
+ * A type that represents the hour and minute parts of a time.
+ */
+export type HourMinute = {
+  /**
+   * The hour (0-23).
+   */
+  hour: number;
+  /**
+   * The minute (0-59).
+   */
+  minute: number;
+};
+
+/**
+ * The meeting information for a section.
  */
 export type WebsocSectionMeeting = {
   /**
-   * What day(s) the section meets on (e.g. ``MWF``).
+   * Whether the meeting time is TBA.
+   *
+   * If this field is `false`, then `days`, `startTime`, and `endTime`
+   * are **guaranteed** to be non-null; otherwise, they are **guaranteed** to be null.
    */
-  days: string;
+  timeIsTBA: boolean;
   /**
-   * What time the section meets at.
-   */
-  time: string;
-  /**
-   * The building(s) the section meets in.
+   * The classroom(s) the section meets in.
    */
   bldg: string[];
+  /**
+   * What day(s) the section meets on (e.g. ``MWF``).
+   */
+  days: string | null;
+  /**
+   * The time at which the section begins.
+   */
+  startTime: HourMinute | null;
+  /**
+   * The time at which the section concludes.
+   */
+  endTime: HourMinute | null;
 };
 
 /**
@@ -32,6 +57,43 @@ export type WebsocSectionEnrollment = {
    * this field is the empty string.
    */
   sectionEnrolled: string;
+};
+
+/**
+ * The final exam data for a section.
+ */
+export type WebsocSectionFinalExam = {
+  /**
+   * The status of the exam.
+   *
+   * If this field is `SCHEDULED_FINAL`, then all other fields are
+   * **guaranteed** to be non-null; otherwise, they are **guaranteed** to be null.
+   */
+  examStatus: "NO_FINAL" | "TBA_FINAL" | "SCHEDULED_FINAL";
+  /**
+   * The day of the week in which the final exam takes place.
+   */
+  dayOfWeek: DayOfWeek | null;
+  /**
+   * The zero-indexed month (e.g. January = 0) in which the final exam takes place.
+   */
+  month: number | null;
+  /**
+   * The day of the month in which the final exam takes place.
+   */
+  day: number | null;
+  /**
+   * When the final exam starts.
+   */
+  startTime: HourMinute | null;
+  /**
+   * When the final exam ends.
+   */
+  endTime: HourMinute | null;
+  /**
+   * Where the final exam takes place.
+   */
+  bldg: string[] | null;
 };
 
 /**
@@ -63,9 +125,9 @@ export type WebsocSection = {
    */
   meetings: WebsocSectionMeeting[];
   /**
-   * The date and time of the final exam for this section.
+   * The details for the final exam for this section.
    */
-  finalExam: string;
+  finalExam: WebsocSectionFinalExam;
   /**
    * The maximum capacity of this section.
    */

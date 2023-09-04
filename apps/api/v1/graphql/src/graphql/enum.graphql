@@ -55,10 +55,16 @@ enum CancelledCourses {
   Include
   Only
 }
-"The set of valid options for filtering based on enrollment status."
+"The set of valid enrollment statuses."
 enum EnrollmentStatus {
   OPEN
   Waitl
   FULL
   NewOnly
+}
+"The set of valid final exam statuses for a section."
+enum WebsocSectionFinalExamStatus {
+  NO_FINAL
+  TBA_FINAL
+  SCHEDULED_FINAL
 }
