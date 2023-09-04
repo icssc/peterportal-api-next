@@ -133,6 +133,7 @@ model GradesSection {
   department    String
   courseNumber  String
   courseNumeric Int
+  geCategories  Json?
   instructors   GradesInstructor[]
   gradeACount   Int
   gradeBCount   Int
