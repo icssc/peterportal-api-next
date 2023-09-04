@@ -1,8 +1,8 @@
-import { callWebSocAPI, getDepts, getTerms, WebsocAPIOptions } from "@libs/websoc-api-next";
+import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
+import type { WebsocAPIResponse, WebsocAPIOptions } from "@libs/websoc-api-next";
+import { combineAndNormalizeResponses, fulfilled, sleep, sortResponse } from "@libs/websoc-utils";
 import { createErrorResult, createOKResult, logger } from "ant-stack";
-import { combineResponses, fulfilled, sleep, sortResponse } from "api-v1-rest-websoc/src/lib";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
-import { WebsocAPIResponse } from "peterportal-api-next-types";
 
 export const handler = async (
   event: APIGatewayProxyEvent,
@@ -26,8 +26,6 @@ export const handler = async (
       let successes: PromiseFulfilledResult<WebsocAPIResponse>[] = [];
       const failed: WebsocAPIOptions[] = [];
 
-      let websocResponseData: WebsocAPIResponse = { schools: [] };
-
       while (queries.length && retries < 3) {
         responses = await Promise.allSettled(
           queries.map((options) => callWebSocAPI(parsedQuery, options)),
@@ -44,11 +42,6 @@ export const handler = async (
         });
 
         successes = responses.filter(fulfilled);
-        websocResponseData = successes.reduce(
-          (acc, curr) => combineResponses(acc, curr.value),
-          websocResponseData,
-        );
-
         queries = failed;
         if (queries.length) await sleep(1000 * 2 ** retries++);
       }
@@ -62,7 +55,11 @@ export const handler = async (
         );
 
       // Do not compress responses.
-      return createOKResult(sortResponse(websocResponseData), { "accept-encoding": "" }, requestId);
+      return createOKResult(
+        sortResponse(combineAndNormalizeResponses(...successes.map((x) => x.value))),
+        { "accept-encoding": "" },
+        requestId,
+      );
     }
     default:
       return createOKResult({}, {}, requestId);

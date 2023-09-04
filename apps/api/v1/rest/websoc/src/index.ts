@@ -1,38 +1,34 @@
-import { LambdaClient } from "@aws-sdk/client-lambda";
 import { PrismaClient } from "@libs/db";
+import type { WebsocAPIResponse } from "@libs/websoc-api-next";
+import { combineAndNormalizeResponses, notNull, sortResponse } from "@libs/websoc-utils";
 import { createErrorResult, createOKResult, type InternalHandler } from "ant-stack";
-import type { WebsocAPIResponse } from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
-import {
-  combineResponses,
-  constructPrismaQuery,
-  normalizeQuery,
-  notNull,
-  PeterPortalApiLambdaClient,
-  sortResponse,
-} from "./lib";
+import { APILambdaClient } from "./APILambdaClient";
+import { constructPrismaQuery, normalizeQuery } from "./lib";
 import { QuerySchema } from "./schema";
 
-let prisma: PrismaClient;
-
-const lambda = new LambdaClient({});
-
-const lambdaClient = new PeterPortalApiLambdaClient(lambda);
-
 const quarterOrder = ["Winter", "Spring", "Summer1", "Summer10wk", "Summer2", "Fall"];
+
+let prisma: PrismaClient;
+let connected = false;
+let lambdaClient: APILambdaClient;
 
 export const GET: InternalHandler = async (request) => {
   const { headers, params, query, requestId } = request;
 
   prisma ??= new PrismaClient();
+  lambdaClient ??= await APILambdaClient.new();
 
-  if (request.isWarmerRequest) {
+  if (!connected) {
     try {
       await prisma.$connect();
-      return createOKResult("Warmed", headers, requestId);
-    } catch (error) {
-      createErrorResult(500, error, requestId);
+      connected = true;
+      if (request.isWarmerRequest) {
+        return createOKResult("Warmed", headers, requestId);
+      }
+    } catch {
+      // no-op
     }
   }
 
@@ -40,14 +36,16 @@ export const GET: InternalHandler = async (request) => {
     switch (params?.id) {
       case "terms": {
         const [gradesTerms, webSocTerms] = await Promise.all([
-          prisma.gradesSection.findMany({
-            distinct: ["year", "quarter"],
-            select: {
-              year: true,
-              quarter: true,
-            },
-            orderBy: [{ year: "desc" }, { quarter: "desc" }],
-          }),
+          connected
+            ? prisma.gradesSection.findMany({
+                distinct: ["year", "quarter"],
+                select: {
+                  year: true,
+                  quarter: true,
+                },
+                orderBy: [{ year: "desc" }, { quarter: "desc" }],
+              })
+            : [],
           lambdaClient.getTerms({ function: "terms" }),
         ]);
 
@@ -92,12 +90,14 @@ export const GET: InternalHandler = async (request) => {
 
       case "depts": {
         const [gradesDepts, webSocDepts] = await Promise.all([
-          prisma.gradesSection.findMany({
-            distinct: ["department"],
-            select: {
-              department: true,
-            },
-          }),
+          connected
+            ? prisma.gradesSection.findMany({
+                distinct: ["department"],
+                select: {
+                  department: true,
+                },
+              })
+            : [],
           lambdaClient.getDepts({ function: "depts" }),
         ]);
 
@@ -126,7 +126,7 @@ export const GET: InternalHandler = async (request) => {
 
     const parsedQuery = QuerySchema.parse(query);
 
-    if (parsedQuery.cache) {
+    if (connected && parsedQuery.cache) {
       const websocSections = await prisma.websocSection.findMany({
         where: constructPrismaQuery(parsedQuery),
         select: { department: true, courseNumber: true, data: true },
@@ -181,7 +181,7 @@ export const GET: InternalHandler = async (request) => {
             .map((x) => x.data)
             .filter(notNull) as WebsocAPIResponse[];
 
-          const combinedResponses = combineResponses(...responses);
+          const combinedResponses = combineAndNormalizeResponses(...responses);
 
           return createOKResult(sortResponse(combinedResponses), headers, requestId);
         }
@@ -190,7 +190,7 @@ export const GET: InternalHandler = async (request) => {
           .map((x) => x.data)
           .filter(notNull) as WebsocAPIResponse[];
 
-        const combinedResponses = combineResponses(...websocApiResponses);
+        const combinedResponses = combineAndNormalizeResponses(...websocApiResponses);
 
         return createOKResult(sortResponse(combinedResponses), headers, requestId);
       }
