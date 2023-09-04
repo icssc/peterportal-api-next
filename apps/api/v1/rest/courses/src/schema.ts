@@ -19,6 +19,7 @@ export const QuerySchema = z.object({
     .transform(flattenStringsAndSplit),
   geCategory: z.enum(anyArray).or(z.enum(geCodes)).optional(),
   taughtInTerms: z.string().array().or(z.string()).optional().transform(flattenStringsAndSplit),
+  restrictions: z.string().optional(),
 });
 
 export type Query = z.infer<typeof QuerySchema>;

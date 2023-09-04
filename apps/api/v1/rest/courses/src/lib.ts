@@ -98,5 +98,8 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.CourseWhereInpu
       OR: parsedQuery.taughtInTerms.map((term) => ({ terms: { array_contains: term } })),
     });
 
+  if (parsedQuery.restrictions && parsedQuery.restrictions !== "")
+    AND.push({ restriction: parsedQuery.restrictions });
+
   return { AND: AND.length ? AND : undefined };
 }
