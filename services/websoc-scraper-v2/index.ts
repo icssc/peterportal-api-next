@@ -115,6 +115,7 @@ type ProcessedSection = {
     overEnrolled: boolean;
     cancelled: boolean;
     data: object;
+    restrictions: string;
   };
 };
 
@@ -396,6 +397,7 @@ async function scrape(name: string, term: Term) {
                     parseInt(section.maxCapacity, 10),
                   cancelled: section.sectionComment.includes("***  CANCELLED  ***"),
                   data: isolateSection({ school, department, course, section }),
+                  restrictions: section.restrictions,
                 },
               };
             }
