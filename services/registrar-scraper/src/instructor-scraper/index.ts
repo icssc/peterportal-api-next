@@ -78,7 +78,7 @@ function sleep(ms: number) {
  * die with too many concurrent calls, so we bottleneck. If a request fails we retry up to the number of attempts.
  *
  * Recommended parameters:
- * concurrency_limit <= 100;  Going more than 100 will likely result in more failed requests
+ * concurrency_limit = 1;
  * attempts <= 5;
  *
  * @param concurrency_limit - Number of concurrent calls at a time
@@ -87,7 +87,7 @@ function sleep(ms: number) {
  * @returns {InstructorsData} Object containing instructors info and stats regarding retrieval
  */
 export async function getInstructors(
-  concurrency_limit = 16,
+  concurrency_limit = 1,
   attempts = 5,
   year_threshold: number = YEAR_THRESHOLD,
 ): Promise<InstructorsData> {
@@ -215,6 +215,7 @@ async function getInstructor(
   attempts: number,
   year_threshold: number,
 ): Promise<[string, Instructor]> {
+  logger.info(`Scraping data for ${instructorName}`);
   const instructorObject: Instructor = {
     name: instructorName,
     ucinetid: "",

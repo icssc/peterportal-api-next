@@ -159,7 +159,7 @@ export const createCourses =
       instructorHistory: Object.values(instructorInfo)
         .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
         .map((x) => x.ucinetid),
-      ...createCoursePrereqs(id, title, prereqInfo, prereqLists),
+      ...createCoursePrereqs(courseId, title, prereqInfo, prereqLists),
       repeatability,
       gradingOption: grading_option,
       concurrent,
