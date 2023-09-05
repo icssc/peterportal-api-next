@@ -42,6 +42,10 @@ The five-digit section code to include.
 
 The course level/division code to include. Case-sensitive.
 
+#### `ge` GE-1A | GE-1B | GE-2 | GE-3 | GE-4 | GE-5A | GE-5B | GE-6 | GE-7 | GE-8
+
+Which GE category to include. Case-sensitive.
+
 #### `excludePNP` boolean
 
 Whether to exclude sections that only reported Pass/No-Pass grades.
@@ -74,6 +78,7 @@ curl "https://api-next.peterportal.org/v1/rest/grades/raw?year=2022&quarter=Fall
     "department": "I&C SCI",
     "courseNumber": "46",
     "courseNumeric": 46,
+    "geCategories": ["GE-5B"],
     "gradeACount": 34,
     "gradeBCount": 19,
     "gradeCCount": 40,
@@ -96,9 +101,11 @@ curl "https://api-next.peterportal.org/v1/rest/grades/raw?year=2022&quarter=Fall
 type GradesRaw = {
   year: string;
   quarter: string;
+  sectionCode: string;
   department: string;
   courseNumber: string;
-  sectionCode: string;
+  courseNumeric: number;
+  geCategories: GE[];
   instructors: string[];
   gradeACount: number;
   gradeBCount: number;
@@ -144,6 +151,7 @@ curl "https://api-next.peterportal.org/v1/rest/grades/aggregate?year=2022&quarte
       "department": "I&C SCI",
       "courseNumber": "46",
       "courseNumeric": 46,
+      "geCategories": ["GE-5B"],
       "instructors": ["GARZA RODRIGUE, A.", "GILA, O.", "SHINDLER, M."]
     },
     {
@@ -153,6 +161,7 @@ curl "https://api-next.peterportal.org/v1/rest/grades/aggregate?year=2022&quarte
       "department": "I&C SCI",
       "courseNumber": "46",
       "courseNumeric": 46,
+      "geCategories": ["GE-5B"],
       "instructors": ["DICKERSON, M.", "SHINDLER, M."]
     }
   ],
@@ -182,6 +191,7 @@ type GradesAggregate = {
     department: string;
     courseNumber: string;
     sectionCode: string;
+    geCategories: GE[];
     instructors: string[];
   }[];
   gradeDistribution: {
