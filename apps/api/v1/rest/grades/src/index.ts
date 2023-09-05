@@ -1,7 +1,12 @@
 import { PrismaClient } from "@libs/db";
 import { createErrorResult, createOKResult, logger } from "ant-stack";
 import type { InternalHandler } from "ant-stack";
-import type { AggregateGroupedGrades, GradesOptions, RawGrades } from "peterportal-api-next-types";
+import type {
+  AggregateGroupedGrades,
+  GE,
+  GradesOptions,
+  RawGrades,
+} from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
 import { aggregateGrades, aggregateGroupedGrades, constructPrismaQuery, lexOrd } from "./lib";
@@ -35,6 +40,7 @@ export const GET: InternalHandler = async (request) => {
             })
           ).map((section) => ({
             ...section,
+            geCategories: section.geCategories as GE[],
             instructors: section.instructors.map((instructor) => instructor.name),
           }));
           switch (params.id) {
@@ -107,6 +113,7 @@ export const GET: InternalHandler = async (request) => {
               })
             ).map((section) => ({
               ...section,
+              geCategories: section.geCategories as GE[],
               instructors: section.instructors.map((instructor) => instructor.name),
             })),
           ),
