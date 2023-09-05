@@ -207,6 +207,7 @@ model WebsocSection {
   overEnrolled  Boolean
   cancelled     Boolean
   data          Json
+  restriction   String
 
   @@id([year, quarter, sectionCode, timestamp])
   @@unique([year, quarter, sectionCode, timestamp], name: "idx")

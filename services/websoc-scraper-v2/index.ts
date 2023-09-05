@@ -115,7 +115,7 @@ type ProcessedSection = {
     overEnrolled: boolean;
     cancelled: boolean;
     data: object;
-    restrictions: string;
+    restrictions: string[];
   };
 };
 
@@ -248,6 +248,17 @@ function parseStartAndEndTimes(time: string) {
     if (startTime > endTime) startTime -= 12 * 60;
   }
   return { startTime, endTime };
+}
+
+/**
+ * Helper function to parse restriction strings
+ * @param restrictions A string of restrictions in the format: "A and B" or "C or D"
+ * @returns An array of restrictions (capital letters): ["A", "B"]
+ */
+function parseRestrictions(restrictions: string): string[] {
+  const restrictionsArray = restrictions.match(/[A-Z]/g); // Matches for uppercase letters
+
+  return restrictionsArray ? restrictionsArray : [];
 }
 
 /**
@@ -397,7 +408,7 @@ async function scrape(name: string, term: Term) {
                     parseInt(section.maxCapacity, 10),
                   cancelled: section.sectionComment.includes("***  CANCELLED  ***"),
                   data: isolateSection({ school, department, course, section }),
-                  restrictions: section.restrictions,
+                  restrictions: parseRestrictions(section.restrictions),
                 },
               };
             }
