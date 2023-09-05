@@ -3,7 +3,6 @@ import type { StackProps } from "aws-cdk-lib";
 import { SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
 import { Construct } from "constructs";
 
-import { RegistrarScraper } from "./constructs/RegistrarScraper";
 import { WebsocProxy } from "./constructs/WebsocProxy";
 import { WebsocScraperV2 } from "./constructs/WebsocScraperV2";
 
@@ -25,7 +24,6 @@ export class ServicesStack extends Stack {
       ],
     });
     new WebsocProxy(this, `${id}-websoc-proxy`);
-    new RegistrarScraper(this, `${id}-registrar-scraper`, vpc);
     new WebsocScraperV2(this, `${id}-websoc-scraper-v2`, vpc);
   }
 }

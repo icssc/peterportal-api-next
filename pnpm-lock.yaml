@@ -502,7 +502,7 @@ importers:
     dependencies:
       '@services/registrar-scraper':
         specifier: workspace:*
-        version: link:../registrar-scraper
+        version: link:../../tools/registrar-scraper
       '@services/websoc-proxy':
         specifier: workspace:*
         version: link:../websoc-proxy
@@ -540,37 +540,6 @@ importers:
       typescript:
         specifier: 5.2.2
         version: 5.2.2
-
-  services/registrar-scraper:
-    dependencies:
-      '@libs/db':
-        specifier: workspace:*
-        version: link:../../libs/db
-      '@types/he':
-        specifier: 1.2.0
-        version: 1.2.0
-      cheerio:
-        specifier: 1.0.0-rc.12
-        version: 1.0.0-rc.12
-      he:
-        specifier: 1.2.0
-        version: 1.2.0
-      p-limit:
-        specifier: 4.0.0
-        version: 4.0.0
-      string-similarity-js:
-        specifier: 2.1.4
-        version: 2.1.4
-      winston:
-        specifier: 3.10.0
-        version: 3.10.0
-    devDependencies:
-      esbuild:
-        specifier: 0.19.2
-        version: 0.19.2
-      peterportal-api-next-types:
-        specifier: workspace:*
-        version: link:../../packages/peterportal-api-next-types
 
   services/websoc-proxy:
     dependencies:
@@ -646,6 +615,37 @@ importers:
       tsx:
         specifier: 3.12.7
         version: 3.12.7
+
+  tools/registrar-scraper:
+    dependencies:
+      '@libs/db':
+        specifier: workspace:*
+        version: link:../../libs/db
+      '@types/he':
+        specifier: 1.2.0
+        version: 1.2.0
+      cheerio:
+        specifier: 1.0.0-rc.12
+        version: 1.0.0-rc.12
+      he:
+        specifier: 1.2.0
+        version: 1.2.0
+      p-limit:
+        specifier: 4.0.0
+        version: 4.0.0
+      string-similarity-js:
+        specifier: 2.1.4
+        version: 2.1.4
+      winston:
+        specifier: 3.10.0
+        version: 3.10.0
+    devDependencies:
+      esbuild:
+        specifier: 0.19.2
+        version: 0.19.2
+      peterportal-api-next-types:
+        specifier: workspace:*
+        version: link:../../packages/peterportal-api-next-types
 
 packages:
 

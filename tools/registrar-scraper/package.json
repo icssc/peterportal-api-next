@@ -5,9 +5,6 @@
   "license": "MIT",
   "type": "module",
   "main": "index.ts",
-  "scripts": {
-    "build": "node build.mjs"
-  },
   "dependencies": {
     "@libs/db": "workspace:*",
     "@types/he": "1.2.0",
