@@ -27,8 +27,17 @@ const isNotPNPOnly = ({
 }: GradeDistribution) => gradeACount || gradeBCount || gradeCCount || gradeDCount || gradeFCount;
 
 export function constructPrismaQuery(parsedQuery: Query): Prisma.GradesSectionWhereInput {
-  const { year, quarter, instructor, department, courseNumber, sectionCode, division, excludePNP } =
-    parsedQuery;
+  const {
+    year,
+    quarter,
+    instructor,
+    department,
+    courseNumber,
+    sectionCode,
+    division,
+    excludePNP,
+    ge,
+  } = parsedQuery;
   const courseNumeric: Prisma.IntFilter = {};
   switch (division) {
     case "LowerDiv":
@@ -59,6 +68,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.GradesSectionWh
     courseNumber,
     courseNumeric,
     sectionCode,
+    geCategories: { array_contains: ge },
     NOT: excludePNP ? { ...excludePNPFilters } : undefined,
   };
 }
