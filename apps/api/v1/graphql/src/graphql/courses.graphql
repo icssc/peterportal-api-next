@@ -82,7 +82,7 @@ extend type Query {
     "A comma-separated list of all terms that the courses may have been taught in."
     taughtInTerms: String
     "The enrollment restriction(s) placed on this course."
-    restriction: String!
+    restriction: [String]
   ): [Course!]!
   "Get all courses."
   allCourses: [Course!]!
