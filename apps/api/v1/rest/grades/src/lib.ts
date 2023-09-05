@@ -84,13 +84,23 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.GradesSectionWh
 export function aggregateGrades(grades: RawGrades): AggregateGrades {
   return {
     sectionList: grades.map(
-      ({ year, quarter, sectionCode, department, courseNumber, courseNumeric, instructors }) => ({
+      ({
         year,
         quarter,
         sectionCode,
         department,
         courseNumber,
         courseNumeric,
+        instructors,
+        geCategories,
+      }) => ({
+        year,
+        quarter,
+        sectionCode,
+        department,
+        courseNumber,
+        courseNumeric,
+        geCategories,
         instructors,
       }),
     ),

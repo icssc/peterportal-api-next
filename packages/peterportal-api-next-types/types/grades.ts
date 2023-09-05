@@ -1,4 +1,4 @@
-import { Quarter } from "./constants";
+import type { GE, Quarter } from "./constants";
 
 /**
  * A section which has grades data associated with it.
@@ -28,6 +28,10 @@ export type GradesSection = {
    * The numeric part of the course number.
    */
   courseNumeric: number;
+  /**
+   * What GE categor(y/ies) the section fulfills (if any).
+   */
+  geCategories: GE[];
   /**
    * The shortened name(s) of the instructor(s) who taught the section.
    */
