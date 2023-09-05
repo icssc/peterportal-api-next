@@ -1,4 +1,5 @@
 import { existsSync, readFileSync } from "fs";
+import { writeFileSync } from "node:fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
@@ -43,6 +44,11 @@ const logger = winston.createLogger({
 });
 
 /**
+ * @param ms - Milliseconds to wait
+ */
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+/**
  * Scrape all course prerequisite data from the Registrar's website.
  */
 export async function getPrereqs(): Promise<DepartmentCourses> {
@@ -67,6 +73,7 @@ export async function getPrereqs(): Promise<DepartmentCourses> {
       if (courses.length > 0) {
         deptCourses[dept] = courses;
       }
+      await sleep(1000);
     }
   } catch (error) {
     logger.error("Failed to scrape prerequisite data", { error: error });
@@ -115,7 +122,7 @@ async function parsePage(url: string): Promise<CourseList> {
         // Some courses are formatted "{old_course} * {current_course} since {date}"
         const matches = courseId.match(/\* ([&A-Z\d ]+) since/);
         if (matches) {
-          courseId = matches[1].trim();
+          courseId = courseId.split("*")[0].trim();
         }
         const prereqTree = buildTree(prereqList);
         if (Object.keys(prereqTree).length > 0) {
@@ -235,3 +242,5 @@ function parseAntiRequisite(requisite: string): Prerequisite | null {
   }
   return null;
 }
+
+getPrereqs().then((x) => writeFileSync("../../prereqInfo.json", JSON.stringify(x)));
