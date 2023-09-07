@@ -1,5 +1,5 @@
-import { BaseContext } from "@apollo/server/dist/cjs";
-import { IFieldResolver } from "@graphql-tools/utils/typings";
+import type { BaseContext } from "@apollo/server";
+import type { IFieldResolver } from "@graphql-tools/utils";
 import { GraphQLError } from "graphql/error";
 import { isErrorResponse, RawResponse } from "peterportal-api-next-types";
 
