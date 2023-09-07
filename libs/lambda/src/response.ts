@@ -42,26 +42,45 @@ export function createTimestamp(date: Date = new Date()): string {
  */
 export function createOKResult<T>(
   payload: T,
-  requestHeaders: Record<string, string>,
+  requestHeaders: Record<string, string | undefined>,
   requestId: string,
 ): APIGatewayProxyResult {
   const statusCode = 200;
   const timestamp = createTimestamp();
   const response: Response<T> = { statusCode, timestamp, requestId, payload };
   const headers = { ...responseHeaders };
-  try {
-    const { body, method } = compress(JSON.stringify(response), requestHeaders["accept-encoding"]);
-    if (method) headers["Content-Encoding"] = method;
-    logger.info("200 OK");
-    return {
-      statusCode,
-      isBase64Encoded: !!headers["Content-Encoding"],
-      body,
-      headers,
-    };
-  } catch (e) {
-    return createErrorResult(500, e, requestId);
-  }
+
+  headers;
+  requestHeaders;
+  compress;
+
+  return {
+    statusCode,
+    body: JSON.stringify(response),
+  };
+
+  /**
+   * TODO: handle compression.
+   */
+
+  // try {
+  //   const { body, method } = compress(JSON.stringify(response), requestHeaders["accept-encoding"]);
+
+  //   if (method) {
+  //     headers["Content-Encoding"] = method;
+  //   }
+
+  //   logger.info("200 OK");
+
+  //   return {
+  //     statusCode,
+  //     isBase64Encoded: !!headers["Content-Encoding"],
+  //     body,
+  //     headers,
+  //   };
+  // } catch (e) {
+  //   return createErrorResult(500, e, requestId);
+  // }
 }
 
 /**
