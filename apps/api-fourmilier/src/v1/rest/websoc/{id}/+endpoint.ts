@@ -18,46 +18,44 @@ const quarterOrder = ["Winter", "Spring", "Summer1", "Summer10wk", "Summer2", "F
 
 const prisma = new PrismaClient();
 
-let connected = false;
-let lambdaClient: APILambdaClient;
+// let connected = false
+const lambdaClient = await APILambdaClient.new();
 
 export const GET: APIGatewayProxyHandler = async (event, context) => {
   const headers = event.headers;
   const requestId = context.awsRequestId;
   const params = event.pathParameters;
 
-  if (!connected) {
-    lambdaClient = await APILambdaClient.new();
-    try {
-      await prisma.$connect();
-      connected = true;
+  // if (!connected) {
+  //   lambdaClient = await APILambdaClient.new();
+  //   try {
+  //     await prisma.$connect();
+  //     connected = true;
 
-      /**
-       * TODO: handle warmer requests.
-       */
+  //     /**
+  //      * TODO: handle warmer requests.
+  //      */
 
-      // if (request.isWarmerRequest) {
-      //   return createOKResult("Warmed", headers, requestId);
-      // }
-    } catch {
-      // no-op
-    }
-  }
+  //     // if (request.isWarmerRequest) {
+  //     //   return createOKResult("Warmed", headers, requestId);
+  //     // }
+  //   } catch {
+  //     // no-op
+  //   }
+  // }
 
   try {
     switch (params?.id) {
       case "terms": {
         const [gradesTerms, webSocTerms] = await Promise.all([
-          connected
-            ? prisma.gradesSection.findMany({
-                distinct: ["year", "quarter"],
-                select: {
-                  year: true,
-                  quarter: true,
-                },
-                orderBy: [{ year: "desc" }, { quarter: "desc" }],
-              })
-            : [],
+          prisma.gradesSection.findMany({
+            distinct: ["year", "quarter"],
+            select: {
+              year: true,
+              quarter: true,
+            },
+            orderBy: [{ year: "desc" }, { quarter: "desc" }],
+          }),
           lambdaClient.getTerms({ function: "terms" }),
         ]);
 

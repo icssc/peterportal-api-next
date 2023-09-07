@@ -20,36 +20,36 @@ import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
-let connected = false;
-let lambdaClient: APILambdaClient;
+// let connected = false
+const lambdaClient = await APILambdaClient.new();
 
 export const GET: APIGatewayProxyHandler = async (event, context) => {
   const headers = event.headers;
   const query = event.queryStringParameters;
   const requestId = context.awsRequestId;
 
-  if (!connected) {
-    lambdaClient = await APILambdaClient.new();
-    try {
-      await prisma.$connect();
-      connected = true;
+  // if (!connected) {
+  //   lambdaClient = await APILambdaClient.new();
+  //   try {
+  //     await prisma.$connect();
+  //     connected = true;
 
-      /**
-       * TODO: handle warmer requests.
-       */
+  //     /**
+  //      * TODO: handle warmer requests.
+  //      */
 
-      // if (request.isWarmerRequest) {
-      //   return createOKResult("Warmed", headers, requestId);
-      // }
-    } catch {
-      // no-op
-    }
-  }
+  //     // if (request.isWarmerRequest) {
+  //     //   return createOKResult("Warmed", headers, requestId);
+  //     // }
+  //   } catch {
+  //     // no-op
+  //   }
+  // }
 
   try {
     const parsedQuery = QuerySchema.parse(query);
 
-    if (connected && parsedQuery.cache) {
+    if (parsedQuery.cache) {
       const websocSections = await prisma.websocSection.findMany({
         where: constructPrismaQuery(parsedQuery),
         select: { department: true, courseNumber: true, data: true },

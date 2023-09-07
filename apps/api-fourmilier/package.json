@@ -28,6 +28,7 @@
     "@libs/registrar-api": "workspace:^",
     "@libs/utils": "workspace:^",
     "@libs/websoc-api-next": "workspace:^",
+    "@libs/websoc-utils": "workspace:^",
     "@peterportal-api/types": "workspace:^",
     "@services/websoc-proxy": "workspace:^",
     "aws-cdk-lib": "^2.93.0",
@@ -36,8 +37,8 @@
     "zod": "^3.22.2"
   },
   "devDependencies": {
-    "@bronya.js/api-construct": "^0.10.4",
-    "@bronya.js/core": "^0.10.4",
+    "@bronya.js/api-construct": "^0.10.5",
+    "@bronya.js/core": "^0.10.5",
     "@types/aws-lambda": "^8.10.119",
     "aws-cdk": "^2.93.0",
     "dotenv": "^16.3.1",

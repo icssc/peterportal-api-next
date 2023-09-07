@@ -78,6 +78,12 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
 
+  apps/api:
+    dependencies:
+      peterportal-api-next-types:
+        specifier: workspace:1.0.0-rc.3
+        version: link:../../packages/peterportal-api-next-types
+
   apps/api-fourmilier:
     dependencies:
       '@aws-sdk/client-lambda':
@@ -98,6 +104,9 @@ importers:
       '@libs/websoc-api-next':
         specifier: workspace:^
         version: link:../../libs/websoc-api-next
+      '@libs/websoc-utils':
+        specifier: workspace:^
+        version: link:../../libs/websoc-utils
       '@peterportal-api/types':
         specifier: workspace:^
         version: link:../../packages/types
@@ -118,11 +127,11 @@ importers:
         version: 3.22.2
     devDependencies:
       '@bronya.js/api-construct':
-        specifier: ^0.10.4
-        version: 0.10.4
+        specifier: ^0.10.5
+        version: 0.10.5
       '@bronya.js/core':
-        specifier: ^0.10.4
-        version: 0.10.4
+        specifier: ^0.10.5
+        version: 0.10.5
       '@types/aws-lambda':
         specifier: ^8.10.119
         version: 8.10.119
@@ -479,7 +488,11 @@ importers:
         specifier: 0.34.3
         version: 0.34.3
 
-  libs/websoc-utils: {}
+  libs/websoc-utils:
+    dependencies:
+      peterportal-api-next-types:
+        specifier: workspace:1.0.0-rc.3
+        version: link:../../packages/peterportal-api-next-types
 
   packages/ant-stack:
     dependencies:
@@ -570,6 +583,9 @@ importers:
       pako:
         specifier: 2.1.0
         version: 2.1.0
+      peterportal-api-next-types:
+        specifier: workspace:1.0.0-rc.3
+        version: link:../peterportal-api-next-types
     devDependencies:
       '@types/pluralize':
         specifier: 0.0.30
@@ -635,6 +651,9 @@ importers:
       '@libs/websoc-api-next':
         specifier: workspace:*
         version: link:../../libs/websoc-api-next
+      '@libs/websoc-utils':
+        specifier: workspace:^
+        version: link:../../libs/websoc-utils
       ant-stack:
         specifier: workspace:*
         version: link:../../packages/ant-stack
@@ -2918,12 +2937,12 @@ packages:
   /@balena/dockerignore@1.0.2:
     resolution: {integrity: sha512-wMue2Sy4GAVTk6Ic4tJVcnfdau+gx2EnG7S+uAEe+TWJFqE4YoWN4/H8MSLj4eYJKxGg26lZwboEniNiNwZQ6Q==}
 
-  /@bronya.js/api-construct@0.10.4:
-    resolution: {integrity: sha512-+nV2k1Hxamp0IiiiD0RpvVRdKOVqtqQL099XkEb75KUstlwatbI9URXbkN4EshY7HcJgG5NK9fS/ff5i8CXnkw==}
+  /@bronya.js/api-construct@0.10.5:
+    resolution: {integrity: sha512-66ugv0uSzHqJXrgK1UFh7zlG0l2EW+9gTAeweSYS75YOxAbg9DCZynVOA47t87/Utn00Gc9Azo/1JmSvN7PLBw==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
-      '@bronya.js/cli': 0.10.4
-      '@bronya.js/core': 0.10.4
+      '@bronya.js/cli': 0.10.5
+      '@bronya.js/core': 0.10.5
       acorn: 8.10.0
       acorn-typescript: 1.4.5(acorn@8.10.0)
       aws-cdk-lib: 2.93.0(constructs@10.2.69)
@@ -2939,17 +2958,17 @@ packages:
       - supports-color
     dev: true
 
-  /@bronya.js/cli@0.10.4:
-    resolution: {integrity: sha512-Al1xtImESusyRe+4rd3iEt6TAdnH9toanJkIB+WiDc78aLfNBaG24B40z6gKmzvrdM7fkFa/4qZlfPPTlretQw==}
+  /@bronya.js/cli@0.10.5:
+    resolution: {integrity: sha512-fsHmgEmveZJHddmSq6jlghwyjX3aMmzXsBo+kJ/mIabE32H6DiPweGAZwIboZjgXwVgn0cncC/j1m40PyD2zdw==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dev: true
 
-  /@bronya.js/core@0.10.4:
-    resolution: {integrity: sha512-byUR+EGrbOZDB5+qNvupecqqbnfW9uk4b/CUnD4ZD+ghC3560TgwlCZhMY4jQtkDwBPpTFpWUO18RbRSKpk1OQ==}
+  /@bronya.js/core@0.10.5:
+    resolution: {integrity: sha512-lu296+vlGr26bpZ8BhSm6XeaPcAszASvm98dr91F6s8z4ujXUiCzaN4BLmVPboPXhCw+MP8s+3Ai0jKCIilGcg==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     hasBin: true
     dependencies:
-      '@bronya.js/cli': 0.10.4
+      '@bronya.js/cli': 0.10.5
       acorn: 8.10.0
       acorn-typescript: 1.4.5(acorn@8.10.0)
       aws-cdk-lib: 2.93.0(constructs@10.2.69)

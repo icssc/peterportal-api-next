@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@libs/websoc-api-next": "workspace:*",
+    "@libs/websoc-utils": "workspace:^",
     "ant-stack": "workspace:*"
   },
   "devDependencies": {

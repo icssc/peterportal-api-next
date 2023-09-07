@@ -4,5 +4,8 @@
   "private": true,
   "type": "module",
   "main": "src/index.ts",
-  "types": "src/index.ts"
+  "types": "src/index.ts",
+  "dependencies": {
+    "peterportal-api-next-types": "workspace:1.0.0-rc.3"
+  }
 }
