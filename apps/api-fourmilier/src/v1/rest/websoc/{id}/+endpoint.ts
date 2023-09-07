@@ -100,14 +100,12 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
 
       case "depts": {
         const [gradesDepts, webSocDepts] = await Promise.all([
-          connected
-            ? prisma.gradesSection.findMany({
-                distinct: ["department"],
-                select: {
-                  department: true,
-                },
-              })
-            : [],
+          prisma.gradesSection.findMany({
+            distinct: ["department"],
+            select: {
+              department: true,
+            },
+          }),
           lambdaClient.getDepts({ function: "depts" }),
         ]);
 

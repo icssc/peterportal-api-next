@@ -28,8 +28,11 @@
     "@typescript-eslint/eslint-plugin": "6.5.0",
     "@typescript-eslint/parser": "6.5.0",
     "ant-stack": "^0.1.0",
+    "arktype": "1.0.16-alpha",
+    "aws-cdk-lib": "^2.93.0",
     "cz-conventional-changelog": "3.3.0",
     "devmoji": "2.3.0",
+    "dotenv": "^16.3.1",
     "eslint": "8.48.0",
     "eslint-config-prettier": "9.0.0",
     "eslint-config-turbo": "1.10.13",
@@ -40,7 +43,8 @@
     "prettier-plugin-packagejson": "2.4.5",
     "prettier-plugin-prisma": "5.0.0",
     "turbo": "1.10.13",
-    "typescript": "5.2.2"
+    "typescript": "5.2.2",
+    "unconfig": "0.3.10"
   },
   "packageManager": "pnpm@8.7.0",
   "engines": {
