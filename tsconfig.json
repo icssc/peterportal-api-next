@@ -12,7 +12,7 @@
     "esModuleInterop": true,
     "inlineSourceMap": true,
     "isolatedModules": true,
-    "moduleResolution": "Node",
+    "moduleResolution": "bundler",
     "paths": {
       "@libs/*": ["libs/*"],
       "ant-stack": [
