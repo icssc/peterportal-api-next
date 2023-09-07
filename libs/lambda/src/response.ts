@@ -50,37 +50,20 @@ export function createOKResult<T>(
   const response: Response<T> = { statusCode, timestamp, requestId, payload };
   const headers = { ...responseHeaders };
 
-  headers;
-  requestHeaders;
-  compress;
+  try {
+    const { body, method } = compress(JSON.stringify(response), requestHeaders["accept-encoding"]);
 
-  return {
-    statusCode,
-    body: JSON.stringify(response),
-  };
+    logger.info("200 OK");
 
-  /**
-   * TODO: handle compression.
-   */
-
-  // try {
-  //   const { body, method } = compress(JSON.stringify(response), requestHeaders["accept-encoding"]);
-
-  //   if (method) {
-  //     headers["Content-Encoding"] = method;
-  //   }
-
-  //   logger.info("200 OK");
-
-  //   return {
-  //     statusCode,
-  //     isBase64Encoded: !!headers["Content-Encoding"],
-  //     body,
-  //     headers,
-  //   };
-  // } catch (e) {
-  //   return createErrorResult(500, e, requestId);
-  // }
+    return {
+      statusCode,
+      isBase64Encoded: !!method,
+      body,
+      headers,
+    };
+  } catch (e) {
+    return createErrorResult(500, e, requestId);
+  }
 }
 
 /**

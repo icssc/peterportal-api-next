@@ -8,6 +8,7 @@ import { App, Stack } from "aws-cdk-lib/core";
 import { isCdk } from "@bronya.js/core";
 import { Api } from "@bronya.js/api-construct";
 import { createApiCliPlugins } from "@bronya.js/api-construct/plugins/cli";
+import { logger } from "@libs/lambda";
 
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1491470829
@@ -38,7 +39,19 @@ class MyStack extends Stack {
     super(scope, id);
 
     this.api = new Api(this, `${id}-api`, {
-      plugins: createApiCliPlugins(),
+      plugins: createApiCliPlugins({
+        dev: {
+          hooks: {
+            transformExpressParams(params) {
+              const { req } = params;
+              logger.info(`Path params: ${JSON.stringify(req.params)}`);
+              logger.info(`Query: ${JSON.stringify(req.query)}`);
+              logger.info(`Body: ${JSON.stringify(req.body)}`);
+              logger.info(`Referer: ${req.headers.referer}`);
+            },
+          },
+        },
+      }),
       exitPoint: "handler.mjs",
       constructs: {
         lambdaUpload(directory) {
