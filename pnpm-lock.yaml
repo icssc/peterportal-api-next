@@ -95,6 +95,10 @@ importers:
       peterportal-api-next-types:
         specifier: workspace:1.0.0-rc.3
         version: link:../../packages/peterportal-api-next-types
+    devDependencies:
+      '@types/aws-lambda':
+        specifier: ^8.10.119
+        version: 8.10.119
 
   apps/api-fourmilier:
     dependencies:
