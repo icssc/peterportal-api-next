@@ -1,7 +1,3 @@
-import dotenv from "dotenv";
-
-dotenv.config({ path: "../../.env" });
-
 import path from "node:path";
 import fs from "node:fs";
 import { App, Stack } from "aws-cdk-lib/core";
