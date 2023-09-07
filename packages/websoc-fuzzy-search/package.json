@@ -19,7 +19,7 @@
   "dependencies": {
     "base64-arraybuffer": "1.0.2",
     "pako": "2.1.0",
-    "peterportal-api-next-types": "workspace:1.0.0-rc.3"
+    "peterportal-api-next-types": "workspace:^"
   },
   "devDependencies": {
     "@types/pluralize": "0.0.30",

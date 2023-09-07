@@ -600,7 +600,7 @@ importers:
         specifier: 2.1.0
         version: 2.1.0
       peterportal-api-next-types:
-        specifier: workspace:1.0.0-rc.3
+        specifier: workspace:^
         version: link:../peterportal-api-next-types
     devDependencies:
       '@types/pluralize':

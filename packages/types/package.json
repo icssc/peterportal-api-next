@@ -13,7 +13,6 @@
     "url": "https://github.com/icssc/peterportal-api-next",
     "directory": "packages/types"
   },
-  "funding": "https://github.com/icssc/peterportal-api-next",
   "license": "MIT",
   "type": "module",
   "main": "src/index.ts",

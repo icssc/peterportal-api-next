@@ -34,14 +34,7 @@ export interface CompressionResult {
 
 export function compress(body: string, acceptEncoding?: string): CompressionResult {
   // Default to using gzip if the body size is greater than the threshold.
-  if (body.length <= MIN_COMPRESSION_SIZE) {
-    return {
-      body: gzipSync(body).toString("base64"),
-      method: "gzip",
-    };
-  }
-
-  if (!acceptEncoding) {
+  if (acceptEncoding === "" || body.length <= MIN_COMPRESSION_SIZE) {
     return { body };
   }
 
