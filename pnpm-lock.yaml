@@ -74,6 +74,9 @@ importers:
       turbo:
         specifier: 1.10.13
         version: 1.10.13
+      typescript:
+        specifier: 5.2.2
+        version: 5.2.2
 
   apps/api-fourmilier:
     dependencies:
