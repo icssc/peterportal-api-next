@@ -96,7 +96,34 @@ type GradesOptions {
   instructors: [String!]!
 }
 "An object that represents aggregate grades statistics for a course taught by an instructor."
-type AggregateGroupedGrade {
+type AggregateGradeByCourse {
+  "The department code."
+  department: String!
+  "The course number the section belongs to."
+  courseNumber: String!
+  "The shortened name of the instructor who taught the section."
+  instructor: String!
+  "How many students attained an A+/A/A-."
+  gradeACount: Int!
+  "How many students attained a B+/B/B-."
+  gradeBCount: Int!
+  "How many students attained a C+/C/C-."
+  gradeCCount: Int!
+  "How many students attained a D+/D/D-."
+  gradeDCount: Int!
+  "How many students attained an F."
+  gradeFCount: Int!
+  "How many students attained a P."
+  gradePCount: Int!
+  "How many students attained an NP."
+  gradeNPCount: Int!
+  "How many students attained a W."
+  gradeWCount: Int!
+  "The average GPA of all assigned grades in the course."
+  averageGPA: Float!
+}
+"An object that represents aggregate grades statistics for a course taught by an instructor."
+type AggregateGradeByOffering {
   "The department code."
   department: String!
   "The course number the section belongs to."
@@ -159,8 +186,8 @@ extend type Query {
     ge: GE
     excludePNP: Boolean
   ): GradesOptions!
-  "Get the aggregate grade info, grouped by course and instructor, for the given parameters."
-  aggregateGroupedGrades(
+  "Get the aggregate grade info, grouped by course, for the given parameters."
+  aggregateByCourse(
     year: String
     quarter: Quarter
     instructor: String
@@ -170,5 +197,20 @@ extend type Query {
     division: Division
     ge: GE
     excludePNP: Boolean
-  ): [AggregateGroupedGrade!]!
+  ): [AggregateGradeByOffering!]!
+  """
+  Get the aggregate grade info, grouped by offering (course and instructor),
+  for the given parameters.
+  """
+  aggregateByOffering(
+    year: String
+    quarter: Quarter
+    instructor: String
+    department: String
+    courseNumber: String
+    sectionCode: String
+    division: Division
+    ge: GE
+    excludePNP: Boolean
+  ): [AggregateGradeByOffering!]!
 }

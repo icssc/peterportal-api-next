@@ -131,12 +131,21 @@ export type GradesOptions = {
   instructors: string[];
 };
 
-export type AggregateGroupedGradeHeader = {
+export type AggregateGradeByCourseHeader = {
+  department: string;
+  courseNumber: string;
+};
+
+export type AggregateGradeByCourse = AggregateGradeByCourseHeader & GradeDistribution;
+
+export type AggregateGradesByCourse = AggregateGradeByCourse[];
+
+export type AggregateGradeByOfferingHeader = {
   department: string;
   courseNumber: string;
   instructor: string;
 };
 
-export type AggregateGroupedGrade = AggregateGroupedGradeHeader & GradeDistribution;
+export type AggregateGradeByOffering = AggregateGradeByOfferingHeader & GradeDistribution;
 
-export type AggregateGroupedGrades = AggregateGroupedGrade[];
+export type AggregateGradesByOffering = AggregateGradeByOffering[];

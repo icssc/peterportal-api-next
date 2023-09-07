@@ -1,15 +1,21 @@
 import { PrismaClient } from "@libs/db";
 import { createErrorResult, createOKResult, logger } from "ant-stack";
 import type { InternalHandler } from "ant-stack";
-import type { AggregateGroupedGrades, GradesOptions, RawGrades } from "peterportal-api-next-types";
+import type {
+  AggregateGradesByCourse,
+  AggregateGradesByOffering,
+  GradesOptions,
+  RawGrades,
+} from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
 import {
   aggregateGrades,
-  aggregateGroupedGrades,
+  aggregateByOffering,
   constructPrismaQuery,
   lexOrd,
   transformRow,
+  aggregateByCourse,
 } from "./lib";
 import { QuerySchema } from "./schema";
 
@@ -100,9 +106,23 @@ export const GET: InternalHandler = async (request) => {
           requestId,
         );
       }
-      case "aggregateGrouped": {
-        return createOKResult<AggregateGroupedGrades>(
-          aggregateGroupedGrades(
+      case "aggregateByCourse": {
+        return createOKResult<AggregateGradesByCourse>(
+          aggregateByCourse(
+            (
+              await prisma.gradesSection.findMany({
+                where: constructPrismaQuery(parsedQuery),
+                include: { instructors: true },
+              })
+            ).map(transformRow),
+          ),
+          headers,
+          requestId,
+        );
+      }
+      case "aggregateByOffering": {
+        return createOKResult<AggregateGradesByOffering>(
+          aggregateByOffering(
             (
               await prisma.gradesSection.findMany({
                 where: constructPrismaQuery(parsedQuery),

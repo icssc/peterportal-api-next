@@ -280,6 +280,84 @@ type GradesOptions = {
 </TabItem>
 </Tabs>
 
+## Get grade statistics aggregated by course for certain sections
+
+Formally, if two sections have the same department code and course number, then they will be aggregated together for the purposes of this endpoint. For queries that involve an entire department, this is equivalent to running an aggregate query for each course number, but much faster.
+
+Note that graduate students who are listed as instructors on WebSoc may also be included.
+
+### Code sample
+
+<Tabs>
+<TabItem value="bash" label="cURL">
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/grades/aggregateByCourse?year=2023&department=COMPSCI"
+```
+
+</TabItem>
+</Tabs>
+
+### Response
+
+<Tabs>
+<TabItem value="json" label="Example response">
+
+```json
+[
+  {
+    "department": "COMPSCI",
+    "courseNumber": "103",
+    "gradeACount": 80,
+    "gradeBCount": 11,
+    "gradeCCount": 10,
+    "gradeDCount": 4,
+    "gradeFCount": 5,
+    "gradePCount": 11,
+    "gradeNPCount": 8,
+    "gradeWCount": 0,
+    "averageGPA": 3.415
+  },
+  {
+    "department": "COMPSCI",
+    "courseNumber": "111",
+    "gradeACount": 112,
+    "gradeBCount": 100,
+    "gradeCCount": 35,
+    "gradeDCount": 13,
+    "gradeFCount": 13,
+    "gradePCount": 13,
+    "gradeNPCount": 2,
+    "gradeWCount": 2,
+    "averageGPA": 3.11625
+  },
+  "..."
+]
+```
+
+</TabItem>
+<TabItem value="ts" label="Payload schema">
+
+```typescript
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
+type AggregateGradesByCourse = {
+  department: string;
+  courseNumber: string;
+  gradeACount: number;
+  gradeBCount: number;
+  gradeCCount: number;
+  gradeDCount: number;
+  gradeFCount: number;
+  gradePCount: number;
+  gradeNPCount: number;
+  gradeWCount: number;
+  averageGPA: number;
+}[];
+```
+
+</TabItem>
+</Tabs>
+
 ## Get grade statistics aggregated by course/instructor for certain sections
 
 Formally, if two sections have the same department code, course number, and instructor name, then they will be aggregated together for the purposes of this endpoint. For queries that involve an entire department, this is equivalent to running an aggregate query for each course number-instructor pair, but much faster.
@@ -292,7 +370,7 @@ Note that graduate students who are listed as instructors on WebSoc may also be 
 <TabItem value="bash" label="cURL">
 
 ```bash
-curl "https://api-next.peterportal.org/v1/rest/grades/aggregateGrouped?year=2023&department=COMPSCI&courseNumber=161"
+curl "https://api-next.peterportal.org/v1/rest/grades/aggregateByOffering?year=2023&department=COMPSCI&courseNumber=161"
 ```
 
 </TabItem>
@@ -369,7 +447,7 @@ curl "https://api-next.peterportal.org/v1/rest/grades/aggregateGrouped?year=2023
 
 ```typescript
 // https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
-type AggregateGroupedGrades = {
+type AggregateGradesByOffering = {
   department: string;
   courseNumber: string;
   instructor: string;

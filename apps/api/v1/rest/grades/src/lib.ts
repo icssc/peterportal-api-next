@@ -1,13 +1,15 @@
 import { GradesSection, Prisma } from "@libs/db";
 import type {
   AggregateGrades,
-  AggregateGroupedGradeHeader,
-  AggregateGroupedGrades,
+  AggregateGradesByOffering,
+  AggregateGradeByOfferingHeader,
   GE,
   GradeDistribution,
   Quarter,
   RawGrade,
   RawGrades,
+  AggregateGradesByCourse,
+  AggregateGradeByCourseHeader,
 } from "peterportal-api-next-types";
 import { geCodes } from "peterportal-api-next-types";
 
@@ -205,13 +207,36 @@ export function aggregateGrades(grades: RawGrades): AggregateGrades {
 }
 
 /**
- * Given an array of sections and their grades distributions, aggregate them into
- * an array of objects, such that if two sections have the same department, course number,
- * and instructor, they would be grouped together and aggregated into the same object by
- * {@link `aggregateGrades`}.
+ * Given an array of sections and their grades distributions, aggregate the sections with the same
+ * department and course number.
  * @param grades The array of grades to aggregate.
  */
-export function aggregateGroupedGrades(grades: RawGrades): AggregateGroupedGrades {
+export function aggregateByCourse(grades: RawGrades): AggregateGradesByCourse {
+  const courses = new Map<string, RawGrades>();
+  for (const grade of grades) {
+    const { department, courseNumber } = grade;
+    const key = JSON.stringify([department, courseNumber]);
+    if (courses.has(key)) {
+      courses.get(key)?.push(grade);
+    } else {
+      courses.set(key, [grade]);
+    }
+  }
+  return Array.from(courses)
+    .map(([k, v]) => ({
+      ...(Object.fromEntries(
+        (JSON.parse(k) as string[]).map((x, i) => [headerKeys[i], x]),
+      ) as AggregateGradeByCourseHeader),
+      ...aggregateGrades(v).gradeDistribution,
+    }))
+    .sort((a, b) => lexOrd(a.department, b.department) || lexOrd(a.courseNumber, b.courseNumber));
+}
+
+/**
+ * Same as the above but also factors into the instructor of the section.
+ * @param grades The array of grades to aggregate.
+ */
+export function aggregateByOffering(grades: RawGrades): AggregateGradesByOffering {
   const courses = new Map<string, RawGrades>();
   for (const grade of grades) {
     for (const instructor of grade.instructors) {
@@ -228,7 +253,7 @@ export function aggregateGroupedGrades(grades: RawGrades): AggregateGroupedGrade
     .map(([k, v]) => ({
       ...(Object.fromEntries(
         (JSON.parse(k) as string[]).map((x, i) => [headerKeys[i], x]),
-      ) as AggregateGroupedGradeHeader),
+      ) as AggregateGradeByOfferingHeader),
       ...aggregateGrades(v).gradeDistribution,
     }))
     .sort(

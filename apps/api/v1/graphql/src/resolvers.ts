@@ -15,7 +15,10 @@ export const resolvers: ApolloServerOptions<BaseContext>["resolvers"] = {
     rawGrades: proxyRestApi("v1/rest/grades/raw", { argsTransform: geTransform }),
     aggregateGrades: proxyRestApi("v1/rest/grades/aggregate", { argsTransform: geTransform }),
     gradesOptions: proxyRestApi("v1/rest/grades/options", { argsTransform: geTransform }),
-    aggregateGroupedGrades: proxyRestApi("v1/rest/grades/aggregateGrouped", {
+    aggregateByCourse: proxyRestApi("v1/rest/grades/aggregateByCourse", {
+      argsTransform: geTransform,
+    }),
+    aggregateByOffering: proxyRestApi("v1/rest/grades/aggregateByOffering", {
       argsTransform: geTransform,
     }),
     instructor: proxyRestApi("v1/rest/instructors", { pathArg: "courseId" }),
