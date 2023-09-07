@@ -38,11 +38,15 @@ export const GET: InternalHandler = async (request) => {
               where: constructPrismaQuery(parsedQuery),
               include: { instructors: true },
             })
-          ).map((section) => ({
-            ...section,
-            geCategories: section.geCategories as GE[],
-            instructors: section.instructors.map((instructor) => instructor.name),
-          }));
+          )
+            .map((section) => ({
+              ...section,
+              geCategories: section.geCategories as GE[],
+              instructors: section.instructors.map((instructor) => instructor.name),
+            }))
+            .filter((section) =>
+              parsedQuery.ge ? section.geCategories.includes(parsedQuery.ge) : section,
+            );
           switch (params.id) {
             case "raw":
               return createOKResult<RawGrades>(res, headers, requestId);
@@ -111,11 +115,15 @@ export const GET: InternalHandler = async (request) => {
                 where: constructPrismaQuery(parsedQuery),
                 include: { instructors: true },
               })
-            ).map((section) => ({
-              ...section,
-              geCategories: section.geCategories as GE[],
-              instructors: section.instructors.map((instructor) => instructor.name),
-            })),
+            )
+              .map((section) => ({
+                ...section,
+                geCategories: section.geCategories as GE[],
+                instructors: section.instructors.map((instructor) => instructor.name),
+              }))
+              .filter((section) =>
+                parsedQuery.ge ? section.geCategories.includes(parsedQuery.ge) : section,
+              ),
           ),
           headers,
           requestId,
