@@ -140,6 +140,7 @@ extend type Query {
     courseNumber: String
     sectionCode: String
     division: Division
+    ge: GE
     excludePNP: Boolean
   ): AggregateGrades!
   "Get the available options for the given constraints."
@@ -151,6 +152,7 @@ extend type Query {
     courseNumber: String
     sectionCode: String
     division: Division
+    ge: GE
     excludePNP: Boolean
   ): GradesOptions!
   "Get the aggregate grade info, grouped by course and instructor, for the given parameters."
@@ -162,6 +164,7 @@ extend type Query {
     courseNumber: String
     sectionCode: String
     division: Division
+    ge: GE
     excludePNP: Boolean
   ): [AggregateGroupedGrade!]!
 }
