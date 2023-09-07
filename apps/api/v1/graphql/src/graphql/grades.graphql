@@ -12,6 +12,8 @@ type GradesSection {
   courseNumber: String!
   "The numeric part of the course number."
   courseNumeric: Int!
+  "What GE categor(y/ies) this section satisfies (if any)."
+  geCategories: [GE!]!
   "The shortened name(s) of the instructor(s) who taught the section."
   instructors: [String!]!
 }
@@ -50,6 +52,8 @@ type RawGrade {
   courseNumber: String!
   "The numeric part of the course number."
   courseNumeric: Int!
+  "What GE categor(y/ies) this section satisfies (if any)."
+  geCategories: [GE!]!
   "How many students attained an A+/A/A-."
   gradeACount: Int!
   "How many students attained a B+/B/B-."

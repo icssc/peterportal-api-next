@@ -1,15 +1,16 @@
 import { PrismaClient } from "@libs/db";
 import { createErrorResult, createOKResult, logger } from "ant-stack";
 import type { InternalHandler } from "ant-stack";
-import type {
-  AggregateGroupedGrades,
-  GE,
-  GradesOptions,
-  RawGrades,
-} from "peterportal-api-next-types";
+import type { AggregateGroupedGrades, GradesOptions, RawGrades } from "peterportal-api-next-types";
 import { ZodError } from "zod";
 
-import { aggregateGrades, aggregateGroupedGrades, constructPrismaQuery, lexOrd } from "./lib";
+import {
+  aggregateGrades,
+  aggregateGroupedGrades,
+  constructPrismaQuery,
+  lexOrd,
+  transformRow,
+} from "./lib";
 import { QuerySchema } from "./schema";
 
 let prisma: PrismaClient;
@@ -38,15 +39,7 @@ export const GET: InternalHandler = async (request) => {
               where: constructPrismaQuery(parsedQuery),
               include: { instructors: true },
             })
-          )
-            .map((section) => ({
-              ...section,
-              geCategories: section.geCategories as GE[],
-              instructors: section.instructors.map((instructor) => instructor.name),
-            }))
-            .filter((section) =>
-              parsedQuery.ge ? section.geCategories.includes(parsedQuery.ge) : section,
-            );
+          ).map(transformRow);
           switch (params.id) {
             case "raw":
               return createOKResult<RawGrades>(res, headers, requestId);
@@ -115,15 +108,7 @@ export const GET: InternalHandler = async (request) => {
                 where: constructPrismaQuery(parsedQuery),
                 include: { instructors: true },
               })
-            )
-              .map((section) => ({
-                ...section,
-                geCategories: section.geCategories as GE[],
-                instructors: section.instructors.map((instructor) => instructor.name),
-              }))
-              .filter((section) =>
-                parsedQuery.ge ? section.geCategories.includes(parsedQuery.ge) : section,
-              ),
+            ).map(transformRow),
           ),
           headers,
           requestId,

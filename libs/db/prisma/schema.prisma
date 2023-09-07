@@ -133,7 +133,17 @@ model GradesSection {
   department    String
   courseNumber  String
   courseNumeric Int
-  geCategories  Json?
+  hasGEData     Boolean            @default(false)
+  isGE1A        Boolean?
+  isGE1B        Boolean?
+  isGE2         Boolean?
+  isGE3         Boolean?
+  isGE4         Boolean?
+  isGE5A        Boolean?
+  isGE5B        Boolean?
+  isGE6         Boolean?
+  isGE7         Boolean?
+  isGE8         Boolean?
   instructors   GradesInstructor[]
   gradeACount   Int
   gradeBCount   Int

@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from "@libs/db";
+import { PrismaClient } from "@libs/db";
 import { callWebSocAPI, GE, geCodes, Quarter } from "@libs/websoc-api-next";
 
 const prisma = new PrismaClient({
@@ -16,6 +16,19 @@ prisma.$on("query", (e) => {
   console.log("Duration: " + e.duration + "ms");
 });
 
+const geKeys = [
+  "isGE1A",
+  "isGE1B",
+  "isGE2",
+  "isGE3",
+  "isGE4",
+  "isGE5A",
+  "isGE5B",
+  "isGE6",
+  "isGE7",
+  "isGE8",
+] as const;
+
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const log = (msg: string) => console.log(`[${new Date().toUTCString()}] ${msg}`);
@@ -30,19 +43,29 @@ function categorySetToMask(geCategories: Set<GE>) {
   return ret;
 }
 
-function maskToCategorySet(mask: number) {
-  const ret = new Set<GE>();
-  for (const [idx, ge] of Object.entries(geCodes)) {
-    if (mask & (2 ** Number.parseInt(idx, 10))) {
-      ret.add(ge);
-    }
+function maskToCategoryMap(mask: number) {
+  const ret: Record<(typeof geKeys)[number], boolean> = {
+    isGE1A: false,
+    isGE1B: false,
+    isGE2: false,
+    isGE3: false,
+    isGE4: false,
+    isGE5A: false,
+    isGE5B: false,
+    isGE6: false,
+    isGE7: false,
+    isGE8: false,
+  };
+  for (const i of Object.keys(geCodes)) {
+    const idx = Number.parseInt(i, 10);
+    ret[geKeys[idx]] = !!(mask & (2 ** idx));
   }
   return ret;
 }
 
 async function main() {
   const sections = await prisma.gradesSection.findMany({
-    where: { geCategories: { equals: Prisma.AnyNull } },
+    where: { hasGEData: false },
     select: { year: true, quarter: true, sectionCode: true },
   });
   log(`Found ${sections.length} sections without GE data`);
@@ -93,7 +116,7 @@ async function main() {
       txn.push(
         prisma.gradesSection.updateMany({
           where: { year, quarter, sectionCode: { in: sectionCodes } },
-          data: { geCategories: Array.from(maskToCategorySet(mask)).sort() },
+          data: { hasGEData: true, ...maskToCategoryMap(mask) },
         }),
       );
     }
