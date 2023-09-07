@@ -98,7 +98,7 @@ curl "https://api-next.peterportal.org/v1/rest/grades/raw?year=2022&quarter=Fall
 
 ```typescript
 // https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
-type GradesRaw = {
+type RawGrades = {
   year: string;
   quarter: string;
   sectionCode: string;
@@ -184,7 +184,7 @@ curl "https://api-next.peterportal.org/v1/rest/grades/aggregate?year=2022&quarte
 
 ```typescript
 // https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
-type GradesAggregate = {
+type AggregateGrades = {
   sectionList: {
     year: string;
     quarter: string;
