@@ -83,6 +83,9 @@ importers:
       '@libs/db':
         specifier: workspace:^
         version: link:../../libs/db
+      '@libs/lambda':
+        specifier: workspace:^
+        version: link:../../libs/lambda
       '@libs/registrar-api':
         specifier: workspace:^
         version: link:../../libs/registrar-api
