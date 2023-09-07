@@ -29,6 +29,7 @@
     "@libs/utils": "workspace:^",
     "@libs/websoc-api-next": "workspace:^",
     "@peterportal-api/types": "workspace:^",
+    "@services/websoc-proxy": "workspace:^",
     "aws-cdk-lib": "^2.93.0",
     "cheerio": "1.0.0-rc.12",
     "cross-fetch": "^4.0.0",

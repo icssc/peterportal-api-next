@@ -98,6 +98,9 @@ importers:
       '@peterportal-api/types':
         specifier: workspace:^
         version: link:../../packages/types
+      '@services/websoc-proxy':
+        specifier: workspace:^
+        version: link:../../services/websoc-proxy
       aws-cdk-lib:
         specifier: ^2.93.0
         version: 2.93.0(constructs@10.2.69)

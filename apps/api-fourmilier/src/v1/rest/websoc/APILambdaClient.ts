@@ -32,7 +32,7 @@ export class APILambdaClient {
   static async new(configuration: LambdaClientConfig = {}) {
     const client = new APILambdaClient(configuration);
 
-    await client.awaitInitialization();
+    await client.$connect();
 
     return client;
   }
