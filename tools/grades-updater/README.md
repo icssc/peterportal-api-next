@@ -4,7 +4,7 @@ This directory contains the code for updating the grades cache for PeterPortal A
 
 ## Sanitizing the Data
 
-1. Make sure all dependencies are up-to-date by running `npm i` in the project root.
+1. Make sure all dependencies are up-to-date by running `pnpm i` in the project root.
 2. Create the `inputData` and `outputData` directories if they do not already exist.
 3. Using a spreadsheet editor, edit the grades spreadsheet you obtained from the [UCI Public Records Office](https://pro.uci.edu/) so that it matches the following format, and then save it as a CSV in `inputData`.
 
@@ -23,3 +23,7 @@ This directory contains the code for updating the grades cache for PeterPortal A
 2. Add the `.env.grades` file to the project root. Note that this is only available to members of the ICSSC Projects Committee, since it grants write access to the production database.
 3. Run `pnpm upload` in this directory.
 4. The logs should be present under `/logs`.
+
+## Populating GE data
+
+During the sanitization process, the data that encodes what GE categor(y/ies) is not fetched. This can be remedied by running `pnpm populate` after uploading the data.
