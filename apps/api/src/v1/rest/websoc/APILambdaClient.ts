@@ -25,7 +25,7 @@ export class APILambdaClient {
     context: Context,
   ) => Promise<APIGatewayProxyResult>;
 
-  constructor(configuration: LambdaClientConfig = {}) {
+  private constructor(configuration: LambdaClientConfig = {}) {
     this.client = new LambdaClient(configuration);
   }
 
