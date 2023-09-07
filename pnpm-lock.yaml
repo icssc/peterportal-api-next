@@ -473,6 +473,12 @@ importers:
 
   packages/peterportal-api-next-types: {}
 
+  packages/types:
+    dependencies:
+      peterportal-api-next-types:
+        specifier: workspace:1.0.0-rc.3
+        version: link:../peterportal-api-next-types
+
   packages/websoc-fuzzy-search:
     dependencies:
       base64-arraybuffer:
