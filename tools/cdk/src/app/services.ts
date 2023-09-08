@@ -1,19 +1,23 @@
 import "dotenv/config";
 
 import { App } from "aws-cdk-lib";
-import type { StackProps } from "aws-cdk-lib";
 
 import { ServicesStack } from "../stacks/services";
+import { waitForStackIdle } from "../wait-for-stack-idle";
 
 async function main() {
+  const stackName = "peterportal-api-next-services-prod";
+
+  await waitForStackIdle(stackName);
+
   const app = new App({ autoSynth: true });
 
-  const props: StackProps = {
-    env: { region: "us-east-1" },
+  new ServicesStack(app, stackName, {
+    env: {
+      region: "us-east-1",
+    },
     terminationProtection: true,
-  };
-
-  new ServicesStack(app, "peterportal-api-next-services-prod", props);
+  });
 }
 
 main();

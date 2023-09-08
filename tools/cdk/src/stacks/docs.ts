@@ -17,31 +17,12 @@ import { Bucket } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
 import { Construct } from "constructs";
 
-function getStage() {
-  switch (process.env.NODE_ENV) {
-    case "production": {
-      return "prod";
-    }
-
-    case "staging": {
-      if (!process.env.PR_NUM) {
-        throw new Error("Running in staging environment but no PR number specified. Stop.");
-      }
-      return `staging-${process.env.PR_NUM}`;
-    }
-
-    case "development": {
-      throw new Error("Cannot deploy stack in development environment. Stop.");
-    }
-
-    default: {
-      throw new Error("Invalid environment specified. Stop.");
-    }
-  }
+export interface DocsStackProps extends StackProps {
+  stage?: string;
 }
 
 export class DocsStack extends Stack {
-  constructor(scope: Construct, id: string) {
+  constructor(scope: Construct, id: string, props: DocsStackProps = {}) {
     if (!process.env.CERTIFICATE_ARN) {
       throw new Error("Certificate ARN not provided. Stop.");
     }
@@ -50,21 +31,14 @@ export class DocsStack extends Stack {
       throw new Error("Hosted Zone ID not provided. Stop.");
     }
 
-    const stage = getStage();
-
-    const props: StackProps = {
-      env: { region: "us-east-1" },
-      terminationProtection: /*stage === "prod"*/ false,
-    };
-
-    super(scope, `${id}-${stage}`, props);
+    super(scope, id, props);
 
     const certificateArn = process.env.CERTIFICATE_ARN;
     const hostedZoneId = process.env.HOSTED_ZONE_ID;
-    const recordName = `${stage === "prod" ? "" : `${stage}-`}docs.api-next`;
+    const recordName = `${props.stage === "prod" ? "" : `${props.stage}-`}docs.api-next`;
     const zoneName = "peterportal.org";
 
-    const destinationBucket = new Bucket(this, `peterportal-api-next-docs-bucket-${stage}`, {
+    const destinationBucket = new Bucket(this, `peterportal-api-next-docs-bucket-${props.stage}`, {
       bucketName: `${recordName}.${zoneName}`,
       removalPolicy: RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
@@ -102,7 +76,7 @@ export class DocsStack extends Stack {
       ],
     });
 
-    new ARecord(this, `peterportal-api-next-docs-a-record-${stage}`, {
+    new ARecord(this, `peterportal-api-next-docs-a-record-${props.stage}`, {
       zone: HostedZone.fromHostedZoneAttributes(this, "peterportal-hosted-zone", {
         zoneName,
         hostedZoneId,

@@ -16,7 +16,8 @@
   "license": "MIT",
   "type": "module",
   "dependencies": {
-    "@peterportal-api/api": "workspace:^",
+    "@aws-sdk/client-cloudformation": "^3.408.0",
+    "@smithy/util-waiter": "^2.0.6",
     "aws-cdk-lib": "2.93.0",
     "constructs": "10.2.69"
   },
