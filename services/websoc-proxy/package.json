@@ -11,8 +11,8 @@
   },
   "dependencies": {
     "@libs/lambda": "workspace:^",
-    "@libs/websoc-utils": "workspace:^",
-    "@uc-irvine/api": "workspace:^"
+    "@libs/uc-irvine-api": "workspace:^",
+    "@libs/websoc-utils": "workspace:^"
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",

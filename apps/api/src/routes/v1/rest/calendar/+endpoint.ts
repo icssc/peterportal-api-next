@@ -1,7 +1,7 @@
 import { PrismaClient } from "@libs/db";
 import { createOKResult, createErrorResult } from "@libs/lambda";
+import { getTermDateData } from "@libs/uc-irvine-api/registrar";
 import type { Quarter, QuarterDates } from "@peterportal-api/types";
-import { getTermDateData } from "@uc-irvine/api/registrar";
 import type { APIGatewayProxyHandler } from "aws-lambda";
 import { ZodError } from "zod";
 

@@ -10,7 +10,7 @@
   "dependencies": {
     "@libs/db": "workspace:^",
     "@libs/lambda": "workspace:^",
-    "@uc-irvine/api": "workspace:^",
+    "@libs/uc-irvine-api": "workspace:^",
     "csv-parse": "5.5.0",
     "csv-stringify": "6.4.2",
     "winston": "3.10.0",

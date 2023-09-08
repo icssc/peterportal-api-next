@@ -1,5 +1,5 @@
 {
-  "name": "@uc-irvine/api",
+  "name": "@libs/uc-irvine-api",
   "version": "0.10.8",
   "private": true,
   "description": "SDK for various UC Irvine services",
@@ -11,7 +11,7 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/icssc/peterportal-api-next",
-    "directory": "packages/uci-api"
+    "directory": "libs/uc-irvine-api"
   },
   "license": "MIT",
   "type": "module",

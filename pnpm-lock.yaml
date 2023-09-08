@@ -92,6 +92,9 @@ importers:
       '@libs/lambda':
         specifier: workspace:^
         version: link:../../libs/lambda
+      '@libs/uc-irvine-api':
+        specifier: workspace:^
+        version: link:../../libs/uc-irvine-api
       '@libs/websoc-utils':
         specifier: workspace:^
         version: link:../../libs/websoc-utils
@@ -101,9 +104,6 @@ importers:
       '@services/websoc-proxy':
         specifier: workspace:^
         version: link:../../services/websoc-proxy
-      '@uc-irvine/api':
-        specifier: workspace:^
-        version: link:../../packages/uci-api
       aws-cdk-lib:
         specifier: 2.93.0
         version: 2.93.0(constructs@10.2.69)
@@ -217,31 +217,31 @@ importers:
         specifier: 8.10.119
         version: 8.10.119
 
-  libs/websoc-utils:
-    dependencies:
-      '@peterportal-api/types':
-        specifier: workspace:^
-        version: link:../../packages/types
-      '@uc-irvine/api':
-        specifier: workspace:^
-        version: link:../../packages/uci-api
-
-  packages/types: {}
-
-  packages/uci-api:
+  libs/uc-irvine-api:
     dependencies:
       '@ap0nia/camaro':
         specifier: 6.2.5
         version: 6.2.5
       '@peterportal-api/types':
         specifier: workspace:^
-        version: link:../types
+        version: link:../../packages/types
       cheerio:
         specifier: 1.0.0-rc.12
         version: 1.0.0-rc.12
       cross-fetch:
         specifier: 4.0.0
         version: 4.0.0
+
+  libs/websoc-utils:
+    dependencies:
+      '@libs/uc-irvine-api':
+        specifier: workspace:^
+        version: link:../uc-irvine-api
+      '@peterportal-api/types':
+        specifier: workspace:^
+        version: link:../../packages/types
+
+  packages/types: {}
 
   packages/websoc-fuzzy-search:
     dependencies:
@@ -276,12 +276,12 @@ importers:
       '@libs/lambda':
         specifier: workspace:^
         version: link:../../libs/lambda
+      '@libs/uc-irvine-api':
+        specifier: workspace:^
+        version: link:../../libs/uc-irvine-api
       '@libs/websoc-utils':
         specifier: workspace:^
         version: link:../../libs/websoc-utils
-      '@uc-irvine/api':
-        specifier: workspace:^
-        version: link:../../packages/uci-api
     devDependencies:
       '@peterportal-api/types':
         specifier: workspace:^
@@ -301,12 +301,12 @@ importers:
       '@libs/db':
         specifier: workspace:^
         version: link:../../libs/db
+      '@libs/uc-irvine-api':
+        specifier: workspace:^
+        version: link:../../libs/uc-irvine-api
       '@peterportal-api/types':
         specifier: workspace:^
         version: link:../../packages/types
-      '@uc-irvine/api':
-        specifier: workspace:^
-        version: link:../../packages/uci-api
       winston:
         specifier: 3.10.0
         version: 3.10.0
@@ -345,9 +345,9 @@ importers:
       '@libs/lambda':
         specifier: workspace:^
         version: link:../../libs/lambda
-      '@uc-irvine/api':
+      '@libs/uc-irvine-api':
         specifier: workspace:^
-        version: link:../../packages/uci-api
+        version: link:../../libs/uc-irvine-api
       csv-parse:
         specifier: 5.5.0
         version: 5.5.0
@@ -2938,7 +2938,7 @@ packages:
       lodash.merge: 4.6.2
       lodash.uniq: 4.5.0
       resolve-from: 5.0.0
-      ts-node: 10.9.1(@types/node@18.17.12)(typescript@5.2.2)
+      ts-node: 10.9.1(@types/node@20.4.7)(typescript@5.2.2)
       typescript: 5.2.2
     transitivePeerDependencies:
       - '@swc/core'
@@ -6990,7 +6990,7 @@ packages:
     dependencies:
       '@types/node': 20.4.7
       cosmiconfig: 8.1.3
-      ts-node: 10.9.1(@types/node@18.17.12)(typescript@5.2.2)
+      ts-node: 10.9.1(@types/node@20.4.7)(typescript@5.2.2)
       typescript: 5.2.2
     dev: true
 
@@ -12724,6 +12724,38 @@ packages:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 18.17.12
+      acorn: 8.10.0
+      acorn-walk: 8.2.0
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.2.2
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+    dev: true
+
+  /ts-node@10.9.1(@types/node@20.4.7)(typescript@5.2.2):
+    resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
+    requiresBuild: true
+    peerDependencies:
+      '@swc/core': '>=1.2.50'
+      '@swc/wasm': '>=1.2.50'
+      '@types/node': '*'
+      typescript: '>=2.7'
+    peerDependenciesMeta:
+      '@swc/core':
+        optional: true
+      '@swc/wasm':
+        optional: true
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.9
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 20.4.7
       acorn: 8.10.0
       acorn-walk: 8.2.0
       arg: 4.1.3

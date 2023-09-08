@@ -19,21 +19,12 @@
     "noFallthroughCasesInSwitch": true,
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "*.ts",
-    "api/**/*",
-    "apps/**/*",
-    "libs/**/*",
-    "packages/**/*",
-    "services/**/*",
-    "tools/**/*"
-  ],
+  "include": ["*.ts", "apps/**/*", "libs/**/*", "packages/**/*", "services/**/*", "tools/**/*"],
   "exclude": [
     "**/build/**/*",
     "**/cdk.out/**/*",
     "**/dist/**/*",
     "**/node_modules/**/*",
-    "**/*.template.ts",
     "apps/docs/**/*"
   ]
 }
