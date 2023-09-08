@@ -326,8 +326,11 @@ importers:
 
   packages/uci-api:
     dependencies:
+      '@ap0nia/camaro':
+        specifier: 6.2.5
+        version: 6.2.5
       '@peterportal-api/types':
-        specifier: workspace:1.0.0-rc.3
+        specifier: workspace:^
         version: link:../types
       cheerio:
         specifier: 1.0.0-rc.12

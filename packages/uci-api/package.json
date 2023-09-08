@@ -43,7 +43,8 @@
     "test": "vitest"
   },
   "dependencies": {
-    "@peterportal-api/types": "workspace:1.0.0-rc.3",
+    "@ap0nia/camaro": "6.2.5",
+    "@peterportal-api/types": "workspace:^",
     "cheerio": "1.0.0-rc.12",
     "cross-fetch": "4.0.0"
   },
