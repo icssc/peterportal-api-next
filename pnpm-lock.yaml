@@ -34,7 +34,7 @@ importers:
         version: 1.0.16-alpha
       aws-cdk-lib:
         specifier: 2.93.0
-        version: 2.93.0(constructs@10.2.70)
+        version: 2.93.0(constructs@10.2.69)
       cz-conventional-changelog:
         specifier: 3.3.0
         version: 3.3.0
@@ -106,7 +106,7 @@ importers:
         version: link:../../packages/uci-api
       aws-cdk-lib:
         specifier: 2.93.0
-        version: 2.93.0(constructs@10.2.70)
+        version: 2.93.0(constructs@10.2.69)
       cheerio:
         specifier: 1.0.0-rc.12
         version: 1.0.0-rc.12
@@ -317,12 +317,15 @@ importers:
 
   tools/cdk:
     dependencies:
+      '@peterportal-api/api':
+        specifier: workspace:^
+        version: link:../../apps/api
       aws-cdk-lib:
         specifier: 2.93.0
-        version: 2.93.0(constructs@10.2.70)
+        version: 2.93.0(constructs@10.2.69)
       constructs:
-        specifier: ^10.2.70
-        version: 10.2.70
+        specifier: 10.2.69
+        version: 10.2.69
     devDependencies:
       tsx:
         specifier: 3.12.7
@@ -5740,39 +5743,6 @@ packages:
       semver: 7.5.4
       table: 6.8.1
       yaml: 1.10.2
-    dev: true
-    bundledDependencies:
-      - '@balena/dockerignore'
-      - case
-      - fs-extra
-      - ignore
-      - jsonschema
-      - minimatch
-      - punycode
-      - semver
-      - table
-      - yaml
-
-  /aws-cdk-lib@2.93.0(constructs@10.2.70):
-    resolution: {integrity: sha512-kKbcKkts272Ju5xjGKI3pXTOpiJxW4OQbDF8Vmw/NIkkuJLo8GlRCFfeOfoN/hilvlYQgENA67GCgSWccbvu7w==}
-    engines: {node: '>= 14.15.0'}
-    peerDependencies:
-      constructs: ^10.0.0
-    dependencies:
-      '@aws-cdk/asset-awscli-v1': 2.2.200
-      '@aws-cdk/asset-kubectl-v20': 2.1.2
-      '@aws-cdk/asset-node-proxy-agent-v6': 2.0.1
-      '@balena/dockerignore': 1.0.2
-      case: 1.6.3
-      constructs: 10.2.70
-      fs-extra: 11.1.1
-      ignore: 5.2.4
-      jsonschema: 1.4.1
-      minimatch: 3.1.2
-      punycode: 2.3.0
-      semver: 7.5.4
-      table: 6.8.1
-      yaml: 1.10.2
     bundledDependencies:
       - '@balena/dockerignore'
       - case
@@ -6511,11 +6481,6 @@ packages:
 
   /constructs@10.2.69:
     resolution: {integrity: sha512-0AiM/uQe5Uk6JVe/62oolmSN2MjbFQkOlYrM3fFGZLKuT+g7xlAI10EebFhyCcZwI2JAcWuWCmmCAyCothxjuw==}
-    engines: {node: '>= 16.14.0'}
-    dev: true
-
-  /constructs@10.2.70:
-    resolution: {integrity: sha512-z6zr1E8K/9tzJbCQzY0UGX0/oVKPFKu9C/mzEnghCG6TAJINnvlq0CMKm63XqqeMleadZYm5T3sZGJKcxJS/Pg==}
     engines: {node: '>= 16.14.0'}
 
   /content-disposition@0.5.2:

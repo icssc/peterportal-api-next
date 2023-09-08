@@ -143,7 +143,3 @@ export async function main() {
 
   return app;
 }
-
-if (isCdk()) {
-  main();
-}

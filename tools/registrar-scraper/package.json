@@ -1,5 +1,5 @@
 {
-  "name": "@services/registrar-scraper",
+  "name": "@tools/registrar-scraper",
   "version": "0.0.0",
   "private": true,
   "license": "MIT",

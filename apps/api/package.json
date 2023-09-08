@@ -1,5 +1,5 @@
 {
-  "name": "@peterportal-api/api",
+  "name": "@apps/api",
   "version": "0.0.0",
   "private": true,
   "description": "core lambda api for peterportal api",
