@@ -1,4 +1,3 @@
-import { flattenDayStringsAndSplit, flattenStringsAndSplit } from "@libs/utils";
 import {
   anyArray,
   cancelledCoursesOptions,
@@ -9,6 +8,8 @@ import {
   sectionTypes,
 } from "@peterportal-api/types";
 import { z } from "zod";
+
+import { flattenDayStringsAndSplit, flattenStringsAndSplit } from "../../../../lib/utils";
 
 /**
  * Parse an unknown query to the websoc endpoint.

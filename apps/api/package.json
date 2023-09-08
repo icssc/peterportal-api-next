@@ -24,7 +24,6 @@
     "@aws-sdk/client-lambda": "3.398.0",
     "@libs/db": "workspace:^",
     "@libs/lambda": "workspace:^",
-    "@libs/utils": "workspace:^",
     "@libs/websoc-utils": "workspace:^",
     "@peterportal-api/types": "workspace:^",
     "@services/websoc-proxy": "workspace:^",

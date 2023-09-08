@@ -1,6 +1,7 @@
-import { flattenStringsAndSplit } from "@libs/utils";
 import { anyArray, divisionCodes, geCodes } from "@peterportal-api/types";
 import { z } from "zod";
+
+import { flattenStringsAndSplit } from "../../../../lib/utils";
 
 export const QuerySchema = z.object({
   department: z.string().optional(),

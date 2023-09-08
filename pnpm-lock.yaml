@@ -89,9 +89,6 @@ importers:
       '@libs/lambda':
         specifier: workspace:^
         version: link:../../libs/lambda
-      '@libs/utils':
-        specifier: workspace:^
-        version: link:../../libs/utils
       '@libs/websoc-utils':
         specifier: workspace:^
         version: link:../../libs/websoc-utils
@@ -250,12 +247,6 @@ importers:
       '@types/aws-lambda':
         specifier: 8.10.119
         version: 8.10.119
-
-  libs/utils:
-    devDependencies:
-      '@peterportal-api/types':
-        specifier: workspace:^
-        version: link:../../packages/types
 
   libs/websoc-utils:
     dependencies:

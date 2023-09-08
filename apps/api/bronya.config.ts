@@ -37,6 +37,7 @@ class MyStack extends Stack {
     super(scope, id);
 
     this.api = new Api(this, `${id}-api`, {
+      directory: "src/routes",
       plugins: createApiCliPlugins({
         dev: {
           hooks: {

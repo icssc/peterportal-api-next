@@ -1,5 +1,6 @@
-import { flattenStringsAndSplit } from "@libs/utils";
 import { z } from "zod";
+
+import { flattenStringsAndSplit } from "../../../../lib/utils";
 
 export const QuerySchema = z.object({
   nameContains: z.string().optional(),
