@@ -1,7 +1,7 @@
+import { createErrorResult, createOKResult, logger } from "@libs/lambda";
 import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
 import type { WebsocAPIResponse, WebsocAPIOptions } from "@libs/websoc-api-next";
 import { combineAndNormalizeResponses, fulfilled, sleep, sortResponse } from "@libs/websoc-utils";
-import { createErrorResult, createOKResult, logger } from "ant-stack";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 
 export const handler = async (

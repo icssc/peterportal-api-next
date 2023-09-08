@@ -15,7 +15,7 @@ import type {
   WebsocSchool as NormalizedSchool,
   WebsocSection as NormalizedSection,
   WebsocSectionMeeting as NormalizedMeeting,
-} from "peterportal-api-next-types";
+} from "@peterportal-api/types";
 
 export type EnhancedSection = {
   school: WebsocSchool;

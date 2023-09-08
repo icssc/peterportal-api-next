@@ -10,6 +10,7 @@
     "build": "node build.mjs"
   },
   "dependencies": {
+    "@libs/lambda": "workspace:^",
     "@libs/websoc-api-next": "workspace:^",
     "@libs/websoc-utils": "workspace:^"
   },

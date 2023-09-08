@@ -403,6 +403,9 @@ importers:
 
   services/websoc-proxy:
     dependencies:
+      '@libs/lambda':
+        specifier: workspace:^
+        version: link:../../libs/lambda
       '@libs/websoc-api-next':
         specifier: workspace:^
         version: link:../../libs/websoc-api-next
@@ -450,6 +453,9 @@ importers:
       '@libs/db':
         specifier: workspace:^
         version: link:../../libs/db
+      '@libs/lambda':
+        specifier: workspace:^
+        version: link:../../libs/lambda
       csv-parse:
         specifier: 5.5.0
         version: 5.5.0
