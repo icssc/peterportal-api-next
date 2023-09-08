@@ -1,0 +1,129 @@
+"A section which has grades data associated with it."
+type GradesSection {
+  "The year the section was offered."
+  year: String!
+  "The quarter the section was offered."
+  quarter: Quarter!
+  "The section code of the section."
+  sectionCode: String!
+  "The department code."
+  department: String!
+  "The course number the section belongs to."
+  courseNumber: String!
+  "The numeric part of the course number."
+  courseNumeric: Int!
+  "The shortened name(s) of the instructor(s) who taught the section."
+  instructors: [String!]!
+}
+"The distribution of grades within a section or among all queried sections."
+type GradeDistribution {
+  "How many students attained an A+/A/A-."
+  gradeACount: Int!
+  "How many students attained a B+/B/B-."
+  gradeBCount: Int!
+  "How many students attained a C+/C/C-."
+  gradeCCount: Int!
+  "How many students attained a D+/D/D-."
+  gradeDCount: Int!
+  "How many students attained an F."
+  gradeFCount: Int!
+  "How many students attained a P."
+  gradePCount: Int!
+  "How many students attained an NP."
+  gradeNPCount: Int!
+  "How many students attained a W."
+  gradeWCount: Int!
+  "The average GPA of all assigned grades in the object."
+  averageGPA: Float!
+}
+"An object that represents raw grades statistics for a section."
+type RawGrade {
+  "The year the section was offered."
+  year: String!
+  "The quarter the section was offered."
+  quarter: Quarter!
+  "The section code of the section."
+  sectionCode: String!
+  "The department code."
+  department: String!
+  "The course number the section belongs to."
+  courseNumber: String!
+  "The numeric part of the course number."
+  courseNumeric: Int!
+  "How many students attained an A+/A/A-."
+  gradeACount: Int!
+  "How many students attained a B+/B/B-."
+  gradeBCount: Int!
+  "How many students attained a C+/C/C-."
+  gradeCCount: Int!
+  "How many students attained a D+/D/D-."
+  gradeDCount: Int!
+  "How many students attained an F."
+  gradeFCount: Int!
+  "How many students attained a P."
+  gradePCount: Int!
+  "How many students attained an NP."
+  gradeNPCount: Int!
+  "How many students attained a W."
+  gradeWCount: Int!
+  "The average GPA of all assigned grades in the section."
+  averageGPA: Float!
+  "The shortened name(s) of the instructor(s) who taught the section."
+  instructors: [String!]!
+}
+"An object that represents aggregate grades statistics for a given query."
+type AggregateGrades {
+  "The list of sections in the query."
+  sectionList: [GradesSection!]!
+  "The combined grades distribution of all sections in the query."
+  gradeDistribution: GradeDistribution
+}
+"The lists of options that matched the given filters."
+type GradesOptions {
+  "The list of years that matched the given filters."
+  years: [String!]!
+  "The list of departments that matched the given filters."
+  departments: [String!]!
+  "The list of course numbers that matched the given filters."
+  courseNumbers: [String!]!
+  "The list of section codes that matched the given filters."
+  sectionCodes: [String!]!
+  "The list of instructors that matched the given filters."
+  instructors: [String!]!
+}
+
+extend type Query {
+  "Get the raw grade info for the given parameters."
+  rawGrades(
+    year: String
+    quarter: Quarter
+    instructor: String
+    department: String
+    courseNumber: String
+    sectionCode: String
+    division: Division
+    excludePNP: Boolean
+  ): [RawGrade!]!
+  "Get the aggregate grade info for the given parameters."
+  aggregateGrades(
+    year: String
+    quarter: Quarter
+    instructor: String
+    department: String
+    courseNumber: String
+    sectionCode: String
+    division: Division
+    excludePNP: Boolean
+  ): AggregateGrades!
+  "Get the available options for the given constraints."
+  gradesOptions(
+    year: String
+    quarter: Quarter
+    instructor: String
+    department: String
+    courseNumber: String
+    sectionCode: String
+    division: Division
+    excludePNP: Boolean
+  ): GradesOptions!
+}

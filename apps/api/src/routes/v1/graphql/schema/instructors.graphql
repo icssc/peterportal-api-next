@@ -1,0 +1,49 @@
+"An object representing an instructor."
+type Instructor {
+  "The instructor's UCINetID."
+  ucinetid: String!
+  "The full name of the instructor."
+  name: String!
+  "The shortened name (or WebSoc name; e.g. ``SHINDLER, M.``) of the instructor."
+  shortenedName: String!
+  "The instructor's title."
+  title: String!
+  "The instructor's email address."
+  email: String!
+  "The department to which the instructor belongs."
+  department: String!
+  "The school(s) associated with the instructor."
+  schools: [String!]!
+  "The department(s) related to the instructor."
+  relatedDepartments: [String!]!
+  """
+  Course(s) this instructor has taught in the past.
+  Keys are properly spaced course numbers; values are the term(s) in which
+  the instructor taught the corresponding course.
+  """
+  courseHistory: JSON!
+}
+
+extend type Query {
+  "Get the instructor with the corresponding UCInetID."
+  instructor(ucinetid: String!): Instructor!
+  "Get instructors that match the given constraints."
+  instructors(
+    "A substring of the instructors' full names."
+    nameContains: String
+    "The shortened/WebSoc name of the instructor (e.g., `SHINDLER, M.`)."
+    shortenedName: String
+    "A substring of the instructors' title."
+    titleContains: String
+    "A substring of the instructors' department."
+    departmentContains: String
+    "A comma-separated list of all schools that the instructors may be affiliated with."
+    schoolsContains: String
+    "A comma-separated list of all departments that the instructors may be affiliated with."
+    relatedDepartmentsContains: String
+    "A comma-separated list of all terms in which the instructors may have taught."
+    taughtInTerms: String
+  ): [Instructor!]!
+  "Get all instructors."
+  allInstructors: [Instructor!]!
+}
