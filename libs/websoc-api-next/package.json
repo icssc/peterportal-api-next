@@ -15,7 +15,7 @@
     "@ap0nia/camaro": "6.2.5",
     "cheerio": "1.0.0-rc.12",
     "cross-fetch": "4.0.0",
-    "peterportal-api-next-types": "*"
+    "peterportal-api-next-types": "workspace:^"
   },
   "devDependencies": {
     "@vitest/coverage-istanbul": "0.34.3",

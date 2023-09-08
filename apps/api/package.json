@@ -21,7 +21,7 @@
     "dev": "bunny dev-api"
   },
   "dependencies": {
-    "@aws-sdk/client-lambda": "^3.398.0",
+    "@aws-sdk/client-lambda": "3.398.0",
     "@libs/db": "workspace:^",
     "@libs/lambda": "workspace:^",
     "@libs/registrar-api": "workspace:^",
@@ -30,23 +30,23 @@
     "@libs/websoc-utils": "workspace:^",
     "@peterportal-api/types": "workspace:^",
     "@services/websoc-proxy": "workspace:^",
-    "aws-cdk-lib": "^2.93.0",
+    "aws-cdk-lib": "2.93.0",
     "cheerio": "1.0.0-rc.12",
-    "cross-fetch": "^4.0.0",
-    "zod": "^3.22.2"
+    "cross-fetch": "4.0.0",
+    "zod": "3.22.2"
   },
   "devDependencies": {
-    "@bronya.js/api-construct": "^0.10.7",
-    "@bronya.js/core": "^0.10.7",
-    "@types/aws-lambda": "^8.10.119",
-    "aws-cdk": "^2.93.0",
-    "dotenv": "^16.3.1",
-    "dotenv-cli": "^7.3.0",
-    "tsx": "^3.12.7"
+    "@bronya.js/api-construct": "0.10.7",
+    "@bronya.js/core": "0.10.7",
+    "@types/aws-lambda": "8.10.119",
+    "aws-cdk": "2.93.0",
+    "dotenv": "16.3.1",
+    "dotenv-cli": "7.3.0",
+    "tsx": "3.12.7"
   },
-  "packageManager": "pnpm@8.6.12",
+  "packageManager": "pnpm@8.7.0",
   "engines": {
-    "node": ">=18",
-    "pnpm": "^8.0.0"
+    "node": "18",
+    "pnpm": "8"
   }
 }
