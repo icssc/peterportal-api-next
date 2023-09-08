@@ -409,7 +409,7 @@ importers:
   packages/types:
     dependencies:
       peterportal-api-next-types:
-        specifier: workspace:1.0.0-rc.3
+        specifier: workspace:^
         version: link:../peterportal-api-next-types
 
   packages/websoc-fuzzy-search:

@@ -20,5 +20,10 @@
     "source-map-support": "0.5.21",
     "tsx": "3.12.7",
     "typescript": "5.2.2"
+  },
+  "packageManager": "pnpm@8.7.4",
+  "engines": {
+    "node": "18",
+    "pnpm": "8"
   }
 }

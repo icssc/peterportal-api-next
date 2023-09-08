@@ -18,11 +18,11 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
-    "peterportal-api-next-types": "workspace:1.0.0-rc.3"
+    "peterportal-api-next-types": "workspace:^"
   },
-  "packageManager": "pnpm@8.6.12",
+  "packageManager": "pnpm@8.7.4",
   "engines": {
-    "node": ">=18",
-    "pnpm": "^8.0.0"
+    "node": "18",
+    "pnpm": "8"
   }
 }

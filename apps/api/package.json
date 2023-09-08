@@ -43,10 +43,5 @@
     "dotenv": "16.3.1",
     "dotenv-cli": "7.3.0",
     "tsx": "3.12.7"
-  },
-  "packageManager": "pnpm@8.7.0",
-  "engines": {
-    "node": "18",
-    "pnpm": "8"
   }
 }
