@@ -3,6 +3,8 @@
   "version": "1.0.0-rc.3",
   "private": true,
   "description": "The official PeterPortal API-Next monorepo",
+  "homepage": "https://docs.api-next.peterportal.org",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "build": "turbo run build",

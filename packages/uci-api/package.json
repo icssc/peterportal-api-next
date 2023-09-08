@@ -1,0 +1,58 @@
+{
+  "name": "@uc-irvine/api",
+  "version": "0.10.8",
+  "private": true,
+  "description": "SDK for various UC Irvine services",
+  "keywords": [],
+  "homepage": "https://docs.api-next.peterportal.org",
+  "bugs": {
+    "url": "https://github.com/icssc/peterportal-api-next/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/icssc/peterportal-api-next",
+    "directory": "packages/uci-api"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.js"
+    }
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "": [
+        "./dist/index.d.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsx src/index.ts",
+    "prepublish": "tsup",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@peterportal-api/types": "workspace:1.0.0-rc.3",
+    "cheerio": "1.0.0-rc.12",
+    "cross-fetch": "4.0.0"
+  },
+  "packageManager": "pnpm@8.7.4",
+  "engines": {
+    "node": "18",
+    "pnpm": "8"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -240,12 +240,6 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
 
-  libs/build-tools:
-    devDependencies:
-      esbuild:
-        specifier: 0.19.2
-        version: 0.19.2
-
   libs/db:
     dependencies:
       '@prisma/client':
@@ -278,12 +272,12 @@ importers:
         specifier: 4.0.0
         version: 4.0.0
     devDependencies:
+      '@peterportal-api/types':
+        specifier: workspace:^
+        version: link:../../packages/types
       '@vitest/coverage-istanbul':
         specifier: 0.34.3
         version: 0.34.3(vitest@0.34.3)
-      peterportal-api-next-types:
-        specifier: '*'
-        version: 1.0.0-alpha.0
       tsup:
         specifier: 7.2.0
         version: 7.2.0(ts-node@10.9.1)(typescript@5.2.2)
@@ -329,6 +323,18 @@ importers:
         version: link:../../packages/types
 
   packages/types: {}
+
+  packages/uci-api:
+    dependencies:
+      '@peterportal-api/types':
+        specifier: workspace:1.0.0-rc.3
+        version: link:../types
+      cheerio:
+        specifier: 1.0.0-rc.12
+        version: 1.0.0-rc.12
+      cross-fetch:
+        specifier: 4.0.0
+        version: 4.0.0
 
   packages/websoc-fuzzy-search:
     dependencies:
@@ -10564,10 +10570,6 @@ packages:
 
   /pathval@1.1.1:
     resolution: {integrity: sha512-Dp6zGqpTdETdR63lehJYPeIOqpiNBNtc7BpWSLrOje7UaIsE5aY92r/AunQA7rsXvet3lrJ3JnZX29UPTKXyKQ==}
-    dev: true
-
-  /peterportal-api-next-types@1.0.0-alpha.0:
-    resolution: {integrity: sha512-R+mF4XbbWfn2ufMWXdgM/CfvpQv5NxvTPLCPLzcpMsVaanGJJUvxl36lW9QAwpro+bElUB1XDgYXmltXAF8DbQ==}
     dev: true
 
   /picocolors@1.0.0:

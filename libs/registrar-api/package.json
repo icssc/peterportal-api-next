@@ -16,8 +16,8 @@
     "cross-fetch": "4.0.0"
   },
   "devDependencies": {
+    "@peterportal-api/types": "workspace:^",
     "@vitest/coverage-istanbul": "0.34.3",
-    "peterportal-api-next-types": "*",
     "tsup": "7.2.0",
     "vitest": "0.34.3"
   }
