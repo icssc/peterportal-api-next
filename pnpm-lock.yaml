@@ -191,40 +191,6 @@ importers:
         specifier: 5.2.2
         version: 5.2.2
 
-  apps/docs/cdk:
-    dependencies:
-      docs:
-        specifier: workspace:*
-        version: link:..
-      dotenv:
-        specifier: 16.3.1
-        version: 16.3.1
-    devDependencies:
-      '@types/babel__traverse':
-        specifier: 7.20.1
-        version: 7.20.1
-      '@types/node':
-        specifier: 18.17.12
-        version: 18.17.12
-      aws-cdk:
-        specifier: 2.93.0
-        version: 2.93.0
-      aws-cdk-lib:
-        specifier: 2.93.0
-        version: 2.93.0(constructs@10.2.69)
-      constructs:
-        specifier: 10.2.69
-        version: 10.2.69
-      source-map-support:
-        specifier: 0.5.21
-        version: 0.5.21
-      tsx:
-        specifier: 3.12.7
-        version: 3.12.7
-      typescript:
-        specifier: 5.2.2
-        version: 5.2.2
-
   libs/db:
     dependencies:
       '@prisma/client':
@@ -301,49 +267,6 @@ importers:
       tsx:
         specifier: 3.12.7
         version: 3.12.7
-
-  services/cdk:
-    dependencies:
-      '@services/registrar-scraper':
-        specifier: workspace:^
-        version: link:../../tools/registrar-scraper
-      '@services/websoc-proxy':
-        specifier: workspace:^
-        version: link:../websoc-proxy
-      '@services/websoc-scraper-v2':
-        specifier: workspace:^
-        version: link:../websoc-scraper-v2
-      dotenv:
-        specifier: 16.3.1
-        version: 16.3.1
-    devDependencies:
-      '@peterportal-api/types':
-        specifier: workspace:^
-        version: link:../../packages/types
-      '@types/babel__traverse':
-        specifier: 7.20.1
-        version: 7.20.1
-      '@types/node':
-        specifier: 18.17.12
-        version: 18.17.12
-      aws-cdk:
-        specifier: 2.93.0
-        version: 2.93.0
-      aws-cdk-lib:
-        specifier: 2.93.0
-        version: 2.93.0(constructs@10.2.69)
-      constructs:
-        specifier: 10.2.69
-        version: 10.2.69
-      source-map-support:
-        specifier: 0.5.21
-        version: 0.5.21
-      tsx:
-        specifier: 3.12.7
-        version: 3.12.7
-      typescript:
-        specifier: 5.2.2
-        version: 5.2.2
 
   services/websoc-proxy:
     dependencies:
@@ -1317,6 +1240,7 @@ packages:
   /@babel/helper-string-parser@7.21.5:
     resolution: {integrity: sha512-5pTUx3hAJaZIdW99sJ6ZUUgWq/Y+Hja7TowEnLNMm1VivRgZQL3vpBY3qUACVsvw+yQU6+YgfBVmcbLaZtrA1w==}
     engines: {node: '>=6.9.0'}
+    dev: false
 
   /@babel/helper-validator-identifier@7.19.1:
     resolution: {integrity: sha512-awrNfaMtnHUr653GgGEs++LlAvW6w+DcPrOliSMXWCKo597CwL5Acf/wWdNkf/tfEQE3mjkeD1YOVZOUV/od1w==}
@@ -2472,6 +2396,7 @@ packages:
       '@babel/helper-string-parser': 7.21.5
       '@babel/helper-validator-identifier': 7.19.1
       to-fast-properties: 2.0.0
+    dev: false
 
   /@balena/dockerignore@1.0.2:
     resolution: {integrity: sha512-wMue2Sy4GAVTk6Ic4tJVcnfdau+gx2EnG7S+uAEe+TWJFqE4YoWN4/H8MSLj4eYJKxGg26lZwboEniNiNwZQ6Q==}
@@ -4951,12 +4876,6 @@ packages:
     resolution: {integrity: sha512-Vqm22aZrCvCd6I5g1SvpW151jfqwTzEZ7XJ3yZ6xaZG31nUEOEyzzVImjRcsN8Wi/QyPxId/x8GTtgIbsy8kEw==}
     dev: true
 
-  /@types/babel__traverse@7.20.1:
-    resolution: {integrity: sha512-MitHFXnhtgwsGZWtT68URpOvLN4EREih1u3QtQiN4VdAxWKRVvGCSvw/Qth0M0Qq3pJpnGOu5JaM/ydK7OGbqg==}
-    dependencies:
-      '@babel/types': 7.22.3
-    dev: true
-
   /@types/body-parser@1.19.2:
     resolution: {integrity: sha512-ALYone6pm6QmwZoAgeyNksccT9Q4AWZQ6PvfwR37GT6r6FWUPguq6sUmNGSMV2Wr761oQoBxwGGa6DR5o1DC9g==}
     dependencies:
@@ -7306,6 +7225,7 @@ packages:
   /dotenv@16.3.1:
     resolution: {integrity: sha512-IPzF4w4/Rd94bA9imS68tZBaYyBWSCE47V1RGuMrB94iyTOIEwRmVL2x/4An+6mETpLrKJ5hQkB8W4kFAadeIQ==}
     engines: {node: '>=12'}
+    dev: true
 
   /dotenv@8.6.0:
     resolution: {integrity: sha512-IrPdXQsk2BbzvCBGBOTmmSH5SodmqZNt4ERAZDmW4CT+tL8VtvinqywuANaFu4bOMWki16nqf0e4oC0QIaDr/g==}
@@ -12297,6 +12217,7 @@ packages:
   /to-fast-properties@2.0.0:
     resolution: {integrity: sha512-/OaKK0xYrs3DmxRYqL/yDc+FxFUVYhDlXMhRmv3z915w2HF1tnN1omB354j8VUGO/hbRzyD6Y3sA7v7GS/ceog==}
     engines: {node: '>=4'}
+    dev: false
 
   /to-readable-stream@1.0.0:
     resolution: {integrity: sha512-Iq25XBt6zD5npPhlLVXGFN3/gyR2/qODcKNNyTMd4vbm39HUaOiAM4PMq0eMVC/Tkxz+Zjdsc55g9yyz+Yq00Q==}
