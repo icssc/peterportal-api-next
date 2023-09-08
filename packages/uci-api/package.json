@@ -16,19 +16,28 @@
   "license": "MIT",
   "type": "module",
   "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "default": "./dist/index.js"
+    "./registrar": {
+      "types": "./dist/registrar.d.ts",
+      "import": "./dist/registrar.js",
+      "require": "./dist/registrar.cjs",
+      "default": "./dist/registrar.js"
+    },
+    "./websoc": {
+      "types": "./dist/websoc.d.ts",
+      "import": "./dist/websoc.js",
+      "require": "./dist/websoc.cjs",
+      "default": "./dist/websoc.js"
     }
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "typesVersions": {
     "*": {
-      "": [
-        "./dist/index.d.ts"
+      "registrar": [
+        "./dist/registrar.d.ts"
+      ],
+      "websoc": [
+        "./dist/websoc.d.ts"
       ]
     }
   },
@@ -47,6 +56,9 @@
     "@peterportal-api/types": "workspace:^",
     "cheerio": "1.0.0-rc.12",
     "cross-fetch": "4.0.0"
+  },
+  "devDependencies": {
+    "tsup": "7.2.0"
   },
   "packageManager": "pnpm@8.7.4",
   "engines": {

@@ -9,9 +9,8 @@
   },
   "dependencies": {
     "@libs/db": "workspace:^",
-    "@libs/registrar-api": "workspace:^",
-    "@libs/websoc-api-next": "workspace:^",
     "@peterportal-api/types": "workspace:^",
+    "@uc-irvine/api": "workspace:^",
     "winston": "3.10.0"
   },
   "devDependencies": {

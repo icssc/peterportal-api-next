@@ -2,9 +2,9 @@ import fs from "fs";
 import { basename, resolve } from "node:path";
 import { EOL } from "os";
 
-import { callWebSocAPI } from "@libs/websoc-api-next";
-import type { WebsocAPIResponse, WebsocSection } from "@libs/websoc-api-next";
 import type { Quarter } from "@peterportal-api/types";
+import { callWebSocAPI } from "@uc-irvine/api/websoc";
+import type { WebsocAPIResponse, WebsocSection } from "@uc-irvine/api/websoc";
 import type { CastingContext, Parser } from "csv-parse";
 import { parse } from "csv-parse";
 import { stringify } from "csv-stringify/sync";

@@ -1,8 +1,8 @@
 import { ApiPropsOverride } from "@bronya.js/api-construct";
 import { PrismaClient } from "@libs/db";
 import { createErrorResult, createOKResult } from "@libs/lambda";
-import type { WebsocAPIResponse } from "@libs/websoc-api-next";
 import { combineAndNormalizeResponses, notNull, sortResponse } from "@libs/websoc-utils";
+import type { WebsocAPIResponse } from "@uc-irvine/api/websoc";
 import {
   Effect,
   ManagedPolicy,
