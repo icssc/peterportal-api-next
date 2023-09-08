@@ -17,8 +17,7 @@
   "type": "module",
   "main": "bronya.config.ts",
   "scripts": {
-    "dep": "cdk --app 'tsx bronya.config.ts' deploy",
-    "des": "cdk --app 'tsx bronya.config.ts' destroy",
+    "cdk-app": "cdk --app 'npx tsx bronya.config.ts' --require-approval never",
     "dev": "bunny dev-api"
   },
   "dependencies": {

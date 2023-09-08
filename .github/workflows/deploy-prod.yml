@@ -54,7 +54,7 @@ jobs:
         run: pnpm build --filter="@apps/api"
 
       - name: Deploy API CloudFormation stack
-        run: pnpm run deploy --filter="ant-stack"
+        run: pnpm --filter="@apps/api" cdk-app deploy
 
   deploy-documentation:
     name: Deploy documentation CloudFormation stack and production environment
@@ -80,7 +80,7 @@ jobs:
         run: pnpm build --filter="@apps/docs"
 
       - name: Deploy documentation CloudFormation stack
-        run: pnpm run deploy --filter="docs-cdk"
+        run: pnpm --filter="@tools/cdk" docs deploy
 
   deploy-services:
     name: Deploy services CloudFormation stack and production environment
@@ -105,4 +105,4 @@ jobs:
         run: pnpm build --filter="@services/*"
 
       - name: Deploy stack
-        run: pnpm run deploy --filter="@services/*"
+        run: pnpm --filter="@tools/cdk" services deploy

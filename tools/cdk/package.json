@@ -15,6 +15,10 @@
   },
   "license": "MIT",
   "type": "module",
+  "scripts": {
+    "docs": "cdk --app 'npx tsx src/app/docs.ts' --require-approval never",
+    "services": "cdk --app 'npx tsx src/app/services.ts' --require-approval never"
+  },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.408.0",
     "@smithy/util-waiter": "^2.0.6",
@@ -22,6 +26,7 @@
     "constructs": "10.2.69"
   },
   "devDependencies": {
+    "aws-cdk": "2.93.0",
     "tsx": "3.12.7"
   }
 }
