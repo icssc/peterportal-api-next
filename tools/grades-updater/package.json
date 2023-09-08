@@ -8,16 +8,16 @@
     "upload": "dotenv -e ../../.env.grades -- tsx upload-data.ts"
   },
   "dependencies": {
-    "@libs/db": "workspace:*",
+    "@libs/db": "workspace:^",
     "csv-parse": "5.5.0",
     "csv-stringify": "6.4.2",
     "winston": "3.10.0",
     "winston-transport": "4.5.0"
   },
   "devDependencies": {
+    "@peterportal-api/types": "workspace:^",
     "@types/node": "18.17.12",
     "dotenv-cli": "7.3.0",
-    "peterportal-api-next-types": "workspace:*",
     "tsx": "3.12.7"
   }
 }

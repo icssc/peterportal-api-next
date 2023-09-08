@@ -10,14 +10,13 @@
     "build": "node build.mjs"
   },
   "dependencies": {
-    "@libs/websoc-api-next": "workspace:*",
-    "@libs/websoc-utils": "workspace:^",
-    "ant-stack": "workspace:*"
+    "@libs/websoc-api-next": "workspace:^",
+    "@libs/websoc-utils": "workspace:^"
   },
   "devDependencies": {
+    "@peterportal-api/types": "workspace:^",
     "@types/aws-lambda": "8.10.119",
     "@types/node": "18.17.12",
-    "esbuild": "0.19.2",
-    "peterportal-api-next-types": "workspace:*"
+    "esbuild": "0.19.2"
   }
 }
