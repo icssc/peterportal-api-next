@@ -312,6 +312,8 @@ importers:
         specifier: 0.19.2
         version: 0.19.2
 
+  tools/cdk: {}
+
   tools/grades-updater:
     dependencies:
       '@libs/db':
