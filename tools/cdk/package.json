@@ -14,5 +14,12 @@
     "directory": "tools/cdk"
   },
   "license": "MIT",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "aws-cdk-lib": "2.93.0",
+    "constructs": "^10.2.70"
+  },
+  "devDependencies": {
+    "tsx": "3.12.7"
+  }
 }
