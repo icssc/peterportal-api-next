@@ -12,10 +12,14 @@ import { logger } from "@libs/lambda";
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1623640043
  */
 // language=JavaScript
-const js = `\
-const require = (await import("node:module")).createRequire(import.meta.url);
-const __filename = (await import("node:url")).fileURLToPath(import.meta.url);
-const __dirname = (await import("node:path")).dirname(__filename);
+const js = `
+  import topLevelModule from "node:module";
+  import topLevelUrl from "node:url";
+  import topLevelPath from "node:path";
+
+  const require = topLevelModule.createRequire(import.meta.url);
+  const __filename = topLevelUrl.fileURLToPath(import.meta.url);
+  const __dirname = topLevelPath.dirname(__filename);
 `;
 
 const projectRoot = process.cwd();

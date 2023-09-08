@@ -14,6 +14,12 @@ import type { APIGatewayProxyHandler, APIGatewayProxyResult } from "aws-lambda";
 import { transformBody } from "./lib";
 import { resolvers } from "./resolvers";
 
+const responseHeaders: APIGatewayProxyResult["headers"] = {
+  "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+};
+
 const graphqlServer = new ApolloServer({
   introspection: true,
   plugins: [
@@ -34,12 +40,16 @@ export const ANY: APIGatewayProxyHandler = async (event) => {
     await graphqlServer.start();
   }
 
+  let headers: HeaderMap;
   const req: HTTPGraphQLRequest = {
     body,
-    headers: Object.entries(eventHeaders).reduce(
-      (m, [k, v]) => m.set(k, Array.isArray(v) ? v.join(", ") : v ?? ""),
-      new HeaderMap(),
-    ),
+    get headers() {
+      headers ??= Object.entries(eventHeaders).reduce(
+        (m, [k, v]) => m.set(k, Array.isArray(v) ? v.join(", ") : v ?? ""),
+        new HeaderMap(),
+      );
+      return headers;
+    },
     method,
     search: parse(event.path ?? "").search ?? "",
   };
@@ -49,12 +59,7 @@ export const ANY: APIGatewayProxyHandler = async (event) => {
   });
 
   const statusCode = res.status ?? 200;
-  const headers: APIGatewayProxyResult["headers"] = {
-    "Access-Control-Allow-Headers": "Apollo-Require-Preflight, Content-Type",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-  };
-  res.headers.forEach((v, k) => (headers[k] = v));
+  res.headers.forEach((v, k) => (responseHeaders[k] = v));
 
   try {
     const { body, method } = compress(
@@ -62,18 +67,18 @@ export const ANY: APIGatewayProxyHandler = async (event) => {
       req.headers.get("accept-encoding"),
     );
     if (method) {
-      headers["content-encoding"] = method;
+      responseHeaders["content-encoding"] = method;
     }
     return {
       body,
-      headers,
+      headers: responseHeaders,
       isBase64Encoded: !!method,
       statusCode,
     };
   } catch {
     return {
       body: "",
-      headers,
+      headers: responseHeaders,
       statusCode: 500,
     };
   }
