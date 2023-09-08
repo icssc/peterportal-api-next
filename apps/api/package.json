@@ -36,8 +36,8 @@
     "zod": "3.22.2"
   },
   "devDependencies": {
-    "@bronya.js/api-construct": "0.10.7",
-    "@bronya.js/core": "0.10.7",
+    "@bronya.js/api-construct": "0.10.8",
+    "@bronya.js/core": "0.10.8",
     "@types/aws-lambda": "8.10.119",
     "aws-cdk": "2.93.0",
     "dotenv": "16.3.1",

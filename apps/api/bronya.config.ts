@@ -1,6 +1,8 @@
-import path from "node:path";
 import fs from "node:fs";
-import { App, Stack } from "aws-cdk-lib/core";
+import path from "node:path";
+import { App, Stack, Duration } from "aws-cdk-lib/core";
+import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import { RuleTargetInput, Rule, Schedule } from "aws-cdk-lib/aws-events";
 import { isCdk } from "@bronya.js/core";
 import { Api } from "@bronya.js/api-construct";
 import { createApiCliPlugins } from "@bronya.js/api-construct/plugins/cli";
@@ -50,6 +52,19 @@ class MyStack extends Stack {
       }),
       exitPoint: "handler.mjs",
       constructs: {
+        functionPlugin(functionResources) {
+          const { functionProps, handler } = functionResources;
+
+          const warmingTarget = new LambdaFunction(handler, {
+            event: RuleTargetInput.fromObject({ body: "warming request" }),
+          });
+
+          const warmingRule = new Rule(scope, `${id}-${functionProps.functionName}-warming-rule`, {
+            schedule: Schedule.rate(Duration.minutes(5)),
+          });
+
+          warmingRule.addTarget(warmingTarget);
+        },
         lambdaUpload(directory) {
           const queryEngines = fs.readdirSync(directory).filter((x) => x.endsWith(".so.node"));
 
