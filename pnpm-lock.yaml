@@ -273,10 +273,6 @@ importers:
       cross-fetch:
         specifier: 4.0.0
         version: 4.0.0
-    devDependencies:
-      tsup:
-        specifier: 7.2.0
-        version: 7.2.0(ts-node@10.9.1)(typescript@5.2.2)
 
   packages/websoc-fuzzy-search:
     dependencies:

@@ -17,27 +17,27 @@
   "type": "module",
   "exports": {
     "./registrar": {
-      "types": "./dist/registrar.d.ts",
-      "import": "./dist/registrar.js",
-      "require": "./dist/registrar.cjs",
-      "default": "./dist/registrar.js"
+      "types": "./src/registrar/index.ts",
+      "import": "./src/registrar/index.ts",
+      "require": "./src/registrar/index.ts",
+      "default": "./src/registrar/index.ts"
     },
     "./websoc": {
-      "types": "./dist/websoc.d.ts",
-      "import": "./dist/websoc.js",
-      "require": "./dist/websoc.cjs",
-      "default": "./dist/websoc.js"
+      "types": "./src/websoc/index.ts",
+      "import": "./src/websoc/index.ts",
+      "require": "./src/websoc/index.ts",
+      "default": "./src/websoc/index.ts"
     }
   },
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "typesVersions": {
     "*": {
       "registrar": [
-        "./dist/registrar.d.ts"
+        "./src/registrar/index.ts"
       ],
       "websoc": [
-        "./dist/websoc.d.ts"
+        "./src/websoc/index.ts"
       ]
     }
   },
@@ -45,20 +45,11 @@
     "dist",
     "src"
   ],
-  "scripts": {
-    "build": "tsup",
-    "dev": "tsx src/index.ts",
-    "prepublish": "tsup",
-    "test": "vitest"
-  },
   "dependencies": {
     "@ap0nia/camaro": "6.2.5",
     "@peterportal-api/types": "workspace:^",
     "cheerio": "1.0.0-rc.12",
     "cross-fetch": "4.0.0"
-  },
-  "devDependencies": {
-    "tsup": "7.2.0"
   },
   "packageManager": "pnpm@8.7.4",
   "engines": {
