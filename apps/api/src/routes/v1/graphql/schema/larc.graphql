@@ -1,0 +1,32 @@
+"The course info for the set of LARC sections."
+type LarcCourseInfo {
+  "The course number."
+  courseNumber: String!
+  "The course number that the number above is the same as, if any."
+  sameAs: String
+  "The name of the course."
+  courseName: String!
+}
+"One of the LARC sections for a course."
+type LarcSection {
+  "The days the section will meet."
+  days: String!
+  "The time at which the section will meet."
+  time: String!
+  "The instructor of the section."
+  instructor: String!
+  "The classroom where the section will meet."
+  bldg: String!
+}
+"A set of LARC sections for a single course."
+type LarcCourse {
+  "The course info for the set of LARC sections."
+  courseInfo: LarcCourseInfo!
+  "The sections associated with this set."
+  sections: [LarcSection!]!
+}
+
+extend type Query {
+  "Get the available LARC sections for the given terms."
+  larc(year: String!, quarter: Quarter!): [LarcCourse!]!
+}

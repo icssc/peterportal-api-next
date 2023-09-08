@@ -1,0 +1,8 @@
+"A JavaScript Date object returned as a string."
+scalar Date
+"A JavaScript object."
+scalar JSON
+
+type Query {
+  _empty: String
+}

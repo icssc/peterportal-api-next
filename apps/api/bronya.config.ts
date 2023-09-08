@@ -9,15 +9,13 @@ import { createApiCliPlugins } from "@bronya.js/api-construct/plugins/cli";
 import { logger } from "@libs/lambda";
 
 /**
- * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1491470829
+ * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1623640043
  */
+// language=JavaScript
 const js = `\
-import * as path from 'path';
-import { fileURLToPath } from 'url';
-import { createRequire as topLevelCreateRequire } from 'module';
-const require = topLevelCreateRequire(import.meta.url);
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const require = (await import("node:module")).createRequire(import.meta.url);
+const __filename = (await import("node:url")).fileURLToPath(import.meta.url);
+const __dirname = (await import("node:path")).dirname(__filename);
 `;
 
 const projectRoot = process.cwd();
@@ -80,19 +78,33 @@ class MyStack extends Stack {
             });
         },
       },
-      environment: {
-        DATABASE_URL: process.env["DATABASE_URL"] ?? "",
-        SHADOW_DATABASE_URL: process.env["SHADOW_DATABASE_URL"] ?? "",
-      },
+      environment: { DATABASE_URL: process.env["DATABASE_URL"] ?? "" },
       esbuild: {
         format: "esm",
         platform: "node",
         bundle: true,
+        minify: true,
         banner: { js },
         outExtension: { ".js": ".mjs" },
         plugins: [
           {
-            name: "copy",
+            name: "copy-graphql-schema",
+            setup(build) {
+              build.onStart(async () => {
+                if (!build.initialOptions.outdir?.endsWith("graphql")) return;
+
+                fs.mkdirSync(build.initialOptions.outdir, { recursive: true });
+
+                fs.cpSync(
+                  path.resolve(projectRoot, "src/routes/v1/graphql/schema"),
+                  path.join(build.initialOptions.outdir, "schema"),
+                  { recursive: true },
+                );
+              });
+            },
+          },
+          {
+            name: "copy-prisma",
             setup(build) {
               build.onStart(async () => {
                 const outDirectory = build.initialOptions.outdir ?? projectRoot;
