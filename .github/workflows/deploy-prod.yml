@@ -50,12 +50,6 @@ jobs:
         # Ensure NODE_ENV != production so pnpm will install devDependencies!!!
         run: NODE_ENV=development pnpm install --frozen-lockfile
 
-      - name: Build AntStack
-        run: pnpm build --filter="ant-stack"
-
-      - name: Link AntStack
-        run: pnpm link ant-stack
-
       - name: Build API assets
         run: pnpm build --filter="api-*"
 
@@ -120,12 +114,6 @@ jobs:
       - name: Install dependencies
         # Ensure NODE_ENV != production so pnpm will install devDependencies!!!
         run: NODE_ENV=development pnpm install --frozen-lockfile
-
-      - name: Build AntStack
-        run: pnpm build --filter="ant-stack"
-
-      - name: Link AntStack
-        run: pnpm link ant-stack
 
       - name: Build services
         run: pnpm build --filter="@services/*"
