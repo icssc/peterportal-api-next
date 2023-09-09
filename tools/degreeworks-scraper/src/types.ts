@@ -95,34 +95,53 @@ export type Program = ProgramId & {
    * @example "Specialization in Digital Signal Processing"
    */
   name: string;
+  /**
+   * The mapping of requirement names to requirement nodes.
+   */
   requirements: Record<string, Requirement>;
+  /**
+   * The set of specializations (if any) that this program has.
+   * If this array is not empty, then exactly one specialization must be selected
+   * to fulfill the requirements of the program.
+   */
   specs: string[];
 };
 
 export type CourseRequirement = {
   requirementType: "Course";
   /**
-   * The number of `courses` required to fulfill this requirement.
+   * The number of courses required to fulfill this requirement.
    */
   courseCount: number;
+  /**
+   * The set of courses that can be taken to fulfill this requirement.
+   */
   courses: string[];
 };
 
 export type UnitRequirement = {
   requirementType: "Unit";
   /**
-   * The number of units earned from taking `courses` that are required to fulfill this requirement.
+   * The number of units earned from the following list of courses
+   * that are required to fulfill this requirement.
    */
   unitCount: number;
+  /**
+   * The set of courses which units count towards this requirement.
+   */
   courses: string[];
 };
 
 export type GroupRequirement = {
   requirementType: "Group";
   /**
-   * The number of `requirements` that must be fulfilled to fulfill this requirement.
+   * The number of requirement from the mapping below
+   * that must be fulfilled to fulfill this requirement.
    */
   requirementCount: number;
+  /**
+   * The mapping of requirement names to requirement nodes.
+   */
   requirements: Record<string, Requirement>;
 };
 
