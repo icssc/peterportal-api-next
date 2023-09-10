@@ -7,6 +7,10 @@ import { isCdk } from "@bronya.js/core";
 import { Api } from "@bronya.js/api-construct";
 import { createApiCliPlugins } from "@bronya.js/api-construct/plugins/cli";
 import { logger } from "@libs/lambda";
+import { EndpointType, LambdaIntegration, ResponseType } from "aws-cdk-lib/aws-apigateway";
+import { Architecture, Code, Runtime } from "aws-cdk-lib/aws-lambda";
+import * as lambda from "aws-cdk-lib/aws-lambda";
+import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1623640043
@@ -33,9 +37,9 @@ const prismaClientDirectory = path.resolve(libsDbDirectory, "node_modules", "pri
 
 const prismaSchema = path.resolve(libsDbDirectory, "prisma", "schema.prisma");
 
-class MyStack extends Stack {
+class ApiStack extends Stack {
   public api: Api;
-  constructor(scope: App, id: string) {
+  constructor(scope: App, id: string, stage: string) {
     super(scope, id);
 
     this.api = new Api(this, `${id}-api`, {
@@ -81,8 +85,28 @@ class MyStack extends Stack {
               fs.rmSync(path.join(directory, queryEngineFile));
             });
         },
+        restApiProps(scope, id) {
+          return {
+            domainName: {
+              domainName: `${stage === "prod" ? "" : `${stage}.`}api-next.peterportal.org`,
+              certificate: Certificate.fromCertificateArn(
+                scope,
+                "peterportal-cert",
+                process.env.CERTIFICATE_ARN ?? "",
+              ),
+            },
+            disableExecuteApiEndpoint: true,
+            endpointTypes: [EndpointType.EDGE],
+            binaryMediaTypes: ["*/*"],
+            restApiName: `${id}-${stage}`,
+          };
+        },
       },
-      environment: { DATABASE_URL: process.env["DATABASE_URL"] ?? "" },
+      environment: {
+        DATABASE_URL: process.env["DATABASE_URL"] ?? "",
+        NODE_ENV: process.env["NODE_ENV"] ?? "",
+        STAGE: stage,
+      },
       esbuild: {
         format: "esm",
         platform: "node",
@@ -141,25 +165,98 @@ class MyStack extends Stack {
 }
 
 export async function main() {
+  const id = "peterportal-api-next";
+
   const app = new App();
 
-  const stack = new MyStack(app, "peterportal-api-canary");
+  if (!process.env.NODE_ENV) {
+    throw new Error("NODE_ENV not set.");
+  }
+
+  let stage;
+
+  switch (process.env.NODE_ENV) {
+    case "production":
+      stage = "prod";
+      break;
+    case "staging":
+      if (!process.env.PR_NUM) {
+        throw new Error("NODE_ENV was set to staging, but a PR number was not provided.");
+      }
+      stage = `staging-${process.env.PR_NUM}`;
+      break;
+    case "development":
+      stage = "dev";
+      break;
+    default:
+      throw new Error(
+        "Invalid NODE_ENV specified. Valid values are 'production', 'staging', and 'development'.",
+      );
+  }
+
+  const stack = new ApiStack(app, id, stage);
 
   const api = stack.api;
 
   await api.init();
 
   if (isCdk()) {
+    if (stage === "dev") {
+      throw new Error("Cannot deploy this app in the development environment.");
+    }
     const result = await api.synth();
 
-    result.api.addGatewayResponse;
+    result.api.addGatewayResponse(`${id}-${stage}-5xx`, {
+      type: ResponseType.DEFAULT_5XX,
+      statusCode: "500",
+      templates: {
+        "application/json": JSON.stringify({
+          timestamp: "$context.requestTime",
+          requestId: "$context.requestId",
+          statusCode: 500,
+          error: "Internal Server Error",
+          message: "An unknown error has occurred. Please try again.",
+        }),
+      },
+    });
 
-    result.functions;
+    result.api.addGatewayResponse(`${id}-${stage}-404`, {
+      type: ResponseType.MISSING_AUTHENTICATION_TOKEN,
+      statusCode: "404",
+      templates: {
+        "application/json": JSON.stringify({
+          timestamp: "$context.requestTime",
+          requestId: "$context.requestId",
+          statusCode: 404,
+          error: "Not Found",
+          message: "The requested resource could not be found.",
+        }),
+      },
+    });
+
+    let optionsIntegration: LambdaIntegration;
+
+    result.api.root.addMethod(
+      "OPTIONS",
+      (optionsIntegration = new LambdaIntegration(
+        new lambda.Function(result.api, `${id}-options-handler`, {
+          code: Code.fromInline(
+            // language=JavaScript
+            'exports.h=async _=>({body:"",headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Apollo-Require-Preflight,Content-Type","Access-Control-Allow-Methods":"GET,POST,OPTIONS"},statusCode:204});',
+          ),
+          handler: "index.h",
+          runtime: Runtime.NODEJS_18_X,
+          architecture: Architecture.ARM_64,
+        }),
+      )),
+    );
+
+    result.api.methods.forEach((x) => x.resource.addMethod("OPTIONS", optionsIntegration));
   }
 
   return app;
 }
 
 if (isCdk()) {
-  main();
+  main().then();
 }
