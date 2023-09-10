@@ -1,16 +1,16 @@
-import fs from "node:fs";
-import path from "node:path";
-import { App, Stack, Duration } from "aws-cdk-lib/core";
-import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
-import { RuleTargetInput, Rule, Schedule } from "aws-cdk-lib/aws-events";
-import { isCdk } from "@bronya.js/core";
+import { chmodSync, copyFileSync, cpSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { join, resolve } from "node:path";
+
 import { Api } from "@bronya.js/api-construct";
 import { createApiCliPlugins } from "@bronya.js/api-construct/plugins/cli";
+import { isCdk } from "@bronya.js/core";
 import { logger } from "@libs/lambda";
 import { EndpointType, LambdaIntegration, ResponseType } from "aws-cdk-lib/aws-apigateway";
-import { Architecture, Code, Runtime } from "aws-cdk-lib/aws-lambda";
-import * as lambda from "aws-cdk-lib/aws-lambda";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
+import { RuleTargetInput, Rule, Schedule } from "aws-cdk-lib/aws-events";
+import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import { Architecture, Code, Function as AwsLambdaFunction, Runtime } from "aws-cdk-lib/aws-lambda";
+import { App, Stack, Duration } from "aws-cdk-lib/core";
 
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1623640043
@@ -23,7 +23,7 @@ const js = `
 
   const require = topLevelModule.createRequire(import.meta.url);
   const __filename = topLevelUrl.fileURLToPath(import.meta.url);
-  const __dirname = topLevelPath.dirname(__filename);
+  const __dirname = topLeveldirname(__filename);
 `;
 
 const projectRoot = process.cwd();
@@ -31,11 +31,11 @@ const projectRoot = process.cwd();
 /**
  * Where @libs/db is located.
  */
-const libsDbDirectory = path.resolve(projectRoot, "..", "..", "libs", "db");
+const libsDbDirectory = resolve(projectRoot, "..", "..", "libs", "db");
 
-const prismaClientDirectory = path.resolve(libsDbDirectory, "node_modules", "prisma");
+const prismaClientDirectory = resolve(libsDbDirectory, "node_modules", "prisma");
 
-const prismaSchema = path.resolve(libsDbDirectory, "prisma", "schema.prisma");
+const prismaSchema = resolve(libsDbDirectory, "prisma", "schema.prisma");
 
 class ApiStack extends Stack {
   public api: Api;
@@ -70,7 +70,7 @@ class ApiStack extends Stack {
           warmingRule.addTarget(warmingTarget);
         },
         lambdaUpload: (directory) => {
-          const queryEngines = fs.readdirSync(directory).filter((x) => x.endsWith(".so.node"));
+          const queryEngines = readdirSync(directory).filter((x) => x.endsWith(".so.node"));
 
           if (queryEngines.length === 1) {
             return;
@@ -79,7 +79,7 @@ class ApiStack extends Stack {
           queryEngines
             .filter((x) => x !== "libquery_engine-linux-arm64-openssl-1.0.x.so.node")
             .forEach((queryEngineFile) => {
-              fs.rmSync(path.join(directory, queryEngineFile));
+              rmSync(join(directory, queryEngineFile));
             });
         },
         restApiProps: (scope) => ({
@@ -116,11 +116,11 @@ class ApiStack extends Stack {
               build.onStart(async () => {
                 if (!build.initialOptions.outdir?.endsWith("graphql")) return;
 
-                fs.mkdirSync(build.initialOptions.outdir, { recursive: true });
+                mkdirSync(build.initialOptions.outdir, { recursive: true });
 
-                fs.cpSync(
-                  path.resolve(projectRoot, "src/routes/v1/graphql/schema"),
-                  path.join(build.initialOptions.outdir, "schema"),
+                cpSync(
+                  resolve(projectRoot, "src/routes/v1/graphql/schema"),
+                  join(build.initialOptions.outdir, "schema"),
                   { recursive: true },
                 );
               });
@@ -132,24 +132,24 @@ class ApiStack extends Stack {
               build.onStart(async () => {
                 const outDirectory = build.initialOptions.outdir ?? projectRoot;
 
-                fs.mkdirSync(outDirectory, { recursive: true });
+                mkdirSync(outDirectory, { recursive: true });
 
-                const queryEngines = fs
-                  .readdirSync(prismaClientDirectory)
-                  .filter((file) => file.endsWith(".so.node"));
+                const queryEngines = readdirSync(prismaClientDirectory).filter((file) =>
+                  file.endsWith(".so.node"),
+                );
 
                 queryEngines.forEach((queryEngineFile) =>
-                  fs.copyFileSync(
-                    path.join(prismaClientDirectory, queryEngineFile),
-                    path.join(outDirectory, queryEngineFile),
+                  copyFileSync(
+                    join(prismaClientDirectory, queryEngineFile),
+                    join(outDirectory, queryEngineFile),
                   ),
                 );
 
                 queryEngines.forEach((queryEngineFile) =>
-                  fs.chmodSync(path.join(outDirectory, queryEngineFile), 0o755),
+                  chmodSync(join(outDirectory, queryEngineFile), 0o755),
                 );
 
-                fs.copyFileSync(prismaSchema, path.join(outDirectory, "schema.prisma"));
+                copyFileSync(prismaSchema, join(outDirectory, "schema.prisma"));
               });
             },
           },
@@ -230,7 +230,7 @@ export async function main() {
     });
 
     const optionsIntegration = new LambdaIntegration(
-      new lambda.Function(result.api, `${id}-options-handler`, {
+      new AwsLambdaFunction(result.api, `${id}-options-handler`, {
         code: Code.fromInline(
           // language=JavaScript
           'exports.h=async _=>({body:"",headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Apollo-Require-Preflight,Content-Type","Access-Control-Allow-Methods":"GET,POST,OPTIONS"},statusCode:204});',
