@@ -42,7 +42,7 @@ class ApiStack extends Stack {
   constructor(scope: App, id: string, stage: string) {
     super(scope, id);
 
-    this.api = new Api(this, `${id}-api`, {
+    this.api = new Api(this, id, {
       directory: "src/routes",
       plugins: createApiCliPlugins({
         dev: {
@@ -188,7 +188,7 @@ export async function main() {
 
   const stage = getStage();
 
-  const stack = new ApiStack(app, id, stage);
+  const stack = new ApiStack(app, `${id}-${stage}`, stage);
 
   const api = stack.api;
 
