@@ -144,30 +144,29 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
   }
 };
 
+// TODO: move this into a separate file.
 export const overrides: ApiPropsOverride = {
   constructs: {
-    functionProps(scope) {
-      return {
-        role: new Role(scope, `canary-v1-rest-websoc-role`, {
-          assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-          managedPolicies: [
-            ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
-          ],
-          inlinePolicies: {
-            lambdaInvokePolicy: new PolicyDocument({
-              statements: [
-                new PolicyStatement({
-                  effect: Effect.ALLOW,
-                  resources: [
-                    `arn:aws:lambda:${process.env["AWS_REGION"]}:${process.env["ACCOUNT_ID"]}:function:peterportal-api-next-services-prod-websoc-proxy-function`,
-                  ],
-                  actions: ["lambda:InvokeFunction"],
-                }),
-              ],
-            }),
-          },
-        }),
-      };
-    },
+    functionProps: (scope, id) => ({
+      role: new Role(scope, `${id}-v1-rest-websoc-role`, {
+        assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+        managedPolicies: [
+          ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
+        ],
+        inlinePolicies: {
+          lambdaInvokePolicy: new PolicyDocument({
+            statements: [
+              new PolicyStatement({
+                effect: Effect.ALLOW,
+                resources: [
+                  `arn:aws:lambda:${process.env["AWS_REGION"]}:${process.env["ACCOUNT_ID"]}:function:peterportal-api-next-services-prod-websoc-proxy-function`,
+                ],
+                actions: ["lambda:InvokeFunction"],
+              }),
+            ],
+          }),
+        },
+      }),
+    }),
   },
 };
