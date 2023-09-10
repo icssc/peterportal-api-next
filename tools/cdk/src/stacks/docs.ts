@@ -86,7 +86,11 @@ export class DocsStack extends Stack {
     });
 
     new BucketDeployment(this, "bucket-deployment", {
-      sources: [Source.asset(path.join(path.dirname(fileURLToPath(import.meta.url)), `../build`))],
+      sources: [
+        Source.asset(
+          path.join(path.dirname(fileURLToPath(import.meta.url)), "../../../../apps/docs/build"),
+        ),
+      ],
       destinationBucket,
       distribution,
       distributionPaths: ["/*"],
