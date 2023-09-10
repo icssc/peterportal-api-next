@@ -160,6 +160,9 @@ class ApiStack extends Stack {
 }
 
 function getStage() {
+  if (!process.env.NODE_ENV) {
+    throw new Error("NODE_ENV not set.");
+  }
   switch (process.env.NODE_ENV) {
     case "production":
       return "prod";
@@ -181,10 +184,6 @@ export async function main() {
   const id = "peterportal-api-next";
 
   const app = new App();
-
-  if (!process.env.NODE_ENV) {
-    throw new Error("NODE_ENV not set.");
-  }
 
   const stage = getStage();
 
