@@ -159,6 +159,24 @@ class ApiStack extends Stack {
   }
 }
 
+function getStage() {
+  switch (process.env.NODE_ENV) {
+    case "production":
+      return "prod";
+    case "staging":
+      if (!process.env.PR_NUM) {
+        throw new Error("NODE_ENV was set to staging, but a PR number was not provided.");
+      }
+      return `staging-${process.env.PR_NUM}`;
+    case "development":
+      return "dev";
+    default:
+      throw new Error(
+        "Invalid NODE_ENV specified. Valid values are 'production', 'staging', and 'development'.",
+      );
+  }
+}
+
 export async function main() {
   const id = "peterportal-api-next";
 
@@ -168,26 +186,7 @@ export async function main() {
     throw new Error("NODE_ENV not set.");
   }
 
-  let stage;
-
-  switch (process.env.NODE_ENV) {
-    case "production":
-      stage = "prod";
-      break;
-    case "staging":
-      if (!process.env.PR_NUM) {
-        throw new Error("NODE_ENV was set to staging, but a PR number was not provided.");
-      }
-      stage = `staging-${process.env.PR_NUM}`;
-      break;
-    case "development":
-      stage = "dev";
-      break;
-    default:
-      throw new Error(
-        "Invalid NODE_ENV specified. Valid values are 'production', 'staging', and 'development'.",
-      );
-  }
+  const stage = getStage();
 
   const stack = new ApiStack(app, id, stage);
 
@@ -241,9 +240,9 @@ export async function main() {
       }),
     );
 
-    result.api.methods.forEach((x) => {
+    result.api.methods.forEach((apiMethod) => {
       try {
-        x.resource.addMethod("OPTIONS", optionsIntegration);
+        apiMethod.resource.addMethod("OPTIONS", optionsIntegration);
       } catch {
         // no-op
       }
@@ -254,5 +253,5 @@ export async function main() {
 }
 
 if (isCdk()) {
-  main().then();
+  await main();
 }
