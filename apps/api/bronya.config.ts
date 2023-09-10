@@ -10,6 +10,8 @@ import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { RuleTargetInput, Rule, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 import { Architecture, Code, Function as AwsLambdaFunction, Runtime } from "aws-cdk-lib/aws-lambda";
+import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
+import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { App, Stack, Duration } from "aws-cdk-lib/core";
 
 /**
@@ -183,6 +185,8 @@ function getStage() {
 export async function main() {
   const id = "peterportal-api-next";
 
+  const zoneName = "peterportal.org";
+
   const app = new App();
 
   const stage = getStage();
@@ -228,7 +232,7 @@ export async function main() {
     });
 
     const optionsIntegration = new LambdaIntegration(
-      new AwsLambdaFunction(result.api, `${id}-options-handler`, {
+      new AwsLambdaFunction(result.api, `${id}-${stage}-options-handler`, {
         code: Code.fromInline(
           // language=JavaScript
           'exports.h=async _=>({body:"",headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Apollo-Require-Preflight,Content-Type","Access-Control-Allow-Methods":"GET,POST,OPTIONS"},statusCode:204});',
@@ -245,6 +249,15 @@ export async function main() {
       } catch {
         // no-op
       }
+    });
+
+    new ARecord(result.api, `${id}-${stage}-a-record`, {
+      zone: HostedZone.fromHostedZoneAttributes(result.api, "peterportal-hosted-zone", {
+        zoneName,
+        hostedZoneId: process.env.HOSTED_ZONE_ID ?? "",
+      }),
+      recordName: `${stage === "prod" ? "" : `${stage}.`}api-next`,
+      target: RecordTarget.fromAlias(new ApiGateway(result.api)),
     });
   }
 
