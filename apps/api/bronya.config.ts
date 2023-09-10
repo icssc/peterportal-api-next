@@ -47,8 +47,7 @@ class ApiStack extends Stack {
       plugins: createApiCliPlugins({
         dev: {
           hooks: {
-            transformExpressParams: (params) => {
-              const { req } = params;
+            transformExpressParams: ({ req }) => {
               logger.info(`Path params: ${JSON.stringify(req.params)}`);
               logger.info(`Query: ${JSON.stringify(req.query)}`);
               logger.info(`Body: ${JSON.stringify(req.body)}`);
@@ -59,9 +58,7 @@ class ApiStack extends Stack {
       }),
       exitPoint: "handler.mjs",
       constructs: {
-        functionPlugin: (functionResources) => {
-          const { functionProps, handler } = functionResources;
-
+        functionPlugin: ({ functionProps, handler }) => {
           const warmingTarget = new LambdaFunction(handler, {
             event: RuleTargetInput.fromObject({ body: "warming request" }),
           });
@@ -85,7 +82,7 @@ class ApiStack extends Stack {
               fs.rmSync(path.join(directory, queryEngineFile));
             });
         },
-        restApiProps: (scope, id) => ({
+        restApiProps: (scope) => ({
           domainName: {
             domainName: `${stage === "prod" ? "" : `${stage}.`}api-next.peterportal.org`,
             certificate: Certificate.fromCertificateArn(
