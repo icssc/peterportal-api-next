@@ -241,7 +241,13 @@ export async function main() {
       }),
     );
 
-    result.api.methods.forEach((x) => x.resource.addMethod("OPTIONS", optionsIntegration));
+    result.api.methods.forEach((x) => {
+      try {
+        x.resource.addMethod("OPTIONS", optionsIntegration);
+      } catch {
+        // no-op
+      }
+    });
   }
 
   return app;
