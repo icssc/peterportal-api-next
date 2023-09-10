@@ -229,11 +229,11 @@ export async function main() {
       },
     });
 
-    let optionsIntegration: LambdaIntegration;
+    // let optionsIntegration: LambdaIntegration;
 
     result.api.root.addMethod(
       "OPTIONS",
-      (optionsIntegration = new LambdaIntegration(
+      /* optionsIntegration = */ new LambdaIntegration(
         new lambda.Function(result.api, `${id}-options-handler`, {
           code: Code.fromInline(
             // language=JavaScript
@@ -243,10 +243,11 @@ export async function main() {
           runtime: Runtime.NODEJS_18_X,
           architecture: Architecture.ARM_64,
         }),
-      )),
+      ),
     );
 
-    result.api.methods.forEach((x) => x.resource.addMethod("OPTIONS", optionsIntegration));
+    console.log(JSON.stringify(result.api.methods));
+    // result.api.methods.forEach((x) => x.resource.addMethod("OPTIONS", optionsIntegration));
   }
 
   return app;
