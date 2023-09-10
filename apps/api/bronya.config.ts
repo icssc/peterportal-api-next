@@ -246,7 +246,7 @@ export async function main() {
       ),
     );
 
-    console.log(JSON.stringify(result.api.methods));
+    console.log(JSON.stringify(result.api.methods.map((x) => x.toString())));
     // result.api.methods.forEach((x) => x.resource.addMethod("OPTIONS", optionsIntegration));
   }
 
