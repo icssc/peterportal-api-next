@@ -144,9 +144,9 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
 
 export const overrides: ApiPropsOverride = {
   constructs: {
-    functionProps(scope) {
+    functionProps(scope, id) {
       return {
-        role: new Role(scope, `canary-v1-rest-websoc-role`, {
+        role: new Role(scope, `${id}-v1-rest-websoc-id-role`, {
           assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
           managedPolicies: [
             ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
