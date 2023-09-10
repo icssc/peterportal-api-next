@@ -84,15 +84,7 @@ class ApiStack extends Stack {
               rmSync(join(directory, queryEngineFile));
             });
         },
-        restApiProps: (scope) => ({
-          domainName: {
-            domainName: `${stage === "prod" ? "" : `${stage}.`}api-next.peterportal.org`,
-            certificate: Certificate.fromCertificateArn(
-              scope,
-              "peterportal-cert",
-              process.env.CERTIFICATE_ARN ?? "",
-            ),
-          },
+        restApiProps: () => ({
           disableExecuteApiEndpoint: true,
           endpointTypes: [EndpointType.EDGE],
           binaryMediaTypes: ["*/*"],
@@ -249,6 +241,15 @@ export async function main() {
       } catch {
         // no-op
       }
+    });
+
+    result.api.addDomainName(`${id}-${stage}-domain`, {
+      domainName: `${stage === "prod" ? "" : `${stage}.`}api-next.peterportal.org`,
+      certificate: Certificate.fromCertificateArn(
+        result.api,
+        "peterportal-cert",
+        process.env.CERTIFICATE_ARN ?? "",
+      ),
     });
 
     new ARecord(result.api, `${id}-${stage}-a-record`, {
