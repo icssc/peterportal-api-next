@@ -23,7 +23,7 @@ const js = `
 
   const require = topLevelModule.createRequire(import.meta.url);
   const __filename = topLevelUrl.fileURLToPath(import.meta.url);
-  const __dirname = topLeveldirname(__filename);
+  const __dirname = topLevelPath.dirname(__filename);
 `;
 
 const projectRoot = process.cwd();
