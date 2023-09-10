@@ -47,7 +47,7 @@ class ApiStack extends Stack {
       plugins: createApiCliPlugins({
         dev: {
           hooks: {
-            transformExpressParams(params) {
+            transformExpressParams: (params) => {
               const { req } = params;
               logger.info(`Path params: ${JSON.stringify(req.params)}`);
               logger.info(`Query: ${JSON.stringify(req.query)}`);
@@ -59,20 +59,20 @@ class ApiStack extends Stack {
       }),
       exitPoint: "handler.mjs",
       constructs: {
-        functionPlugin(functionResources) {
+        functionPlugin: (functionResources) => {
           const { functionProps, handler } = functionResources;
 
           const warmingTarget = new LambdaFunction(handler, {
             event: RuleTargetInput.fromObject({ body: "warming request" }),
           });
 
-          const warmingRule = new Rule(scope, `${id}-${functionProps.functionName}-warming-rule`, {
+          const warmingRule = new Rule(this, `${functionProps.functionName}-warming-rule`, {
             schedule: Schedule.rate(Duration.minutes(5)),
           });
 
           warmingRule.addTarget(warmingTarget);
         },
-        lambdaUpload(directory) {
+        lambdaUpload: (directory) => {
           const queryEngines = fs.readdirSync(directory).filter((x) => x.endsWith(".so.node"));
 
           if (queryEngines.length === 1) {
@@ -85,22 +85,20 @@ class ApiStack extends Stack {
               fs.rmSync(path.join(directory, queryEngineFile));
             });
         },
-        restApiProps(scope, id) {
-          return {
-            domainName: {
-              domainName: `${stage === "prod" ? "" : `${stage}.`}api-next.peterportal.org`,
-              certificate: Certificate.fromCertificateArn(
-                scope,
-                "peterportal-cert",
-                process.env.CERTIFICATE_ARN ?? "",
-              ),
-            },
-            disableExecuteApiEndpoint: true,
-            endpointTypes: [EndpointType.EDGE],
-            binaryMediaTypes: ["*/*"],
-            restApiName: `${id}-${stage}`,
-          };
-        },
+        restApiProps: (scope, id) => ({
+          domainName: {
+            domainName: `${stage === "prod" ? "" : `${stage}.`}api-next.peterportal.org`,
+            certificate: Certificate.fromCertificateArn(
+              scope,
+              "peterportal-cert",
+              process.env.CERTIFICATE_ARN ?? "",
+            ),
+          },
+          disableExecuteApiEndpoint: true,
+          endpointTypes: [EndpointType.EDGE],
+          binaryMediaTypes: ["*/*"],
+          restApiName: `${id}-${stage}`,
+        }),
       },
       environment: {
         DATABASE_URL: process.env["DATABASE_URL"] ?? "",
