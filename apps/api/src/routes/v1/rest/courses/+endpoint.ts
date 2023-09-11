@@ -1,5 +1,5 @@
 import { PrismaClient } from "@libs/db";
-import { createErrorResult, createOKResult } from "@libs/lambda";
+import { createErrorResult, createOKResult, logger } from "@libs/lambda";
 import type { APIGatewayProxyHandler } from "aws-lambda";
 import { ZodError } from "zod";
 
@@ -12,6 +12,8 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
   const headers = event.headers;
   const query = event.queryStringParameters;
   const requestId = context.awsRequestId;
+
+  logger.info(headers);
 
   /**
    * TODO: handle warmer requests.
