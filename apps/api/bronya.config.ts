@@ -5,7 +5,7 @@ import { Api } from "@bronya.js/api-construct";
 import { createApiCliPlugins } from "@bronya.js/api-construct/plugins/cli";
 import { isCdk } from "@bronya.js/core";
 import { logger } from "@libs/lambda";
-import { EndpointType, LambdaIntegration, ResponseType } from "aws-cdk-lib/aws-apigateway";
+import { LambdaIntegration, ResponseType } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { RuleTargetInput, Rule, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
@@ -84,12 +84,7 @@ class ApiStack extends Stack {
               rmSync(join(directory, queryEngineFile));
             });
         },
-        restApiProps: () => ({
-          disableExecuteApiEndpoint: true,
-          endpointTypes: [EndpointType.EDGE],
-          binaryMediaTypes: ["*/*"],
-          restApiName: `${id}-${stage}`,
-        }),
+        restApiProps: () => ({ disableExecuteApiEndpoint: true, binaryMediaTypes: ["*/*"] }),
       },
       environment: {
         DATABASE_URL: process.env["DATABASE_URL"] ?? "",
@@ -125,6 +120,8 @@ class ApiStack extends Stack {
             setup(build) {
               build.onStart(async () => {
                 const outDirectory = build.initialOptions.outdir ?? projectRoot;
+
+                if (outDirectory.endsWith("graphql")) return;
 
                 mkdirSync(outDirectory, { recursive: true });
 
@@ -266,5 +263,6 @@ export async function main() {
 }
 
 if (isCdk()) {
-  await main();
+  // Sike, looks like even though we have top-level await, the dev server won't start with it :(
+  main().then();
 }
