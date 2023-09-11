@@ -53,6 +53,10 @@ export function createOKResult<T>(
   try {
     const { body, method } = compress(JSON.stringify(response), requestHeaders["accept-encoding"]);
 
+    if (method) {
+      headers["content-encoding"] = method;
+    }
+
     logger.info("200 OK");
 
     return {
