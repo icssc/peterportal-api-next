@@ -193,12 +193,6 @@ export async function main() {
 
     const result = await api.synth();
 
-    const responseHeaders = {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Headers": "Apollo-Require-Preflight,Content-Type",
-      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    };
-
     /**
      * Add gateway responses for 5xx and 404 errors, so that they remain compliant
      * with the {@link `ErrorResponse`} type.
@@ -206,7 +200,6 @@ export async function main() {
     result.api.addGatewayResponse(`${id}-${stage}-5xx`, {
       type: ResponseType.DEFAULT_5XX,
       statusCode: "500",
-      responseHeaders,
       templates: {
         "application/json": JSON.stringify({
           timestamp: "$context.requestTime",
@@ -220,7 +213,6 @@ export async function main() {
     result.api.addGatewayResponse(`${id}-${stage}-404`, {
       type: ResponseType.MISSING_AUTHENTICATION_TOKEN,
       statusCode: "404",
-      responseHeaders,
       templates: {
         "application/json": JSON.stringify({
           timestamp: "$context.requestTime",
@@ -240,7 +232,7 @@ export async function main() {
       new AwsLambdaFunction(result.api, `${id}-${stage}-options-handler`, {
         code: Code.fromInline(
           // language=JavaScript
-          `exports.h=async _=>({body:"",headers:${JSON.stringify(responseHeaders)});`,
+          'exports.h=async _=>({headers:{"Access-Control-Allow-Origin": "*","Access-Control-Allow-Headers": "Apollo-Require-Preflight,Content-Type","Access-Control-Allow-Methods": "GET,POST,OPTIONS"},statusCode:204})',
         ),
         handler: "index.h",
         runtime: Runtime.NODEJS_18_X,
