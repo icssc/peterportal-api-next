@@ -33,8 +33,8 @@ const graphqlServer = new ApolloServer({
 
 export const ANY: APIGatewayProxyHandler = async (event) => {
   const { body, headers: eventHeaders, multiValueHeaders, httpMethod: method } = event;
-  logger.info(eventHeaders);
-  logger.info(multiValueHeaders);
+  logger.info(JSON.stringify(eventHeaders));
+  logger.info(JSON.stringify(multiValueHeaders));
 
   try {
     graphqlServer.assertStarted("");
@@ -44,7 +44,7 @@ export const ANY: APIGatewayProxyHandler = async (event) => {
 
   const req: HTTPGraphQLRequest = {
     body,
-    headers: Object.entries(eventHeaders ?? { "content-encoding": "application/json" }).reduce(
+    headers: Object.entries(eventHeaders).reduce(
       (m, [k, v]) => m.set(k, Array.isArray(v) ? v.join(", ") : v ?? ""),
       new HeaderMap(),
     ),
