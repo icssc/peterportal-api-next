@@ -95,7 +95,7 @@ class ApiStack extends Stack {
         format: "esm",
         platform: "node",
         bundle: true,
-        minify: true,
+        // minify: true,
         banner: { js },
         outExtension: { ".js": ".mjs" },
         plugins: [
