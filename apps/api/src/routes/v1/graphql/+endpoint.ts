@@ -33,6 +33,7 @@ const graphqlServer = new ApolloServer({
 
 export const ANY: APIGatewayProxyHandler = async (event) => {
   const { body, headers: eventHeaders, httpMethod: method } = event;
+  logger.info(eventHeaders);
 
   try {
     graphqlServer.assertStarted("");
