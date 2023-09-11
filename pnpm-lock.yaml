@@ -136,11 +136,11 @@ importers:
         version: 3.22.2
     devDependencies:
       '@bronya.js/api-construct':
-        specifier: 0.10.11
-        version: 0.10.11
+        specifier: 0.11.0
+        version: 0.11.0
       '@bronya.js/core':
-        specifier: 0.10.11
-        version: 0.10.11
+        specifier: 0.11.0
+        version: 0.11.0
       '@types/aws-lambda':
         specifier: 8.10.119
         version: 8.10.119
@@ -2986,12 +2986,12 @@ packages:
   /@balena/dockerignore@1.0.2:
     resolution: {integrity: sha512-wMue2Sy4GAVTk6Ic4tJVcnfdau+gx2EnG7S+uAEe+TWJFqE4YoWN4/H8MSLj4eYJKxGg26lZwboEniNiNwZQ6Q==}
 
-  /@bronya.js/api-construct@0.10.11:
-    resolution: {integrity: sha512-gSYKSmnKij+J3oxyqagX5sy0CK8Hf5Tp5JhCgWEX6AgcNybDsYKh/lgZKfJuucJ2ZTNsArdlOa6NuByTX92JQA==}
+  /@bronya.js/api-construct@0.11.0:
+    resolution: {integrity: sha512-iVtW7d+5sci5Ui3a7Lgvq2TwTfogyHfm6eozgd40cNBALCInKWeYExeI0dwbNrNJsaPD9566Zmgh1ruHvnRKTw==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
-      '@bronya.js/cli': 0.10.11
-      '@bronya.js/core': 0.10.11
+      '@bronya.js/cli': 0.11.0
+      '@bronya.js/core': 0.11.0
       acorn: 8.10.0
       acorn-typescript: 1.4.5(acorn@8.10.0)
       aws-cdk-lib: 2.93.0(constructs@10.2.69)
@@ -3007,17 +3007,17 @@ packages:
       - supports-color
     dev: true
 
-  /@bronya.js/cli@0.10.11:
-    resolution: {integrity: sha512-PZ4pgFNzTcXetv9Z/cqTq1fdMBB97Xm/1FZYLT8SRUOqkSnK+i0jbUNHhzuJgI7UZ96qcks8siC6pscEHNSftw==}
+  /@bronya.js/cli@0.11.0:
+    resolution: {integrity: sha512-A//Ycloz7iawLPhTlXRUSVAsqLSGO2zxvLNs0FUQQKBc3N79pC2bKEnsE+mBJNfoOghgzDXB8AoojePdcifXlw==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dev: true
 
-  /@bronya.js/core@0.10.11:
-    resolution: {integrity: sha512-lB+pYLgwO1CmdxG3LcEHLoAFLomnCQloeJFPY7z6h/7NKOmWp3Kr8IIVLUsIwCRNHz9OyxVwWlMSIvCryrD2Ag==}
+  /@bronya.js/core@0.11.0:
+    resolution: {integrity: sha512-xP11EjuPn/OxBt/EizN6MBhyfwEVjH3YUY6Sl9Z5XQ/wzooYNxqD7Xn3U2G1980gshuN/wWNb0xN6Cbq/9fnKA==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     hasBin: true
     dependencies:
-      '@bronya.js/cli': 0.10.11
+      '@bronya.js/cli': 0.11.0
       acorn: 8.10.0
       acorn-typescript: 1.4.5(acorn@8.10.0)
       aws-cdk-lib: 2.93.0(constructs@10.2.69)
@@ -3136,7 +3136,7 @@ packages:
       lodash.merge: 4.6.2
       lodash.uniq: 4.5.0
       resolve-from: 5.0.0
-      ts-node: 10.9.1(@types/node@18.17.12)(typescript@5.2.2)
+      ts-node: 10.9.1(@types/node@20.4.7)(typescript@5.2.2)
       typescript: 5.2.2
     transitivePeerDependencies:
       - '@swc/core'
@@ -7340,7 +7340,7 @@ packages:
     dependencies:
       '@types/node': 20.4.7
       cosmiconfig: 8.1.3
-      ts-node: 10.9.1(@types/node@18.17.12)(typescript@5.2.2)
+      ts-node: 10.9.1(@types/node@20.4.7)(typescript@5.2.2)
       typescript: 5.2.2
     dev: true
 
@@ -13128,6 +13128,38 @@ packages:
       '@tsconfig/node14': 1.0.3
       '@tsconfig/node16': 1.0.4
       '@types/node': 18.17.12
+      acorn: 8.10.0
+      acorn-walk: 8.2.0
+      arg: 4.1.3
+      create-require: 1.1.1
+      diff: 4.0.2
+      make-error: 1.3.6
+      typescript: 5.2.2
+      v8-compile-cache-lib: 3.0.1
+      yn: 3.1.1
+    dev: true
+
+  /ts-node@10.9.1(@types/node@20.4.7)(typescript@5.2.2):
+    resolution: {integrity: sha512-NtVysVPkxxrwFGUUxGYhfux8k78pQB3JqYBXlLRZgdGUqTO5wU/UyHop5p70iEbGhB7q5KmiZiU0Y3KlJrScEw==}
+    hasBin: true
+    requiresBuild: true
+    peerDependencies:
+      '@swc/core': '>=1.2.50'
+      '@swc/wasm': '>=1.2.50'
+      '@types/node': '*'
+      typescript: '>=2.7'
+    peerDependenciesMeta:
+      '@swc/core':
+        optional: true
+      '@swc/wasm':
+        optional: true
+    dependencies:
+      '@cspotcode/source-map-support': 0.8.1
+      '@tsconfig/node10': 1.0.9
+      '@tsconfig/node12': 1.0.11
+      '@tsconfig/node14': 1.0.3
+      '@tsconfig/node16': 1.0.4
+      '@types/node': 20.4.7
       acorn: 8.10.0
       acorn-walk: 8.2.0
       arg: 4.1.3
