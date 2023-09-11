@@ -40,16 +40,12 @@ export const ANY: APIGatewayProxyHandler = async (event) => {
     await graphqlServer.start();
   }
 
-  let headers: HeaderMap;
   const req: HTTPGraphQLRequest = {
     body,
-    get headers() {
-      headers ??= Object.entries(eventHeaders).reduce(
-        (m, [k, v]) => m.set(k, Array.isArray(v) ? v.join(", ") : v ?? ""),
-        new HeaderMap(),
-      );
-      return headers;
-    },
+    headers: Object.entries(eventHeaders).reduce(
+      (m, [k, v]) => m.set(k, Array.isArray(v) ? v.join(", ") : v ?? ""),
+      new HeaderMap(),
+    ),
     method,
     search: parse(event.path ?? "").search ?? "",
   };
