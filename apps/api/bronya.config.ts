@@ -190,11 +190,23 @@ export async function main() {
     if (stage === "dev") {
       throw new Error("Cannot deploy this app in the development environment.");
     }
+
     const result = await api.synth();
 
+    const responseHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Apollo-Require-Preflight,Content-Type",
+      "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+    };
+
+    /**
+     * Add gateway responses for 5xx and 404 errors, so that they remain compliant
+     * with the {@link `ErrorResponse`} type.
+     */
     result.api.addGatewayResponse(`${id}-${stage}-5xx`, {
       type: ResponseType.DEFAULT_5XX,
       statusCode: "500",
+      responseHeaders,
       templates: {
         "application/json": JSON.stringify({
           timestamp: "$context.requestTime",
@@ -205,10 +217,10 @@ export async function main() {
         }),
       },
     });
-
     result.api.addGatewayResponse(`${id}-${stage}-404`, {
       type: ResponseType.MISSING_AUTHENTICATION_TOKEN,
       statusCode: "404",
+      responseHeaders,
       templates: {
         "application/json": JSON.stringify({
           timestamp: "$context.requestTime",
@@ -220,26 +232,30 @@ export async function main() {
       },
     });
 
-    const optionsIntegration = new LambdaIntegration(
+    /**
+     * Define the CORS response headers integration and add it to all endpoints.
+     * This is necessary since we hacked API Gateway to be able to serve binary data.
+     */
+    const corsIntegration = new LambdaIntegration(
       new AwsLambdaFunction(result.api, `${id}-${stage}-options-handler`, {
         code: Code.fromInline(
           // language=JavaScript
-          'exports.h=async _=>({body:"",headers:{"Access-Control-Allow-Origin":"*","Access-Control-Allow-Headers":"Apollo-Require-Preflight,Content-Type","Access-Control-Allow-Methods":"GET,POST,OPTIONS"},statusCode:204});',
+          `exports.h=async _=>({body:"",headers:${JSON.stringify(responseHeaders)});`,
         ),
         handler: "index.h",
         runtime: Runtime.NODEJS_18_X,
         architecture: Architecture.ARM_64,
       }),
     );
-
     result.api.methods.forEach((apiMethod) => {
       try {
-        apiMethod.resource.addMethod("OPTIONS", optionsIntegration);
+        apiMethod.resource.addMethod("OPTIONS", corsIntegration);
       } catch {
         // no-op
       }
     });
 
+    // Set up the custom domain name and A record for the API.
     result.api.addDomainName(`${id}-${stage}-domain`, {
       domainName: `${stage === "prod" ? "" : `${stage}.`}api-next.peterportal.org`,
       certificate: Certificate.fromCertificateArn(
@@ -248,7 +264,6 @@ export async function main() {
         process.env.CERTIFICATE_ARN ?? "",
       ),
     });
-
     new ARecord(result.api, `${id}-${stage}-a-record`, {
       zone: HostedZone.fromHostedZoneAttributes(result.api, "peterportal-hosted-zone", {
         zoneName,

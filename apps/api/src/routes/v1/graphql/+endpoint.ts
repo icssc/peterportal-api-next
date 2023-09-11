@@ -8,7 +8,7 @@ import {
 } from "@apollo/server/plugin/landingPage/default";
 import { loadFilesSync } from "@graphql-tools/load-files";
 import { mergeTypeDefs } from "@graphql-tools/merge";
-import { compress } from "@libs/lambda";
+import { compress, logger } from "@libs/lambda";
 import type { APIGatewayProxyHandler, APIGatewayProxyResult } from "aws-lambda";
 
 import { transformBody } from "./lib";
@@ -49,6 +49,7 @@ export const ANY: APIGatewayProxyHandler = async (event) => {
     method,
     search: parse(event.path ?? "").search ?? "",
   };
+  logger.info(JSON.stringify(req));
   const res = await graphqlServer.executeHTTPGraphQLRequest({
     httpGraphQLRequest: req,
     context: async () => ({}),
