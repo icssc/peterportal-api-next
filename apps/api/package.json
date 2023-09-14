@@ -15,7 +15,6 @@
   },
   "license": "MIT",
   "type": "module",
-  "main": "bronya.config.ts",
   "scripts": {
     "cdk-app": "cdk --app 'npx tsx bronya.config.ts' --require-approval never",
     "dev": "bunny dev-api"
@@ -39,8 +38,8 @@
     "zod": "3.22.2"
   },
   "devDependencies": {
-    "@bronya.js/api-construct": "0.11.1",
-    "@bronya.js/core": "0.11.1",
+    "@bronya.js/api-construct": "0.11.2",
+    "@bronya.js/core": "0.11.2",
     "@types/aws-lambda": "8.10.119",
     "aws-cdk": "2.93.0",
     "dotenv": "16.3.1",
