@@ -101,8 +101,6 @@ type AggregateGradeByCourse {
   department: String!
   "The course number the section belongs to."
   courseNumber: String!
-  "The shortened name of the instructor who taught the section."
-  instructor: String!
   "How many students attained an A+/A/A-."
   gradeACount: Int!
   "How many students attained a B+/B/B-."
@@ -197,7 +195,7 @@ extend type Query {
     division: Division
     ge: GE
     excludePNP: Boolean
-  ): [AggregateGradeByOffering!]!
+  ): [AggregateGradeByCourse!]!
   """
   Get the aggregate grade info, grouped by offering (course and instructor),
   for the given parameters.
