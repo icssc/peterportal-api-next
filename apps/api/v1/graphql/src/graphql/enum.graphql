@@ -9,6 +9,7 @@ enum Quarter {
 }
 "The set of valid GE category codes."
 enum GE {
+  ANY
   GE_1A
   GE_1B
   GE_2

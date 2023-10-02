@@ -1,9 +1,9 @@
-import { Quarter } from "./constants";
+import type { GE, Quarter } from "./constants";
 
 /**
  * A section which has grades data associated with it.
  */
-export type GradeSection = {
+export type GradesSection = {
   /**
    * The year the section was offered.
    */
@@ -28,6 +28,10 @@ export type GradeSection = {
    * The numeric part of the course number.
    */
   courseNumeric: number;
+  /**
+   * What GE categor(y/ies) the section fulfills (if any).
+   */
+  geCategories: GE[];
   /**
    * The shortened name(s) of the instructor(s) who taught the section.
    */
@@ -76,22 +80,24 @@ export type GradeDistribution = {
   averageGPA: number;
 };
 
+export type RawGrade = GradesSection & GradeDistribution;
+
 /**
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/grades/raw``.
  */
-export type GradesRaw = (GradeSection & GradeDistribution)[];
+export type RawGrades = RawGrade[];
 
 /**
  * An object that represents aggregate grades statistics for a given query.
  * The type of the payload returned on a successful response from querying
  * ``/v1/rest/grades/aggregate``.
  */
-export type GradesAggregate = {
+export type AggregateGrades = {
   /**
    * The list of sections in the query.
    */
-  sectionList: GradeSection[];
+  sectionList: GradesSection[];
   /**
    * The combined grades distribution of all sections in the query.
    */
@@ -124,3 +130,22 @@ export type GradesOptions = {
    */
   instructors: string[];
 };
+
+export type AggregateGradeByCourseHeader = {
+  department: string;
+  courseNumber: string;
+};
+
+export type AggregateGradeByCourse = AggregateGradeByCourseHeader & GradeDistribution;
+
+export type AggregateGradesByCourse = AggregateGradeByCourse[];
+
+export type AggregateGradeByOfferingHeader = {
+  department: string;
+  courseNumber: string;
+  instructor: string;
+};
+
+export type AggregateGradeByOffering = AggregateGradeByOfferingHeader & GradeDistribution;
+
+export type AggregateGradesByOffering = AggregateGradeByOffering[];

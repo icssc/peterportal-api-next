@@ -42,6 +42,10 @@ The five-digit section code to include.
 
 The course level/division code to include. Case-sensitive.
 
+#### `ge` GE-1A | GE-1B | GE-2 | GE-3 | GE-4 | GE-5A | GE-5B | GE-6 | GE-7 | GE-8
+
+Which GE category to include. Case-sensitive.
+
 #### `excludePNP` boolean
 
 Whether to exclude sections that only reported Pass/No-Pass grades.
@@ -74,6 +78,7 @@ curl "https://api-next.peterportal.org/v1/rest/grades/raw?year=2022&quarter=Fall
     "department": "I&C SCI",
     "courseNumber": "46",
     "courseNumeric": 46,
+    "geCategories": ["GE-5B"],
     "gradeACount": 34,
     "gradeBCount": 19,
     "gradeCCount": 40,
@@ -93,12 +98,14 @@ curl "https://api-next.peterportal.org/v1/rest/grades/raw?year=2022&quarter=Fall
 
 ```typescript
 // https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
-type GradesRaw = {
+type RawGrades = {
   year: string;
   quarter: string;
+  sectionCode: string;
   department: string;
   courseNumber: string;
-  sectionCode: string;
+  courseNumeric: number;
+  geCategories: GE[];
   instructors: string[];
   gradeACount: number;
   gradeBCount: number;
@@ -144,6 +151,7 @@ curl "https://api-next.peterportal.org/v1/rest/grades/aggregate?year=2022&quarte
       "department": "I&C SCI",
       "courseNumber": "46",
       "courseNumeric": 46,
+      "geCategories": ["GE-5B"],
       "instructors": ["GARZA RODRIGUE, A.", "GILA, O.", "SHINDLER, M."]
     },
     {
@@ -153,6 +161,7 @@ curl "https://api-next.peterportal.org/v1/rest/grades/aggregate?year=2022&quarte
       "department": "I&C SCI",
       "courseNumber": "46",
       "courseNumeric": 46,
+      "geCategories": ["GE-5B"],
       "instructors": ["DICKERSON, M.", "SHINDLER, M."]
     }
   ],
@@ -175,13 +184,14 @@ curl "https://api-next.peterportal.org/v1/rest/grades/aggregate?year=2022&quarte
 
 ```typescript
 // https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
-type GradesAggregate = {
+type AggregateGrades = {
   sectionList: {
     year: string;
     quarter: string;
     department: string;
     courseNumber: string;
     sectionCode: string;
+    geCategories: GE[];
     instructors: string[];
   }[];
   gradeDistribution: {
@@ -265,6 +275,192 @@ type GradesOptions = {
   sectionCodes: string[];
   instructors: string[];
 };
+```
+
+</TabItem>
+</Tabs>
+
+## Get grade statistics aggregated by course for certain sections
+
+Formally, if two sections have the same department code and course number, then they will be aggregated together for the purposes of this endpoint. For queries that involve an entire department, this is equivalent to running an aggregate query for each course number, but much faster.
+
+Note that graduate students who are listed as instructors on WebSoc may also be included.
+
+### Code sample
+
+<Tabs>
+<TabItem value="bash" label="cURL">
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/grades/aggregateByCourse?year=2023&department=COMPSCI"
+```
+
+</TabItem>
+</Tabs>
+
+### Response
+
+<Tabs>
+<TabItem value="json" label="Example response">
+
+```json
+[
+  {
+    "department": "COMPSCI",
+    "courseNumber": "103",
+    "gradeACount": 80,
+    "gradeBCount": 11,
+    "gradeCCount": 10,
+    "gradeDCount": 4,
+    "gradeFCount": 5,
+    "gradePCount": 11,
+    "gradeNPCount": 8,
+    "gradeWCount": 0,
+    "averageGPA": 3.415
+  },
+  {
+    "department": "COMPSCI",
+    "courseNumber": "111",
+    "gradeACount": 112,
+    "gradeBCount": 100,
+    "gradeCCount": 35,
+    "gradeDCount": 13,
+    "gradeFCount": 13,
+    "gradePCount": 13,
+    "gradeNPCount": 2,
+    "gradeWCount": 2,
+    "averageGPA": 3.11625
+  },
+  "..."
+]
+```
+
+</TabItem>
+<TabItem value="ts" label="Payload schema">
+
+```typescript
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
+type AggregateGradesByCourse = {
+  department: string;
+  courseNumber: string;
+  gradeACount: number;
+  gradeBCount: number;
+  gradeCCount: number;
+  gradeDCount: number;
+  gradeFCount: number;
+  gradePCount: number;
+  gradeNPCount: number;
+  gradeWCount: number;
+  averageGPA: number;
+}[];
+```
+
+</TabItem>
+</Tabs>
+
+## Get grade statistics aggregated by course/instructor for certain sections
+
+Formally, if two sections have the same department code, course number, and instructor name, then they will be aggregated together for the purposes of this endpoint. For queries that involve an entire department, this is equivalent to running an aggregate query for each course number-instructor pair, but much faster.
+
+Note that graduate students who are listed as instructors on WebSoc may also be included.
+
+### Code sample
+
+<Tabs>
+<TabItem value="bash" label="cURL">
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/grades/aggregateByOffering?year=2023&department=COMPSCI&courseNumber=161"
+```
+
+</TabItem>
+</Tabs>
+
+### Response
+
+<Tabs>
+<TabItem value="json" label="Example response">
+
+```json
+[
+  {
+    "department": "COMPSCI",
+    "courseNumber": "161",
+    "instructor": "FRISHBERG, D.",
+    "gradeACount": 165,
+    "gradeBCount": 42,
+    "gradeCCount": 59,
+    "gradeDCount": 0,
+    "gradeFCount": 14,
+    "gradePCount": 0,
+    "gradeNPCount": 0,
+    "gradeWCount": 2,
+    "averageGPA": 3.23
+  },
+  {
+    "department": "COMPSCI",
+    "courseNumber": "161",
+    "instructor": "KALOGIANNIS, F.",
+    "gradeACount": 165,
+    "gradeBCount": 42,
+    "gradeCCount": 59,
+    "gradeDCount": 0,
+    "gradeFCount": 14,
+    "gradePCount": 0,
+    "gradeNPCount": 0,
+    "gradeWCount": 2,
+    "averageGPA": 3.23
+  },
+  {
+    "department": "COMPSCI",
+    "courseNumber": "161",
+    "instructor": "PANAGEAS, I.",
+    "gradeACount": 101,
+    "gradeBCount": 115,
+    "gradeCCount": 48,
+    "gradeDCount": 15,
+    "gradeFCount": 12,
+    "gradePCount": 0,
+    "gradeNPCount": 0,
+    "gradeWCount": 2,
+    "averageGPA": 2.935
+  },
+  {
+    "department": "COMPSCI",
+    "courseNumber": "161",
+    "instructor": "SHINDLER, M.",
+    "gradeACount": 165,
+    "gradeBCount": 42,
+    "gradeCCount": 59,
+    "gradeDCount": 0,
+    "gradeFCount": 14,
+    "gradePCount": 0,
+    "gradeNPCount": 0,
+    "gradeWCount": 2,
+    "averageGPA": 3.23
+  }
+]
+```
+
+</TabItem>
+<TabItem value="ts" label="Payload schema">
+
+```typescript
+// https://github.com/icssc/peterportal-api-next/blob/main/packages/peterportal-api-next-types/types/grades.ts
+type AggregateGradesByOffering = {
+  department: string;
+  courseNumber: string;
+  instructor: string;
+  gradeACount: number;
+  gradeBCount: number;
+  gradeCCount: number;
+  gradeDCount: number;
+  gradeFCount: number;
+  gradePCount: number;
+  gradeNPCount: number;
+  gradeWCount: number;
+  averageGPA: number;
+}[];
 ```
 
 </TabItem>

@@ -12,6 +12,8 @@ type GradesSection {
   courseNumber: String!
   "The numeric part of the course number."
   courseNumeric: Int!
+  "What GE categor(y/ies) this section satisfies (if any)."
+  geCategories: [GE!]!
   "The shortened name(s) of the instructor(s) who taught the section."
   instructors: [String!]!
 }
@@ -50,6 +52,8 @@ type RawGrade {
   courseNumber: String!
   "The numeric part of the course number."
   courseNumeric: Int!
+  "What GE categor(y/ies) this section satisfies (if any)."
+  geCategories: [GE!]!
   "How many students attained an A+/A/A-."
   gradeACount: Int!
   "How many students attained a B+/B/B-."
@@ -91,6 +95,58 @@ type GradesOptions {
   "The list of instructors that matched the given filters."
   instructors: [String!]!
 }
+"An object that represents aggregate grades statistics for a course taught by an instructor."
+type AggregateGradeByCourse {
+  "The department code."
+  department: String!
+  "The course number the section belongs to."
+  courseNumber: String!
+  "How many students attained an A+/A/A-."
+  gradeACount: Int!
+  "How many students attained a B+/B/B-."
+  gradeBCount: Int!
+  "How many students attained a C+/C/C-."
+  gradeCCount: Int!
+  "How many students attained a D+/D/D-."
+  gradeDCount: Int!
+  "How many students attained an F."
+  gradeFCount: Int!
+  "How many students attained a P."
+  gradePCount: Int!
+  "How many students attained an NP."
+  gradeNPCount: Int!
+  "How many students attained a W."
+  gradeWCount: Int!
+  "The average GPA of all assigned grades in the course."
+  averageGPA: Float!
+}
+"An object that represents aggregate grades statistics for a course taught by an instructor."
+type AggregateGradeByOffering {
+  "The department code."
+  department: String!
+  "The course number the section belongs to."
+  courseNumber: String!
+  "The shortened name of the instructor who taught the section."
+  instructor: String!
+  "How many students attained an A+/A/A-."
+  gradeACount: Int!
+  "How many students attained a B+/B/B-."
+  gradeBCount: Int!
+  "How many students attained a C+/C/C-."
+  gradeCCount: Int!
+  "How many students attained a D+/D/D-."
+  gradeDCount: Int!
+  "How many students attained an F."
+  gradeFCount: Int!
+  "How many students attained a P."
+  gradePCount: Int!
+  "How many students attained an NP."
+  gradeNPCount: Int!
+  "How many students attained a W."
+  gradeWCount: Int!
+  "The average GPA of all assigned grades in the course."
+  averageGPA: Float!
+}
 
 extend type Query {
   "Get the raw grade info for the given parameters."
@@ -113,6 +169,7 @@ extend type Query {
     courseNumber: String
     sectionCode: String
     division: Division
+    ge: GE
     excludePNP: Boolean
   ): AggregateGrades!
   "Get the available options for the given constraints."
@@ -124,6 +181,34 @@ extend type Query {
     courseNumber: String
     sectionCode: String
     division: Division
+    ge: GE
     excludePNP: Boolean
   ): GradesOptions!
+  "Get the aggregate grade info, grouped by course, for the given parameters."
+  aggregateByCourse(
+    year: String
+    quarter: Quarter
+    instructor: String
+    department: String
+    courseNumber: String
+    sectionCode: String
+    division: Division
+    ge: GE
+    excludePNP: Boolean
+  ): [AggregateGradeByCourse!]!
+  """
+  Get the aggregate grade info, grouped by offering (course and instructor),
+  for the given parameters.
+  """
+  aggregateByOffering(
+    year: String
+    quarter: Quarter
+    instructor: String
+    department: String
+    courseNumber: String
+    sectionCode: String
+    division: Division
+    ge: GE
+    excludePNP: Boolean
+  ): [AggregateGradeByOffering!]!
 }
