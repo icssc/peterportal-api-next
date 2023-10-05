@@ -540,7 +540,8 @@ export const callWebSocAPI = async (
 
   const json: WebsocAPIResponse = await transform(await response.text(), template);
   json.schools.forEach((school) =>
-    school.departments.forEach((department) =>
+    school.departments.forEach((department) => {
+      department.deptName = department.deptName.replace(/&amp;/g, "&");
       department.courses.forEach((course) =>
         course.sections.forEach((section) => {
           section.meetings.forEach((meeting) => {
@@ -548,8 +549,8 @@ export const callWebSocAPI = async (
           });
           section.meetings = getUniqueMeetings(section.meetings);
         }),
-      ),
-    ),
+      );
+    }),
   );
   return json;
 };
