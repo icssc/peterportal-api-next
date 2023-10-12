@@ -34,9 +34,13 @@ export const overrides: ApiPropsOverride = {
 
             mkdirSync(build.initialOptions.outdir, { recursive: true });
 
-            cpSync(resolve("./schema"), join(build.initialOptions.outdir, "schema"), {
-              recursive: true,
-            });
+            cpSync(
+              resolve("src/routes/v1/graphql/schema"),
+              join(build.initialOptions.outdir, "schema"),
+              {
+                recursive: true,
+              },
+            );
           });
         },
       },
