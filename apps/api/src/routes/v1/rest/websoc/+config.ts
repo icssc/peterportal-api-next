@@ -32,5 +32,5 @@ export const overrides: ApiPropsOverride = {
       }),
     }),
   },
-  esbuild: { external: process.env.NODE_ENV === "development" ? [] : ["@services/websoc-proxy"] },
+  // esbuild: { external: process.env.NODE_ENV === "development" ? [] : ["@services/websoc-proxy"] },
 };

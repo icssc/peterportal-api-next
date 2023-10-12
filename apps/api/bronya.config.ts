@@ -1,4 +1,4 @@
-import { chmodSync, copyFileSync, cpSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { chmodSync, copyFileSync, mkdirSync, readdirSync, rmSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { Api } from "@bronya.js/api-construct";
@@ -99,22 +99,6 @@ class ApiStack extends Stack {
         banner: { js },
         outExtension: { ".js": ".mjs" },
         plugins: [
-          {
-            name: "copy-graphql-schema",
-            setup(build) {
-              build.onStart(async () => {
-                if (!build.initialOptions.outdir?.endsWith("graphql")) return;
-
-                mkdirSync(build.initialOptions.outdir, { recursive: true });
-
-                cpSync(
-                  resolve(projectRoot, "src/routes/v1/graphql/schema"),
-                  join(build.initialOptions.outdir, "schema"),
-                  { recursive: true },
-                );
-              });
-            },
-          },
           {
             name: "copy-prisma",
             setup(build) {
