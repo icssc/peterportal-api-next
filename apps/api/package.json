@@ -44,6 +44,7 @@
     "aws-cdk": "2.93.0",
     "dotenv": "16.3.1",
     "dotenv-cli": "7.3.0",
+    "esbuild": "0.19.2",
     "tsx": "3.12.7"
   },
   "//": "the CDK configuration in this config file is used in the deployment package, @tools/cdk"
