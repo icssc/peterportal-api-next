@@ -8,6 +8,8 @@ import {
   ServicePrincipal,
 } from "aws-cdk-lib/aws-iam";
 
+import { esbuildOptions } from "../../../../../bronya.config";
+
 export const overrides: ApiPropsOverride = {
   constructs: {
     functionProps: (scope, id) => ({
@@ -32,5 +34,8 @@ export const overrides: ApiPropsOverride = {
       }),
     }),
   },
-  // esbuild: { external: process.env.NODE_ENV === "development" ? [] : ["@services/websoc-proxy"] },
+  esbuild: {
+    ...esbuildOptions,
+    external: process.env.NODE_ENV === "development" ? [] : ["@services/websoc-proxy"],
+  },
 };

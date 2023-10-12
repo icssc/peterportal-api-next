@@ -13,6 +13,7 @@ import { Architecture, Code, Function as AwsLambdaFunction, Runtime } from "aws-
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { App, Stack, Duration } from "aws-cdk-lib/core";
+import type { BuildOptions } from "esbuild";
 
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1623640043
@@ -38,6 +39,44 @@ const libsDbDirectory = resolve(projectRoot, "..", "..", "libs", "db");
 const prismaClientDirectory = resolve(libsDbDirectory, "node_modules", "prisma");
 
 const prismaSchema = resolve(libsDbDirectory, "prisma", "schema.prisma");
+
+export const esbuildOptions: BuildOptions = {
+  format: "esm",
+  platform: "node",
+  bundle: true,
+  minify: true,
+  banner: { js },
+  outExtension: { ".js": ".mjs" },
+  plugins: [
+    {
+      name: "copy-prisma",
+      setup(build) {
+        build.onStart(async () => {
+          const outDirectory = build.initialOptions.outdir ?? projectRoot;
+
+          mkdirSync(outDirectory, { recursive: true });
+
+          const queryEngines = readdirSync(prismaClientDirectory).filter((file) =>
+            file.endsWith(".so.node"),
+          );
+
+          queryEngines.forEach((queryEngineFile) =>
+            copyFileSync(
+              join(prismaClientDirectory, queryEngineFile),
+              join(outDirectory, queryEngineFile),
+            ),
+          );
+
+          queryEngines.forEach((queryEngineFile) =>
+            chmodSync(join(outDirectory, queryEngineFile), 0o755),
+          );
+
+          copyFileSync(prismaSchema, join(outDirectory, "schema.prisma"));
+        });
+      },
+    },
+  ],
+};
 
 class ApiStack extends Stack {
   public api: Api;
@@ -91,45 +130,7 @@ class ApiStack extends Stack {
         NODE_ENV: process.env["NODE_ENV"] ?? "",
         STAGE: stage,
       },
-      esbuild: {
-        format: "esm",
-        platform: "node",
-        bundle: true,
-        // minify: true,
-        banner: { js },
-        outExtension: { ".js": ".mjs" },
-        plugins: [
-          {
-            name: "copy-prisma",
-            setup(build) {
-              build.onStart(async () => {
-                const outDirectory = build.initialOptions.outdir ?? projectRoot;
-
-                if (outDirectory.endsWith("graphql")) return;
-
-                mkdirSync(outDirectory, { recursive: true });
-
-                const queryEngines = readdirSync(prismaClientDirectory).filter((file) =>
-                  file.endsWith(".so.node"),
-                );
-
-                queryEngines.forEach((queryEngineFile) =>
-                  copyFileSync(
-                    join(prismaClientDirectory, queryEngineFile),
-                    join(outDirectory, queryEngineFile),
-                  ),
-                );
-
-                queryEngines.forEach((queryEngineFile) =>
-                  chmodSync(join(outDirectory, queryEngineFile), 0o755),
-                );
-
-                copyFileSync(prismaSchema, join(outDirectory, "schema.prisma"));
-              });
-            },
-          },
-        ],
-      },
+      esbuild: esbuildOptions,
     });
   }
 }
