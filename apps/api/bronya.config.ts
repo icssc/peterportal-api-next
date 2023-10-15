@@ -80,6 +80,13 @@ const prismaSchema = resolve(libsDbDirectory, "prisma", prismaSchemaFile);
 const prismaQueryEngineFile = "libquery_engine-linux-arm64-openssl-1.0.x.so.node";
 
 /**
+ * The body of a warming request.
+ *
+ * TODO: actually recognize warming requests in the route handlers.
+ */
+const warmingRequestBody = { body: "warming request" };
+
+/**
  * Shared ESBuild options.
  */
 export const esbuildOptions: BuildOptions = {
@@ -88,6 +95,14 @@ export const esbuildOptions: BuildOptions = {
   bundle: true,
   minify: true,
   banner: { js },
+
+  /**
+   * @remarks
+   * For Fourmilier: this is specified in order to guarantee that the file is interprested as ESM.
+   * However, the framework will continue to assume `handler.js` is the entrypoint.
+   *
+   * @RFC What would be the best way to resolve these two values?
+   */
   outExtension: { ".js": ".mjs" },
 };
 
@@ -97,7 +112,7 @@ export const esbuildOptions: BuildOptions = {
 export const constructs: ApiConstructProps = {
   functionPlugin: ({ functionProps, handler }, scope) => {
     const warmingTarget = new LambdaFunction(handler, {
-      event: RuleTargetInput.fromObject({ body: "warming request" }),
+      event: RuleTargetInput.fromObject(warmingRequestBody),
     });
 
     const warmingRule = new Rule(scope, `${functionProps.functionName}-warming-rule`, {
@@ -114,7 +129,7 @@ export const constructs: ApiConstructProps = {
 
     chmodSync(join(directory, prismaQueryEngineFile), 0o755);
 
-    copyFileSync(prismaSchema, join(directory, "schema.prisma"));
+    copyFileSync(prismaSchema, join(directory, prismaSchemaFile));
   },
   restApiProps: () => ({ disableExecuteApiEndpoint: true, binaryMediaTypes: ["*/*"] }),
 };
@@ -142,7 +157,14 @@ class ApiStack extends Stack {
           },
         },
       }),
+
+      /**
+       * @remarks
+       * For Fourmilier: although ESBuild specified that "js" -> "mjs", the framework
+       * still assumes that the entrypoint is `handler.js` unless explicitly specified.
+       */
       exitPoint: "handler.mjs",
+
       constructs,
       environment: {
         DATABASE_URL: process.env["DATABASE_URL"] ?? "",
