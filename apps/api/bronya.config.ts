@@ -1,7 +1,7 @@
 import { chmodSync, copyFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-import { Api } from "@bronya.js/api-construct";
+import { Api, ApiConstructProps } from "@bronya.js/api-construct";
 import { createApiCliPlugins } from "@bronya.js/api-construct/plugins/cli";
 import { isCdk } from "@bronya.js/core";
 import { logger } from "@libs/lambda";
@@ -92,6 +92,34 @@ export const esbuildOptions: BuildOptions = {
 };
 
 /**
+ * Shared construct props.
+ */
+export const constructs: ApiConstructProps = {
+  functionPlugin: ({ functionProps, handler }, scope) => {
+    const warmingTarget = new LambdaFunction(handler, {
+      event: RuleTargetInput.fromObject({ body: "warming request" }),
+    });
+
+    const warmingRule = new Rule(scope, `${functionProps.functionName}-warming-rule`, {
+      schedule: Schedule.rate(Duration.minutes(5)),
+    });
+
+    warmingRule.addTarget(warmingTarget);
+  },
+  lambdaUpload: (directory) => {
+    copyFileSync(
+      join(prismaClientDirectory, prismaQueryEngineFile),
+      join(directory, prismaQueryEngineFile),
+    );
+
+    chmodSync(join(directory, prismaQueryEngineFile), 0o755);
+
+    copyFileSync(prismaSchema, join(directory, "schema.prisma"));
+  },
+  restApiProps: () => ({ disableExecuteApiEndpoint: true, binaryMediaTypes: ["*/*"] }),
+};
+
+/**
  * The backend API stack. i.e. AWS Lambda, API Gateway.
  */
 class ApiStack extends Stack {
@@ -115,30 +143,7 @@ class ApiStack extends Stack {
         },
       }),
       exitPoint: "handler.mjs",
-      constructs: {
-        functionPlugin: ({ functionProps, handler }) => {
-          const warmingTarget = new LambdaFunction(handler, {
-            event: RuleTargetInput.fromObject({ body: "warming request" }),
-          });
-
-          const warmingRule = new Rule(this, `${functionProps.functionName}-warming-rule`, {
-            schedule: Schedule.rate(Duration.minutes(5)),
-          });
-
-          warmingRule.addTarget(warmingTarget);
-        },
-        lambdaUpload: (directory) => {
-          copyFileSync(
-            join(prismaClientDirectory, prismaQueryEngineFile),
-            join(directory, prismaQueryEngineFile),
-          );
-
-          chmodSync(join(directory, prismaQueryEngineFile), 0o755);
-
-          copyFileSync(prismaSchema, join(directory, "schema.prisma"));
-        },
-        restApiProps: () => ({ disableExecuteApiEndpoint: true, binaryMediaTypes: ["*/*"] }),
-      },
+      constructs,
       environment: {
         DATABASE_URL: process.env["DATABASE_URL"] ?? "",
         NODE_ENV: process.env["NODE_ENV"] ?? "",
