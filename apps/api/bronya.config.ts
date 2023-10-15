@@ -1,4 +1,4 @@
-import { chmodSync, copyFileSync, mkdirSync, readdirSync, rmSync } from "node:fs";
+import { chmodSync, copyFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
 import { Api } from "@bronya.js/api-construct";
@@ -13,7 +13,12 @@ import { Architecture, Code, Function as AwsLambdaFunction, Runtime } from "aws-
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { App, Stack, Duration } from "aws-cdk-lib/core";
+import { config } from "dotenv";
 import type { BuildOptions } from "esbuild";
+
+config({
+  path: "../../.env",
+});
 
 /**
  * @see https://github.com/evanw/esbuild/issues/1921#issuecomment-1623640043
@@ -36,10 +41,29 @@ const projectRoot = process.cwd();
  */
 const libsDbDirectory = resolve(projectRoot, "..", "..", "libs", "db");
 
+/**
+ * Where all Prisma related files are located.
+ */
 const prismaClientDirectory = resolve(libsDbDirectory, "node_modules", "prisma");
 
-const prismaSchema = resolve(libsDbDirectory, "prisma", "schema.prisma");
+/**
+ * Name of the schema file.
+ */
+const prismaSchemaFile = "schema.prisma";
 
+/**
+ * Where the prisma schema is located.
+ */
+const prismaSchema = resolve(libsDbDirectory, "prisma", prismaSchemaFile);
+
+/**
+ * Name of the Prisma query engine file that's used on AWS Lambda.
+ */
+const prismaQueryEngineFile = "libquery_engine-linux-arm64-openssl-1.0.x.so.node";
+
+/**
+ * Shared ESBuild options.
+ */
 export const esbuildOptions: BuildOptions = {
   format: "esm",
   platform: "node",
@@ -47,39 +71,14 @@ export const esbuildOptions: BuildOptions = {
   minify: true,
   banner: { js },
   outExtension: { ".js": ".mjs" },
-  plugins: [
-    {
-      name: "copy-prisma",
-      setup(build) {
-        build.onStart(async () => {
-          const outDirectory = build.initialOptions.outdir ?? projectRoot;
-
-          mkdirSync(outDirectory, { recursive: true });
-
-          const queryEngines = readdirSync(prismaClientDirectory).filter((file) =>
-            file.endsWith(".so.node"),
-          );
-
-          queryEngines.forEach((queryEngineFile) =>
-            copyFileSync(
-              join(prismaClientDirectory, queryEngineFile),
-              join(outDirectory, queryEngineFile),
-            ),
-          );
-
-          queryEngines.forEach((queryEngineFile) =>
-            chmodSync(join(outDirectory, queryEngineFile), 0o755),
-          );
-
-          copyFileSync(prismaSchema, join(outDirectory, "schema.prisma"));
-        });
-      },
-    },
-  ],
 };
 
+/**
+ * The backend API stack. i.e. AWS Lambda, API Gateway.
+ */
 class ApiStack extends Stack {
   public api: Api;
+
   constructor(scope: App, id: string, stage: string) {
     super(scope, id);
 
@@ -111,17 +110,14 @@ class ApiStack extends Stack {
           warmingRule.addTarget(warmingTarget);
         },
         lambdaUpload: (directory) => {
-          const queryEngines = readdirSync(directory).filter((x) => x.endsWith(".so.node"));
+          copyFileSync(
+            join(prismaClientDirectory, prismaQueryEngineFile),
+            join(directory, prismaQueryEngineFile),
+          );
 
-          if (queryEngines.length === 1) {
-            return;
-          }
+          chmodSync(join(directory, prismaQueryEngineFile), 0o755);
 
-          queryEngines
-            .filter((x) => x !== "libquery_engine-linux-arm64-openssl-1.0.x.so.node")
-            .forEach((queryEngineFile) => {
-              rmSync(join(directory, queryEngineFile));
-            });
+          copyFileSync(prismaSchema, join(directory, "schema.prisma"));
         },
         restApiProps: () => ({ disableExecuteApiEndpoint: true, binaryMediaTypes: ["*/*"] }),
       },
