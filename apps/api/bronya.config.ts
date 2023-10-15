@@ -158,20 +158,16 @@ function getStage() {
   if (!process.env.NODE_ENV) {
     throw new Error("NODE_ENV not set.");
   }
-
   switch (process.env.NODE_ENV) {
     case "production":
       return "prod";
-
     case "staging":
       if (!process.env.PR_NUM) {
         throw new Error("NODE_ENV was set to staging, but a PR number was not provided.");
       }
       return `staging-${process.env.PR_NUM}`;
-
     case "development":
       return "dev";
-
     default:
       throw new Error(
         "Invalid NODE_ENV specified. Valid values are 'production', 'staging', and 'development'.",
