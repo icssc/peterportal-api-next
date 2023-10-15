@@ -39,7 +39,7 @@ export const overrides: ApiPropsOverride = {
         },
       }),
     }),
-    functionPlugin: ({ scope, functionProps, handler }) => {
+    functionPlugin: ({ functionProps, handler }, scope) => {
       const warmingTarget = new LambdaFunction(handler, {
         event: RuleTargetInput.fromObject({ body: "warming request" }),
       });
