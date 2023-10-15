@@ -1,14 +1,5 @@
-import { ApiPropsOverride } from "@bronya.js/api-construct";
 import { PrismaClient } from "@libs/db";
 import { createErrorResult, createOKResult } from "@libs/lambda";
-import {
-  Effect,
-  ManagedPolicy,
-  PolicyDocument,
-  PolicyStatement,
-  Role,
-  ServicePrincipal,
-} from "aws-cdk-lib/aws-iam";
 import type { APIGatewayProxyHandler } from "aws-lambda";
 import { ZodError } from "zod";
 
@@ -140,32 +131,4 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
   }
 
   return createErrorResult(400, "Invalid endpoint", requestId);
-};
-
-export const overrides: ApiPropsOverride = {
-  constructs: {
-    functionProps(scope) {
-      return {
-        role: new Role(scope, `canary-v1-rest-websoc-role`, {
-          assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-          managedPolicies: [
-            ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
-          ],
-          inlinePolicies: {
-            lambdaInvokePolicy: new PolicyDocument({
-              statements: [
-                new PolicyStatement({
-                  effect: Effect.ALLOW,
-                  resources: [
-                    `arn:aws:lambda:${process.env["AWS_REGION"]}:${process.env["ACCOUNT_ID"]}:function:peterportal-api-next-services-prod-websoc-proxy-function`,
-                  ],
-                  actions: ["lambda:InvokeFunction"],
-                }),
-              ],
-            }),
-          },
-        }),
-      };
-    },
-  },
 };

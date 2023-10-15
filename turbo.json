@@ -4,9 +4,8 @@
     "generate": {
       "cache": false
     },
-    "ant-stack#build": {},
     "build": {
-      "dependsOn": ["ant-stack#build", "^build", "^generate"],
+      "dependsOn": ["^build", "^generate"],
       "outputs": ["dist/**"]
     },
     "deploy": {
