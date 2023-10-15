@@ -1,4 +1,4 @@
-import { anyArray, divisionCodes, quarters } from "@peterportal-api/types";
+import { anyArray, divisionCodes, geCodes, quarters } from "@peterportal-api/types";
 import { z } from "zod";
 
 export const QuerySchema = z.object({
@@ -15,6 +15,7 @@ export const QuerySchema = z.object({
     .regex(/^\d{5}$/, { message: "Invalid sectionCode provided" })
     .optional(),
   division: z.enum(anyArray).or(z.enum(divisionCodes)).optional(),
+  ge: z.enum(anyArray).or(z.enum(geCodes)).optional(),
   excludePNP: z
     .string()
     .optional()

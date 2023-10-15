@@ -1,6 +1,6 @@
 {
   "name": "websoc-fuzzy-search",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Fuzzy search for WebSoc data",
   "license": "MIT",
   "type": "module",
@@ -22,6 +22,7 @@
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
+    "@types/pako": "2.0.1",
     "@types/pluralize": "0.0.30",
     "cross-fetch": "4.0.0",
     "pluralize": "8.0.0",

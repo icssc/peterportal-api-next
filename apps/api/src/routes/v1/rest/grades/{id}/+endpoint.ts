@@ -1,19 +1,29 @@
 import { PrismaClient } from "@libs/db";
 import { createErrorResult, createOKResult, logger } from "@libs/lambda";
-import type { GradesOptions, GradesRaw } from "@peterportal-api/types";
+import type {
+  AggregateGradesByCourse,
+  AggregateGradesByOffering,
+  GradesOptions,
+  RawGrades,
+} from "@peterportal-api/types";
 import type { APIGatewayProxyHandler } from "aws-lambda";
 import { ZodError } from "zod";
 
-import { aggregateGrades, constructPrismaQuery, lexOrd } from "./lib";
+import {
+  aggregateGrades,
+  aggregateByOffering,
+  constructPrismaQuery,
+  lexOrd,
+  transformRow,
+  aggregateByCourse,
+} from "./lib";
 import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
 export const GET: APIGatewayProxyHandler = async (event, context) => {
-  const headers = event.headers;
-  const params = event.pathParameters;
-  const query = event.queryStringParameters;
-  const requestId = context.awsRequestId;
+  const { headers, pathParameters: params, queryStringParameters: query } = event;
+  const { awsRequestId: requestId } = context;
 
   /**
    * TODO: handle warmer requests.
@@ -39,13 +49,10 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
               where: constructPrismaQuery(parsedQuery),
               include: { instructors: true },
             })
-          ).map((section) => ({
-            ...section,
-            instructors: section.instructors.map((instructor) => instructor.name),
-          }));
+          ).map(transformRow);
           switch (params.id) {
             case "raw":
-              return createOKResult<GradesRaw>(res, headers, requestId);
+              return createOKResult<RawGrades>(res, headers, requestId);
             case "aggregate":
               return createOKResult(aggregateGrades(res), headers, requestId);
           }
@@ -99,6 +106,34 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
                   .map((x) => x.name)
                   .sort(),
           },
+          headers,
+          requestId,
+        );
+      }
+      case "aggregateByCourse": {
+        return createOKResult<AggregateGradesByCourse>(
+          aggregateByCourse(
+            (
+              await prisma.gradesSection.findMany({
+                where: constructPrismaQuery(parsedQuery),
+                include: { instructors: true },
+              })
+            ).map(transformRow),
+          ),
+          headers,
+          requestId,
+        );
+      }
+      case "aggregateByOffering": {
+        return createOKResult<AggregateGradesByOffering>(
+          aggregateByOffering(
+            (
+              await prisma.gradesSection.findMany({
+                where: constructPrismaQuery(parsedQuery),
+                include: { instructors: true },
+              })
+            ).map(transformRow),
+          ),
           headers,
           requestId,
         );

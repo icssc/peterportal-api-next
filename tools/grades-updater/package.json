@@ -4,8 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "sanitize": "tsx sanitize-data.ts",
-    "upload": "dotenv -e ../../.env.grades -- tsx upload-data.ts"
+    "populate": "dotenv -e ../../.env.grades -- tsx src/populate-ge.ts",
+    "sanitize": "tsx src/sanitize-data.ts",
+    "upload": "dotenv -e ../../.env.grades -- tsx src/upload-data.ts"
   },
   "dependencies": {
     "@libs/db": "workspace:^",
