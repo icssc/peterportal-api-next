@@ -39,12 +39,12 @@ export const overrides: ApiPropsOverride = {
         },
       }),
     }),
-    functionPlugin({ functionProps, handler }) {
+    functionPlugin: ({ scope, functionProps, handler }) => {
       const warmingTarget = new LambdaFunction(handler, {
         event: RuleTargetInput.fromObject({ body: "warming request" }),
       });
 
-      const warmingRule = new Rule(this, `${functionProps.functionName}-warming-rule`, {
+      const warmingRule = new Rule(scope, `${functionProps.functionName}-warming-rule`, {
         schedule: Schedule.rate(Duration.minutes(5)),
       });
 
