@@ -136,11 +136,11 @@ importers:
         version: 3.22.2
     devDependencies:
       '@bronya.js/api-construct':
-        specifier: 0.11.2
-        version: 0.11.2
+        specifier: 0.11.3
+        version: 0.11.3
       '@bronya.js/core':
-        specifier: 0.11.2
-        version: 0.11.2
+        specifier: 0.11.3
+        version: 0.11.3
       '@types/aws-lambda':
         specifier: 8.10.119
         version: 8.10.119
@@ -2989,12 +2989,12 @@ packages:
   /@balena/dockerignore@1.0.2:
     resolution: {integrity: sha512-wMue2Sy4GAVTk6Ic4tJVcnfdau+gx2EnG7S+uAEe+TWJFqE4YoWN4/H8MSLj4eYJKxGg26lZwboEniNiNwZQ6Q==}
 
-  /@bronya.js/api-construct@0.11.2:
-    resolution: {integrity: sha512-an0CFp2JEdWxe/WudeI0f8s2CbWyFX1oQoYLs6FvbJE/ELohpoiRWagWmJPsrpHEdvlQKMxwbV8zMCxRFYl/Lg==}
+  /@bronya.js/api-construct@0.11.3:
+    resolution: {integrity: sha512-ro5/IwJQIv36k0uoYYL/pMzvFYJMlnzBOdeDylet+9T7gbXSjZEt+LKA9QjFGoqDvRl3WOQIJLUfJRollOVXng==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
-      '@bronya.js/cli': 0.11.2
-      '@bronya.js/core': 0.11.2
+      '@bronya.js/cli': 0.11.3
+      '@bronya.js/core': 0.11.3
       acorn: 8.10.0
       acorn-typescript: 1.4.5(acorn@8.10.0)
       aws-cdk-lib: 2.93.0(constructs@10.2.69)
@@ -3011,17 +3011,17 @@ packages:
       - supports-color
     dev: true
 
-  /@bronya.js/cli@0.11.2:
-    resolution: {integrity: sha512-wMZ6w9RCnHlAfS+ukRQiPQ3HModnoJLabSC2hbsVB8mi7gnK+BRiRyTeAVGVcRAoVgqbSgg2sUpnC3sZ3VdPQw==}
+  /@bronya.js/cli@0.11.3:
+    resolution: {integrity: sha512-1FkvlcXR17rfSGo7cDScrxCeC1S3Ib7GJaGTa874tOtrVHZVM7T0ebyPI1lO715BVEvS+hursJElRU9MZsnQOQ==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dev: true
 
-  /@bronya.js/core@0.11.2:
-    resolution: {integrity: sha512-zOZmh8fy8rPSBFIwJDVQfdzqfzh7Nru0ja9BkadV3zZeRVd5pq7qiI+QUKm9PFyoAtuJH2Fa3rwtrIjoJpAXiA==}
+  /@bronya.js/core@0.11.3:
+    resolution: {integrity: sha512-D5RU9y6o7KSmUjewjPR9ImR61/FQG4Xw42onn2vwiIJzCyQ7qzo1c7ecnbh7AVdldwa698kySRGne5Um/AemOA==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     hasBin: true
     dependencies:
-      '@bronya.js/cli': 0.11.2
+      '@bronya.js/cli': 0.11.3
       acorn: 8.10.0
       acorn-typescript: 1.4.5(acorn@8.10.0)
       aws-cdk-lib: 2.93.0(constructs@10.2.69)
