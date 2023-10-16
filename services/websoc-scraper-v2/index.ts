@@ -444,10 +444,51 @@ async function scrape(name: string, term: Term) {
     }
   }
 
-  const [sectionsCreated, instructorsCreated, meetingsCreated, buildingsCreated] =
+  const [sectionsCreated, _, instructorsCreated, meetingsCreated, buildingsCreated] =
     await prisma.$transaction([
       prisma.websocSection.createMany({
         data: Object.values(res).map((d) => d.data),
+      }),
+      prisma.websocEnrollmentHistory.createMany({
+        data: Object.values(res).map(({ data }) => {
+          const { year, quarter, department, courseNumber, sectionCode, sectionType } = data;
+          const {
+            sectionNum,
+            units,
+            instructors,
+            meetings,
+            finalExam,
+            maxCapacity,
+            numCurrentlyEnrolled: { totalEnrolled },
+            numOnWaitlist: waitlist,
+            numWaitlistCap: waitlistCap,
+            numRequested: requested,
+            numNewOnlyReserved: newOnlyReserved,
+            status,
+          } = (data.data as WebsocAPIResponse).schools[0].departments[0].courses[0].sections[0];
+          return {
+            year,
+            quarter,
+            department,
+            courseNumber,
+            sectionCode,
+            sectionType,
+            sectionNum,
+            units,
+            instructors,
+            meetings,
+            finalExam,
+            date: `${timestamp.getFullYear()}-${timestamp.getMonth() + 1}-${timestamp.getDate()}`,
+            maxCapacity,
+            totalEnrolled,
+            waitlist,
+            waitlistCap,
+            requested,
+            newOnlyReserved,
+            status,
+          };
+        }),
+        skipDuplicates: true,
       }),
       prisma.websocSectionInstructor.createMany({
         data: Object.values(res).flatMap((d) => d.meta.instructors),
