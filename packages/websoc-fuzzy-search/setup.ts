@@ -2,9 +2,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { normalize } from "node:path";
 import { gzipSync } from "node:zlib";
 
+import { isErrorResponse } from "@peterportal-api/types";
+import type { Course, Instructor, RawResponse } from "@peterportal-api/types";
 import fetch from "cross-fetch";
-import { isErrorResponse } from "peterportal-api-next-types";
-import type { Course, Instructor, RawResponse } from "peterportal-api-next-types";
 import pluralize from "pluralize";
 
 // data sources
@@ -15,7 +15,7 @@ const schools = JSON.parse(readFileSync("./input/schools.json", { encoding: "utf
 
 // output configuration
 const outputDir = normalize("./output/");
-const outputFile = normalize(`${outputDir}index.js`);
+const outputFile = normalize(`${outputDir}index.ts`);
 
 // Roman numeral map
 // Stops at 8 because that's the highest Roman numeral encountered in the cache (as of 2022-04-08)
@@ -110,6 +110,7 @@ function associate(d: Record<string, Set<unknown>>, k: string, o: string) {
 
 // parse the data into the format we want, and write it to the output
 function parseAndWriteData(d: DataObject) {
+  console.time("Index built in");
   console.log("Parsing data...");
 
   // GE categories
@@ -200,11 +201,11 @@ function parseAndWriteData(d: DataObject) {
   writeFileSync(
     `${outputFile}`,
     ["-d", "--debug"].includes(process.argv[2])
-      ? "export default " + data
+      ? "export let index: any = " + data
       : 'import{decode as a}from"base64-arraybuffer";import{ungzip as' +
           ' b}from"pako";let c=new' +
           " TextDecoder;export" +
-          ' default JSON.parse(c.decode(b(a("' +
+          ' let index=JSON.parse(c.decode(b(a("' +
           gzipSync(data).toString("base64") +
           '"))))',
   );
@@ -213,8 +214,9 @@ function parseAndWriteData(d: DataObject) {
 }
 
 async function main() {
-  console.time("Index built in");
   const d: DataObject = { courses: {}, instructors: {} };
+  console.log("Fetching data...");
+  console.time("Data fetched in");
   const coursesRes = await fetch("https://api-next.peterportal.org/v1/rest/courses/all");
   const coursesJson: RawResponse<Course[]> = await coursesRes.json();
   if (isErrorResponse(coursesJson)) throw new Error("Could not fetch courses from API.");
@@ -243,7 +245,8 @@ async function main() {
       department,
     };
   });
+  console.timeEnd("Data fetched in");
   parseAndWriteData(d);
 }
 
-main();
+main().then();

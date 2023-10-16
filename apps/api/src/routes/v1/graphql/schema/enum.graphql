@@ -1,0 +1,71 @@
+"The set of valid quarters."
+enum Quarter {
+  Fall
+  Winter
+  Spring
+  Summer1
+  Summer10wk
+  Summer2
+}
+"The set of valid GE category codes."
+enum GE {
+  ANY
+  GE_1A
+  GE_1B
+  GE_2
+  GE_3
+  GE_4
+  GE_5A
+  GE_5B
+  GE_6
+  GE_7
+}
+"The set of valid course levels."
+enum Division {
+  ANY
+  LowerDiv
+  UpperDiv
+  Graduate
+}
+"The set of valid section types."
+enum SectionType {
+  ANY
+  Act
+  Col
+  Dis
+  Fld
+  Lab
+  Lec
+  Qiz
+  Res
+  Sem
+  Stu
+  Tap
+  Tut
+}
+"The set of valid options for filtering full courses."
+enum FullCourses {
+  ANY
+  SkipFullWaitlist
+  FullOnly
+  OverEnrolled
+}
+"The set of valid options for filtering cancelled courses."
+enum CancelledCourses {
+  Exclude
+  Include
+  Only
+}
+"The set of valid enrollment statuses."
+enum EnrollmentStatus {
+  OPEN
+  Waitl
+  FULL
+  NewOnly
+}
+"The set of valid final exam statuses for a section."
+enum WebsocSectionFinalExamStatus {
+  NO_FINAL
+  TBA_FINAL
+  SCHEDULED_FINAL
+}

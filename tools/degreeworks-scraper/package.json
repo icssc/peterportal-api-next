@@ -8,10 +8,10 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
+    "@peterportal-api/types": "workspace:^",
     "cross-fetch": "4.0.0",
     "dotenv": "16.3.1",
-    "jwt-decode": "3.1.2",
-    "peterportal-api-next-types": "workspace:*"
+    "jwt-decode": "3.1.2"
   },
   "devDependencies": {
     "tsx": "3.12.7"

@@ -1,12 +1,13 @@
 import fs from "fs";
+import { basename, resolve } from "node:path";
 import { EOL } from "os";
-import { basename, resolve } from "path";
 
-import { callWebSocAPI } from "@libs/websoc-api-next";
+import { callWebSocAPI } from "@libs/uc-irvine-api/websoc";
+import type { WebsocAPIResponse, WebsocSection } from "@libs/uc-irvine-api/websoc";
+import type { Quarter } from "@peterportal-api/types";
 import type { CastingContext, Parser } from "csv-parse";
 import { parse } from "csv-parse";
 import { stringify } from "csv-stringify/sync";
-import type { Quarter, WebsocAPIResponse, WebsocSection } from "peterportal-api-next-types";
 
 import { __dirname, dataColumns, type Grade, handleError, logger } from "./lib";
 

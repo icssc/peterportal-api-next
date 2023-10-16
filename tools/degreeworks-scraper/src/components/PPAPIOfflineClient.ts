@@ -1,6 +1,6 @@
+import { isErrorResponse } from "@peterportal-api/types";
+import type { Course, RawResponse } from "@peterportal-api/types";
 import fetch from "cross-fetch";
-import { isErrorResponse } from "peterportal-api-next-types";
-import type { Course, RawResponse } from "peterportal-api-next-types";
 
 export class PPAPIOfflineClient {
   private cache = new Map<string, Course>();

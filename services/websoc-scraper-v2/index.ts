@@ -1,6 +1,5 @@
 import { PrismaClient } from "@libs/db";
-import { getTermDateData } from "@libs/registrar-api";
-import { callWebSocAPI, getDepts, getTerms } from "@libs/websoc-api-next";
+import { getTermDateData } from "@libs/uc-irvine-api/registrar";
 import type {
   GE,
   Quarter,
@@ -11,8 +10,14 @@ import type {
   WebsocSchool,
   WebsocSection,
   WebsocSectionMeeting,
-} from "peterportal-api-next-types";
-import { geCodes, sectionTypes } from "peterportal-api-next-types";
+} from "@libs/uc-irvine-api/websoc";
+import {
+  callWebSocAPI,
+  getDepts,
+  getTerms,
+  geCodes,
+  sectionTypes,
+} from "@libs/uc-irvine-api/websoc";
 import { createLogger, format, transports } from "winston";
 
 /**
@@ -245,6 +250,7 @@ function parseStartAndEndTimes(time: string) {
       startTime += 12 * 60;
       endTime += 12 * 60;
     }
+    if (startTime > endTime) startTime -= 12 * 60;
   }
   return { startTime, endTime };
 }

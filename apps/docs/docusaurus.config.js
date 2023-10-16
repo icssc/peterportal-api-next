@@ -22,8 +22,7 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
-          editUrl:
-            "https://github.com/icssc/peterportal-api-next/tree/ant-stack-migration/apps/docs/",
+          editUrl: "https://github.com/icssc/peterportal-api-next/tree/main/apps/docs/",
           showLastUpdateTime: true,
           remarkPlugins: [[require("@docusaurus/remark-plugin-npm2yarn"), { sync: true }]],
         },

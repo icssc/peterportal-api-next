@@ -1,23 +1,26 @@
 {
-  "name": "grades-updater",
+  "name": "@tools/grades-updater",
   "version": "0.0.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "sanitize": "tsx sanitize-data.ts",
-    "upload": "dotenv -e ../../.env.grades -- tsx upload-data.ts"
+    "populate": "dotenv -e ../../.env.grades -- tsx src/populate-ge.ts",
+    "sanitize": "tsx src/sanitize-data.ts",
+    "upload": "dotenv -e ../../.env.grades -- tsx src/upload-data.ts"
   },
   "dependencies": {
-    "@libs/db": "workspace:*",
-    "csv-parse": "5.4.0",
-    "csv-stringify": "6.4.0",
+    "@libs/db": "workspace:^",
+    "@libs/lambda": "workspace:^",
+    "@libs/uc-irvine-api": "workspace:^",
+    "csv-parse": "5.5.0",
+    "csv-stringify": "6.4.2",
     "winston": "3.10.0",
     "winston-transport": "4.5.0"
   },
   "devDependencies": {
-    "@types/node": "18.17.5",
-    "dotenv-cli": "7.2.1",
-    "peterportal-api-next-types": "workspace:*",
+    "@peterportal-api/types": "workspace:^",
+    "@types/node": "18.17.12",
+    "dotenv-cli": "7.3.0",
     "tsx": "3.12.7"
   }
 }

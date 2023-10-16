@@ -1,0 +1,62 @@
+{
+  "name": "@libs/uc-irvine-api",
+  "version": "0.10.8",
+  "private": true,
+  "description": "SDK for various UC Irvine services",
+  "keywords": [],
+  "homepage": "https://docs.api-next.peterportal.org",
+  "bugs": {
+    "url": "https://github.com/icssc/peterportal-api-next/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/icssc/peterportal-api-next",
+    "directory": "libs/uc-irvine-api"
+  },
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    "./registrar": {
+      "types": "./src/registrar/index.ts",
+      "import": "./src/registrar/index.ts",
+      "require": "./src/registrar/index.ts",
+      "default": "./src/registrar/index.ts"
+    },
+    "./websoc": {
+      "types": "./src/websoc/index.ts",
+      "import": "./src/websoc/index.ts",
+      "require": "./src/websoc/index.ts",
+      "default": "./src/websoc/index.ts"
+    }
+  },
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "typesVersions": {
+    "*": {
+      "registrar": [
+        "./src/registrar/index.ts"
+      ],
+      "websoc": [
+        "./src/websoc/index.ts"
+      ]
+    }
+  },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "dependencies": {
+    "@ap0nia/camaro": "6.2.5",
+    "@peterportal-api/types": "workspace:^",
+    "cheerio": "1.0.0-rc.12",
+    "cross-fetch": "4.0.0"
+  },
+  "packageManager": "pnpm@8.7.4",
+  "engines": {
+    "node": "18",
+    "pnpm": "8"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

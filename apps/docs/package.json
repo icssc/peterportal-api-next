@@ -1,5 +1,5 @@
 {
-  "name": "docs",
+  "name": "@apps/docs",
   "version": "0.0.0",
   "private": true,
   "scripts": {
@@ -36,10 +36,7 @@
     "@docusaurus/module-type-aliases": "2.4.1",
     "@docusaurus/types": "2.4.1",
     "@tsconfig/docusaurus": "2.0.0",
-    "@types/node": "18.17.5",
-    "typescript": "5.1.6"
-  },
-  "engines": {
-    "node": "18"
+    "@types/node": "18.17.12",
+    "typescript": "5.2.2"
   }
 }

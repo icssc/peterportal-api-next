@@ -1,0 +1,32 @@
+{
+  "name": "@tools/cdk",
+  "version": "0.0.0",
+  "private": true,
+  "description": "CDK deployment configurations for PeterPortal API",
+  "keywords": [],
+  "homepage": "https://github.com/icssc/peterportal-api-next",
+  "bugs": {
+    "url": "https://github.com/icssc/peterportal-api-next/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/icssc/peterportal-api-next",
+    "directory": "tools/cdk"
+  },
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "docs": "cdk --app 'npx tsx src/app/docs.ts' --require-approval never",
+    "services": "cdk --app 'npx tsx src/app/services.ts' --require-approval never"
+  },
+  "dependencies": {
+    "@aws-sdk/client-cloudformation": "^3.408.0",
+    "@smithy/util-waiter": "^2.0.6",
+    "aws-cdk-lib": "2.93.0",
+    "constructs": "10.2.69"
+  },
+  "devDependencies": {
+    "aws-cdk": "2.93.0",
+    "tsx": "3.12.7"
+  }
+}

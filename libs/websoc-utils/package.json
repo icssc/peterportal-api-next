@@ -1,0 +1,12 @@
+{
+  "name": "@libs/websoc-utils",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "@libs/uc-irvine-api": "workspace:^",
+    "@peterportal-api/types": "workspace:^"
+  }
+}

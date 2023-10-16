@@ -21,9 +21,9 @@ jobs:
 
     steps:
       - name: Check out codebase
-        uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3
+        uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3
 
-      - name: Setup NodeJS and pnpm
+      - name: Setup Node.js and pnpm
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install devDependencies
@@ -35,7 +35,7 @@ jobs:
       - name: Format pull request title
         id: devmoji
         run: |
-          TITLE=$(npx --no -- devmoji --format shortcode --text ${{ toJSON(github.event.pull_request.title) }})
+          TITLE=$(npx --no -- devmoji --config devmoji.config.cjs --text ${{ toJSON(github.event.pull_request.title) }})
           echo "TITLE=$TITLE" >> $GITHUB_OUTPUT
 
       - name: Update pull request title if needed
