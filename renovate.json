@@ -26,12 +26,6 @@
       "matchPackageNames": ["@mdx-js/react", "clsx", "prism-react-renderer", "prismjs"],
       "groupName": "Docusaurus v2: other dependencies",
       "allowedVersions": "<2.0.0"
-    },
-    {
-      "matchDepNames": ["ant-stack"],
-      "matchDepPatterns": ["^@libs", "^@services"],
-      "groupName": "Internal packages",
-      "enabled": false
     }
   ],
   "pin": { "commitMessageSuffix": "[skip ci]" }

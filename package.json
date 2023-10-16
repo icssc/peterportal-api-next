@@ -10,7 +10,6 @@
     "build": "turbo run build",
     "ci:tsc": "npx tsc -p . --noEmit && npx tsc -p apps/docs --noEmit",
     "commit": "cz",
-    "create": "dotenv -v DATABASE_URL=null -v NODE_ENV=development -- pnpm exec ant-stack create",
     "deploy": "turbo run deploy",
     "destroy": "turbo run destroy",
     "dev": "dotenv -c development -- turbo run dev",
@@ -46,7 +45,7 @@
     "typescript": "5.2.2",
     "unconfig": "0.3.10"
   },
-  "packageManager": "pnpm@8.7.4",
+  "packageManager": "pnpm@8.9.0",
   "engines": {
     "node": "18",
     "pnpm": "8"

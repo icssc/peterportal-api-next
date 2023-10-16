@@ -38,7 +38,7 @@ const config = {
       },
     ],
   },
-  ignorePatterns: ["*.cjs"],
+  ignorePatterns: ["docusaurus.config.js", "*.cjs"],
   env: {
     es2020: true,
     node: true,
