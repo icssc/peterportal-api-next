@@ -17,10 +17,10 @@ import { config } from "dotenv";
 import type { BuildOptions } from "esbuild";
 
 /**
- * Whether or not we're executing in CDK.
+ * Whether we're executing in CDK.
  *
  * During development (not in CDK) ...
- * - Bronya is responsible for handling the development server.
+ * - Bronya.js is responsible for handling the development server.
  * - The exported `main` function is imported and then called to get the CDK app.
  * - No AWS constructs are actually allocated, since this requires certain files to be built that
  *   may not exist during development.
@@ -98,7 +98,7 @@ export const esbuildOptions: BuildOptions = {
 
   /**
    * @remarks
-   * For Fourmilier: this is specified in order to guarantee that the file is interprested as ESM.
+   * For Bronya.js: this is specified in order to guarantee that the file is interpreted as ESM.
    * However, the framework will continue to assume `handler.js` is the entrypoint.
    *
    * @RFC What would be the best way to resolve these two values?
@@ -160,7 +160,7 @@ class ApiStack extends Stack {
 
       /**
        * @remarks
-       * For Fourmilier: although ESBuild specified that "js" -> "mjs", the framework
+       * For Bronya.js: although ESBuild specified that "js" -> "mjs", the framework
        * still assumes that the entrypoint is `handler.js` unless explicitly specified.
        */
       exitPoint: "handler.mjs",

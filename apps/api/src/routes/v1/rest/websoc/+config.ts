@@ -8,7 +8,7 @@ import {
   ServicePrincipal,
 } from "aws-cdk-lib/aws-iam";
 
-import { esbuildOptions, constructs } from "../../../../../bronya.config";
+import { constructs, esbuildOptions } from "../../../../../bronya.config";
 
 export const overrides: ApiPropsOverride = {
   constructs: {
