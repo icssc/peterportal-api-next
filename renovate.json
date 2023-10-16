@@ -26,6 +26,11 @@
       "matchPackageNames": ["@mdx-js/react", "clsx", "prism-react-renderer", "prismjs"],
       "groupName": "Docusaurus v2: other dependencies",
       "allowedVersions": "<2.0.0"
+    },
+    {
+      "matchPackageNames": ["constructs"],
+      "groupName": "Constructs",
+      "allowedVersions": "10.2.69"
     }
   ],
   "pin": { "commitMessageSuffix": "[skip ci]" }
