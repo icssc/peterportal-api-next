@@ -4,7 +4,7 @@ import { join, resolve } from "node:path";
 import { Api, type ApiConstructProps } from "@bronya.js/api-construct";
 import { createApiCliPlugins } from "@bronya.js/api-construct/plugins/cli";
 import { isCdk } from "@bronya.js/core";
-import { logger } from "@libs/lambda";
+import { logger, warmingRequestBody } from "@libs/lambda";
 import { LambdaIntegration, ResponseType } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { RuleTargetInput, Rule, Schedule } from "aws-cdk-lib/aws-events";
@@ -78,13 +78,6 @@ const prismaSchema = resolve(libsDbDirectory, "prisma", prismaSchemaFile);
  * Name of the Prisma query engine file that's used on AWS Lambda.
  */
 const prismaQueryEngineFile = "libquery_engine-linux-arm64-openssl-1.0.x.so.node";
-
-/**
- * The body of a warming request.
- *
- * TODO: actually recognize warming requests in the route handlers.
- */
-const warmingRequestBody = { body: "warming request" };
 
 /**
  * Shared ESBuild options.
