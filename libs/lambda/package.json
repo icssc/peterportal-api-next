@@ -1,0 +1,16 @@
+{
+  "name": "@libs/lambda",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "dependencies": {
+    "winston": "3.10.0"
+  },
+  "devDependencies": {
+    "@peterportal-api/types": "workspace:^",
+    "@types/aws-lambda": "8.10.119"
+  }
+}

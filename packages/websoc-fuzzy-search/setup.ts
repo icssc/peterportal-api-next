@@ -2,9 +2,9 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { normalize } from "node:path";
 import { gzipSync } from "node:zlib";
 
+import { isErrorResponse } from "@peterportal-api/types";
+import type { Course, Instructor, RawResponse } from "@peterportal-api/types";
 import fetch from "cross-fetch";
-import { isErrorResponse } from "peterportal-api-next-types";
-import type { Course, Instructor, RawResponse } from "peterportal-api-next-types";
 import pluralize from "pluralize";
 
 // data sources

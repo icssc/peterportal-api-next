@@ -3,10 +3,10 @@ import { writeFileSync } from "node:fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
+import { Prerequisite, PrerequisiteTree } from "@peterportal-api/types";
 import { load } from "cheerio";
 import type { Element } from "cheerio";
 import fetch from "cross-fetch";
-import { Prerequisite, PrerequisiteTree } from "peterportal-api-next-types";
 import winston from "winston";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));

@@ -7,7 +7,7 @@ const config = {
   root: true,
   parser: "@typescript-eslint/parser",
   parserOptions: {
-    project: ["./tsconfig.json", "./apps/docs/tsconfig.json", "./apps/docs/cdk/tsconfig.json"],
+    project: ["./tsconfig.json", "./apps/docs/tsconfig.json"],
     sourceType: "module",
   },
   plugins: ["import", "@typescript-eslint"],
@@ -38,7 +38,7 @@ const config = {
       },
     ],
   },
-  ignorePatterns: ["*.config.*", "*.cjs"],
+  ignorePatterns: ["docusaurus.config.js", "*.cjs"],
   env: {
     es2020: true,
     node: true,

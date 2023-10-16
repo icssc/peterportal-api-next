@@ -48,25 +48,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build AntStack
-        run: pnpm build --filter="ant-stack"
-
-      - name: Link AntStack
-        run: pnpm link ant-stack
-
-      # Do not remove this step, as the API assets are required for `cdk destroy` to work properly.
-      - name: Build API assets
-        run: pnpm build --filter="api-*"
-
-      - name: Wait for API CloudFormation stack to idle
-        uses: ./.github/actions/wait-for-cloudformation-stack-idle
-        with:
-          stack_name: peterportal-api-next-staging-${{ github.event.pull_request.number }}
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
+      - name: Build API
+        run: pnpm build --filter="@apps/api"
 
       - name: Destroy API CloudFormation stack
-        run: pnpm destroy --filter="ant-stack"
+        run: pnpm --filter="@apps/api" cdk-app destroy
 
       - name: Set API staging environment to inactive
         uses: strumwolf/delete-deployment-environment@195215d2c5602aee6fb4b9cf0853970decca9e7a # v2.3.0
@@ -92,18 +78,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build documentation CDK
-        run: pnpm build --filter="docs-cdk"
-
-      - name: Wait for documentation CloudFormation stack to idle
-        uses: ./.github/actions/wait-for-cloudformation-stack-idle
-        with:
-          stack_name: peterportal-api-next-docs-staging-${{ github.event.pull_request.number }}
-          aws_access_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRETS_ACCESS_KEY }}
+      - name: Build documentation
+        run: pnpm build --filter="@apps/docs"
 
       - name: Destroy documentation CloudFormation stack
-        run: pnpm destroy --filter="docs-cdk"
+        run: pnpm --filter="@tools/cdk" docs destroy
 
       - name: Set documentation staging environment as inactive
         uses: strumwolf/delete-deployment-environment@195215d2c5602aee6fb4b9cf0853970decca9e7a # v2.3.0
