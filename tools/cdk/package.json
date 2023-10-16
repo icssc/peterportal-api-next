@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-cloudformation": "^3.408.0",
+    "@services/websoc-proxy": "workspace:^",
+    "@services/websoc-scraper-v2": "workspace:^",
     "@smithy/util-waiter": "^2.0.6",
     "aws-cdk-lib": "2.93.0",
     "constructs": "10.2.69"

@@ -344,6 +344,12 @@ importers:
       '@aws-sdk/client-cloudformation':
         specifier: ^3.408.0
         version: 3.408.0
+      '@services/websoc-proxy':
+        specifier: workspace:^
+        version: link:../../services/websoc-proxy
+      '@services/websoc-scraper-v2':
+        specifier: workspace:^
+        version: link:../../services/websoc-scraper-v2
       '@smithy/util-waiter':
         specifier: ^2.0.6
         version: 2.0.6
