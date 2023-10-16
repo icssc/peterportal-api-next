@@ -16,7 +16,7 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "cdk-app": "cdk --app 'npx tsx bronya.config.ts' --require-approval never",
+    "cdk-app": "cdk --app 'npx tsx bronya.config.ts' --require-approval never --force",
     "dev": "bunny dev-api"
   },
   "dependencies": {
