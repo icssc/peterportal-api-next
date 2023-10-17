@@ -17,56 +17,12 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
   }
   const { data: where } = maybeParsed;
 
-  const data = await prisma.websocEnrollmentHistory.findMany({ where });
-  const ret: Record<string, EnrollmentHistory> = {};
-  for (const entry of data.sort((a, b) => (a.date === b.date ? 0 : a > b ? 1 : -1))) {
-    const key = `${entry.year}-${entry.quarter}-${entry.sectionCode}`;
-    if (key in ret) {
-      const {
-        date,
-        maxCapacity,
-        totalEnrolled,
-        waitlist,
-        waitlistCap,
-        requested,
-        newOnlyReserved,
-        status,
-      } = entry;
-      ret[key].dates.push(date);
-      ret[key].maxCapacityHistory.push(maxCapacity);
-      ret[key].totalEnrolledHistory.push(totalEnrolled);
-      ret[key].waitlistHistory.push(waitlist);
-      ret[key].waitlistCapHistory.push(waitlistCap);
-      ret[key].requestedHistory.push(requested);
-      ret[key].newOnlyReservedHistory.push(newOnlyReserved);
-      ret[key].statusHistory.push(status);
-    } else {
-      const {
-        date,
-        maxCapacity,
-        totalEnrolled,
-        waitlist,
-        waitlistCap,
-        requested,
-        newOnlyReserved,
-        status,
-        ...meta
-      } = entry;
-      ret[key] = {
-        ...meta,
-        sectionCode: meta.sectionCode.toString(),
-        instructors: meta.instructors as string[],
-        meetings: meta.meetings as string[],
-        dates: [date],
-        maxCapacityHistory: [maxCapacity],
-        totalEnrolledHistory: [totalEnrolled],
-        waitlistHistory: [waitlist],
-        waitlistCapHistory: [waitlistCap],
-        requestedHistory: [requested],
-        newOnlyReservedHistory: [newOnlyReserved],
-        statusHistory: [status],
-      };
-    }
-  }
-  return createOKResult(Object.values(ret), headers, requestId);
+  return createOKResult<EnrollmentHistory[]>(
+    (await prisma.websocEnrollmentHistory.findMany({ where })).map((x) => {
+      const { timestamp: _, ...obj } = x;
+      return obj as unknown as EnrollmentHistory;
+    }),
+    headers,
+    requestId,
+  );
 };
