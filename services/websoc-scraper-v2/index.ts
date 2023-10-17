@@ -1,4 +1,4 @@
-import { PrismaClient } from "@libs/db";
+import { Prisma, PrismaClient } from "@libs/db";
 import { getTermDateData } from "@libs/uc-irvine-api/registrar";
 import type {
   GE,
@@ -444,51 +444,10 @@ async function scrape(name: string, term: Term) {
     }
   }
 
-  const [sectionsCreated, _, instructorsCreated, meetingsCreated, buildingsCreated] =
+  const [sectionsCreated, instructorsCreated, meetingsCreated, buildingsCreated] =
     await prisma.$transaction([
       prisma.websocSection.createMany({
         data: Object.values(res).map((d) => d.data),
-      }),
-      prisma.websocEnrollmentHistory.createMany({
-        data: Object.values(res).map(({ data }) => {
-          const { year, quarter, department, courseNumber, sectionCode, sectionType } = data;
-          const {
-            sectionNum,
-            units,
-            instructors,
-            meetings,
-            finalExam,
-            maxCapacity,
-            numCurrentlyEnrolled: { totalEnrolled },
-            numOnWaitlist: waitlist,
-            numWaitlistCap: waitlistCap,
-            numRequested: requested,
-            numNewOnlyReserved: newOnlyReserved,
-            status,
-          } = (data.data as WebsocAPIResponse).schools[0].departments[0].courses[0].sections[0];
-          return {
-            year,
-            quarter,
-            department,
-            courseNumber,
-            sectionCode,
-            sectionType,
-            sectionNum,
-            units,
-            instructors,
-            meetings,
-            finalExam,
-            date: `${timestamp.getFullYear()}-${timestamp.getMonth() + 1}-${timestamp.getDate()}`,
-            maxCapacity,
-            totalEnrolled,
-            waitlist,
-            waitlistCap,
-            requested,
-            newOnlyReserved,
-            status,
-          };
-        }),
-        skipDuplicates: true,
       }),
       prisma.websocSectionInstructor.createMany({
         data: Object.values(res).flatMap((d) => d.meta.instructors),
@@ -513,6 +472,88 @@ async function scrape(name: string, term: Term) {
       timestamp: { lt: timestamp },
     },
   };
+
+  const enrollmentHistory = Object.fromEntries(
+    (await prisma.websocEnrollmentHistory.findMany(params)).map((x) => [
+      `${x.year}-${x.quarter}-${x.sectionCode}`,
+      x,
+    ]),
+  );
+
+  for (const { data } of Object.values(res)) {
+    const key = `${data.year}-${data.quarter}-${data.sectionCode}`;
+    if (key in enrollmentHistory) {
+      const rawData = (data.data as WebsocAPIResponse).schools[0].departments[0].courses[0]
+        .sections[0];
+      enrollmentHistory[key].timestamp = timestamp;
+      (enrollmentHistory[key].dates as string[]).push(
+        `${timestamp.getFullYear()}-${timestamp.getMonth() + 1}-${timestamp.getDate()}`,
+      );
+      (enrollmentHistory[key].maxCapacityHistory as string[]).push(data.maxCapacity.toString(10));
+      (enrollmentHistory[key].totalEnrolledHistory as string[]).push(
+        rawData.numCurrentlyEnrolled.totalEnrolled,
+      );
+      (enrollmentHistory[key].waitlistHistory as string[]).push(rawData.numOnWaitlist);
+      (enrollmentHistory[key].waitlistCapHistory as string[]).push(rawData.numWaitlistCap);
+      (enrollmentHistory[key].requestedHistory as string[]).push(rawData.numRequested);
+      (enrollmentHistory[key].newOnlyReservedHistory as string[]).push(rawData.numNewOnlyReserved);
+      (enrollmentHistory[key].statusHistory as string[]).push(rawData.status);
+    } else {
+      const {
+        year,
+        quarter,
+        sectionCode,
+        timestamp,
+        department,
+        courseNumber,
+        sectionType,
+        units,
+      } = data;
+      const {
+        sectionNum,
+        instructors,
+        meetings,
+        finalExam,
+        maxCapacity,
+        numCurrentlyEnrolled,
+        numOnWaitlist,
+        numWaitlistCap,
+        numRequested,
+        numNewOnlyReserved,
+        status,
+      } = (data.data as WebsocAPIResponse).schools[0].departments[0].courses[0].sections[0];
+      enrollmentHistory[key] = {
+        year,
+        quarter,
+        sectionCode,
+        timestamp,
+        department,
+        courseNumber,
+        sectionType,
+        sectionNum,
+        units,
+        instructors,
+        meetings,
+        finalExam,
+        dates: [`${timestamp.getFullYear()}-${timestamp.getMonth() + 1}-${timestamp.getDate()}`],
+        maxCapacityHistory: [maxCapacity],
+        totalEnrolledHistory: [numCurrentlyEnrolled.totalEnrolled],
+        waitlistHistory: [numOnWaitlist],
+        waitlistCapHistory: [numWaitlistCap],
+        requestedHistory: [numRequested],
+        newOnlyReservedHistory: [numNewOnlyReserved],
+        statusHistory: [status],
+      };
+    }
+  }
+
+  await prisma.$transaction([
+    prisma.websocEnrollmentHistory.createMany({
+      data: Object.values(enrollmentHistory) as Prisma.WebsocEnrollmentHistoryCreateManyInput[],
+      skipDuplicates: true,
+    }),
+    prisma.websocEnrollmentHistory.deleteMany(params),
+  ]);
 
   const [instructorsDeleted, buildingsDeleted, meetingsDeleted, sectionsDeleted] =
     await prisma.$transaction([
