@@ -160,28 +160,29 @@ model GradesSection {
 }
 
 model WebsocEnrollmentHistory {
-  year            String
-  quarter         Quarter
-  sectionCode     Int
-  date            String
-  department      String
-  courseNumber    String
-  sectionType     WebsocSectionType
-  sectionNum      String
-  units           String
-  instructors     Json
-  meetings        Json
-  finalExam       String
-  maxCapacity     String
-  totalEnrolled   String
-  waitlist        String
-  waitlistCap     String
-  requested       String
-  newOnlyReserved String
-  status          String
+  year                   String
+  quarter                Quarter
+  sectionCode            Int
+  timestamp              DateTime
+  department             String
+  courseNumber           String
+  sectionType            WebsocSectionType
+  sectionNum             String
+  units                  String
+  instructors            Json
+  meetings               Json
+  finalExam              String
+  dates                  Json
+  maxCapacityHistory     Json
+  totalEnrolledHistory   Json
+  waitlistHistory        Json
+  waitlistCapHistory     Json
+  requestedHistory       Json
+  newOnlyReservedHistory Json
+  statusHistory          Json
 
-  @@id([year, quarter, sectionCode, date])
-  @@unique([year, quarter, sectionCode, date], name: "idx")
+  @@id([year, quarter, sectionCode, timestamp])
+  @@unique([year, quarter, sectionCode, timestamp], name: "idx")
 }
 
 model WebsocSectionInstructor {
