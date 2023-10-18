@@ -11,7 +11,7 @@ async function onWarm() {
   await prisma.$connect();
 }
 
-export const get = createHandler(async (event, context, res) => {
+export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
   const query = event.queryStringParameters;
   const requestId = context.awsRequestId;
