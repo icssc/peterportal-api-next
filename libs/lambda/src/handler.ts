@@ -52,12 +52,11 @@ export type APIGatewayProxyHandler = (
  *
  * Handles warming requests and provides utilities for formatting responses.
  */
-export function createHandler(handler: ExtendedApiGatewayHandler): APIGatewayProxyHandler {
+export function createHandler(
+  handler: ExtendedApiGatewayHandler,
+  onWarm?: ExtendedApiGatewayHandler,
+): APIGatewayProxyHandler {
   return async function (event, context, callback) {
-    if (event.body === JSON.stringify(warmingRequestBody)) {
-      return createOKResult("Successfully warmed!", event.headers, context.awsRequestId);
-    }
-
     const res: ResponseHelpers = {
       ok: (payload, headers, requestId) => {
         callback(undefined, createOKResult(payload, headers, requestId));
@@ -68,6 +67,12 @@ export function createHandler(handler: ExtendedApiGatewayHandler): APIGatewayPro
       createOKResult,
       createErrorResult,
     };
+
+    if (event.body === JSON.stringify(warmingRequestBody)) {
+      return onWarm
+        ? onWarm(event, context, res)
+        : createOKResult("Successfully warmed!", event.headers, context.awsRequestId);
+    }
 
     return handler(event, context, res);
   };
