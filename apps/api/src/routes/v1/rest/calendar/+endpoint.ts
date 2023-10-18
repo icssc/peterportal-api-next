@@ -1,31 +1,18 @@
 import { PrismaClient } from "@libs/db";
 import { createOKResult, createErrorResult } from "@libs/lambda";
+import { createHandler } from "@libs/lambda";
 import { getTermDateData } from "@libs/uc-irvine-api/registrar";
 import type { Quarter, QuarterDates } from "@peterportal-api/types";
-import type { APIGatewayProxyHandler } from "aws-lambda";
 import { ZodError } from "zod";
 
 import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
-export const GET: APIGatewayProxyHandler = async (event, context) => {
+export const GET = createHandler(async (event, context) => {
   const headers = event.headers;
   const query = event.queryStringParameters;
   const requestId = context.awsRequestId;
-
-  /**
-   * TODO: handle warmer requests.
-   */
-
-  // if (request.isWarmerRequest) {
-  //   try {
-  //     await prisma.$connect();
-  //     return createOKResult("Warmed", headers, requestId);
-  //   } catch (e) {
-  //     createErrorResult(500, e, requestId);
-  //   }
-  // }
 
   try {
     const where = QuerySchema.parse(query);
@@ -72,4 +59,4 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
     }
     return createErrorResult(400, error, requestId);
   }
-};
+});
