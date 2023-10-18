@@ -18,6 +18,7 @@ export const GET = createHandler(async (event, context, res) => {
 
   try {
     const parsedQuery = QuerySchema.parse(query);
+
     // The query object being empty shouldn't return all courses, since there's /courses/all for that.
     if (!Object.keys(parsedQuery).length) {
       return res.createErrorResult(400, "Course number not provided", requestId);
