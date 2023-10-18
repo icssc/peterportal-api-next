@@ -68,12 +68,14 @@ export const ANY: APIGatewayProxyHandler = async (event) => {
     } catch {
       responseHeaders["content-encoding"] = method!;
     }
-    return {
+    const ret = {
       body,
       headers: responseHeaders,
       isBase64Encoded: !!method,
       statusCode,
     };
+    console.log(ret);
+    return ret;
   } catch {
     return {
       body: "",
