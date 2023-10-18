@@ -15,10 +15,16 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
   if (!maybeParsed.success) {
     return createErrorResult(400, maybeParsed.error, requestId);
   }
-  const { data: where } = maybeParsed;
+  const {
+    data: { instructor, ...data },
+  } = maybeParsed;
 
   return createOKResult<EnrollmentHistory[]>(
-    (await prisma.websocEnrollmentHistory.findMany({ where })).map((x) => {
+    (
+      await prisma.websocEnrollmentHistory.findMany({
+        where: { ...data, instructors: { array_contains: instructor } },
+      })
+    ).map((x) => {
       const { timestamp: _, ...obj } = x;
       return obj as unknown as EnrollmentHistory;
     }),
