@@ -63,17 +63,19 @@ export const ANY: APIGatewayProxyHandler = async (event) => {
       await transformBody(res.body),
       req.headers.get("accept-encoding"),
     );
-    try {
-      JSON.parse(body);
-    } catch {
-      responseHeaders["content-encoding"] = method!;
+    if (method) {
+      responseHeaders["content-encoding"] = method;
+    } else {
+      delete responseHeaders["content-encoding"];
     }
-    return {
+    const ret = {
       body,
       headers: responseHeaders,
       isBase64Encoded: !!method,
       statusCode,
     };
+    console.log(ret);
+    return ret;
   } catch {
     return {
       body: "",
