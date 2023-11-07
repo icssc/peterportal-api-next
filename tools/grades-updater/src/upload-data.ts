@@ -153,13 +153,13 @@ async function processData(sections: Section[]): Promise<void> {
  * The entry point of this program.
  */
 async function uploadData(): Promise<void> {
-  if (!fs.existsSync(`${__dirname}/outputData`)) {
+  if (!fs.existsSync(`${__dirname}/../outputData`)) {
     throw new Error("Please create /outputData first");
   }
 
   const paths = fs
-    .readdirSync(resolve(`${__dirname}/outputData`))
-    .map((file: string) => resolve(`${__dirname}/outputData/${file}`));
+    .readdirSync(resolve(`${__dirname}/../outputData`))
+    .map((file: string) => resolve(`${__dirname}/../outputData/${file}`));
   for (const path of paths) {
     logger.info(`Started processing ${path}`);
     const sections = await processFile(path);

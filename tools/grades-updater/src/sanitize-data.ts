@@ -187,7 +187,7 @@ function createParser(filePath: string): Parser {
 async function processFile(filePath: string): Promise<void> {
   const courseParser: Parser = createParser(filePath);
   const outputFilePath: string = resolve(
-    `${__dirname}/outputData/${basename(filePath, ".csv")}.output.csv`,
+    `${__dirname}/../outputData/${basename(filePath, ".csv")}.output.csv`,
   );
   const stream: fs.WriteStream = fs.createWriteStream(outputFilePath, {
     flags: "a",
@@ -221,13 +221,13 @@ async function processFile(filePath: string): Promise<void> {
  * The entry point of this program.
  */
 async function sanitizeData(): Promise<void> {
-  if (!fs.existsSync(`${__dirname}/inputData`) || !fs.existsSync(`${__dirname}/outputData`)) {
+  if (!fs.existsSync(`${__dirname}/../inputData`) || !fs.existsSync(`${__dirname}/../outputData`)) {
     throw new Error("Please create /inputData and /outputData first");
   }
   await Promise.all(
     fs
-      .readdirSync(resolve(`${__dirname}/inputData`))
-      .map((file: string) => processFile(resolve(`${__dirname}/inputData/${file}`))),
+      .readdirSync(resolve(`${__dirname}/../inputData`))
+      .map((file: string) => processFile(resolve(`${__dirname}/../inputData/${file}`))),
   );
 }
 
