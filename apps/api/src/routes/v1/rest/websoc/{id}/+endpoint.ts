@@ -1,6 +1,5 @@
 import { PrismaClient } from "@libs/db";
-import { createErrorResult, createOKResult } from "@libs/lambda";
-import type { APIGatewayProxyHandler } from "aws-lambda";
+import { createHandler } from "@libs/lambda";
 import { ZodError } from "zod";
 
 import { APILambdaClient } from "../APILambdaClient";
@@ -12,28 +11,14 @@ const prisma = new PrismaClient();
 // let connected = false
 const lambdaClient = await APILambdaClient.new();
 
-export const GET: APIGatewayProxyHandler = async (event, context) => {
+async function onWarm() {
+  await prisma.$connect();
+}
+
+export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
   const requestId = context.awsRequestId;
   const params = event.pathParameters;
-
-  // if (!connected) {
-  //   lambdaClient = await APILambdaClient.new();
-  //   try {
-  //     await prisma.$connect();
-  //     connected = true;
-
-  //     /**
-  //      * TODO: handle warmer requests.
-  //      */
-
-  //     // if (request.isWarmerRequest) {
-  //     //   return createOKResult("Warmed", headers, requestId);
-  //     // }
-  //   } catch {
-  //     // no-op
-  //   }
-  // }
 
   try {
     switch (params?.id) {
@@ -86,7 +71,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
           );
         });
 
-        return createOKResult(webSocTerms, headers, requestId);
+        return res.createOKResult(webSocTerms, headers, requestId);
       }
 
       case "depts": {
@@ -119,16 +104,16 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
           return 0;
         });
 
-        return createOKResult(webSocDepts, headers, requestId);
+        return res.createOKResult(webSocDepts, headers, requestId);
       }
     }
   } catch (error) {
     if (error instanceof ZodError) {
       const messages = error.issues.map((issue) => issue.message);
-      return createErrorResult(400, messages.join("; "), requestId);
+      return res.createErrorResult(400, messages.join("; "), requestId);
     }
-    return createErrorResult(400, error, requestId);
+    return res.createErrorResult(400, error, requestId);
   }
 
-  return createErrorResult(400, "Invalid endpoint", requestId);
-};
+  return res.createErrorResult(400, "Invalid endpoint", requestId);
+}, onWarm);

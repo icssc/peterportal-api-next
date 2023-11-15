@@ -1,38 +1,28 @@
 import { PrismaClient } from "@libs/db";
-import { createErrorResult, createOKResult } from "@libs/lambda";
-import type { APIGatewayProxyHandler } from "aws-lambda";
+import { createHandler } from "@libs/lambda";
 
 const prisma = new PrismaClient();
 
-export const GET: APIGatewayProxyHandler = async (event, context) => {
+async function onWarm() {
+  await prisma.$connect();
+}
+
+export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
   const requestId = context.awsRequestId;
   const params = event.pathParameters;
 
-  /**
-   * TODO: handle warmer requests.
-   */
-
-  // if (request.isWarmerRequest) {
-  //   try {
-  //     await prisma.$connect();
-  //     return createOKResult("Warmed", headers, requestId);
-  //   } catch (e) {
-  //     createErrorResult(500, e, requestId);
-  //   }
-  // }
-
   if (params?.id == null) {
-    return createErrorResult(400, "Instructor UCInetID not provided", requestId);
+    return res.createErrorResult(400, "Instructor UCInetID not provided", requestId);
   }
 
   try {
     if (params.id === "all") {
       const instructors = await prisma.instructor.findMany();
-      return createOKResult(instructors, headers, requestId);
+      return res.createOKResult(instructors, headers, requestId);
     }
 
-    return createOKResult(
+    return res.createOKResult(
       await prisma.instructor.findFirstOrThrow({
         where: { ucinetid: decodeURIComponent(params.id) },
       }),
@@ -40,6 +30,6 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
       requestId,
     );
   } catch {
-    return createErrorResult(404, `Instructor ${params.id} not found`, requestId);
+    return res.createErrorResult(404, `Instructor ${params.id} not found`, requestId);
   }
-};
+}, onWarm);

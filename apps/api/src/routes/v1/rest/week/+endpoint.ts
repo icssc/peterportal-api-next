@@ -1,7 +1,6 @@
 import { PrismaClient } from "@libs/db";
-import { createErrorResult, createOKResult } from "@libs/lambda";
+import { createHandler } from "@libs/lambda";
 import type { WeekData } from "@peterportal-api/types";
-import type { APIGatewayProxyHandler } from "aws-lambda";
 import { ZodError } from "zod";
 
 import { getQuarter, getWeek } from "./lib";
@@ -9,23 +8,14 @@ import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
-export const GET: APIGatewayProxyHandler = async (event, context) => {
+async function onWarm() {
+  await prisma.$connect();
+}
+
+export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
-  const query = event.queryStringParameters;
   const requestId = context.awsRequestId;
-
-  /**
-   * TODO: handle warmer requests.
-   */
-
-  // if (request.isWarmerRequest) {
-  //   try {
-  //     await prisma.$connect();
-  //     return createOKResult("Warmed", headers, requestId);
-  //   } catch (e) {
-  //     createErrorResult(500, e, requestId);
-  //   }
-  // }
+  const query = event.queryStringParameters;
 
   try {
     const parsedQuery = QuerySchema.parse(query);
@@ -50,7 +40,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
     });
     // handle case of school break
     if (!termsInProgress.length && !termsInFinals.length)
-      return createOKResult<WeekData>(
+      return res.createOKResult<WeekData>(
         {
           weeks: [-1],
           quarters: ["N/A"],
@@ -64,7 +54,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
       const [term] = termsInProgress;
       const weeks = [getWeek(date, term)];
       const quarters = [getQuarter(term.year, term.quarter)];
-      return createOKResult<WeekData>(
+      return res.createOKResult<WeekData>(
         {
           weeks,
           quarters,
@@ -78,7 +68,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
     if (!termsInProgress.length && termsInFinals.length === 1) {
       const [term] = termsInFinals;
       const quarters = [getQuarter(term.year, term.quarter)];
-      return createOKResult<WeekData>(
+      return res.createOKResult<WeekData>(
         {
           weeks: [-1],
           quarters,
@@ -102,7 +92,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
       } else {
         display = `Week ${week1} • ${quarter1} | Week ${week2} • ${quarter2}`;
       }
-      return createOKResult<WeekData>(
+      return res.createOKResult<WeekData>(
         {
           weeks: [week1, week2],
           quarters: [quarter1, quarter2],
@@ -120,7 +110,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
       const quarters = [termInProgress, termInFinals].map(({ year, quarter }) =>
         getQuarter(year, quarter),
       );
-      return createOKResult<WeekData>(
+      return res.createOKResult<WeekData>(
         {
           weeks,
           quarters,
@@ -131,7 +121,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
       );
     }
     // cases above should be exhaustive but you never know
-    return createErrorResult(
+    return res.createErrorResult(
       500,
       "Something unexpected happened. Please try again later.",
       requestId,
@@ -139,8 +129,8 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
   } catch (error) {
     if (error instanceof ZodError) {
       const messages = error.issues.map((issue) => issue.message);
-      return createErrorResult(400, messages.join("; "), requestId);
+      return res.createErrorResult(400, messages.join("; "), requestId);
     }
-    return createErrorResult(400, error, requestId);
+    return res.createErrorResult(400, error, requestId);
   }
-};
+}, onWarm);

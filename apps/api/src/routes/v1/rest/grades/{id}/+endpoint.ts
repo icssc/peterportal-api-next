@@ -1,12 +1,11 @@
 import { PrismaClient } from "@libs/db";
-import { createErrorResult, createOKResult, logger } from "@libs/lambda";
+import { logger, createHandler } from "@libs/lambda";
 import type {
   AggregateGradesByCourse,
   AggregateGradesByOffering,
   GradesOptions,
   RawGrades,
 } from "@peterportal-api/types";
-import type { APIGatewayProxyHandler } from "aws-lambda";
 import { ZodError } from "zod";
 
 import {
@@ -21,22 +20,13 @@ import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
-export const GET: APIGatewayProxyHandler = async (event, context) => {
+async function onWarm() {
+  await prisma.$connect();
+}
+
+export const GET = createHandler(async (event, context, res) => {
   const { headers, pathParameters: params, queryStringParameters: query } = event;
   const { awsRequestId: requestId } = context;
-
-  /**
-   * TODO: handle warmer requests.
-   */
-
-  // if (request.isWarmerRequest) {
-  //   try {
-  //     await prisma.$connect();
-  //     return createOKResult("Warmed", headers, requestId);
-  //   } catch (e) {
-  //     createErrorResult(500, e, requestId);
-  //   }
-  // }
 
   try {
     const parsedQuery = QuerySchema.parse(query);
@@ -44,7 +34,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
       case "raw":
       case "aggregate":
         {
-          const res = (
+          const result = (
             await prisma.gradesSection.findMany({
               where: constructPrismaQuery(parsedQuery),
               include: { instructors: true },
@@ -52,14 +42,14 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
           ).map(transformRow);
           switch (params.id) {
             case "raw":
-              return createOKResult<RawGrades>(res, headers, requestId);
+              return res.createOKResult<RawGrades>(result, headers, requestId);
             case "aggregate":
-              return createOKResult(aggregateGrades(res), headers, requestId);
+              return res.createOKResult(aggregateGrades(result), headers, requestId);
           }
         }
         break;
       case "options": {
-        const res = await prisma.gradesSection.findMany({
+        const result = await prisma.gradesSection.findMany({
           where: constructPrismaQuery(parsedQuery),
           select: {
             year: true,
@@ -73,7 +63,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
         const departments = new Set<string>();
         const courseNumbers = new Set<string>();
         const sectionCodes = new Set<string>();
-        res.forEach(({ year, department, courseNumber, sectionCode }) => {
+        result.forEach(({ year, department, courseNumber, sectionCode }) => {
           years.add(year);
           departments.add(department);
           courseNumbers.add(courseNumber);
@@ -88,7 +78,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
           }),
           sectionCodes: Array.from(sectionCodes).sort(),
         };
-        return createOKResult<GradesOptions>(
+        return res.createOKResult<GradesOptions>(
           {
             ...ret,
             instructors: parsedQuery.instructor
@@ -111,7 +101,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
         );
       }
       case "aggregateByCourse": {
-        return createOKResult<AggregateGradesByCourse>(
+        return res.createOKResult<AggregateGradesByCourse>(
           aggregateByCourse(
             (
               await prisma.gradesSection.findMany({
@@ -125,7 +115,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
         );
       }
       case "aggregateByOffering": {
-        return createOKResult<AggregateGradesByOffering>(
+        return res.createOKResult<AggregateGradesByOffering>(
           aggregateByOffering(
             (
               await prisma.gradesSection.findMany({
@@ -139,7 +129,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
         );
       }
     }
-    return createErrorResult(
+    return res.createErrorResult(
       400,
       params?.id ? `Invalid operation ${params.id}` : "Operation name not provided",
       requestId,
@@ -147,20 +137,20 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
   } catch (e) {
     if (e instanceof ZodError) {
       const messages = e.issues.map((issue) => issue.message);
-      return createErrorResult(400, messages.join("; "), requestId);
+      return res.createErrorResult(400, messages.join("; "), requestId);
     }
     if (e instanceof Error) {
       logger.error(e.message);
       // findMany failing due to too many placeholders
       if (e.message.includes("1390")) {
-        return createErrorResult(
+        return res.createErrorResult(
           400,
           "Your query returned too many entries. Please refine your search.",
           requestId,
         );
       }
-      return createErrorResult(400, e.message, requestId);
+      return res.createErrorResult(400, e.message, requestId);
     }
-    return createErrorResult(400, e, requestId);
+    return res.createErrorResult(400, e, requestId);
   }
-};
+}, onWarm);
