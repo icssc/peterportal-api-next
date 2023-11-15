@@ -1,5 +1,4 @@
-import { createErrorResult, createOKResult } from "@libs/lambda";
-import type { APIGatewayProxyHandler } from "aws-lambda";
+import { createHandler } from "@libs/lambda";
 import { load } from "cheerio";
 import { fetch } from "cross-fetch";
 import { ZodError } from "zod";
@@ -7,7 +6,7 @@ import { ZodError } from "zod";
 import { fmtBldg, fmtDays, fmtTime, quarterToLarcSuffix } from "./lib";
 import { QuerySchema } from "./schema";
 
-export const GET: APIGatewayProxyHandler = async (event, context) => {
+export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
   const requestId = context.awsRequestId;
   const query = event.queryStringParameters;
@@ -16,14 +15,14 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
     const { year, quarter } = QuerySchema.parse(query);
 
     // SS10wk does not have LARC sessions apparently
-    if (quarter === "Summer10wk") return createOKResult([], headers, requestId);
+    if (quarter === "Summer10wk") return res.createOKResult([], headers, requestId);
 
     // TODO: move this code to its own scraper, and rewrite this route to fetch
     // data from the DB.
 
     const html = await fetch(
       `https://enroll.larc.uci.edu/${year}${quarterToLarcSuffix(quarter)}`,
-    ).then((res) => res.text());
+    ).then((response) => response.text());
 
     const $ = load(html);
 
@@ -63,13 +62,13 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
         return { courseInfo: { ...match?.groups }, sections };
       });
 
-    return createOKResult(larcSections, headers, requestId);
+    return res.createOKResult(larcSections, headers, requestId);
   } catch (e) {
     if (e instanceof ZodError) {
       const messages = e.issues.map((issue) => issue.message);
-      return createErrorResult(400, messages.join("; "), requestId);
+      return res.createErrorResult(400, messages.join("; "), requestId);
     }
 
-    return createErrorResult(400, e, requestId);
+    return res.createErrorResult(400, e, requestId);
   }
-};
+});
