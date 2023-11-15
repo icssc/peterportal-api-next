@@ -31,6 +31,11 @@
       "matchPackageNames": ["constructs"],
       "groupName": "Constructs",
       "allowedVersions": "10.2.69"
+    },
+    {
+      "matchPackageNames": ["node"],
+      "groupName": "Node.js",
+      "allowedVersions": "<19.0.0"
     }
   ],
   "pin": { "commitMessageSuffix": "[skip ci]" }
