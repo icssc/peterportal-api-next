@@ -7,15 +7,15 @@
   "main": "index.ts",
   "dependencies": {
     "@libs/db": "workspace:^",
-    "@types/he": "1.2.1",
+    "@types/he": "1.2.3",
     "cheerio": "1.0.0-rc.12",
     "he": "1.2.0",
-    "p-limit": "4.0.0",
+    "p-limit": "5.0.0",
     "string-similarity-js": "2.1.4",
     "winston": "3.11.0"
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "esbuild": "0.19.4"
+    "esbuild": "0.19.5"
   }
 }

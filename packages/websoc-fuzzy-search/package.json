@@ -22,11 +22,11 @@
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "@types/pako": "2.0.1",
-    "@types/pluralize": "0.0.31",
+    "@types/pako": "2.0.3",
+    "@types/pluralize": "0.0.33",
     "cross-fetch": "4.0.0",
     "pluralize": "8.0.0",
     "tsup": "7.2.0",
-    "tsx": "3.13.0"
+    "tsx": "4.1.1"
   }
 }
