@@ -20,15 +20,15 @@
     "services": "cdk --app 'npx tsx src/app/services.ts' --force --require-approval never"
   },
   "dependencies": {
-    "@aws-sdk/client-cloudformation": "3.408.0",
+    "@aws-sdk/client-cloudformation": "3.450.0",
     "@services/websoc-proxy": "workspace:^",
     "@services/websoc-scraper-v2": "workspace:^",
-    "@smithy/util-waiter": "2.0.6",
-    "aws-cdk-lib": "2.100.0",
+    "@smithy/util-waiter": "2.0.12",
+    "aws-cdk-lib": "2.106.1",
     "constructs": "10.2.69"
   },
   "devDependencies": {
-    "aws-cdk": "2.100.0",
-    "tsx": "3.13.0"
+    "aws-cdk": "2.106.1",
+    "tsx": "4.1.1"
   }
 }
