@@ -159,6 +159,32 @@ model GradesSection {
   @@unique([year, quarter, sectionCode], name: "idx")
 }
 
+model WebsocEnrollmentHistory {
+  year                   String
+  quarter                Quarter
+  sectionCode            Int
+  timestamp              DateTime
+  department             String
+  courseNumber           String
+  sectionType            WebsocSectionType
+  sectionNum             String
+  units                  String
+  instructors            Json
+  meetings               Json
+  finalExam              String
+  dates                  Json
+  maxCapacityHistory     Json
+  totalEnrolledHistory   Json
+  waitlistHistory        Json
+  waitlistCapHistory     Json
+  requestedHistory       Json
+  newOnlyReservedHistory Json
+  statusHistory          Json
+
+  @@id([year, quarter, sectionCode, timestamp])
+  @@unique([year, quarter, sectionCode, timestamp], name: "idx")
+}
+
 model WebsocSectionInstructor {
   id          Int           @id @default(autoincrement())
   year        String
