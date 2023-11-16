@@ -8,7 +8,7 @@ import TabItem from "@theme/TabItem";
 
 # Enrollment History
 
-The enrollment history endpoint allows users to
+The enrollment history endpoint allows users to view the changes in enrollment data (total enrolled, max capacity, waitlist, etc.) for a specific course's sections.
 
 ## Query parameters for all endpoints
 
