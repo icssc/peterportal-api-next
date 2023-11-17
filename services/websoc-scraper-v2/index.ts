@@ -486,18 +486,21 @@ async function scrape(name: string, term: Term) {
       const rawData = (data.data as WebsocAPIResponse).schools[0].departments[0].courses[0]
         .sections[0];
       enrollmentHistory[key].timestamp = timestamp;
-      (enrollmentHistory[key].dates as string[]).push(
-        `${timestamp.getFullYear()}-${timestamp.getMonth() + 1}-${timestamp.getDate()}`,
-      );
-      (enrollmentHistory[key].maxCapacityHistory as string[]).push(data.maxCapacity.toString(10));
-      (enrollmentHistory[key].totalEnrolledHistory as string[]).push(
-        rawData.numCurrentlyEnrolled.totalEnrolled,
-      );
-      (enrollmentHistory[key].waitlistHistory as string[]).push(rawData.numOnWaitlist);
-      (enrollmentHistory[key].waitlistCapHistory as string[]).push(rawData.numWaitlistCap);
-      (enrollmentHistory[key].requestedHistory as string[]).push(rawData.numRequested);
-      (enrollmentHistory[key].newOnlyReservedHistory as string[]).push(rawData.numNewOnlyReserved);
-      (enrollmentHistory[key].statusHistory as string[]).push(rawData.status);
+      const today = `${timestamp.getFullYear()}-${timestamp.getMonth() + 1}-${timestamp.getDate()}`;
+      if ((enrollmentHistory[key].dates as string[]).slice(-1)[0] != today) {
+        (enrollmentHistory[key].dates as string[]).push(today);
+        (enrollmentHistory[key].maxCapacityHistory as string[]).push(data.maxCapacity.toString(10));
+        (enrollmentHistory[key].totalEnrolledHistory as string[]).push(
+          rawData.numCurrentlyEnrolled.totalEnrolled,
+        );
+        (enrollmentHistory[key].waitlistHistory as string[]).push(rawData.numOnWaitlist);
+        (enrollmentHistory[key].waitlistCapHistory as string[]).push(rawData.numWaitlistCap);
+        (enrollmentHistory[key].requestedHistory as string[]).push(rawData.numRequested);
+        (enrollmentHistory[key].newOnlyReservedHistory as string[]).push(
+          rawData.numNewOnlyReserved,
+        );
+        (enrollmentHistory[key].statusHistory as string[]).push(rawData.status);
+      }
     } else {
       const {
         year,
