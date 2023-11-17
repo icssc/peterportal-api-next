@@ -132,11 +132,9 @@ export class Scraper {
     this.degreesAwarded = new Map(
       Array.from(
         new Set(
-          [...this.parsedUgradPrograms, ...this.parsedGradPrograms]
-            .map(([, x]) => x.degreeType)
-            .filter((x) => x) as string[],
+          [...this.parsedUgradPrograms, ...this.parsedGradPrograms].map(([, x]) => x.degreeType!),
         ),
-      ).map((x) => [x, this.degrees?.get(x) as string]),
+      ).map((x) => [x, this.degrees!.get(x)!]),
     );
 
     // Post-processing steps.
@@ -148,9 +146,9 @@ export class Scraper {
 
     let x, y, z;
     if (
-      (x = this.parsedUgradPrograms.get("Major in Art History") as Program) &&
-      (y = this.parsedSpecializations.get("AHGEO") as Program) &&
-      (z = this.parsedSpecializations.get("AHPER") as Program)
+      (x = this.parsedUgradPrograms.get("Major in Art History")!) &&
+      (y = this.parsedSpecializations.get("AHGEO")!) &&
+      (z = this.parsedSpecializations.get("AHPER")!)
     ) {
       x.specs = [];
       x.requirements = { ...x.requirements, ...y.requirements, ...z.requirements };
@@ -170,13 +168,13 @@ export class Scraper {
     if (!this.done) throw new Error("This scraper instance has not yet finished its run.");
     return new Map(
       Object.entries({
-        parsedMinorPrograms: this.parsedMinorPrograms,
-        parsedUgradPrograms: this.parsedUgradPrograms,
-        parsedGradPrograms: this.parsedGradPrograms,
-        parsedSpecializations: this.parsedSpecializations,
-        degreesAwarded: this.degreesAwarded,
+        parsedMinorPrograms: this.parsedMinorPrograms!,
+        parsedUgradPrograms: this.parsedUgradPrograms!,
+        parsedGradPrograms: this.parsedGradPrograms!,
+        parsedSpecializations: this.parsedSpecializations!,
+        degreesAwarded: this.degreesAwarded!,
       }),
-    ) as Map<string, Map<string, Program>>;
+    );
   }
   static async new(authCookie: string): Promise<Scraper> {
     const studentId = jwtDecode<JwtPayload>(authCookie.slice("Bearer+".length))?.sub;
