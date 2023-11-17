@@ -16,36 +16,36 @@
   "license": "MIT",
   "type": "module",
   "scripts": {
-    "cdk-app": "cdk --app 'npx tsx bronya.config.ts' --require-approval never",
+    "cdk-app": "cdk --app 'npx tsx bronya.config.ts' --force --require-approval never",
     "dev": "bunny dev-api"
   },
   "dependencies": {
-    "@apollo/server": "4.9.2",
-    "@aws-sdk/client-lambda": "3.398.0",
+    "@apollo/server": "4.9.5",
+    "@aws-sdk/client-lambda": "3.450.0",
     "@graphql-tools/load-files": "7.0.0",
     "@graphql-tools/merge": "9.0.0",
-    "@graphql-tools/utils": "10.0.5",
+    "@graphql-tools/utils": "10.0.8",
     "@libs/db": "workspace:^",
     "@libs/lambda": "workspace:^",
     "@libs/uc-irvine-api": "workspace:^",
     "@libs/websoc-utils": "workspace:^",
     "@peterportal-api/types": "workspace:^",
     "@services/websoc-proxy": "workspace:^",
-    "aws-cdk-lib": "2.93.0",
+    "aws-cdk-lib": "2.106.1",
     "cheerio": "1.0.0-rc.12",
     "cross-fetch": "4.0.0",
-    "graphql": "16.8.0",
-    "zod": "3.22.2"
+    "graphql": "16.8.1",
+    "zod": "3.22.4"
   },
   "devDependencies": {
     "@bronya.js/api-construct": "0.11.3",
     "@bronya.js/core": "0.11.3",
-    "@types/aws-lambda": "8.10.119",
-    "aws-cdk": "2.93.0",
+    "@types/aws-lambda": "8.10.126",
+    "aws-cdk": "2.106.1",
     "dotenv": "16.3.1",
     "dotenv-cli": "7.3.0",
-    "esbuild": "0.19.2",
-    "tsx": "3.12.7"
+    "esbuild": "0.19.5",
+    "tsx": "4.1.1"
   },
   "//": "the CDK configuration in this config file is used in the deployment package, @tools/cdk"
 }

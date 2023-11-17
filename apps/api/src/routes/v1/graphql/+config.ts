@@ -3,7 +3,7 @@ import { join, resolve } from "node:path";
 
 import { ApiPropsOverride } from "@bronya.js/api-construct";
 
-import { esbuildOptions } from "../../../../bronya.config";
+import { esbuildOptions, constructs } from "../../../../bronya.config";
 
 export const overrides: ApiPropsOverride = {
   esbuild: {
@@ -26,5 +26,9 @@ export const overrides: ApiPropsOverride = {
         },
       },
     ],
+  },
+  constructs: {
+    functionPlugin: constructs.functionPlugin,
+    restApiProps: constructs.restApiProps,
   },
 };

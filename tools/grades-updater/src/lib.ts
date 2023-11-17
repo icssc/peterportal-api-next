@@ -53,7 +53,7 @@ function createLogger(): Logger {
   const transports: Transport[] = [
     new winston.transports.Console(),
     new winston.transports.File({
-      filename: `${__dirname}/logs/${Date.now()}.log`,
+      filename: `${__dirname}/../logs/${Date.now()}.log`,
     }),
   ];
   return winston.createLogger({

@@ -25,7 +25,7 @@ export class WebsocProxy extends Construct {
         new Function(this, functionName, {
           architecture: Architecture.ARM_64,
           code: Code.fromAsset(
-            join(dirname(fileURLToPath(import.meta.url)), "../../../websoc-proxy/dist"),
+            join(dirname(fileURLToPath(import.meta.url)), "../../../../services/websoc-proxy/dist"),
           ),
           functionName,
           handler: "index.handler",

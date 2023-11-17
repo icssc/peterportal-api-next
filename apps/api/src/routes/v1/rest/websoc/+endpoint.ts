@@ -1,8 +1,7 @@
 import { PrismaClient } from "@libs/db";
-import { createErrorResult, createOKResult } from "@libs/lambda";
+import { createHandler } from "@libs/lambda";
 import type { WebsocAPIResponse } from "@libs/uc-irvine-api/websoc";
 import { combineAndNormalizeResponses, notNull, sortResponse } from "@libs/websoc-utils";
-import type { APIGatewayProxyHandler } from "aws-lambda";
 import { ZodError } from "zod";
 
 import { APILambdaClient } from "./APILambdaClient";
@@ -14,28 +13,14 @@ const prisma = new PrismaClient();
 // let connected = false
 const lambdaClient = await APILambdaClient.new();
 
-export const GET: APIGatewayProxyHandler = async (event, context) => {
+async function onWarm() {
+  await prisma.$connect();
+}
+
+export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
   const query = event.queryStringParameters;
   const requestId = context.awsRequestId;
-
-  // if (!connected) {
-  //   lambdaClient = await APILambdaClient.new();
-  //   try {
-  //     await prisma.$connect();
-  //     connected = true;
-
-  //     /**
-  //      * TODO: handle warmer requests.
-  //      */
-
-  //     // if (request.isWarmerRequest) {
-  //     //   return createOKResult("Warmed", headers, requestId);
-  //     // }
-  //   } catch {
-  //     // no-op
-  //   }
-  // }
 
   try {
     const parsedQuery = QuerySchema.parse(query);
@@ -53,7 +38,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
        * cacheOnly is set to false.
        */
       if (websocSections.length > 900 && !parsedQuery.cacheOnly) {
-        return createErrorResult(
+        return res.createErrorResult(
           400,
           "More than 900 sections matched your query. Please refine your search.",
           requestId,
@@ -97,7 +82,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
 
           const combinedResponses = combineAndNormalizeResponses(...responses);
 
-          return createOKResult(sortResponse(combinedResponses), headers, requestId);
+          return res.createOKResult(sortResponse(combinedResponses), headers, requestId);
         }
 
         const websocApiResponses = websocSections
@@ -106,7 +91,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
 
         const combinedResponses = combineAndNormalizeResponses(...websocApiResponses);
 
-        return createOKResult(sortResponse(combinedResponses), headers, requestId);
+        return res.createOKResult(sortResponse(combinedResponses), headers, requestId);
       }
 
       /**
@@ -115,7 +100,7 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
        * querying WebSoc.
        */
       if (parsedQuery.cacheOnly) {
-        return createOKResult({ schools: [] }, headers, requestId);
+        return res.createOKResult({ schools: [] }, headers, requestId);
       }
     }
 
@@ -125,12 +110,12 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
       queries: normalizeQuery(parsedQuery),
     });
 
-    return createOKResult(websocResults, headers, requestId);
+    return res.createOKResult(websocResults, headers, requestId);
   } catch (error) {
     if (error instanceof ZodError) {
       const messages = error.issues.map((issue) => issue.message);
-      return createErrorResult(400, messages.join("; "), requestId);
+      return res.createErrorResult(400, messages.join("; "), requestId);
     }
-    return createErrorResult(400, error, requestId);
+    return res.createErrorResult(400, error, requestId);
   }
-};
+}, onWarm);

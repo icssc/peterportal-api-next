@@ -1,36 +1,26 @@
 import { PrismaClient } from "@libs/db";
-import { createOKResult, createErrorResult } from "@libs/lambda";
+import { createHandler } from "@libs/lambda";
 import { getTermDateData } from "@libs/uc-irvine-api/registrar";
 import type { Quarter, QuarterDates } from "@peterportal-api/types";
-import type { APIGatewayProxyHandler } from "aws-lambda";
 import { ZodError } from "zod";
 
 import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
-export const GET: APIGatewayProxyHandler = async (event, context) => {
+async function onWarm() {
+  await prisma.$connect();
+}
+
+export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
   const query = event.queryStringParameters;
   const requestId = context.awsRequestId;
 
-  /**
-   * TODO: handle warmer requests.
-   */
-
-  // if (request.isWarmerRequest) {
-  //   try {
-  //     await prisma.$connect();
-  //     return createOKResult("Warmed", headers, requestId);
-  //   } catch (e) {
-  //     createErrorResult(500, e, requestId);
-  //   }
-  // }
-
   try {
     const where = QuerySchema.parse(query);
 
-    const res = await prisma.calendarTerm.findFirst({
+    const result = await prisma.calendarTerm.findFirst({
       where,
       select: {
         instructionStart: true,
@@ -40,8 +30,8 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
       },
     });
 
-    if (res) {
-      return createOKResult<QuarterDates>(res, headers, requestId);
+    if (result) {
+      return res.createOKResult<QuarterDates>(result, headers, requestId);
     }
 
     const termDateData = await getTermDateData(
@@ -57,19 +47,23 @@ export const GET: APIGatewayProxyHandler = async (event, context) => {
     });
 
     if (!Object.keys(termDateData).length) {
-      return createErrorResult(
+      return res.createErrorResult(
         400,
         `The requested term, ${where.year} ${where.quarter}, is currently unavailable.`,
         requestId,
       );
     }
 
-    return createOKResult(termDateData[[where.year, where.quarter].join(" ")], headers, requestId);
+    return res.createOKResult(
+      termDateData[[where.year, where.quarter].join(" ")],
+      headers,
+      requestId,
+    );
   } catch (error) {
     if (error instanceof ZodError) {
       const messages = error.issues.map((issue) => issue.message);
-      return createErrorResult(400, messages.join("; "), requestId);
+      return res.createErrorResult(400, messages.join("; "), requestId);
     }
-    return createErrorResult(400, error, requestId);
+    return res.createErrorResult(400, error, requestId);
   }
-};
+}, onWarm);
