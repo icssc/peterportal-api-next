@@ -473,12 +473,29 @@ async function scrape(name: string, term: Term) {
     },
   };
 
+  const [instructorsDeleted, buildingsDeleted, meetingsDeleted, sectionsDeleted] =
+    await prisma.$transaction([
+      prisma.websocSectionInstructor.deleteMany(params),
+      prisma.websocSectionMeetingBuilding.deleteMany(params),
+      prisma.websocSectionMeeting.deleteMany(params),
+      prisma.websocSection.deleteMany(params),
+    ]);
+
+  logger.info(`Removed ${instructorsDeleted.count} instructors`);
+  logger.info(`Removed ${buildingsDeleted.count} buildings`);
+  logger.info(`Removed ${meetingsDeleted.count} meetings`);
+  logger.info(`Removed ${sectionsDeleted.count} sections`);
+
+  forceGC();
+
   const enrollmentHistory = Object.fromEntries(
     (await prisma.websocEnrollmentHistory.findMany(params)).map((x) => [
       `${x.year}-${x.quarter}-${x.sectionCode}`,
       x,
     ]),
   );
+
+  logger.info(`Retrieved ${enrollmentHistory.length} enrollment history entries`);
 
   for (const { data } of Object.values(res)) {
     const key = `${data.year}-${data.quarter}-${data.sectionCode}`;
@@ -550,7 +567,7 @@ async function scrape(name: string, term: Term) {
     }
   }
 
-  await prisma.$transaction([
+  const [enrollmentInserted, enrollmentRemoved] = await prisma.$transaction([
     prisma.websocEnrollmentHistory.createMany({
       data: Object.values(enrollmentHistory) as Prisma.WebsocEnrollmentHistoryCreateManyInput[],
       skipDuplicates: true,
@@ -558,18 +575,8 @@ async function scrape(name: string, term: Term) {
     prisma.websocEnrollmentHistory.deleteMany(params),
   ]);
 
-  const [instructorsDeleted, buildingsDeleted, meetingsDeleted, sectionsDeleted] =
-    await prisma.$transaction([
-      prisma.websocSectionInstructor.deleteMany(params),
-      prisma.websocSectionMeetingBuilding.deleteMany(params),
-      prisma.websocSectionMeeting.deleteMany(params),
-      prisma.websocSection.deleteMany(params),
-    ]);
-
-  logger.info(`Removed ${instructorsDeleted.count} instructors`);
-  logger.info(`Removed ${buildingsDeleted.count} buildings`);
-  logger.info(`Removed ${meetingsDeleted.count} meetings`);
-  logger.info(`Removed ${sectionsDeleted.count} sections`);
+  logger.info(`Inserted ${enrollmentInserted.count} enrollment history entries`);
+  logger.info(`Removed ${enrollmentRemoved.count} enrollment history entries`);
   logger.info("Sleeping for 3 minutes");
 
   await sleep(SLEEP_DURATION);
