@@ -495,7 +495,7 @@ async function scrape(name: string, term: Term) {
     ]),
   );
 
-  logger.info(`Retrieved ${enrollmentHistory.length} enrollment history entries`);
+  logger.info(`Retrieved ${Object.keys(enrollmentHistory).length} enrollment history entries`);
 
   for (const { data } of Object.values(res)) {
     const key = `${data.year}-${data.quarter}-${data.sectionCode}`;
