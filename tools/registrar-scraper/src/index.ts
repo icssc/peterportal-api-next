@@ -47,24 +47,9 @@ async function main() {
       data: Object.entries(courseInfo).map(createCourses(instructorInfo, prereqInfo, prereqLists)),
       skipDuplicates: true,
     }),
-    prisma.coursePrereq.deleteMany({ where: { courseId: { in: Object.keys(prereqInfo) } } }),
-    prisma.coursePrereq.createMany({
-      data: Object.entries(prereqLists).flatMap(([forCourseId, prereqList]) =>
-        prereqList.map((courseId) => ({ courseId, forCourseId })),
-      ),
-      skipDuplicates: true,
-    }),
     prisma.instructor.deleteMany({ where: { ucinetid: { in: Object.keys(instructorInfo) } } }),
     prisma.instructor.createMany({
       data: Object.values(instructorInfo),
-    }),
-    prisma.courseHistory.deleteMany({ where: { ucinetid: { in: Object.keys(instructorInfo) } } }),
-    prisma.courseHistory.createMany({
-      data: Object.entries(instructorInfo).flatMap(([ucinetid, { courseHistory }]) =>
-        Object.entries(courseHistory).flatMap(([courseId, terms]) =>
-          terms.map((term) => ({ ucinetid, courseId, term })),
-        ),
-      ),
     }),
   ]);
 }
