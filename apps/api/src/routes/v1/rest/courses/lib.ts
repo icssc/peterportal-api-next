@@ -64,14 +64,18 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.CourseWhereInpu
 
   if (parsedQuery.department)
     AND.push({
-      OR: [{ department: parsedQuery.department }, { id: { startsWith: parsedQuery.department } }],
+      OR: [
+        { department: parsedQuery.department.toUpperCase() },
+        { id: { startsWith: parsedQuery.department.toUpperCase() } },
+      ],
     });
 
-  if (parsedQuery.courseNumber) AND.push({ courseNumber: parsedQuery.courseNumber });
+  if (parsedQuery.courseNumber) AND.push({ courseNumber: parsedQuery.courseNumber.toUpperCase() });
 
   if (parsedQuery.courseNumeric) AND.push({ courseNumeric: parsedQuery.courseNumeric });
 
-  if (parsedQuery.titleContains) AND.push({ title: { contains: parsedQuery.titleContains } });
+  if (parsedQuery.titleContains)
+    AND.push({ title: { contains: parsedQuery.titleContains, mode: "insensitive" } });
 
   if (parsedQuery.courseLevel && parsedQuery.courseLevel !== "ANY")
     AND.push({ courseLevel: parsedQuery.courseLevel });
@@ -81,21 +85,21 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.CourseWhereInpu
   if (parsedQuery.maxUnits) AND.push({ maxUnits: parsedQuery.maxUnits });
 
   if (parsedQuery.descriptionContains)
-    AND.push({ description: { contains: parsedQuery.descriptionContains } });
+    AND.push({ description: { contains: parsedQuery.descriptionContains, mode: "insensitive" } });
 
   if (parsedQuery.taughtByInstructors)
     AND.push({
       OR: parsedQuery.taughtByInstructors.map((instructor) => ({
-        instructorHistory: { array_contains: instructor },
+        instructorHistory: { array_contains: [instructor.toLowerCase()] },
       })),
     });
 
   if (parsedQuery.geCategory && parsedQuery.geCategory !== "ANY")
-    AND.push({ geList: { array_contains: parsedQuery.geCategory } });
+    AND.push({ geList: { array_contains: [parsedQuery.geCategory] } });
 
   if (parsedQuery.taughtInTerms)
     AND.push({
-      OR: parsedQuery.taughtInTerms.map((term) => ({ terms: { array_contains: term } })),
+      OR: parsedQuery.taughtInTerms.map((term) => ({ terms: { array_contains: [term] } })),
     });
 
   return { AND: AND.length ? AND : undefined };

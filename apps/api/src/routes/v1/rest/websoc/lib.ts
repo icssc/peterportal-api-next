@@ -38,13 +38,13 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
   if (parsedQuery.ge && parsedQuery.ge !== "ANY") {
     AND.push({
       geCategories: {
-        array_contains: parsedQuery.ge,
+        array_contains: [parsedQuery.ge],
       },
     });
   }
 
   if (parsedQuery.department) {
-    AND.push({ department: parsedQuery.department });
+    AND.push({ department: parsedQuery.department.toUpperCase() });
   }
 
   if (parsedQuery.courseNumber) {
@@ -57,7 +57,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
                 lte: parseInt(n.split("-")[1].replace(/\D/g, "")),
               },
             }
-          : { courseNumber: n },
+          : { courseNumber: n.toUpperCase() },
       ),
     );
   }
@@ -68,6 +68,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
         every: {
           name: {
             contains: parsedQuery.instructorName,
+            mode: "insensitive",
           },
         },
       },
@@ -78,6 +79,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
     AND.push({
       courseTitle: {
         contains: parsedQuery.courseTitle,
+        mode: "insensitive",
       },
     });
   }
@@ -132,7 +134,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
           meetings: {
             every: {
               days: {
-                array_contains: x,
+                array_contains: [x],
               },
             },
           },
@@ -158,8 +160,6 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
 
   switch (parsedQuery.cancelledCourses) {
     case undefined:
-      AND.push({ cancelled: false });
-      break;
     case "Exclude":
       AND.push({ cancelled: false });
       break;
@@ -174,8 +174,8 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
           buildings: {
             some: {
               bldg: parsedQuery.room
-                ? `${parsedQuery.building} ${parsedQuery.room}`
-                : { contains: parsedQuery.building },
+                ? `${parsedQuery.building.toUpperCase()} ${parsedQuery.room.toUpperCase()}`
+                : { contains: parsedQuery.building, mode: "insensitive" },
             },
           },
         },
