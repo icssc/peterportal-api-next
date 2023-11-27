@@ -4,12 +4,13 @@ generator client {
 }
 
 datasource db {
-  provider          = "mysql"
-  url               = env("DATABASE_URL")
-  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
-// Do not modify anything above this line unless you know what you are doing.
+// The parts above this line are used to configure the Prisma Client directly
+// and has nothing to do with the database schema.
+// You probably do not need to modify it.
 
 // Enums
 
@@ -84,23 +85,6 @@ model Course {
   geList            Json
   geText            String
   terms             Json
-}
-
-model CoursePrereq {
-  courseId    String
-  forCourseId String
-
-  @@id([courseId, forCourseId])
-  @@unique([courseId, forCourseId], name: "idx")
-}
-
-model CourseHistory {
-  ucinetid String
-  courseId String
-  term     String
-
-  @@id([ucinetid, courseId, term])
-  @@unique([ucinetid, courseId, term], name: "idx")
 }
 
 model Instructor {
