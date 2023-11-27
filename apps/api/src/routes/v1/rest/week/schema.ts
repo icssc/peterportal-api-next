@@ -8,33 +8,22 @@ const isLeap = (x: number) => x % 4 == 0 && (x % 100 == 0 ? x % 400 == 0 : true)
 
 export const QuerySchema = z
   .object({
-    year: z.coerce.number().int().gte(1000).lte(9999).optional(),
-    month: z.coerce.number().int().gte(1).lte(12).optional(),
-    day: z.coerce.number().int().gte(1).lte(31).optional(),
+    year: z.coerce.number().int().gte(1000).lte(9999),
+    month: z.coerce.number().int().gte(1).lte(12),
+    day: z.coerce.number().int().gte(1).lte(31),
   })
   .refine(
-    ({ year, month, day }) =>
-      (year === undefined && month === undefined && day === undefined) ||
-      (year !== undefined && month !== undefined && day !== undefined),
-    {
-      message: "All fields must be either provided or left blank",
-    },
-  )
-  .transform(({ year, month, day }) => ({
-    year: year ?? 0,
-    month: month ?? 0,
-    day: day ?? 0,
-    hasParams: year !== undefined,
-  }))
-  .refine(
-    ({ year, month, day, hasParams }) =>
-      hasParams
-        ? (month === 2 ? (isLeap(year) ? day < 30 : day < 29) : true) &&
-          (shortMonths.includes(month) ? day < 31 : true)
-        : true,
+    (x) =>
+      (x.month === 2 ? (isLeap(x.year) ? x.day < 30 : x.day < 29) : true) &&
+      (shortMonths.includes(x.month) ? x.day < 31 : true),
     {
       message: "The day provided is not valid for the month provided",
     },
-  );
+  )
+  .transform((params) => ({
+    hasParams: true,
+    ...params,
+  }))
+  .or(z.null().transform(() => ({ year: -1, month: -1, day: -1, hasParams: false })));
 
 export type Query = z.infer<typeof QuerySchema>;

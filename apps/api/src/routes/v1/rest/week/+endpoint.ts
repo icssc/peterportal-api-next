@@ -17,8 +17,6 @@ export const GET = createHandler(async (event, context, res) => {
   const requestId = context.awsRequestId;
   const query = event.queryStringParameters;
 
-  console.log(query);
-
   try {
     const parsedQuery = QuerySchema.parse(query);
     if (!parsedQuery.hasParams) {
