@@ -28,6 +28,10 @@ CREATE ROLE api_prod_user LOGIN;
 
 GRANT USAGE ON SCHEMA public TO api_prod_user;
 
+GRANT
+SELECT
+  ON ALL TABLES IN SCHEMA public TO api_prod_user;
+
 GRANT USAGE,
 SELECT
   ON ALL SEQUENCES IN SCHEMA public TO api_prod_user;
