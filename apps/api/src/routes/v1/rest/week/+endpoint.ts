@@ -19,7 +19,7 @@ export const GET = createHandler(async (event, context, res) => {
 
   try {
     const parsedQuery = QuerySchema.parse(query);
-    if (!parsedQuery.year) {
+    if (!parsedQuery.hasParams) {
       const [month, day, year] = new Date()
         .toLocaleString("en-US", { timeZone: "America/Los_Angeles" })
         .split(",")[0]
