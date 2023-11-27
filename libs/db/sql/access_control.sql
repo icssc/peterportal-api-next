@@ -12,13 +12,31 @@ SELECT
 
 CREATE ROLE api_staging_user LOGIN;
 
+GRANT USAGE ON SCHEMA public TO api_staging_user;
+
+GRANT USAGE,
+SELECT
+  ON ALL SEQUENCES IN SCHEMA dev TO api_staging_user;
+
 GRANT INSERT ON dev."CalendarTerm" TO api_staging_user;
 
 CREATE ROLE api_prod_user LOGIN;
 
+GRANT USAGE ON SCHEMA public TO api_prod_user;
+
+GRANT USAGE,
+SELECT
+  ON ALL SEQUENCES IN SCHEMA public TO api_prod_user;
+
 GRANT INSERT ON public."CalendarTerm" TO api_prod_user;
 
 CREATE ROLE api_websoc_scraper LOGIN;
+
+GRANT USAGE ON SCHEMA public TO api_websoc_scraper;
+
+GRANT USAGE,
+SELECT
+  ON ALL SEQUENCES IN SCHEMA public TO api_websoc_scraper;
 
 GRANT
 SELECT
