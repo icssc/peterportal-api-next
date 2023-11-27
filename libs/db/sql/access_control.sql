@@ -1,10 +1,12 @@
 -- This file is used to control access to the API database.
 -- You probably do not need to modify this.
-ALTER DEFAULT PRIVILEGES IN SCHEMA dev GRANT
+ALTER DEFAULT PRIVILEGES IN SCHEMA dev
+GRANT
 SELECT
   ON TABLES TO public;
 
-ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT
+ALTER DEFAULT PRIVILEGES IN SCHEMA public
+GRANT
 SELECT
   ON TABLES TO public;
 
