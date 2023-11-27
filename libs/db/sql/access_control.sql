@@ -12,7 +12,11 @@ SELECT
 
 CREATE ROLE api_staging_user LOGIN;
 
-GRANT USAGE ON SCHEMA public TO api_staging_user;
+GRANT USAGE ON SCHEMA dev TO api_staging_user;
+
+GRANT
+SELECT
+  ON ALL TABLES IN SCHEMA dev TO api_staging_user;
 
 GRANT USAGE,
 SELECT
