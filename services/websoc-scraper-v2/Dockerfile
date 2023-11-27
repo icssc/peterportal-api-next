@@ -4,4 +4,4 @@ RUN apt-get update -y && apt-get install -y openssl
 USER node
 WORKDIR /home/node
 COPY --chown=node:node dist .
-CMD ["node", "index.mjs"]
+CMD ["node", "--expose-gc", "index.mjs"]
