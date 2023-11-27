@@ -20,13 +20,7 @@ export const QuerySchema = z
       message: "The day provided is not valid for the month provided",
     },
   )
-  .or(
-    z.object({
-      year: z.undefined(),
-      month: z.undefined(),
-      day: z.undefined(),
-    }),
-  );
+  .or(z.object({}));
 
 z.setErrorMap((issue, ctx) => ({
   message:
