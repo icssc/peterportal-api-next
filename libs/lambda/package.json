@@ -11,6 +11,6 @@
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "@types/aws-lambda": "8.10.126"
+    "@types/aws-lambda": "8.10.129"
   }
 }
