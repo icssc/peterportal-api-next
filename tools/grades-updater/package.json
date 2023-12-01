@@ -21,6 +21,6 @@
     "@peterportal-api/types": "workspace:^",
     "@types/node": "18.18.5",
     "dotenv-cli": "7.3.0",
-    "tsx": "4.1.1"
+    "tsx": "4.6.0"
   }
 }
