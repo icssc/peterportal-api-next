@@ -80,6 +80,11 @@ const prismaSchema = resolve(libsDbDirectory, "prisma", prismaSchemaFile);
 const prismaQueryEngineFile = "libquery_engine-linux-arm64-openssl-1.0.x.so.node";
 
 /**
+ * Namespace for virtual files.
+ */
+const namespace = "peterportal-api-next:virtual";
+
+/**
  * Shared ESBuild options.
  */
 export const esbuildOptions: BuildOptions = {
@@ -97,6 +102,28 @@ export const esbuildOptions: BuildOptions = {
    * @RFC What would be the best way to resolve these two values?
    */
   outExtension: { ".js": ".mjs" },
+
+  plugins: [
+    {
+      name: "in-memory-cache",
+      setup: (build) => {
+        build.onResolve({ filter: /INSTRUCTORS/ }, (args) => {
+          return {
+            path: args.path,
+            namespace,
+          };
+        });
+
+        build.onLoad({ filter: /INSTRUCTORS/, namespace }, async () => {
+          const instructors = ["johndoe", "janedoe", "johndoe2"]; // await prisma.instructors(...)
+
+          return {
+            contents: `export const instructors = ${JSON.stringify(instructors)}`,
+          };
+        });
+      },
+    },
+  ],
 };
 
 /**
