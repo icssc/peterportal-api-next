@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import { Api, type ApiConstructProps } from "@bronya.js/api-construct";
 import { createApiCliPlugins } from "@bronya.js/api-construct/plugins/cli";
 import { isCdk } from "@bronya.js/core";
+import { PrismaClient } from "@libs/db";
 import { logger, warmingRequestBody } from "@libs/lambda";
 import { LambdaIntegration, ResponseType } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
@@ -15,6 +16,10 @@ import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { App, Stack, Duration } from "aws-cdk-lib/core";
 import { config } from "dotenv";
 import type { BuildOptions } from "esbuild";
+
+import { normalizeCourse } from "./src/lib/utils";
+
+const prisma = new PrismaClient();
 
 /**
  * Whether we're executing in CDK.
@@ -107,20 +112,26 @@ export const esbuildOptions: BuildOptions = {
     {
       name: "in-memory-cache",
       setup: (build) => {
-        build.onResolve({ filter: /INSTRUCTORS/ }, (args) => {
-          return {
-            path: args.path,
-            namespace,
-          };
-        });
-
-        build.onLoad({ filter: /INSTRUCTORS/, namespace }, async () => {
-          const instructors = ["johndoe", "janedoe", "johndoe2"]; // await prisma.instructors(...)
-
-          return {
-            contents: `export const instructors = ${JSON.stringify(instructors)}`,
-          };
-        });
+        build.onResolve({ filter: /virtual:courses/ }, (args) => ({
+          path: args.path,
+          namespace,
+        }));
+        build.onResolve({ filter: /virtual:instructors/ }, (args) => ({
+          path: args.path,
+          namespace,
+        }));
+        build.onLoad({ filter: /virtual:courses/, namespace }, async () => ({
+          contents: `export const courses = ${JSON.stringify(
+            Object.fromEntries(
+              (await prisma.course.findMany()).map(normalizeCourse).map((x) => [x.id, x]),
+            ),
+          )}`,
+        }));
+        build.onLoad({ filter: /virtual:instructors/, namespace }, async () => ({
+          contents: `export const instructors = ${JSON.stringify(
+            await prisma.instructor.findMany(),
+          )}`,
+        }));
       },
     },
   ],
