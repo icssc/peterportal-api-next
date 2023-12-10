@@ -301,7 +301,7 @@ export async function main(): Promise<App> {
         'exports.h=async _=>({headers:{"Access-Control-Allow-Origin": "*","Access-Control-Allow-Headers": "Apollo-Require-Preflight,Content-Type","Access-Control-Allow-Methods": "GET,POST,OPTIONS"},statusCode:204})',
       ),
       handler: "index.h",
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       architecture: Architecture.ARM_64,
     }),
   );
