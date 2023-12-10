@@ -10,7 +10,7 @@ export const GET = createHandler(async (event, context, res) => {
     return res.createErrorResult(400, "Course number not provided", requestId);
   }
   if (params?.id === "all") {
-    return res.createOKResult(courses, headers, requestId);
+    return res.createOKResult(Object.values(courses), headers, requestId);
   }
   if (courses[decodeURIComponent(params.id)]) {
     return res.createOKResult(courses[decodeURIComponent(params.id)], headers, requestId);

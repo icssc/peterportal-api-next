@@ -129,7 +129,7 @@ export const esbuildOptions: BuildOptions = {
         }));
         build.onLoad({ filter: /virtual:instructors/, namespace }, async () => ({
           contents: `export const instructors = ${JSON.stringify(
-            await prisma.instructor.findMany(),
+            Object.fromEntries((await prisma.instructor.findMany()).map((x) => [x.ucinetid, x])),
           )}`,
         }));
       },

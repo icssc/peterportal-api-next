@@ -10,7 +10,7 @@ export const GET = createHandler(async (event, context, res) => {
     return res.createErrorResult(400, "Instructor UCInetID not provided", requestId);
   }
   if (params.id === "all") {
-    return res.createOKResult(instructors, headers, requestId);
+    return res.createOKResult(Object.values(instructors), headers, requestId);
   }
   if (instructors[decodeURIComponent(params.id)]) {
     return res.createOKResult(instructors[decodeURIComponent(params.id)], headers, requestId);
