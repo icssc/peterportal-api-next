@@ -40,7 +40,7 @@
     {
       "matchPackageNames": ["node"],
       "groupName": "Node.js",
-      "allowedVersions": "<19.0.0"
+      "allowedVersions": "<21.0.0"
     }
   ],
   "pin": { "commitMessageSuffix": "[skip ci]" }
