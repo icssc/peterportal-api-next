@@ -141,6 +141,7 @@ export const esbuildOptions: BuildOptions = {
  * Shared construct props.
  */
 export const constructs: ApiConstructProps = {
+  functionProps: () => ({ runtime: Runtime.NODEJS_20_X }),
   functionPlugin: ({ functionProps, handler }, scope) => {
     const warmingTarget = new LambdaFunction(handler, {
       event: RuleTargetInput.fromObject(warmingRequestBody),

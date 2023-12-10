@@ -30,7 +30,7 @@ export class WebsocProxy extends Construct {
           functionName,
           handler: "index.handler",
           timeout: Duration.seconds(15),
-          runtime: Runtime.NODEJS_18_X,
+          runtime: Runtime.NODEJS_20_X,
           memorySize: 512,
         }),
         {
