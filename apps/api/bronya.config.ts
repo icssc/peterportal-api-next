@@ -82,7 +82,7 @@ const prismaSchema = resolve(libsDbDirectory, "prisma", prismaSchemaFile);
 /**
  * Name of the Prisma query engine file that's used on AWS Lambda.
  */
-const prismaQueryEngineFile = "libquery_engine-linux-arm64-openssl-1.0.x.so.node";
+const prismaQueryEngineFile = "libquery_engine-linux-rhel-openssl-1.0.x.so.node";
 
 /**
  * Namespace for virtual files.
@@ -141,6 +141,10 @@ export const esbuildOptions: BuildOptions = {
  * Shared construct props.
  */
 export const constructs: ApiConstructProps = {
+  functionProps: () => ({
+    architecture: Architecture.X86_64,
+    runtime: Runtime.NODEJS_20_X,
+  }),
   functionPlugin: ({ functionProps, handler }, scope) => {
     const warmingTarget = new LambdaFunction(handler, {
       event: RuleTargetInput.fromObject(warmingRequestBody),
