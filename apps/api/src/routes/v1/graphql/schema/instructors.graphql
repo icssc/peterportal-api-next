@@ -25,8 +25,8 @@ type Instructor {
 }
 
 extend type Query {
-  "Get the instructor with the corresponding UCInetID."
-  instructor(ucinetid: String!): Instructor!
+  "Get the instructor with the corresponding UCInetID, or null if no such instructor exists."
+  instructor(ucinetid: String!): Instructor
   "Get instructors that match the given constraints."
   instructors(
     "A substring of the instructors' full names."
