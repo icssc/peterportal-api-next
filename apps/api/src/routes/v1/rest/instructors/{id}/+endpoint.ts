@@ -4,16 +4,17 @@ import { instructors } from "virtual:instructors";
 export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
   const requestId = context.awsRequestId;
-  const params = event.pathParameters;
+  const { id } = event.pathParameters ?? {};
 
-  if (params?.id == null) {
-    return res.createErrorResult(400, "Instructor UCInetID not provided", requestId);
+  switch (id) {
+    case null:
+    case undefined:
+      return res.createErrorResult(400, "Instructor UCInetID not provided", requestId);
+    case "all":
+      return res.createOKResult(Object.values(instructors), headers, requestId);
+    default:
+      return instructors[decodeURIComponent(id)]
+        ? res.createOKResult(instructors[decodeURIComponent(id)], headers, requestId)
+        : res.createErrorResult(404, `Instructor ${id} not found`, requestId);
   }
-  if (params.id === "all") {
-    return res.createOKResult(Object.values(instructors), headers, requestId);
-  }
-  if (instructors[decodeURIComponent(params.id)]) {
-    return res.createOKResult(instructors[decodeURIComponent(params.id)], headers, requestId);
-  }
-  return res.createErrorResult(404, `Instructor ${params.id} not found`, requestId);
 });
