@@ -82,7 +82,7 @@ const prismaSchema = resolve(libsDbDirectory, "prisma", prismaSchemaFile);
 /**
  * Name of the Prisma query engine file that's used on AWS Lambda.
  */
-const prismaQueryEngineFile = "libquery_engine-linux-arm64-openssl-1.0.x.so.node";
+const prismaQueryEngineFile = "libquery_engine-linux-arm64-openssl-3.0.x.so.node";
 
 /**
  * Namespace for virtual files.
