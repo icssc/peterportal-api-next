@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import { Api, type ApiConstructProps } from "@bronya.js/api-construct";
 import { createApiCliPlugins } from "@bronya.js/api-construct/plugins/cli";
 import { isCdk } from "@bronya.js/core";
+import { PrismaClient } from "@libs/db";
 import { logger, warmingRequestBody } from "@libs/lambda";
 import { LambdaIntegration, ResponseType } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
@@ -15,6 +16,10 @@ import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { App, Stack, Duration } from "aws-cdk-lib/core";
 import { config } from "dotenv";
 import type { BuildOptions } from "esbuild";
+
+import { normalizeCourse } from "./src/lib/utils";
+
+const prisma = new PrismaClient();
 
 /**
  * Whether we're executing in CDK.
@@ -77,7 +82,12 @@ const prismaSchema = resolve(libsDbDirectory, "prisma", prismaSchemaFile);
 /**
  * Name of the Prisma query engine file that's used on AWS Lambda.
  */
-const prismaQueryEngineFile = "libquery_engine-linux-arm64-openssl-1.0.x.so.node";
+const prismaQueryEngineFile = "libquery_engine-linux-arm64-openssl-3.0.x.so.node";
+
+/**
+ * Namespace for virtual files.
+ */
+const namespace = "peterportal-api-next:virtual";
 
 /**
  * Shared ESBuild options.
@@ -86,7 +96,7 @@ export const esbuildOptions: BuildOptions = {
   format: "esm",
   platform: "node",
   bundle: true,
-  // minify: true,
+  minify: true,
   banner: { js },
 
   /**
@@ -97,12 +107,41 @@ export const esbuildOptions: BuildOptions = {
    * @RFC What would be the best way to resolve these two values?
    */
   outExtension: { ".js": ".mjs" },
+
+  plugins: [
+    {
+      name: "in-memory-cache",
+      setup: (build) => {
+        build.onResolve({ filter: /virtual:courses/ }, (args) => ({
+          path: args.path,
+          namespace,
+        }));
+        build.onResolve({ filter: /virtual:instructors/ }, (args) => ({
+          path: args.path,
+          namespace,
+        }));
+        build.onLoad({ filter: /virtual:courses/, namespace }, async () => ({
+          contents: `export const courses = ${JSON.stringify(
+            Object.fromEntries(
+              (await prisma.course.findMany()).map(normalizeCourse).map((x) => [x.id, x]),
+            ),
+          )}`,
+        }));
+        build.onLoad({ filter: /virtual:instructors/, namespace }, async () => ({
+          contents: `export const instructors = ${JSON.stringify(
+            Object.fromEntries((await prisma.instructor.findMany()).map((x) => [x.ucinetid, x])),
+          )}`,
+        }));
+      },
+    },
+  ],
 };
 
 /**
  * Shared construct props.
  */
 export const constructs: ApiConstructProps = {
+  functionProps: () => ({ runtime: Runtime.NODEJS_20_X }),
   functionPlugin: ({ functionProps, handler }, scope) => {
     const warmingTarget = new LambdaFunction(handler, {
       event: RuleTargetInput.fromObject(warmingRequestBody),
@@ -263,7 +302,7 @@ export async function main(): Promise<App> {
         'exports.h=async _=>({headers:{"Access-Control-Allow-Origin": "*","Access-Control-Allow-Headers": "Apollo-Require-Preflight,Content-Type","Access-Control-Allow-Methods": "GET,POST,OPTIONS"},statusCode:204})',
       ),
       handler: "index.h",
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       architecture: Architecture.ARM_64,
     }),
   );
