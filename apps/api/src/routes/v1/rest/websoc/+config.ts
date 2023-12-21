@@ -14,7 +14,7 @@ export const overrides: ApiPropsOverride = {
   constructs: {
     ...constructs,
     functionProps: (scope, id) => ({
-      ...constructs.functionProps(scope, id),
+      ...constructs.functionProps?.(scope, id),
       role: new Role(scope, `${id}-v1-rest-websoc-role`, {
         assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
         managedPolicies: [
