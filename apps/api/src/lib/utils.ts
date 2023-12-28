@@ -77,7 +77,7 @@ export function normalizeCourse(course: PrismaCourse): Course {
     prerequisiteList: course.prerequisiteList,
     prerequisiteFor: course.prerequisiteFor,
     prerequisites: course.prerequisites as unknown as CoursePreview[],
-    dependencies: course.prerequisites as unknown as CoursePreview[],
+    dependencies: course.dependencies as unknown as CoursePreview[],
     geList,
     terms: course.terms,
   };
