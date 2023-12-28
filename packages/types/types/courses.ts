@@ -161,15 +161,15 @@ export type Course = {
    */
   terms: string[];
   /**
-   *
+   * The previews for the instructors that have taught this course in the past.
    */
   instructors: InstructorPreview[];
   /**
-   *
+   * The previews for the courses that are required to take this course.
    */
   prerequisites: CoursePreview[];
   /**
-   *
+   * The previews for the courses that require this course.
    */
   dependencies: CoursePreview[];
 };

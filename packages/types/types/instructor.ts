@@ -45,7 +45,7 @@ export type Instructor = {
    */
   courseHistory: Record<string, string[]>;
   /**
-   *
+   * The previews for the course(s) this instructor has taught in the past.
    */
   courses: CoursePreview[];
 };
@@ -56,4 +56,7 @@ export type Instructor = {
  */
 export type Instructors = Instructor[];
 
+/**
+ * An object that contains a subset of an instructor's metadata, for preview purposes.
+ */
 export type InstructorPreview = Pick<Instructor, "ucinetid" | "name" | "shortenedName">;
