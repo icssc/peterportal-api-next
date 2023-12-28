@@ -26,7 +26,7 @@ type InstructorsData = {
 };
 
 type InstructorsInfo = {
-  [ucinetid: string]: Instructor;
+  [ucinetid: string]: Omit<Instructor, "courses">;
 };
 
 type InstructorsLog = {
@@ -139,7 +139,7 @@ export async function getInstructors(
       }
     });
   });
-  const instructorPromises: Promise<[string, Instructor]>[] = [];
+  const instructorPromises: Promise<[string, Omit<Instructor, "courses">]>[] = [];
   Object.keys(instructorsDict).forEach((name) => {
     const schools = instructorsDict[name].schools;
     const related_departments = Array.from(instructorsDict[name].courses);
@@ -214,9 +214,9 @@ async function getInstructor(
   relatedDepartments: string[],
   attempts: number,
   year_threshold: number,
-): Promise<[string, Instructor]> {
+): Promise<[string, Omit<Instructor, "courses">]> {
   logger.info(`Scraping data for ${instructorName}`);
-  const instructorObject: Instructor = {
+  const instructorObject: Omit<Instructor, "courses"> = {
     name: instructorName,
     ucinetid: "",
     title: "",
