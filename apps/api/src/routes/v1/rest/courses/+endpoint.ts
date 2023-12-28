@@ -2,7 +2,9 @@ import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
 import { ZodError } from "zod";
 
-import { constructPrismaQuery, normalizeCourse } from "./lib";
+import { normalizeCourse } from "../../../../lib/utils";
+
+import { constructPrismaQuery } from "./lib";
 import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();

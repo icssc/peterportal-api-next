@@ -51,9 +51,9 @@
     "cheerio": "1.0.0-rc.12",
     "cross-fetch": "4.0.0"
   },
-  "packageManager": "pnpm@8.10.4",
+  "packageManager": "pnpm@8.11.0",
   "engines": {
-    "node": "18",
+    "node": "20",
     "pnpm": "8"
   },
   "publishConfig": {

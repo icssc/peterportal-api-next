@@ -13,12 +13,12 @@ If you're a developer who's interested in using PeterPortal API in your next pro
 
 To begin, you'll need to install the correct version of Node.js. We recommend using the [Node Version Manager (`nvm`)](https://github.com/nvm-sh/nvm), which is a painless way to ensure that you will always be using the correct version of Node.js.
 
-As of the time of writing, PeterPortal API targets the latest version of Node.js 18 (Hydrogen). If you choose not to use `nvm`, please be aware that code tested with other versions of Node.js may not work as expected during our testing and deployment procedures. The rest of this guide will assume that you will be using `nvm`.
+PeterPortal API targets the latest LTS version of Node.js. If you choose not to use `nvm`, please be aware that code tested with other versions of Node.js may not work as expected during our testing and deployment procedures. The rest of this guide will assume that you will be using `nvm`.
 
 After installing nvm per the instructions in its repository, execute the following command:
 
 ```shell
-nvm install lts/gallium
+nvm install lts/*
 ```
 
 This will install the correct version of Node.js (if it hasn't already been installed) and set it as the active version.

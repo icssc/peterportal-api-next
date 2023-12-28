@@ -89,7 +89,7 @@ export class WebsocScraperV2 extends Construct {
         'var{DescribeTasksCommand:a,ECSClient:e,ListClustersCommand:s,ListTasksCommand:t,StopTaskCommand:n}=require("@aws-sdk/client-ecs");exports.h=async _=>{let d=new e,{clusterArns:i}=await d.send(new s({})),l=i?.filter(a=>a.includes("websoc-scraper-v2"))[0],{taskArns:r}=await d.send(new t({cluster:l})),{tasks:c}=await d.send(new a({cluster:l,tasks:r}));await Promise.all(c?.filter(a=>a.startedAt&&a.startedAt.valueOf()+36e5<Date.now()).map(a=>d.send(new n({cluster:l,task:a.taskArn})))??[])};',
       ),
       handler: "index.h",
-      runtime: Runtime.NODEJS_18_X,
+      runtime: Runtime.NODEJS_20_X,
       architecture: Architecture.ARM_64,
       role: new Role(this, `${id}-auto-restart-role`, {
         assumedBy: new ServicePrincipal("lambda.amazonaws.com"),

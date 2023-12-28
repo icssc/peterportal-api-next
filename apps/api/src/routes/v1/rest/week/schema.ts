@@ -20,19 +20,10 @@ export const QuerySchema = z
       message: "The day provided is not valid for the month provided",
     },
   )
-  .or(
-    z.object({
-      year: z.undefined(),
-      month: z.undefined(),
-      day: z.undefined(),
-    }),
-  );
-
-z.setErrorMap((issue, ctx) => ({
-  message:
-    issue.code === z.ZodIssueCode.invalid_union
-      ? "All fields must either be provided or left blank"
-      : ctx.defaultError,
-}));
+  .transform((params) => ({
+    hasParams: true,
+    ...params,
+  }))
+  .or(z.null().transform(() => ({ year: -1, month: -1, day: -1, hasParams: false })));
 
 export type Query = z.infer<typeof QuerySchema>;

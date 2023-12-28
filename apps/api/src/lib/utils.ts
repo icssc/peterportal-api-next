@@ -1,4 +1,26 @@
+import { Course as PrismaCourse } from "@libs/db";
+import { Course, CourseLevel, GECategory, PrerequisiteTree } from "@peterportal-api/types";
+
 const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
+
+const courseLevels: Record<string, CourseLevel> = {
+  LowerDiv: "Lower Division (1-99)",
+  UpperDiv: "Upper Division (100-199)",
+  Graduate: "Graduate/Professional Only (200+)",
+};
+
+const geMapping: Record<string, GECategory> = {
+  "GE-1A": "GE Ia: Lower Division Writing",
+  "GE-1B": "GE Ib: Upper Division Writing",
+  "GE-2": "GE II: Science and Technology",
+  "GE-3": "GE III: Social & Behavioral Sciences",
+  "GE-4": "GE IV: Arts and Humanities",
+  "GE-5A": "GE Va: Quantitative Literacy",
+  "GE-5B": "GE Vb: Formal Reasoning",
+  "GE-6": "GE VI: Language Other Than English",
+  "GE-7": "GE VII: Multicultural Studies",
+  "GE-8": "GE VIII: International/Global Issues",
+};
 
 /**
  * Input to a transform function.
@@ -35,3 +57,18 @@ export const flattenDayStringsAndSplit = (value: TransformInput): TransformOutpu
         ),
       )
     : undefined;
+
+export function normalizeCourse(course: PrismaCourse): Course {
+  const courseLevel = courseLevels[course.courseLevel];
+  const geList = (course.geList as string[]).map((x) => geMapping[x]);
+  return {
+    ...course,
+    courseLevel,
+    instructorHistory: course.instructorHistory as unknown as string[],
+    prerequisiteTree: course.prerequisiteTree as unknown as PrerequisiteTree,
+    prerequisiteList: course.prerequisiteList as unknown as string[],
+    prerequisiteFor: course.prerequisiteFor as unknown as string[],
+    geList,
+    terms: course.terms as unknown as string[],
+  };
+}

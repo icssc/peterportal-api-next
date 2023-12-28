@@ -1,7 +1,7 @@
-FROM node:18-bookworm-slim@sha256:02632fa826cdbdaa5fba25032bd2931fc79348c60110fefea2edf3fc480f39c5
+FROM node:20-bookworm-slim
 RUN npm i -g tsx
 RUN apt-get update -y && apt-get install -y openssl
 USER node
 WORKDIR /home/node
 COPY --chown=node:node dist .
-CMD ["node", "index.mjs"]
+CMD ["node", "--expose-gc", "index.mjs"]

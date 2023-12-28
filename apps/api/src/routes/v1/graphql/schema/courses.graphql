@@ -55,8 +55,8 @@ type Course {
 }
 
 extend type Query {
-  "Get the course with the given ID."
-  course(courseId: String!): Course!
+  "Get the course with the given ID, or null if no such course exists."
+  course(courseId: String!): Course
   "Get courses that match the given constraints."
   courses(
     "The department the courses are in."

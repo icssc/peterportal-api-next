@@ -21,7 +21,11 @@ export const GET = createHandler(async (event, context, res) => {
   return res.createOKResult<EnrollmentHistory[]>(
     (
       await prisma.websocEnrollmentHistory.findMany({
-        where: { ...data, instructors: { array_contains: instructor } },
+        where: {
+          ...data,
+          courseNumber: data.courseNumber?.toUpperCase(),
+          instructors: { array_contains: instructor },
+        },
       })
     ).map((x) => {
       const { timestamp: _, ...obj } = x;
