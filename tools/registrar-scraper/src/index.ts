@@ -56,51 +56,45 @@ async function main() {
   const instructors = Object.fromEntries(
     (await prisma.instructor.findMany()).map((x) => [x.ucinetid, x]),
   );
-  const newCourses = [];
-  for (const course of Object.values(courses)) {
-    newCourses.push({
-      ...course,
-      prerequisiteTree: course.prerequisiteTree as object,
-      instructors: course.instructorHistory
-        .map((x) => instructors[x])
-        .filter((x) => x)
-        .map(({ ucinetid, name, shortenedName }) => ({ ucinetid, name, shortenedName })),
-      prerequisites: course.prerequisiteList
-        .map((x) => courses[x.replace(/ /g, "")])
-        .filter((x) => x)
-        .map(({ id, title, department, courseNumber }) => ({
-          id,
-          title,
-          department,
-          courseNumber,
-        })),
-      dependencies: course.prerequisiteFor
-        .map((x) => courses[x.replace(/ /g, "")])
-        .filter((x) => x)
-        .map(({ id, title, department, courseNumber }) => ({
-          id,
-          title,
-          department,
-          courseNumber,
-        })),
-    });
-  }
-  const newInstructors = [];
-  for (const instructor of Object.values(instructors)) {
-    newInstructors.push({
-      ...instructor,
-      courseHistory: instructor.courseHistory as object,
-      courses: Object.keys(instructor.courseHistory!)
-        .map((x) => courses[x.replace(/ /g, "")])
-        .filter((x) => x)
-        .map(({ id, title, department, courseNumber }) => ({
-          id,
-          title,
-          department,
-          courseNumber,
-        })),
-    });
-  }
+  const newCourses = Object.values(courses).map((course) => ({
+    ...course,
+    prerequisiteTree: course.prerequisiteTree as object,
+    instructors: course.instructorHistory
+      .map((x) => instructors[x])
+      .filter((x) => x)
+      .map(({ ucinetid, name, shortenedName }) => ({ ucinetid, name, shortenedName })),
+    prerequisites: course.prerequisiteList
+      .map((x) => courses[x.replace(/ /g, "")])
+      .filter((x) => x)
+      .map(({ id, title, department, courseNumber }) => ({
+        id,
+        title,
+        department,
+        courseNumber,
+      })),
+    dependencies: course.prerequisiteFor
+      .map((x) => courses[x.replace(/ /g, "")])
+      .filter((x) => x)
+      .map(({ id, title, department, courseNumber }) => ({
+        id,
+        title,
+        department,
+        courseNumber,
+      })),
+  }));
+  const newInstructors = Object.values(instructors).map((instructor) => ({
+    ...instructor,
+    courseHistory: instructor.courseHistory as object,
+    courses: Object.keys(instructor.courseHistory!)
+      .map((x) => courses[x.replace(/ /g, "")])
+      .filter((x) => x)
+      .map(({ id, title, department, courseNumber }) => ({
+        id,
+        title,
+        department,
+        courseNumber,
+      })),
+  }));
   await prisma.$transaction([
     prisma.course.deleteMany({ where: { id: { in: Object.keys(courses) } } }),
     prisma.instructor.deleteMany({ where: { ucinetid: { in: Object.keys(instructors) } } }),
