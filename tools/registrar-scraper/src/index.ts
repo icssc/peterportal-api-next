@@ -9,6 +9,8 @@ import { getPrereqs } from "./prereq-scraper";
 
 const prisma = new PrismaClient();
 
+const notNull = <T>(x: T): x is NonNullable<T> => x !== null && x !== undefined;
+
 async function main() {
   const courseInfo = await getCourses();
   const instructorInfo = Object.fromEntries(
@@ -61,11 +63,11 @@ async function main() {
     prerequisiteTree: course.prerequisiteTree as object,
     instructors: course.instructorHistory
       .map((x) => instructors[x])
-      .filter((x) => x)
+      .filter(notNull)
       .map(({ ucinetid, name, shortenedName }) => ({ ucinetid, name, shortenedName })),
     prerequisites: course.prerequisiteList
       .map((x) => courses[x.replace(/ /g, "")])
-      .filter((x) => x)
+      .filter(notNull)
       .map(({ id, title, department, courseNumber }) => ({
         id,
         title,
@@ -74,7 +76,7 @@ async function main() {
       })),
     dependencies: course.prerequisiteFor
       .map((x) => courses[x.replace(/ /g, "")])
-      .filter((x) => x)
+      .filter(notNull)
       .map(({ id, title, department, courseNumber }) => ({
         id,
         title,
@@ -87,7 +89,7 @@ async function main() {
     courseHistory: instructor.courseHistory as object,
     courses: Object.keys(instructor.courseHistory!)
       .map((x) => courses[x.replace(/ /g, "")])
-      .filter((x) => x)
+      .filter(notNull)
       .map(({ id, title, department, courseNumber }) => ({
         id,
         title,
