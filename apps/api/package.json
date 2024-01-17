@@ -20,18 +20,18 @@
     "dev": "bunny dev-api"
   },
   "dependencies": {
-    "@apollo/server": "4.9.5",
-    "@aws-sdk/client-lambda": "3.461.0",
+    "@apollo/server": "4.10.0",
+    "@aws-sdk/client-lambda": "3.490.0",
     "@graphql-tools/load-files": "7.0.0",
     "@graphql-tools/merge": "9.0.1",
-    "@graphql-tools/utils": "10.0.11",
+    "@graphql-tools/utils": "10.0.12",
     "@libs/db": "workspace:^",
     "@libs/lambda": "workspace:^",
     "@libs/uc-irvine-api": "workspace:^",
     "@libs/websoc-utils": "workspace:^",
     "@peterportal-api/types": "workspace:^",
     "@services/websoc-proxy": "workspace:^",
-    "aws-cdk-lib": "2.111.0",
+    "aws-cdk-lib": "2.121.1",
     "cheerio": "1.0.0-rc.12",
     "cross-fetch": "4.0.0",
     "graphql": "16.8.1",
@@ -40,12 +40,12 @@
   "devDependencies": {
     "@bronya.js/api-construct": "0.11.3",
     "@bronya.js/core": "0.11.3",
-    "@types/aws-lambda": "8.10.129",
-    "aws-cdk": "2.111.0",
+    "@types/aws-lambda": "8.10.131",
+    "aws-cdk": "2.121.1",
     "dotenv": "16.3.1",
     "dotenv-cli": "7.3.0",
-    "esbuild": "0.19.8",
-    "tsx": "4.6.0"
+    "esbuild": "0.19.11",
+    "tsx": "4.7.0"
   },
   "//": "the CDK configuration in this config file is used in the deployment package, @tools/cdk"
 }
