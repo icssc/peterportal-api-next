@@ -1,5 +1,12 @@
 import { Course as PrismaCourse } from "@libs/db";
-import { Course, CourseLevel, GECategory, PrerequisiteTree } from "@peterportal-api/types";
+import {
+  Course,
+  CourseLevel,
+  CoursePreview,
+  GECategory,
+  InstructorPreview,
+  PrerequisiteTree,
+} from "@peterportal-api/types";
 
 const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
 
@@ -64,11 +71,14 @@ export function normalizeCourse(course: PrismaCourse): Course {
   return {
     ...course,
     courseLevel,
-    instructorHistory: course.instructorHistory as unknown as string[],
-    prerequisiteTree: course.prerequisiteTree as unknown as PrerequisiteTree,
-    prerequisiteList: course.prerequisiteList as unknown as string[],
-    prerequisiteFor: course.prerequisiteFor as unknown as string[],
+    instructorHistory: course.instructorHistory,
+    instructors: course.instructors as InstructorPreview[],
+    prerequisiteTree: course.prerequisiteTree as PrerequisiteTree,
+    prerequisiteList: course.prerequisiteList,
+    prerequisiteFor: course.prerequisiteFor,
+    prerequisites: course.prerequisites as CoursePreview[],
+    dependencies: course.dependencies as CoursePreview[],
     geList,
-    terms: course.terms as unknown as string[],
+    terms: course.terms,
   };
 }
