@@ -32,6 +32,8 @@ type Instructor {
   the instructor taught the corresponding course.
   """
   courseHistory: JSON!
+  "The previews for the courses this instructor has taught in the past."
+  courses: [CoursePreview!]!
 }
 
 extend type Query {
