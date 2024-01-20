@@ -15,7 +15,6 @@ const config = {
     "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/eslint-recommended",
-    "turbo",
     "prettier",
   ],
   rules: {

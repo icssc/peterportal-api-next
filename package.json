@@ -34,7 +34,6 @@
     "dotenv": "16.3.1",
     "eslint": "8.56.0",
     "eslint-config-prettier": "9.1.0",
-    "eslint-config-turbo": "1.11.3",
     "eslint-plugin-import": "2.29.1",
     "husky": "8.0.3",
     "lint-staged": "15.2.0",
