@@ -202,11 +202,11 @@ export async function getInstructors(
  * Retrieve information about an Instructor
  *
  * @param instructorName - Name of instructor
- * @param schools - Schools related to the instrcutor
+ * @param schools - Schools related to the instructor
  * @param relatedDepartments - Departments related to the instructor
  * @param attempts - Number of attempts to make a request if fail
  * @param year_threshold - number of years to look back when scraping instructor's course history
- * @returns {[string, Instructor]} Object containg the instructor's data
+ * @returns {[string, Instructor]} Object containing the instructor's data
  */
 async function getInstructor(
   instructorName: string,
@@ -250,7 +250,7 @@ async function getInstructor(
 }
 
 /**
- * Traverse the school's department pages to retrieve its correpsonding faculty links.
+ * Traverse the school's department pages to retrieve its corresponding faculty links.
  * 
  * @param schoolUrl - URL to scrape data from
  * @param schoolName - Name of the school
