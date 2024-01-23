@@ -474,6 +474,22 @@ importers:
         specifier: 0.20.1
         version: 0.20.1
 
+  tools/study-room-scraper:
+    dependencies:
+      cheerio:
+        specifier: ^1.0.0-rc.12
+        version: 1.0.0-rc.12
+      winston:
+        specifier: ^3.11.0
+        version: 3.11.0
+    devDependencies:
+      '@peterportal-api/types':
+        specifier: workspace:^
+        version: link:../../packages/types
+      esbuild:
+        specifier: 0.19.11
+        version: 0.19.11
+
 packages:
 
   /@aashutoshrathi/word-wrap@1.2.6:
