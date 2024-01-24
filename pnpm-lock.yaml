@@ -479,6 +479,9 @@ importers:
       cheerio:
         specifier: ^1.0.0-rc.12
         version: 1.0.0-rc.12
+      cross-fetch:
+        specifier: 4.0.0
+        version: 4.0.0
       winston:
         specifier: ^3.11.0
         version: 3.11.0
