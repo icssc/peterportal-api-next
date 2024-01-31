@@ -145,7 +145,7 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.GradesSectionWh
     year,
     quarter,
     instructors: { some: { name: { contains: instructor, mode: "insensitive" } } },
-    department: department?.replace(/ /g, "").toUpperCase(),
+    department: department?.toUpperCase(),
     courseNumber: courseNumber?.toUpperCase(),
     courseNumeric,
     sectionCode,
