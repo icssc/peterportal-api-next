@@ -1,5 +1,5 @@
 {
-  "name": "degreeworks-scraper",
+  "name": "@tools/degreeworks-scraper",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -10,10 +10,10 @@
   "dependencies": {
     "@peterportal-api/types": "workspace:^",
     "cross-fetch": "4.0.0",
-    "dotenv": "16.3.1",
+    "dotenv": "16.4.1",
     "jwt-decode": "4.0.0"
   },
   "devDependencies": {
-    "tsx": "4.1.1"
+    "tsx": "4.7.0"
   }
 }
