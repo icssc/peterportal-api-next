@@ -1,3 +1,15 @@
+"An object that contains a subset of a course's metadata, for preview purposes."
+type CoursePreview {
+  "The course ID."
+  id: String!
+  "The department code that the course belongs to."
+  department: String!
+  "The course number of the course."
+  courseNumber: String!
+  "The title of the course."
+  title: String!
+}
+
 "An object that represents a course."
 type Course {
   "The course ID."
@@ -52,6 +64,12 @@ type Course {
   geText: String!
   "The list of terms in which this course was offered."
   terms: [String!]!
+  "The previews for the instructors that have taught this course in the past."
+  instructors: [InstructorPreview!]!
+  "The previews for the courses that are required to take this course."
+  prerequisites: [CoursePreview!]!
+  "The previews for the courses that require this course."
+  dependencies: [CoursePreview!]!
 }
 
 extend type Query {

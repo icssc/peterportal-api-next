@@ -1,3 +1,5 @@
+import { CoursePreview } from "./courses";
+
 /**
  * An object representing an instructor.
  * The type of the payload returned on a successful response from querying
@@ -42,6 +44,10 @@ export type Instructor = {
    * the instructor taught the corresponding course.
    */
   courseHistory: Record<string, string[]>;
+  /**
+   * The previews for the course(s) this instructor has taught in the past.
+   */
+  courses: CoursePreview[];
 };
 
 /**
@@ -49,3 +55,8 @@ export type Instructor = {
  * ``/v1/rest/instructors/all``.
  */
 export type Instructors = Instructor[];
+
+/**
+ * An object that contains a subset of an instructor's metadata, for preview purposes.
+ */
+export type InstructorPreview = Pick<Instructor, "ucinetid" | "name" | "shortenedName">;

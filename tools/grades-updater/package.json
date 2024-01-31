@@ -12,15 +12,15 @@
     "@libs/db": "workspace:^",
     "@libs/lambda": "workspace:^",
     "@libs/uc-irvine-api": "workspace:^",
-    "csv-parse": "5.5.2",
-    "csv-stringify": "6.4.4",
+    "csv-parse": "5.5.3",
+    "csv-stringify": "6.4.5",
     "winston": "3.11.0",
     "winston-transport": "4.6.0"
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "@types/node": "20.10.4",
+    "@types/node": "20.11.0",
     "dotenv-cli": "7.3.0",
-    "tsx": "4.6.0"
+    "tsx": "4.7.0"
   }
 }

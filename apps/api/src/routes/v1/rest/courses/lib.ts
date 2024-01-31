@@ -37,16 +37,16 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.CourseWhereInpu
   if (parsedQuery.taughtByInstructors)
     AND.push({
       OR: parsedQuery.taughtByInstructors.map((instructor) => ({
-        instructorHistory: { array_contains: [instructor.toLowerCase()] },
+        instructorHistory: { has: instructor.toLowerCase() },
       })),
     });
 
   if (parsedQuery.geCategory && parsedQuery.geCategory !== "ANY")
-    AND.push({ geList: { array_contains: [parsedQuery.geCategory] } });
+    AND.push({ geList: { has: parsedQuery.geCategory } });
 
   if (parsedQuery.taughtInTerms)
     AND.push({
-      OR: parsedQuery.taughtInTerms.map((term) => ({ terms: { array_contains: [term] } })),
+      OR: parsedQuery.taughtInTerms.map((term) => ({ terms: { has: term } })),
     });
 
   return { AND: AND.length ? AND : undefined };

@@ -1,4 +1,5 @@
 import { CourseLevel, GECategory } from "./constants";
+import { InstructorPreview } from "./instructor";
 
 /**
  * An object representing a prerequisite.
@@ -43,6 +44,11 @@ export type PrerequisiteTree = {
    */
   NOT?: Array<Prerequisite | PrerequisiteTree>;
 };
+
+/**
+ * An object that contains a subset of a course's metadata, for preview purposes.
+ */
+export type CoursePreview = Pick<Course, "id" | "department" | "courseNumber" | "title">;
 
 /**
  * An object that represents a course.
@@ -103,7 +109,7 @@ export type Course = {
    */
   prerequisiteTree: PrerequisiteTree;
   /**
-   * The list of prerequisites for the course.
+   * The list of prerequisites' IDs for the course.
    */
   prerequisiteList: string[];
   /**
@@ -111,7 +117,7 @@ export type Course = {
    */
   prerequisiteText: string;
   /**
-   * The courses for which this course is a prerequisite.
+   * The IDs of the courses for which this course is a prerequisite.
    */
   prerequisiteFor: string[];
   /**
@@ -154,6 +160,18 @@ export type Course = {
    * The list of terms in which this course was offered.
    */
   terms: string[];
+  /**
+   * The previews for the instructors that have taught this course in the past.
+   */
+  instructors: InstructorPreview[];
+  /**
+   * The previews for the courses that are required to take this course.
+   */
+  prerequisites: CoursePreview[];
+  /**
+   * The previews for the courses that require this course.
+   */
+  dependencies: CoursePreview[];
 };
 
 /**

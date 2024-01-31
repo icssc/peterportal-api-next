@@ -1,3 +1,13 @@
+"An object that contains a subset of an instructor's metadata, for preview purposes."
+type InstructorPreview {
+  "The instructor's UCINetID."
+  ucinetid: String!
+  "The full name of the instructor."
+  name: String!
+  "The shortened name (or WebSoc name; e.g. ``SHINDLER, M.``) of the instructor."
+  shortenedName: String!
+}
+
 "An object representing an instructor."
 type Instructor {
   "The instructor's UCINetID."
@@ -22,6 +32,8 @@ type Instructor {
   the instructor taught the corresponding course.
   """
   courseHistory: JSON!
+  "The previews for the courses this instructor has taught in the past."
+  courses: [CoursePreview!]!
 }
 
 extend type Query {

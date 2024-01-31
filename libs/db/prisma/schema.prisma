@@ -70,11 +70,14 @@ model Course {
   maxUnits          Float
   description       String      @db.Text
   departmentName    String
-  instructorHistory Json
+  instructorHistory String[]
+  instructors       Json        @default("[]")
   prerequisiteTree  Json
-  prerequisiteList  Json
+  prerequisiteList  String[]
   prerequisiteText  String      @db.Text
-  prerequisiteFor   Json
+  prerequisiteFor   String[]
+  prerequisites     Json        @default("[]")
+  dependencies      Json        @default("[]")
   repeatability     String
   gradingOption     String
   concurrent        String
@@ -82,21 +85,22 @@ model Course {
   restriction       String      @db.Text
   overlap           String
   corequisites      String
-  geList            Json
+  geList            String[]
   geText            String
-  terms             Json
+  terms             String[]
 }
 
 model Instructor {
-  ucinetid           String @id
+  ucinetid           String   @id
   name               String
   shortenedName      String
   title              String
   email              String
   department         String
-  schools            Json
-  relatedDepartments Json
+  schools            String[]
+  relatedDepartments String[]
   courseHistory      Json
+  courses            Json     @default("[]")
 }
 
 model GradesInstructor {

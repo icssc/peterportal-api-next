@@ -23,13 +23,13 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.InstructorWhere
 
   if (parsedQuery.schoolsContains)
     AND.push({
-      OR: parsedQuery.schoolsContains.map((school) => ({ schools: { array_contains: [school] } })),
+      OR: parsedQuery.schoolsContains.map((school) => ({ schools: { has: school } })),
     });
 
   if (parsedQuery.relatedDepartmentsContains)
     AND.push({
       OR: parsedQuery.relatedDepartmentsContains.map((dept) => ({
-        relatedDepartments: { array_contains: [dept.toUpperCase()] },
+        relatedDepartments: { has: dept.toUpperCase() },
       })),
     });
 

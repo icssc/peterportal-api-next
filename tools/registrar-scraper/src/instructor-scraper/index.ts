@@ -25,9 +25,9 @@ type InstructorsData = {
   log: InstructorsLog;
 };
 
-type InstructorsInfo = {
-  [ucinetid: string]: Instructor;
-};
+type ScrapedInstructor = Omit<Instructor, "courses">;
+
+type InstructorsInfo = Record<string, ScrapedInstructor>;
 
 type InstructorsLog = {
   [key: string]:
@@ -139,7 +139,7 @@ export async function getInstructors(
       }
     });
   });
-  const instructorPromises: Promise<[string, Instructor]>[] = [];
+  const instructorPromises: Promise<[string, ScrapedInstructor]>[] = [];
   Object.keys(instructorsDict).forEach((name) => {
     const schools = instructorsDict[name].schools;
     const related_departments = Array.from(instructorsDict[name].courses);
@@ -202,11 +202,11 @@ export async function getInstructors(
  * Retrieve information about an Instructor
  *
  * @param instructorName - Name of instructor
- * @param schools - Schools related to the instrcutor
+ * @param schools - Schools related to the instructor
  * @param relatedDepartments - Departments related to the instructor
  * @param attempts - Number of attempts to make a request if fail
  * @param year_threshold - number of years to look back when scraping instructor's course history
- * @returns {[string, Instructor]} Object containg the instructor's data
+ * @returns {[string, Instructor]} Object containing the instructor's data
  */
 async function getInstructor(
   instructorName: string,
@@ -214,9 +214,9 @@ async function getInstructor(
   relatedDepartments: string[],
   attempts: number,
   year_threshold: number,
-): Promise<[string, Instructor]> {
+): Promise<[string, ScrapedInstructor]> {
   logger.info(`Scraping data for ${instructorName}`);
-  const instructorObject: Instructor = {
+  const instructorObject: ScrapedInstructor = {
     name: instructorName,
     ucinetid: "",
     title: "",
@@ -250,7 +250,7 @@ async function getInstructor(
 }
 
 /**
- * Traverse the school's department pages to retrieve its correpsonding faculty links.
+ * Traverse the school's department pages to retrieve its corresponding faculty links.
  * 
  * @param schoolUrl - URL to scrape data from
  * @param schoolName - Name of the school
