@@ -4,6 +4,7 @@ import type { EnrollmentHistory } from "@peterportal-api/types";
 
 import { QuerySchema } from "./schema";
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const prisma = new PrismaClient();
 
 export const GET = createHandler(async (event, context, res) => {
@@ -15,23 +16,9 @@ export const GET = createHandler(async (event, context, res) => {
     return res.createErrorResult(400, maybeParsed.error, requestId);
   }
   const {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     data: { instructor, ...data },
   } = maybeParsed;
 
-  return res.createOKResult<EnrollmentHistory[]>(
-    (
-      await prisma.websocEnrollmentHistory.findMany({
-        where: {
-          ...data,
-          courseNumber: data.courseNumber?.toUpperCase(),
-          instructors: { array_contains: instructor },
-        },
-      })
-    ).map((x) => {
-      const { timestamp: _, ...obj } = x;
-      return obj as unknown as EnrollmentHistory;
-    }),
-    headers,
-    requestId,
-  );
+  return res.createOKResult<EnrollmentHistory[]>([], headers, requestId);
 });
