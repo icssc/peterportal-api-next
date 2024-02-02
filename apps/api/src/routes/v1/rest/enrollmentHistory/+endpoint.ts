@@ -13,7 +13,11 @@ export const GET = createHandler(async (event, context, res) => {
 
   const maybeParsed = QuerySchema.safeParse(query);
   if (!maybeParsed.success) {
-    return res.createErrorResult(400, maybeParsed.error, requestId);
+    return res.createErrorResult(
+      400,
+      maybeParsed.error.issues.map((issue) => issue.message).join("; "),
+      requestId,
+    );
   }
   const {
     data: { instructor, ...data },
