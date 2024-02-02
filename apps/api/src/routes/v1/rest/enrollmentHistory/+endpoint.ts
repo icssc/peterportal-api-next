@@ -2,9 +2,9 @@ import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
 import type { EnrollmentHistory } from "@peterportal-api/types";
 
+import { transformResults } from "./lib";
 import { QuerySchema } from "./schema";
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const prisma = new PrismaClient();
 
 export const GET = createHandler(async (event, context, res) => {
@@ -16,9 +16,17 @@ export const GET = createHandler(async (event, context, res) => {
     return res.createErrorResult(400, maybeParsed.error, requestId);
   }
   const {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     data: { instructor, ...data },
   } = maybeParsed;
 
-  return res.createOKResult<EnrollmentHistory[]>([], headers, requestId);
+  const sections = await prisma.websocEnrollmentHistory.findMany({
+    where: {
+      ...data,
+      ...(instructor && { instructors: { has: instructor } }),
+    },
+    include: { entries: true },
+    take: 6000,
+  });
+
+  return res.createOKResult<EnrollmentHistory[]>(transformResults(sections), headers, requestId);
 });
