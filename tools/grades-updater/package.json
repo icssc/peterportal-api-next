@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "@types/node": "20.11.0",
+    "@types/node": "20.11.10",
     "dotenv-cli": "7.3.0",
     "tsx": "4.7.0"
   }

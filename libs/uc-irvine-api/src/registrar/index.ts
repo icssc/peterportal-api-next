@@ -133,8 +133,23 @@ export async function getTermDateData(year: string): Promise<Record<string, Quar
     );
 
   addSingleDateRow(quarterData, 2, "instructionStart", ret, year);
-  addSingleDateRow(quarterData, 17, "instructionEnd", ret, year);
-  addMultipleDateRow(quarterData, 18, "finalsStart", "finalsEnd", ret, year);
+  // After the 2022-23 academic year, the dates for the end of instruction and the final examinations period was shifted up by one row.
+  // This change accounts for the difference in table row numbering caused by this change.
+  addSingleDateRow(
+    quarterData,
+    17 - Number(Number.parseInt(year, 10) > 2022),
+    "instructionEnd",
+    ret,
+    year,
+  );
+  addMultipleDateRow(
+    quarterData,
+    18 - Number(Number.parseInt(year, 10) > 2022),
+    "finalsStart",
+    "finalsEnd",
+    ret,
+    year,
+  );
   addSingleDateRow(
     summerSessionData,
     // Before the 2021-22 academic year, Juneteenth was either not observed or observed during one of the Summer Sessions.
