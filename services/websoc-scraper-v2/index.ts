@@ -486,8 +486,59 @@ async function scrape(name: string, term: Term) {
   logger.info(`Removed ${meetingsDeleted.count} meetings`);
   logger.info(`Removed ${sectionsDeleted.count} sections`);
 
+  const enrollmentHistorySections = Object.values(res).map((x) => {
+    const sectionData = (x.data.data as WebsocAPIResponse).schools[0].departments[0].courses[0]
+      .sections[0];
+    return {
+      year: x.data.year,
+      quarter: x.data.quarter,
+      sectionCode: x.data.sectionCode,
+      department: x.data.department,
+      courseNumber: x.data.courseNumber,
+      sectionType: x.data.sectionType,
+      sectionNum: sectionData.sectionNum,
+      units: x.data.units,
+      instructors: x.meta.instructors.map((x) => x.name),
+      meetings: sectionData.meetings,
+      finalExam: sectionData.finalExam,
+    };
+  });
+
+  const enrollmentHistoryEntries = Object.values(res).map((x) => {
+    const sectionData = (x.data.data as WebsocAPIResponse).schools[0].departments[0].courses[0]
+      .sections[0];
+    return {
+      year: x.data.year,
+      quarter: x.data.quarter,
+      sectionCode: x.data.sectionCode,
+      date: timestamp,
+      maxCapacity: sectionData.maxCapacity,
+      totalEnrolled: sectionData.numCurrentlyEnrolled.totalEnrolled,
+      waitlist: sectionData.numOnWaitlist,
+      waitlistCap: sectionData.numWaitlistCap,
+      requested: sectionData.numRequested,
+      newOnlyReserved: sectionData.numNewOnlyReserved,
+      status: sectionData.status,
+    };
+  });
+
+  const [enrollmentSectionsCreated, entriesCreated] = await prisma.$transaction([
+    prisma.websocEnrollmentHistory.createMany({
+      data: enrollmentHistorySections,
+      skipDuplicates: true,
+    }),
+    prisma.websocEnrollmentHistoryEntry.createMany({
+      data: enrollmentHistoryEntries,
+      skipDuplicates: true,
+    }),
+  ]);
+
+  logger.info(`Inserted ${enrollmentSectionsCreated.count} sections for enrollment history`);
+  logger.info(`Inserted ${entriesCreated.count} entries for enrollment history`);
+
   forceGC();
 
+  logger.info("Sleeping for 3 minutes");
   await sleep(SLEEP_DURATION);
 }
 
