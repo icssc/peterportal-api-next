@@ -8,7 +8,7 @@ import { PrismaClient } from "@libs/db";
 import { logger, warmingRequestBody } from "@libs/lambda";
 import { LambdaIntegration, ResponseType } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
-import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
+import { AttributeType, BillingMode, Table } from "aws-cdk-lib/aws-dynamodb";
 import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 import {
@@ -243,6 +243,7 @@ class ApiStack extends Stack {
     this.cache = new Table(this, `${id}-cache`, {
       partitionKey: { name: "cacheKey", type: AttributeType.STRING },
       timeToLiveAttribute: "expireAt",
+      billingMode: BillingMode.PAY_PER_REQUEST,
     });
   }
 }
