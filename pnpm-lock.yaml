@@ -89,9 +89,15 @@ importers:
       '@apollo/server':
         specifier: 4.10.0
         version: 4.10.0(graphql@16.8.1)
+      '@aws-sdk/client-dynamodb':
+        specifier: 3.501.0
+        version: 3.501.0
       '@aws-sdk/client-lambda':
         specifier: 3.501.0
         version: 3.501.0
+      '@aws-sdk/lib-dynamodb':
+        specifier: 3.501.0
+        version: 3.501.0(@aws-sdk/client-dynamodb@3.501.0)
       '@graphql-tools/load-files':
         specifier: 7.0.0
         version: 7.0.0(graphql@16.8.1)
@@ -789,7 +795,7 @@ packages:
     resolution: {integrity: sha512-IzSgsrxUcsrejQbPVilIKy16kAT52EwB6zSaI+M3xxIhKh5+aldEyvI+z6erM7TCLB2BJsFrtHjp6/4/sr+3dA==}
     dependencies:
       '@aws-crypto/util': 3.0.0
-      '@aws-sdk/types': 3.496.0
+      '@aws-sdk/types': 3.502.0
       tslib: 1.14.1
     dev: false
 
@@ -879,6 +885,57 @@ packages:
       '@smithy/util-utf8': 2.1.1
       '@smithy/util-waiter': 2.1.1
       fast-xml-parser: 4.2.5
+      tslib: 2.6.2
+      uuid: 8.3.2
+    transitivePeerDependencies:
+      - aws-crt
+    dev: false
+
+  /@aws-sdk/client-dynamodb@3.501.0:
+    resolution: {integrity: sha512-yPcxGnj6P87ye/mfTqwv3i29T3HO4eOGl2IBF8ZB5gQtOIctwg66TWBKCPG8HRbLKJgIVEvE20MiOELvuiUQVg==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      '@aws-crypto/sha256-browser': 3.0.0
+      '@aws-crypto/sha256-js': 3.0.0
+      '@aws-sdk/client-sts': 3.501.0
+      '@aws-sdk/core': 3.496.0
+      '@aws-sdk/credential-provider-node': 3.501.0
+      '@aws-sdk/middleware-endpoint-discovery': 3.496.0
+      '@aws-sdk/middleware-host-header': 3.496.0
+      '@aws-sdk/middleware-logger': 3.496.0
+      '@aws-sdk/middleware-recursion-detection': 3.496.0
+      '@aws-sdk/middleware-user-agent': 3.496.0
+      '@aws-sdk/region-config-resolver': 3.496.0
+      '@aws-sdk/types': 3.496.0
+      '@aws-sdk/util-endpoints': 3.496.0
+      '@aws-sdk/util-user-agent-browser': 3.496.0
+      '@aws-sdk/util-user-agent-node': 3.496.0
+      '@smithy/config-resolver': 2.1.1
+      '@smithy/core': 1.3.1
+      '@smithy/fetch-http-handler': 2.4.1
+      '@smithy/hash-node': 2.1.1
+      '@smithy/invalid-dependency': 2.1.1
+      '@smithy/middleware-content-length': 2.1.1
+      '@smithy/middleware-endpoint': 2.4.1
+      '@smithy/middleware-retry': 2.1.1
+      '@smithy/middleware-serde': 2.1.1
+      '@smithy/middleware-stack': 2.1.1
+      '@smithy/node-config-provider': 2.2.1
+      '@smithy/node-http-handler': 2.3.1
+      '@smithy/protocol-http': 3.1.1
+      '@smithy/smithy-client': 2.3.1
+      '@smithy/types': 2.9.1
+      '@smithy/url-parser': 2.1.1
+      '@smithy/util-base64': 2.1.1
+      '@smithy/util-body-length-browser': 2.1.1
+      '@smithy/util-body-length-node': 2.2.1
+      '@smithy/util-defaults-mode-browser': 2.1.1
+      '@smithy/util-defaults-mode-node': 2.1.1
+      '@smithy/util-endpoints': 1.1.1
+      '@smithy/util-middleware': 2.1.1
+      '@smithy/util-retry': 2.1.1
+      '@smithy/util-utf8': 2.1.1
+      '@smithy/util-waiter': 2.1.1
       tslib: 2.6.2
       uuid: 8.3.2
     transitivePeerDependencies:
@@ -1126,6 +1183,39 @@ packages:
       tslib: 2.6.2
     dev: false
 
+  /@aws-sdk/endpoint-cache@3.495.0:
+    resolution: {integrity: sha512-XCDrpiS50WaPzPzp7FwsChPHtX9PQQUU4nRzcn2N7IkUtpcFCUx8m1PAZe086VQr6hrbdeE4Z4j8hUPNwVdJGQ==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      mnemonist: 0.38.3
+      tslib: 2.6.2
+    dev: false
+
+  /@aws-sdk/lib-dynamodb@3.501.0(@aws-sdk/client-dynamodb@3.501.0):
+    resolution: {integrity: sha512-2GJgPtHuRJto8bm87Kr/ztk/SJoLc0aOtUKA8v46izm5nnhUMx4M/wKZQjnuQXV8eWTxHQdDo00qDdOlubQ1NQ==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      '@aws-sdk/client-dynamodb': ^3.0.0
+    dependencies:
+      '@aws-sdk/client-dynamodb': 3.501.0
+      '@aws-sdk/util-dynamodb': 3.501.0(@aws-sdk/client-dynamodb@3.501.0)
+      '@smithy/smithy-client': 2.3.1
+      '@smithy/types': 2.9.1
+      tslib: 2.6.2
+    dev: false
+
+  /@aws-sdk/middleware-endpoint-discovery@3.496.0:
+    resolution: {integrity: sha512-VVJFTYeyhtjY8c0sAQUmzN4OUzaPINvXsYcL1dljFd7vdgSyf7+qwxzngOH5pKvyaCZ2vq9ngd8dAynSlA+TIg==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      '@aws-sdk/endpoint-cache': 3.495.0
+      '@aws-sdk/types': 3.496.0
+      '@smithy/node-config-provider': 2.2.1
+      '@smithy/protocol-http': 3.1.1
+      '@smithy/types': 2.9.1
+      tslib: 2.6.2
+    dev: false
+
   /@aws-sdk/middleware-host-header@3.496.0:
     resolution: {integrity: sha512-jUdPpSJeqCYXf6hSjfwsfHway7peIV8Vz51w/BN91bF4vB/bYwAC5o9/iJiK/EoByp5asxA8fg9wFOyGjzdbLg==}
     engines: {node: '>=14.0.0'}
@@ -1241,6 +1331,24 @@ packages:
     engines: {node: '>=14.0.0'}
     dependencies:
       '@smithy/types': 2.9.1
+      tslib: 2.6.2
+    dev: false
+
+  /@aws-sdk/types@3.502.0:
+    resolution: {integrity: sha512-M0DSPYe/gXhwD2QHgoukaZv5oDxhW3FfvYIrJptyqUq3OnPJBcDbihHjrE0PBtfh/9kgMZT60/fQ2NVFANfa2g==}
+    engines: {node: '>=14.0.0'}
+    dependencies:
+      '@smithy/types': 2.9.1
+      tslib: 2.6.2
+    dev: false
+
+  /@aws-sdk/util-dynamodb@3.501.0(@aws-sdk/client-dynamodb@3.501.0):
+    resolution: {integrity: sha512-ywBTyScgHqtKJgpPjWW/63lNpRQ53rMkqLGLzcY2NQ6t2JJ2AREk+mZSMEGhUSddqO+zRk+k0uV4BSnLyHY0kQ==}
+    engines: {node: '>=14.0.0'}
+    peerDependencies:
+      '@aws-sdk/client-dynamodb': ^3.0.0
+    dependencies:
+      '@aws-sdk/client-dynamodb': 3.501.0
       tslib: 2.6.2
     dev: false
 
@@ -2802,16 +2910,6 @@ packages:
       conventional-changelog-conventionalcommits: 7.0.2
     dev: true
 
-  /@commitlint/config-validator@18.4.4:
-    resolution: {integrity: sha512-/QI8KIg/h7O0Eus36fPcEcO3QPBcdXuGfZeCF5m15k0EB2bcU8s6pHNTNEa6xz9PrAefHCL+yzRJj7w20T6Mow==}
-    engines: {node: '>=v18'}
-    requiresBuild: true
-    dependencies:
-      '@commitlint/types': 18.6.0
-      ajv: 8.12.0
-    dev: true
-    optional: true
-
   /@commitlint/config-validator@18.6.0:
     resolution: {integrity: sha512-Ptfa865arNozlkjxrYG3qt6wT9AlhNUHeuDyKEZiTL/l0ftncFhK/KN0t/EAMV2tec+0Mwxo0FmhbESj/bI+1g==}
     engines: {node: '>=v18'}
@@ -2863,28 +2961,6 @@ packages:
       '@commitlint/types': 18.6.0
     dev: true
 
-  /@commitlint/load@18.4.4(@types/node@20.11.10)(typescript@5.3.3):
-    resolution: {integrity: sha512-RaDIa9qwOw2xRJ3Jr2DBXd14rmnHJIX2XdZF4kmoF1rgsg/+7cvrExLSUNAkQUNimyjCn1b/bKX2Omm+GdY0XQ==}
-    engines: {node: '>=v18'}
-    requiresBuild: true
-    dependencies:
-      '@commitlint/config-validator': 18.4.4
-      '@commitlint/execute-rule': 18.4.4
-      '@commitlint/resolve-extends': 18.4.4
-      '@commitlint/types': 18.6.0
-      chalk: 4.1.2
-      cosmiconfig: 8.3.6(typescript@5.3.3)
-      cosmiconfig-typescript-loader: 5.0.0(@types/node@20.11.10)(cosmiconfig@8.3.6)(typescript@5.3.3)
-      lodash.isplainobject: 4.0.6
-      lodash.merge: 4.6.2
-      lodash.uniq: 4.5.0
-      resolve-from: 5.0.0
-    transitivePeerDependencies:
-      - '@types/node'
-      - typescript
-    dev: true
-    optional: true
-
   /@commitlint/load@18.6.0(@types/node@20.11.10)(typescript@5.3.3):
     resolution: {integrity: sha512-RRssj7TmzT0bowoEKlgwg8uQ7ORXWkw7lYLsZZBMi9aInsJuGNLNWcMxJxRZbwxG3jkCidGUg85WmqJvRjsaDA==}
     engines: {node: '>=v18'}
@@ -2928,20 +3004,6 @@ packages:
       git-raw-commits: 2.0.11
       minimist: 1.2.8
     dev: true
-
-  /@commitlint/resolve-extends@18.4.4:
-    resolution: {integrity: sha512-RRpIHSbRnFvmGifVk21Gqazf1QF/yeP+Kkg/e3PlkegcOKd/FGOXp/Kx9cvSO2K7ucSn4GD/oBvgasFoy+NCAw==}
-    engines: {node: '>=v18'}
-    requiresBuild: true
-    dependencies:
-      '@commitlint/config-validator': 18.4.4
-      '@commitlint/types': 18.6.0
-      import-fresh: 3.3.0
-      lodash.mergewith: 4.6.2
-      resolve-from: 5.0.0
-      resolve-global: 1.0.0
-    dev: true
-    optional: true
 
   /@commitlint/resolve-extends@18.6.0:
     resolution: {integrity: sha512-k2Xp+Fxeggki2i90vGrbiLDMefPius3zGSTFFlRAPKce/SWLbZtI+uqE9Mne23mHO5lmcSV8z5m6ziiJwGpOcg==}
@@ -7259,7 +7321,7 @@ packages:
       longest: 2.0.1
       word-wrap: 1.2.3
     optionalDependencies:
-      '@commitlint/load': 18.4.4(@types/node@20.11.10)(typescript@5.3.3)
+      '@commitlint/load': 18.6.0(@types/node@20.11.10)(typescript@5.3.3)
     transitivePeerDependencies:
       - '@types/node'
       - typescript
@@ -10191,6 +10253,12 @@ packages:
       ufo: 1.3.1
     dev: true
 
+  /mnemonist@0.38.3:
+    resolution: {integrity: sha512-2K9QYubXx/NAjv4VLq1d1Ly8pWNC5L3BrixtdkyTegXWJIqY+zLNDhhX/A+ZwWt70tB1S8H4BE8FLYEFyNoOBw==}
+    dependencies:
+      obliterator: 1.6.1
+    dev: false
+
   /moo@0.5.2:
     resolution: {integrity: sha512-iSAJLHYKnX41mKcJKjqvnAN9sf0LMDTXDEvFv+ffuRR9a1MIuXLjMNL6EsnDHSkKLTWNqQQ5uo61P4EbU4NU+Q==}
     dev: true
@@ -10417,6 +10485,10 @@ packages:
       define-properties: 1.2.0
       es-abstract: 1.22.3
     dev: true
+
+  /obliterator@1.6.1:
+    resolution: {integrity: sha512-9WXswnqINnnhOG/5SLimUlzuU1hFJUc8zkwyD59Sd+dPOMf05PmnYG/d6Q7HZ+KmgkZJa1PxRso6QdM3sTNHig==}
+    dev: false
 
   /obuf@1.1.2:
     resolution: {integrity: sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==}

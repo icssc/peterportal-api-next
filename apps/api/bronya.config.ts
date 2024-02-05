@@ -8,12 +8,13 @@ import { PrismaClient } from "@libs/db";
 import { logger, warmingRequestBody } from "@libs/lambda";
 import { LambdaIntegration, ResponseType } from "aws-cdk-lib/aws-apigateway";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
-import { RuleTargetInput, Rule, Schedule } from "aws-cdk-lib/aws-events";
+import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
+import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
 import { Architecture, Code, Function as AwsLambdaFunction, Runtime } from "aws-cdk-lib/aws-lambda";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
-import { App, Stack, Duration } from "aws-cdk-lib/core";
+import { App, Duration, Stack } from "aws-cdk-lib/core";
 import { config } from "dotenv";
 import type { BuildOptions } from "esbuild";
 
@@ -171,6 +172,7 @@ export const constructs: ApiConstructProps = {
  */
 class ApiStack extends Stack {
   public api: Api;
+  public cache: Table;
 
   constructor(scope: App, id: string, stage: string) {
     super(scope, id);
@@ -204,6 +206,9 @@ class ApiStack extends Stack {
         STAGE: stage,
       },
       esbuild: esbuildOptions,
+    });
+    this.cache = new Table(this, `${id}-${stage}-cache`, {
+      partitionKey: { name: "cacheKey", type: AttributeType.STRING },
     });
   }
 }

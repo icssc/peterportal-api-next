@@ -21,7 +21,9 @@
   },
   "dependencies": {
     "@apollo/server": "4.10.0",
+    "@aws-sdk/client-dynamodb": "3.501.0",
     "@aws-sdk/client-lambda": "3.501.0",
+    "@aws-sdk/lib-dynamodb": "3.501.0",
     "@graphql-tools/load-files": "7.0.0",
     "@graphql-tools/merge": "9.0.1",
     "@graphql-tools/utils": "10.0.13",
