@@ -1,5 +1,11 @@
 import { Quarter, SectionType } from "./constants";
 
+export type Meeting = {
+  bldg: string[];
+  days: string;
+  time: string;
+};
+
 export type EnrollmentHistory = {
   year: string;
   quarter: Quarter;
@@ -10,7 +16,7 @@ export type EnrollmentHistory = {
   sectionNum: string;
   units: string;
   instructors: string[];
-  meetings: string[];
+  meetings: Meeting[];
   finalExam: string;
   dates: string[];
   maxCapacityHistory: string[];
