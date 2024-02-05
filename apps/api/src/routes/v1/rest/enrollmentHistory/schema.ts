@@ -25,6 +25,10 @@ export const QuerySchema = z
       (x.department && x.courseNumber) ||
       (x.sectionCode && x.year && x.quarter) ||
       (x.instructor && x.courseNumber && x.year && x.quarter),
+    {
+      message:
+        "Must provide department and course number; section code and year/quarter; or instructor, course number, and year/quarter",
+    },
   );
 
 export type Query = z.infer<typeof QuerySchema>;
