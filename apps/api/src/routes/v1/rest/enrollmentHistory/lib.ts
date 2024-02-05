@@ -1,6 +1,8 @@
 import type { WebsocEnrollmentHistory, WebsocEnrollmentHistoryEntry } from "@libs/db";
 import type { EnrollmentHistory, Meeting } from "@peterportal-api/types";
 
+const stringifyDate = (date: Date) =>
+  `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;
 export const transformResults = (
   results: Array<WebsocEnrollmentHistory & { entries: WebsocEnrollmentHistoryEntry[] }>,
 ): EnrollmentHistory[] =>
@@ -8,9 +10,7 @@ export const transformResults = (
     ...x,
     sectionCode: x.sectionCode.toString().padStart(5, "0"),
     meetings: x.meetings as Meeting[],
-    dates: entries.map(
-      (y) => `${y.date.getFullYear()}-${y.date.getMonth() + 1}-${y.date.getDate()}`,
-    ),
+    dates: entries.map((y) => y.date).map(stringifyDate),
     maxCapacityHistory: entries.map((y) => y.maxCapacity),
     totalEnrolledHistory: entries.map((y) => y.totalEnrolled),
     waitlistHistory: entries.map((y) => y.waitlist),
