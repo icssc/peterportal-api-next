@@ -30,6 +30,13 @@ export const overrides: ApiPropsOverride = {
                 ],
                 actions: ["lambda:InvokeFunction"],
               }),
+              new PolicyStatement({
+                effect: Effect.ALLOW,
+                resources: [
+                  `arn:aws:dynamodb:${process.env["AWS_REGION"]}:${process.env["ACCOUNT_ID"]}:table/${id}-cache`,
+                ],
+                actions: ["dynamodb:GetItem", "dynamodb:PutItem"],
+              }),
             ],
           }),
         },
