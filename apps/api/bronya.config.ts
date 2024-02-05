@@ -11,6 +11,14 @@ import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import { AttributeType, Table } from "aws-cdk-lib/aws-dynamodb";
 import { Rule, RuleTargetInput, Schedule } from "aws-cdk-lib/aws-events";
 import { LambdaFunction } from "aws-cdk-lib/aws-events-targets";
+import {
+  Effect,
+  ManagedPolicy,
+  PolicyDocument,
+  PolicyStatement,
+  Role,
+  ServicePrincipal,
+} from "aws-cdk-lib/aws-iam";
 import { Architecture, Code, Function as AwsLambdaFunction, Runtime } from "aws-cdk-lib/aws-lambda";
 import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
@@ -142,7 +150,28 @@ export const esbuildOptions: BuildOptions = {
  * Shared construct props.
  */
 export const constructs: ApiConstructProps = {
-  functionProps: () => ({ runtime: Runtime.NODEJS_20_X }),
+  functionProps: (scope, id) => ({
+    runtime: Runtime.NODEJS_20_X,
+    role: new Role(scope, `${id}-role`, {
+      assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+      managedPolicies: [
+        ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
+      ],
+      inlinePolicies: {
+        lambdaInvokePolicy: new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              resources: [
+                `arn:aws:dynamodb:${process.env["AWS_REGION"]}:${process.env["ACCOUNT_ID"]}:table/${id}-cache`,
+              ],
+              actions: ["lambda:InvokeFunction"],
+            }),
+          ],
+        }),
+      },
+    }),
+  }),
   functionPlugin: ({ functionProps, handler }, scope) => {
     const warmingTarget = new LambdaFunction(handler, {
       event: RuleTargetInput.fromObject(warmingRequestBody),
@@ -207,8 +236,9 @@ class ApiStack extends Stack {
       },
       esbuild: esbuildOptions,
     });
-    this.cache = new Table(this, `${id}-${stage}-cache`, {
+    this.cache = new Table(this, `${id}-cache`, {
       partitionKey: { name: "cacheKey", type: AttributeType.STRING },
+      timeToLiveAttribute: "expireAt",
     });
   }
 }
