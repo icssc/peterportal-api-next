@@ -1,7 +1,7 @@
 import { romans } from "./constants";
 import { expandResponse, searchCourseNumber, searchGECategory, searchKeyword } from "./helpers";
 import { matchCourseNum, matchGECategory } from "./regex";
-import { SearchParams } from "./types";
+import type { SearchParams } from "./types";
 
 // perform a search
 export default function search(params?: SearchParams) {

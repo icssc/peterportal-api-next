@@ -1,5 +1,6 @@
 import { PrismaClient } from "@libs/db";
-import { callWebSocAPI, GE, geCodes, Quarter } from "@libs/uc-irvine-api/websoc";
+import type { GE, Quarter } from "@libs/uc-irvine-api/websoc";
+import { callWebSocAPI, geCodes } from "@libs/uc-irvine-api/websoc";
 import { sleep } from "@libs/utils";
 
 const prisma = new PrismaClient();

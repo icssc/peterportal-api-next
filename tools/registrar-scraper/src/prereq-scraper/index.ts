@@ -4,7 +4,7 @@ import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
 import { sleep } from "@libs/utils";
-import { Prerequisite, PrerequisiteTree } from "@peterportal-api/types";
+import type { Prerequisite, PrerequisiteTree } from "@peterportal-api/types";
 import { load } from "cheerio";
 import type { Element } from "cheerio";
 import fetch from "cross-fetch";

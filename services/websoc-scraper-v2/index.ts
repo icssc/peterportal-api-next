@@ -10,14 +10,9 @@ import type {
   WebsocSchool,
   WebsocSection,
   WebsocSectionMeeting,
-} from "@libs/uc-irvine-api/websoc";
-import {
-  callWebSocAPI,
-  getDepts,
-  getTerms,
-  geCodes,
   sectionTypes,
 } from "@libs/uc-irvine-api/websoc";
+import { callWebSocAPI, getDepts, getTerms, geCodes } from "@libs/uc-irvine-api/websoc";
 import { sleep } from "@libs/utils";
 import { createLogger, format, transports } from "winston";
 

@@ -9,11 +9,13 @@
  * Virtual module for caching course information during build time.
  */
 declare module "virtual:courses" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   declare const courses: Record<string, import("@peterportal-api/types").Course>;
 }
 /**
  * Virtual module for caching instructor information during build time.
  */
 declare module "virtual:instructors" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   declare const instructors: Record<string, import("@peterportal-api/types").Instructor>;
 }

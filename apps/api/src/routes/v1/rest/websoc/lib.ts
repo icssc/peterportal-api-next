@@ -1,5 +1,5 @@
-import { Prisma } from "@libs/db";
-import { WebsocAPIOptions } from "@libs/uc-irvine-api/websoc";
+import type { Prisma } from "@libs/db";
+import type { WebsocAPIOptions } from "@libs/uc-irvine-api/websoc";
 
 import type { Query } from "./schema";
 

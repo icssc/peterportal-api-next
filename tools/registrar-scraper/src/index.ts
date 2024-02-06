@@ -1,5 +1,5 @@
 import { PrismaClient } from "@libs/db";
-import { Instructor } from "@peterportal-api/types";
+import type { Instructor } from "@peterportal-api/types";
 
 import { getCourses } from "./course-scraper";
 import { getInstructors } from "./instructor-scraper";

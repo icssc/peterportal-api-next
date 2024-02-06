@@ -1,4 +1,4 @@
-import { GradesSection, Prisma } from "@libs/db";
+import type { GradesSection, Prisma } from "@libs/db";
 import type {
   AggregateGrades,
   AggregateGradesByOffering,
@@ -13,7 +13,7 @@ import type {
 } from "@peterportal-api/types";
 import { geCodes } from "@peterportal-api/types";
 
-import { Query } from "./schema";
+import type { Query } from "./schema";
 
 /**
  * type guard that asserts input is defined
