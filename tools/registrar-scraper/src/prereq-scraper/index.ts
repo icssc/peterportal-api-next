@@ -3,6 +3,7 @@ import { writeFileSync } from "node:fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
+import { sleep } from "@libs/utils";
 import { Prerequisite, PrerequisiteTree } from "@peterportal-api/types";
 import { load } from "cheerio";
 import type { Element } from "cheerio";
@@ -42,11 +43,6 @@ const logger = winston.createLogger({
     }),
   ],
 });
-
-/**
- * @param ms - Milliseconds to wait
- */
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * Scrape all course prerequisite data from the Registrar's website.

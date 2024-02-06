@@ -1,7 +1,8 @@
 import { createErrorResult, createOKResult, logger } from "@libs/lambda";
 import { callWebSocAPI, getDepts, getTerms } from "@libs/uc-irvine-api/websoc";
 import type { WebsocAPIResponse, WebsocAPIOptions } from "@libs/uc-irvine-api/websoc";
-import { combineAndNormalizeResponses, fulfilled, sleep, sortResponse } from "@libs/websoc-utils";
+import { sleep } from "@libs/utils";
+import { combineAndNormalizeResponses, fulfilled, sortResponse } from "@libs/websoc-utils";
 import { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 
 export const handler = async (

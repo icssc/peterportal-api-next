@@ -1,3 +1,4 @@
+import { sleep } from "@libs/utils";
 import { load } from "cheerio";
 import fetch from "cross-fetch";
 
@@ -58,11 +59,6 @@ type Course = {
   ge_text: string;
   terms: string[];
 };
-
-/**
- * @param ms milliseconds to sleep for
- */
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const normalized = (s?: string) => s?.normalize("NFKD") ?? "";
 

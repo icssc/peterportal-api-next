@@ -12,6 +12,7 @@
     "@libs/db": "workspace:^",
     "@libs/lambda": "workspace:^",
     "@libs/uc-irvine-api": "workspace:^",
+    "@libs/utils": "workspace:^",
     "csv-parse": "5.5.3",
     "csv-stringify": "6.4.5",
     "winston": "3.11.0",

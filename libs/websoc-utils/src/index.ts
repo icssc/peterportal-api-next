@@ -45,13 +45,6 @@ export const fulfilled = <T>(value: PromiseSettledResult<T>): value is PromiseFu
  */
 export const notNull = <T>(x: T): x is NonNullable<T> => x != null;
 
-/**
- * Sleep for the given number of milliseconds.
- * @param duration Duration in ms.
- */
-export const sleep = async (duration: number) =>
-  new Promise((resolve) => setTimeout(resolve, duration));
-
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**

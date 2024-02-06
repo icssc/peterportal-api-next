@@ -18,6 +18,7 @@ import {
   geCodes,
   sectionTypes,
 } from "@libs/uc-irvine-api/websoc";
+import { sleep } from "@libs/utils";
 import { createLogger, format, transports } from "winston";
 
 /**
@@ -159,12 +160,6 @@ const logger = createLogger({
   transports: [new transports.Console()],
   exitOnError: false,
 });
-
-/**
- * Sleep for the given number of milliseconds.
- * @param duration Duration in ms.
- */
-const sleep = async (duration: number) => new Promise((resolve) => setTimeout(resolve, duration));
 
 /**
  * Get all terms that are to be scraped on a daily basis.

@@ -10,6 +10,7 @@
   "dependencies": {
     "@libs/db": "workspace:^",
     "@libs/uc-irvine-api": "workspace:^",
+    "@libs/utils": "workspace:^",
     "@peterportal-api/types": "workspace:^",
     "winston": "3.11.0"
   },

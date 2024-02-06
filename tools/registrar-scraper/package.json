@@ -7,6 +7,7 @@
   "main": "index.ts",
   "dependencies": {
     "@libs/db": "workspace:^",
+    "@libs/utils": "workspace:^",
     "@types/he": "1.2.3",
     "cheerio": "1.0.0-rc.12",
     "he": "1.2.0",
