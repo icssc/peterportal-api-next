@@ -150,31 +150,27 @@ export const esbuildOptions: BuildOptions = {
  * Shared construct props.
  */
 export const constructs: ApiConstructProps = {
-  functionProps: (scope, id) => ({
+  functionProps: (scope, id, route) => ({
     runtime: Runtime.NODEJS_20_X,
-    role: new Role(
-      scope,
-      `${id}-${Number.parseInt(Math.random().toString().slice(2)).toString(16).padStart(14, "0")}-role`,
-      {
-        assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
-        managedPolicies: [
-          ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
-        ],
-        inlinePolicies: {
-          lambdaInvokePolicy: new PolicyDocument({
-            statements: [
-              new PolicyStatement({
-                effect: Effect.ALLOW,
-                resources: [
-                  `arn:aws:dynamodb:${process.env["AWS_REGION"]}:${process.env["ACCOUNT_ID"]}:table/${id}-cache`,
-                ],
-                actions: ["dynamodb:GetItem", "dynamodb:PutItem"],
-              }),
-            ],
-          }),
-        },
+    role: new Role(scope, `${id}-${route.endpoint}-role`, {
+      assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
+      managedPolicies: [
+        ManagedPolicy.fromAwsManagedPolicyName("service-role/AWSLambdaBasicExecutionRole"),
+      ],
+      inlinePolicies: {
+        lambdaInvokePolicy: new PolicyDocument({
+          statements: [
+            new PolicyStatement({
+              effect: Effect.ALLOW,
+              resources: [
+                `arn:aws:dynamodb:${process.env["AWS_REGION"]}:${process.env["ACCOUNT_ID"]}:table/${id}-cache`,
+              ],
+              actions: ["dynamodb:GetItem", "dynamodb:PutItem"],
+            }),
+          ],
+        }),
       },
-    ),
+    }),
   }),
   functionPlugin: ({ functionProps, handler }, scope) => {
     const warmingTarget = new LambdaFunction(handler, {
