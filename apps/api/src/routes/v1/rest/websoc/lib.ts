@@ -1,5 +1,6 @@
 import type { Prisma } from "@libs/db";
 import type { WebsocAPIOptions } from "@libs/uc-irvine-api/websoc";
+import { notNull } from "@libs/utils";
 
 import type { Query } from "./schema";
 
@@ -8,11 +9,6 @@ import type { Query } from "./schema";
  */
 export const fulfilled = <T>(value: PromiseSettledResult<T>): value is PromiseFulfilledResult<T> =>
   value.status === "fulfilled";
-
-/**
- * type guard that asserts input is defined
- */
-export const notNull = <T>(x: T): x is NonNullable<T> => x != null;
 
 /**
  * Converts a 12-hour time string into number of minutes since midnight.

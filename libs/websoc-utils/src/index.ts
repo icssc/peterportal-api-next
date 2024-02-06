@@ -40,11 +40,6 @@ export type EnhancedNormalizedSection = {
 export const fulfilled = <T>(value: PromiseSettledResult<T>): value is PromiseFulfilledResult<T> =>
   value.status === "fulfilled";
 
-/**
- * type guard that asserts input is defined
- */
-export const notNull = <T>(x: T): x is NonNullable<T> => x != null;
-
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
 /**

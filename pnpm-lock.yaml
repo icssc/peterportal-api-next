@@ -110,6 +110,9 @@ importers:
       '@libs/uc-irvine-api':
         specifier: workspace:^
         version: link:../../libs/uc-irvine-api
+      '@libs/utils':
+        specifier: workspace:^
+        version: link:../../libs/utils
       '@libs/websoc-utils':
         specifier: workspace:^
         version: link:../../libs/websoc-utils

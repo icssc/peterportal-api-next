@@ -1,4 +1,5 @@
 import { PrismaClient } from "@libs/db";
+import { notNull } from "@libs/utils";
 import type { Instructor } from "@peterportal-api/types";
 
 import { getCourses } from "./course-scraper";
@@ -8,8 +9,6 @@ import type { CourseList } from "./prereq-scraper";
 import { getPrereqs } from "./prereq-scraper";
 
 const prisma = new PrismaClient();
-
-const notNull = <T>(x: T): x is NonNullable<T> => x !== null && x !== undefined;
 
 async function main() {
   const courseInfo = await getCourses();
