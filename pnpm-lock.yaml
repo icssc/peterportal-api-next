@@ -89,15 +89,9 @@ importers:
       '@apollo/server':
         specifier: 4.10.0
         version: 4.10.0(graphql@16.8.1)
-      '@aws-sdk/client-dynamodb':
-        specifier: 3.501.0
-        version: 3.501.0
       '@aws-sdk/client-lambda':
         specifier: 3.501.0
         version: 3.501.0
-      '@aws-sdk/lib-dynamodb':
-        specifier: 3.501.0
-        version: 3.501.0(@aws-sdk/client-dynamodb@3.501.0)
       '@graphql-tools/load-files':
         specifier: 7.0.0
         version: 7.0.0(graphql@16.8.1)
@@ -107,6 +101,9 @@ importers:
       '@graphql-tools/utils':
         specifier: 10.0.13
         version: 10.0.13(graphql@16.8.1)
+      '@libs/cache-client':
+        specifier: workspace:^
+        version: link:../../libs/cache-client
       '@libs/db':
         specifier: workspace:^
         version: link:../../libs/db
@@ -220,6 +217,15 @@ importers:
       typescript:
         specifier: 5.3.3
         version: 5.3.3
+
+  libs/cache-client:
+    dependencies:
+      '@aws-sdk/client-dynamodb':
+        specifier: 3.501.0
+        version: 3.501.0
+      '@aws-sdk/lib-dynamodb':
+        specifier: 3.501.0
+        version: 3.501.0(@aws-sdk/client-dynamodb@3.501.0)
 
   libs/db:
     dependencies:

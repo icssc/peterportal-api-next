@@ -1,3 +1,4 @@
+import { APICacheClient } from "@libs/cache-client";
 import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
 import type { WebsocAPIResponse } from "@libs/uc-irvine-api/websoc";
@@ -10,8 +11,9 @@ import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
-// let connected = false
 const lambdaClient = await APILambdaClient.new();
+
+const cacheClient = new APICacheClient({ route: "/v1/rest/websoc" });
 
 async function onWarm() {
   await prisma.$connect();
@@ -19,13 +21,16 @@ async function onWarm() {
 
 export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
-  const query = event.queryStringParameters;
+  const query = event.queryStringParameters ?? {};
   const requestId = context.awsRequestId;
 
   try {
     const parsedQuery = QuerySchema.parse(query);
 
     if (parsedQuery.cache) {
+      const cacheResult = await cacheClient.get(query);
+      if (cacheResult) return res.createOKResult(cacheResult, headers, requestId);
+
       const websocSections = await prisma.websocSection.findMany({
         where: constructPrismaQuery(parsedQuery),
         select: { department: true, courseNumber: true, data: true },
@@ -82,7 +87,11 @@ export const GET = createHandler(async (event, context, res) => {
 
           const combinedResponses = combineAndNormalizeResponses(...responses);
 
-          return res.createOKResult(sortResponse(combinedResponses), headers, requestId);
+          return res.createOKResult(
+            await cacheClient.put(query, sortResponse(combinedResponses)),
+            headers,
+            requestId,
+          );
         }
 
         const websocApiResponses = websocSections
@@ -91,7 +100,11 @@ export const GET = createHandler(async (event, context, res) => {
 
         const combinedResponses = combineAndNormalizeResponses(...websocApiResponses);
 
-        return res.createOKResult(sortResponse(combinedResponses), headers, requestId);
+        return res.createOKResult(
+          await cacheClient.put(query, sortResponse(combinedResponses)),
+          headers,
+          requestId,
+        );
       }
 
       /**

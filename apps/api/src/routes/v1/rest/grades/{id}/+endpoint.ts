@@ -1,3 +1,4 @@
+import { APICacheClient } from "@libs/cache-client";
 import { PrismaClient } from "@libs/db";
 import { logger, createHandler } from "@libs/lambda";
 import type {
@@ -20,35 +21,49 @@ import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
+const cacheClient = new APICacheClient({ route: "/v1/rest/grades" });
+
 async function onWarm() {
   await prisma.$connect();
 }
 
 export const GET = createHandler(async (event, context, res) => {
-  const { headers, pathParameters: params, queryStringParameters: query } = event;
+  const { headers, pathParameters: params } = event;
+  const query = event.queryStringParameters ?? {};
   const { awsRequestId: requestId } = context;
 
   try {
     const parsedQuery = QuerySchema.parse(query);
     switch (params?.id) {
       case "raw":
-      case "aggregate":
-        {
-          const result = (
-            await prisma.gradesSection.findMany({
-              where: constructPrismaQuery(parsedQuery),
-              include: { instructors: true },
-            })
-          ).map(transformRow);
-          switch (params.id) {
-            case "raw":
-              return res.createOKResult<RawGrades>(result, headers, requestId);
-            case "aggregate":
-              return res.createOKResult(aggregateGrades(result), headers, requestId);
-          }
+      case "aggregate": {
+        const cacheResult = await cacheClient.get({ ...query, id: params.id });
+        if (cacheResult) return res.createOKResult(cacheResult, headers, requestId);
+        const result = (
+          await prisma.gradesSection.findMany({
+            where: constructPrismaQuery(parsedQuery),
+            include: { instructors: true },
+          })
+        ).map(transformRow);
+        switch (params.id) {
+          case "raw":
+            return res.createOKResult<RawGrades>(
+              await cacheClient.put({ ...query, id: params.id }, result),
+              headers,
+              requestId,
+            );
+          case "aggregate":
+            return res.createOKResult(
+              await cacheClient.put({ ...query, id: params.id }, aggregateGrades(result)),
+              headers,
+              requestId,
+            );
         }
-        break;
+      }
+      // eslint-disable-next-line no-fallthrough
       case "options": {
+        const cacheResult = await cacheClient.get({ ...query, id: params.id });
+        if (cacheResult) return res.createOKResult(cacheResult, headers, requestId);
         const result = await prisma.gradesSection.findMany({
           where: constructPrismaQuery(parsedQuery),
           select: {
@@ -79,36 +94,42 @@ export const GET = createHandler(async (event, context, res) => {
           sectionCodes: Array.from(sectionCodes).sort(),
         };
         return res.createOKResult<GradesOptions>(
-          {
-            ...ret,
-            instructors: parsedQuery.instructor
-              ? [parsedQuery.instructor]
-              : (
-                  await prisma.gradesInstructor.findMany({
-                    where: {
-                      year: { in: ret.years },
-                      sectionCode: { in: ret.sectionCodes },
-                    },
-                    select: { name: true },
-                    distinct: ["name"],
-                  })
-                )
-                  .map((x) => x.name)
-                  .sort(),
-          },
+          await cacheClient.put(
+            { ...query, id: params.id },
+            {
+              ...ret,
+              instructors: parsedQuery.instructor
+                ? [parsedQuery.instructor]
+                : (
+                    await prisma.gradesInstructor.findMany({
+                      where: {
+                        year: { in: ret.years },
+                        sectionCode: { in: ret.sectionCodes },
+                      },
+                      select: { name: true },
+                      distinct: ["name"],
+                    })
+                  )
+                    .map((x) => x.name)
+                    .sort(),
+            },
+          ),
           headers,
           requestId,
         );
       }
       case "aggregateByCourse": {
         return res.createOKResult<AggregateGradesByCourse>(
-          aggregateByCourse(
-            (
-              await prisma.gradesSection.findMany({
-                where: constructPrismaQuery(parsedQuery),
-                include: { instructors: true },
-              })
-            ).map(transformRow),
+          await cacheClient.put(
+            { ...query, id: params.id },
+            aggregateByCourse(
+              (
+                await prisma.gradesSection.findMany({
+                  where: constructPrismaQuery(parsedQuery),
+                  include: { instructors: true },
+                })
+              ).map(transformRow),
+            ),
           ),
           headers,
           requestId,
@@ -116,13 +137,16 @@ export const GET = createHandler(async (event, context, res) => {
       }
       case "aggregateByOffering": {
         return res.createOKResult<AggregateGradesByOffering>(
-          aggregateByOffering(
-            (
-              await prisma.gradesSection.findMany({
-                where: constructPrismaQuery(parsedQuery),
-                include: { instructors: true },
-              })
-            ).map(transformRow),
+          await cacheClient.put(
+            { ...query, id: params.id },
+            aggregateByOffering(
+              (
+                await prisma.gradesSection.findMany({
+                  where: constructPrismaQuery(parsedQuery),
+                  include: { instructors: true },
+                })
+              ).map(transformRow),
+            ),
           ),
           headers,
           requestId,
