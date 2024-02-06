@@ -237,6 +237,7 @@ class ApiStack extends Stack {
       esbuild: esbuildOptions,
     });
     this.cache = new Table(this, `${id}-cache`, {
+      tableName: `${id}-cache`,
       partitionKey: { name: "cacheKey", type: AttributeType.STRING },
       timeToLiveAttribute: "expireAt",
       billingMode: BillingMode.PAY_PER_REQUEST,
