@@ -1,0 +1,21 @@
+{
+  "name": "@services/calendar-scraper",
+  "version": "0.0.0",
+  "private": true,
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@libs/db": "workspace:^",
+    "@libs/uc-irvine-api": "workspace:^",
+    "@libs/utils": "workspace:^"
+  },
+  "devDependencies": {
+    "@peterportal-api/types": "workspace:^",
+    "esbuild": "0.20.0"
+  }
+}
