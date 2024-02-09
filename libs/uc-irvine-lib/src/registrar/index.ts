@@ -5,6 +5,10 @@ import fetch from "cross-fetch";
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+const terms = ["Fall", "Winter", "Spring"];
+
+const summerTerms = ["Summer1", "Summer10wk", "Summer2"];
+
 function addSingleDateRow(
   data: string[][],
   index: number,
@@ -177,6 +181,29 @@ export async function getTermDateData(year: string): Promise<Record<string, Quar
           ((ret[key] as QuarterDates).instructionStart.getDay() - 1),
       );
     }
+  }
+
+  const socAvailable = $table
+    .eq(0)
+    .find("tr")
+    .text()
+    .split("\n")
+    .map((x) => x.trim())
+    .filter((x) => x.length)
+    .slice(4, 7);
+
+  for (const key in terms) {
+    const yr = Number.parseInt(year) + Number(terms[key] !== "Fall");
+    (ret[`${yr} ${terms[key]}`] as QuarterDates).socAvailable = new Date(
+      yr - Number(terms[key] === "Winter"),
+      months.indexOf(socAvailable[key].split(" ")[0]),
+      Number.parseInt(socAvailable[key].split(" ")[1]),
+    );
+  }
+
+  for (const term of summerTerms) {
+    const yr = Number.parseInt(year) + 1;
+    (ret[`${yr} ${term}`] as QuarterDates).socAvailable = new Date(`${yr}-03-01`);
   }
 
   return ret as Record<string, QuarterDates>;

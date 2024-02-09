@@ -20,4 +20,8 @@ export type QuarterDates = {
    * When finals end for the given quarter.
    */
   finalsEnd: Date;
+  /**
+   * When the Schedule of Classes becomes available for the given quarter.
+   */
+  socAvailable: Date;
 };
