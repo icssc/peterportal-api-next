@@ -51,6 +51,13 @@ SELECT
 ,
   INSERT,
 UPDATE,
+DELETE ON public."WebsocEnrollmentHistoryEntry" TO api_websoc_scraper;
+
+GRANT
+SELECT
+,
+  INSERT,
+UPDATE,
 DELETE ON public."WebsocEnrollmentHistory" TO api_websoc_scraper;
 
 GRANT

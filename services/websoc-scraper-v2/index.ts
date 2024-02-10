@@ -491,99 +491,59 @@ async function scrape(name: string, term: Term) {
   logger.info(`Removed ${meetingsDeleted.count} meetings`);
   logger.info(`Removed ${sectionsDeleted.count} sections`);
 
-  forceGC();
+  const enrollmentHistorySections = Object.values(res).map((x) => {
+    const sectionData = (x.data.data as WebsocAPIResponse).schools[0].departments[0].courses[0]
+      .sections[0];
+    return {
+      year: x.data.year,
+      quarter: x.data.quarter,
+      sectionCode: x.data.sectionCode,
+      department: x.data.department,
+      courseNumber: x.data.courseNumber,
+      sectionType: x.data.sectionType,
+      sectionNum: sectionData.sectionNum,
+      units: x.data.units,
+      instructors: x.meta.instructors.map((x) => x.name),
+      meetings: sectionData.meetings,
+      finalExam: sectionData.finalExam,
+    };
+  });
 
-  const enrollmentHistory = Object.fromEntries(
-    (await prisma.websocEnrollmentHistory.findMany(params)).map((x) => [
-      `${x.year}-${x.quarter}-${x.sectionCode}`,
-      x,
-    ]),
-  );
+  const enrollmentHistoryEntries = Object.values(res).map((x) => {
+    const sectionData = (x.data.data as WebsocAPIResponse).schools[0].departments[0].courses[0]
+      .sections[0];
+    return {
+      year: x.data.year,
+      quarter: x.data.quarter,
+      sectionCode: x.data.sectionCode,
+      date: timestamp,
+      maxCapacity: sectionData.maxCapacity,
+      totalEnrolled: sectionData.numCurrentlyEnrolled.totalEnrolled,
+      waitlist: sectionData.numOnWaitlist,
+      waitlistCap: sectionData.numWaitlistCap,
+      requested: sectionData.numRequested,
+      newOnlyReserved: sectionData.numNewOnlyReserved,
+      status: sectionData.status,
+    };
+  });
 
-  logger.info(`Retrieved ${Object.keys(enrollmentHistory).length} enrollment history entries`);
-
-  for (const { data } of Object.values(res)) {
-    const key = `${data.year}-${data.quarter}-${data.sectionCode}`;
-    if (key in enrollmentHistory) {
-      const rawData = (data.data as WebsocAPIResponse).schools[0].departments[0].courses[0]
-        .sections[0];
-      enrollmentHistory[key].timestamp = timestamp;
-      const today = `${timestamp.getFullYear()}-${timestamp.getMonth() + 1}-${timestamp.getDate()}`;
-      if ((enrollmentHistory[key].dates as string[]).slice(-1)[0] != today) {
-        (enrollmentHistory[key].dates as string[]).push(today);
-        (enrollmentHistory[key].maxCapacityHistory as string[]).push(data.maxCapacity.toString(10));
-        (enrollmentHistory[key].totalEnrolledHistory as string[]).push(
-          rawData.numCurrentlyEnrolled.totalEnrolled,
-        );
-        (enrollmentHistory[key].waitlistHistory as string[]).push(rawData.numOnWaitlist);
-        (enrollmentHistory[key].waitlistCapHistory as string[]).push(rawData.numWaitlistCap);
-        (enrollmentHistory[key].requestedHistory as string[]).push(rawData.numRequested);
-        (enrollmentHistory[key].newOnlyReservedHistory as string[]).push(
-          rawData.numNewOnlyReserved,
-        );
-        (enrollmentHistory[key].statusHistory as string[]).push(rawData.status);
-      }
-    } else {
-      const {
-        year,
-        quarter,
-        sectionCode,
-        timestamp,
-        department,
-        courseNumber,
-        sectionType,
-        units,
-      } = data;
-      const {
-        sectionNum,
-        instructors,
-        meetings,
-        finalExam,
-        maxCapacity,
-        numCurrentlyEnrolled,
-        numOnWaitlist,
-        numWaitlistCap,
-        numRequested,
-        numNewOnlyReserved,
-        status,
-      } = (data.data as WebsocAPIResponse).schools[0].departments[0].courses[0].sections[0];
-      enrollmentHistory[key] = {
-        year,
-        quarter,
-        sectionCode,
-        timestamp,
-        department,
-        courseNumber,
-        sectionType,
-        sectionNum,
-        units,
-        instructors,
-        meetings,
-        finalExam,
-        dates: [`${timestamp.getFullYear()}-${timestamp.getMonth() + 1}-${timestamp.getDate()}`],
-        maxCapacityHistory: [maxCapacity],
-        totalEnrolledHistory: [numCurrentlyEnrolled.totalEnrolled],
-        waitlistHistory: [numOnWaitlist],
-        waitlistCapHistory: [numWaitlistCap],
-        requestedHistory: [numRequested],
-        newOnlyReservedHistory: [numNewOnlyReserved],
-        statusHistory: [status],
-      };
-    }
-  }
-
-  const [enrollmentInserted, enrollmentRemoved] = await prisma.$transaction([
+  const [enrollmentSectionsCreated, entriesCreated] = await prisma.$transaction([
     prisma.websocEnrollmentHistory.createMany({
-      data: Object.values(enrollmentHistory) as Prisma.WebsocEnrollmentHistoryCreateManyInput[],
+      data: enrollmentHistorySections,
       skipDuplicates: true,
     }),
-    prisma.websocEnrollmentHistory.deleteMany(params),
+    prisma.websocEnrollmentHistoryEntry.createMany({
+      data: enrollmentHistoryEntries,
+      skipDuplicates: true,
+    }),
   ]);
 
-  logger.info(`Inserted ${enrollmentInserted.count} enrollment history entries`);
-  logger.info(`Removed ${enrollmentRemoved.count} enrollment history entries`);
-  logger.info("Sleeping for 3 minutes");
+  logger.info(`Inserted ${enrollmentSectionsCreated.count} sections for enrollment history`);
+  logger.info(`Inserted ${entriesCreated.count} entries for enrollment history`);
 
+  forceGC();
+
+  logger.info("Sleeping for 3 minutes");
   await sleep(SLEEP_DURATION);
 }
 

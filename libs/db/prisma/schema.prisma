@@ -168,30 +168,40 @@ model GradesSection {
   @@unique([year, quarter, sectionCode], name: "idx")
 }
 
-model WebsocEnrollmentHistory {
-  year                   String
-  quarter                Quarter
-  sectionCode            Int
-  timestamp              DateTime
-  department             String
-  courseNumber           String
-  sectionType            WebsocSectionType
-  sectionNum             String
-  units                  String
-  instructors            Json
-  meetings               Json
-  finalExam              String
-  dates                  Json
-  maxCapacityHistory     Json
-  totalEnrolledHistory   Json
-  waitlistHistory        Json
-  waitlistCapHistory     Json
-  requestedHistory       Json
-  newOnlyReservedHistory Json
-  statusHistory          Json
+model WebsocEnrollmentHistoryEntry {
+  year                    String
+  quarter                 Quarter
+  sectionCode             Int
+  WebsocEnrollmentHistory WebsocEnrollmentHistory @relation(fields: [year, quarter, sectionCode], references: [year, quarter, sectionCode])
+  date                    DateTime                @db.Date
+  maxCapacity             String
+  totalEnrolled           String
+  waitlist                String
+  waitlistCap             String
+  requested               String
+  newOnlyReserved         String
+  status                  String
 
-  @@id([year, quarter, sectionCode, timestamp])
-  @@unique([year, quarter, sectionCode, timestamp], name: "idx")
+  @@id([year, quarter, sectionCode, date])
+  @@unique([year, quarter, sectionCode, date], name: "idx")
+}
+
+model WebsocEnrollmentHistory {
+  year         String
+  quarter      Quarter
+  sectionCode  Int
+  department   String
+  courseNumber String
+  sectionType  WebsocSectionType
+  sectionNum   String
+  units        String
+  instructors  String[]
+  meetings     Json
+  finalExam    String
+  entries      WebsocEnrollmentHistoryEntry[]
+
+  @@id([year, quarter, sectionCode])
+  @@unique([year, quarter, sectionCode], name: "idx")
 }
 
 model WebsocSectionInstructor {
