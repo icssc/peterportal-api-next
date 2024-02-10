@@ -176,6 +176,7 @@ extend type Query {
     maxCapacity: String
     fullCourses: FullCourses
     cancelledCourses: CancelledCourses
+    excludeRestrictionCodes: [RestrictionCode!]
   ): WebsocAPIResponse!
   "Get data on all available departments."
   depts: [Department!]!

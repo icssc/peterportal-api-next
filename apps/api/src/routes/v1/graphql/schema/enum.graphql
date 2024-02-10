@@ -43,6 +43,29 @@ enum SectionType {
   Tap
   Tut
 }
+
+"The set of valid restriction codes."
+enum RestrictionCode {
+  A
+  B
+  C
+  D
+  E
+  F
+  G
+  H
+  I
+  J
+  K
+  L
+  M
+  N
+  O
+  R
+  S
+  X
+}
+
 "The set of valid options for filtering full courses."
 enum FullCourses {
   ANY

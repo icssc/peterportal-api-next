@@ -51,6 +51,12 @@ export const QuerySchema = z
     units: z.string().array().or(z.string()).optional().transform(flattenStringsAndSplit),
     startTime: z.optional(z.literal("").or(z.string().regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/))),
     endTime: z.optional(z.literal("").or(z.string().regex(/([1-9]|1[0-2]):[0-5][0-9][ap]m/))),
+    excludeRestrictionCodes: z
+      .string()
+      .array()
+      .or(z.string())
+      .optional()
+      .transform(flattenStringsAndSplit),
   })
   .refine((x) => x.cache || !x.cacheOnly, {
     message: "cacheOnly cannot be true if cache is false",

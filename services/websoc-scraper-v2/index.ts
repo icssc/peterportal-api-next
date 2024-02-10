@@ -136,8 +136,7 @@ const REQUEST_SLEEP_DURATION = 500;
  * The duration to sleep between scraping runs, or if rate-limited.
  * Default: 3 minutes in ms
  */
-// const SLEEP_DURATION = 3 * 60 * 1000;
-const SLEEP_DURATION = 10 * 1000;
+const SLEEP_DURATION = 3 * 60 * 1000;
 
 /**
  * The duration to sleep when an error is caught.

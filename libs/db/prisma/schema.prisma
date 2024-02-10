@@ -5,8 +5,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // TODO: fix url
-  url      = "postgresql://postgres:postgres@localhost:5432/api?connect_timeout=300"
+  url      = env("DATABASE_URL")
 }
 
 // The parts above this line are used to configure the Prisma Client directly

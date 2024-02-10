@@ -1,3 +1,4 @@
+import { $Enums } from ".prisma/client";
 import { Prisma } from "@libs/db";
 import { WebsocAPIOptions } from "@libs/uc-irvine-api/websoc";
 
@@ -202,6 +203,17 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
         units: u === "VAR" ? { contains: "-" } : { startsWith: parseFloat(u).toString() },
       })),
     );
+  }
+
+  if (parsedQuery.excludeRestrictionCodes) {
+    console.log(parsedQuery.excludeRestrictionCodes as $Enums.RestrictionCode[]);
+    AND.push({
+      NOT: {
+        restrictionCodes: {
+          hasSome: parsedQuery.excludeRestrictionCodes as $Enums.RestrictionCode[],
+        },
+      },
+    });
   }
 
   return {
