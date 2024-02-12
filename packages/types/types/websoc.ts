@@ -1,4 +1,4 @@
-import { DayOfWeek, Quarter } from "./constants";
+import type { DayOfWeek, Quarter } from "./constants";
 
 /**
  * A type that represents the hour and minute parts of a time.

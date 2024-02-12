@@ -1,7 +1,8 @@
 import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
-import type { WebsocAPIResponse } from "@libs/uc-irvine-api/websoc";
-import { combineAndNormalizeResponses, notNull, sortResponse } from "@libs/websoc-utils";
+import type { WebsocAPIResponse } from "@libs/uc-irvine-lib/websoc";
+import { notNull } from "@libs/utils";
+import { combineAndNormalizeResponses, sortResponse } from "@libs/websoc-utils";
 import { ZodError } from "zod";
 
 import { APILambdaClient } from "./APILambdaClient";

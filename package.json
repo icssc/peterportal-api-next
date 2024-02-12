@@ -14,11 +14,11 @@
     "destroy": "turbo run destroy",
     "dev": "dotenv -c development -- turbo run dev",
     "format": "prettier --write .",
-    "postinstall": "husky install",
     "lint": "eslint --fix .",
+    "prepare": "husky",
     "test": "turbo run test"
   },
-  "devDependencies": {
+  "dependencies": {
     "@commitlint/cli": "18.6.0",
     "@commitlint/config-conventional": "18.6.0",
     "@commitlint/types": "18.6.0",

@@ -1,7 +1,8 @@
 import { join } from "node:path";
 import { parse } from "node:url";
 
-import { ApolloServer, HeaderMap, HTTPGraphQLRequest } from "@apollo/server";
+import type { HTTPGraphQLRequest } from "@apollo/server";
+import { ApolloServer, HeaderMap } from "@apollo/server";
 import {
   ApolloServerPluginLandingPageLocalDefault,
   ApolloServerPluginLandingPageProductionDefault,

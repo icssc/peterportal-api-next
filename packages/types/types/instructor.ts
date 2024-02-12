@@ -1,4 +1,4 @@
-import { CoursePreview } from "./courses";
+import type { CoursePreview } from "./courses";
 
 /**
  * An object representing an instructor.

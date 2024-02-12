@@ -1,5 +1,5 @@
-import { Course as PrismaCourse } from "@libs/db";
-import {
+import type { Course as PrismaCourse } from "@libs/db";
+import type {
   Course,
   CourseLevel,
   CoursePreview,

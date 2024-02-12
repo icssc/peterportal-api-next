@@ -2,8 +2,8 @@ import fs from "fs";
 import { basename, resolve } from "node:path";
 import { EOL } from "os";
 
-import { callWebSocAPI } from "@libs/uc-irvine-api/websoc";
-import type { WebsocAPIResponse, WebsocSection } from "@libs/uc-irvine-api/websoc";
+import { callWebSocAPI } from "@libs/uc-irvine-lib/websoc";
+import type { WebsocAPIResponse, WebsocSection } from "@libs/uc-irvine-lib/websoc";
 import type { Quarter } from "@peterportal-api/types";
 import type { CastingContext, Parser } from "csv-parse";
 import { parse } from "csv-parse";

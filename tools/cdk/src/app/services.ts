@@ -13,11 +13,9 @@ async function main() {
   const app = new App({ autoSynth: true });
 
   new ServicesStack(app, stackName, {
-    env: {
-      region: "us-east-1",
-    },
+    env: { region: "us-east-1" },
     terminationProtection: true,
   });
 }
 
-main();
+main().then();

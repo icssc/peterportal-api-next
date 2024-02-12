@@ -1,4 +1,4 @@
-import { Quarter, SectionType } from "./constants";
+import type { Quarter, SectionType } from "./constants";
 
 export type Meeting = {
   bldg: string[];

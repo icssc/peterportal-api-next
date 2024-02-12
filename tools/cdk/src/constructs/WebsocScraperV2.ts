@@ -2,7 +2,7 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { Duration, RemovalPolicy } from "aws-cdk-lib";
-import { IVpc } from "aws-cdk-lib/aws-ec2";
+import type { IVpc } from "aws-cdk-lib/aws-ec2";
 import {
   Cluster,
   ContainerImage,

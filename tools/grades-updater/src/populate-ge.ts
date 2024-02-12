@@ -1,20 +1,9 @@
 import { PrismaClient } from "@libs/db";
-import { callWebSocAPI, GE, geCodes, Quarter } from "@libs/uc-irvine-api/websoc";
+import type { GE, Quarter } from "@libs/uc-irvine-lib/websoc";
+import { callWebSocAPI, geCodes } from "@libs/uc-irvine-lib/websoc";
+import { sleep } from "@libs/utils";
 
-const prisma = new PrismaClient({
-  log: [
-    { emit: "event", level: "query" },
-    { emit: "stdout", level: "error" },
-    { emit: "stdout", level: "info" },
-    { emit: "stdout", level: "warn" },
-  ],
-});
-
-prisma.$on("query", (e) => {
-  console.log("Query: " + e.query);
-  console.log("Params: " + e.params);
-  console.log("Duration: " + e.duration + "ms");
-});
+const prisma = new PrismaClient();
 
 const geKeys = [
   "isGE1A",
@@ -28,8 +17,6 @@ const geKeys = [
   "isGE7",
   "isGE8",
 ] as const;
-
-const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 const log = (msg: string) => console.log(`[${new Date().toUTCString()}] ${msg}`);
 

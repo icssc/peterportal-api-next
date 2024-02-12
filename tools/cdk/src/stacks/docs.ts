@@ -1,7 +1,8 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { RemovalPolicy, Stack, StackProps } from "aws-cdk-lib";
+import type { StackProps } from "aws-cdk-lib";
+import { RemovalPolicy, Stack } from "aws-cdk-lib";
 import { Certificate } from "aws-cdk-lib/aws-certificatemanager";
 import {
   AllowedMethods,
@@ -15,7 +16,7 @@ import { ARecord, HostedZone, RecordTarget } from "aws-cdk-lib/aws-route53";
 import { CloudFrontTarget } from "aws-cdk-lib/aws-route53-targets";
 import { Bucket } from "aws-cdk-lib/aws-s3";
 import { BucketDeployment, Source } from "aws-cdk-lib/aws-s3-deployment";
-import { Construct } from "constructs";
+import type { Construct } from "constructs";
 
 export interface DocsStackProps extends StackProps {
   stage?: string;

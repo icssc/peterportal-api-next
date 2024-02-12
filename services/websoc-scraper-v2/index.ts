@@ -1,5 +1,5 @@
 import { PrismaClient } from "@libs/db";
-import { getTermDateData } from "@libs/uc-irvine-api/registrar";
+import { getTermDateData } from "@libs/uc-irvine-lib/registrar";
 import type {
   GE,
   Quarter,
@@ -10,14 +10,10 @@ import type {
   WebsocSchool,
   WebsocSection,
   WebsocSectionMeeting,
-} from "@libs/uc-irvine-api/websoc";
-import {
-  callWebSocAPI,
-  getDepts,
-  getTerms,
-  geCodes,
   sectionTypes,
-} from "@libs/uc-irvine-api/websoc";
+} from "@libs/uc-irvine-lib/websoc";
+import { callWebSocAPI, getDepts, getTerms, geCodes } from "@libs/uc-irvine-lib/websoc";
+import { sleep } from "@libs/utils";
 import { createLogger, format, transports } from "winston";
 
 /**
@@ -159,12 +155,6 @@ const logger = createLogger({
   transports: [new transports.Console()],
   exitOnError: false,
 });
-
-/**
- * Sleep for the given number of milliseconds.
- * @param duration Duration in ms.
- */
-const sleep = async (duration: number) => new Promise((resolve) => setTimeout(resolve, duration));
 
 /**
  * Get all terms that are to be scraped on a daily basis.
@@ -563,4 +553,4 @@ async function main() {
   }
 }
 
-main().then(() => []);
+main().then();

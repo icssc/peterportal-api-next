@@ -2,6 +2,7 @@
   "name": "@libs/db",
   "version": "0.0.0",
   "private": true,
+  "description": "Wrapper package for shared Prisma Client",
   "license": "MIT",
   "type": "module",
   "main": "index.ts",
