@@ -14,8 +14,8 @@
     "destroy": "turbo run destroy",
     "dev": "dotenv -c development -- turbo run dev",
     "format": "prettier --write .",
-    "postinstall": "husky install",
     "lint": "eslint --fix .",
+    "prepare": "husky",
     "test": "turbo run test"
   },
   "dependencies": {
