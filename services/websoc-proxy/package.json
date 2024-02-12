@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@libs/lambda": "workspace:^",
-    "@libs/uc-irvine-api": "workspace:^",
+    "@libs/uc-irvine-lib": "workspace:^",
     "@libs/utils": "workspace:^",
     "@libs/websoc-utils": "workspace:^"
   },

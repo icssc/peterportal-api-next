@@ -5,7 +5,7 @@ import type {
   WebsocSchool,
   WebsocSection,
   WebsocSectionMeeting,
-} from "@libs/uc-irvine-api/websoc";
+} from "@libs/uc-irvine-lib/websoc";
 import type {
   DayOfWeek,
   WebsocAPIResponse as NormalizedResponse,

@@ -2,6 +2,7 @@
   "name": "@tools/registrar-scraper",
   "version": "0.0.0",
   "private": true,
+  "description": "Unified scraper for fetching data from UCI Catalogue and Registrar",
   "license": "MIT",
   "type": "module",
   "main": "index.ts",

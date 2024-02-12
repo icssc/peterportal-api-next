@@ -2,6 +2,7 @@
   "name": "@tools/grades-updater",
   "version": "0.0.0",
   "private": true,
+  "description": "Scripts for updating the grades cache",
   "type": "module",
   "scripts": {
     "populate": "dotenv -e ../../.env.grades -- tsx src/populate-ge.ts",
@@ -11,7 +12,7 @@
   "dependencies": {
     "@libs/db": "workspace:^",
     "@libs/lambda": "workspace:^",
-    "@libs/uc-irvine-api": "workspace:^",
+    "@libs/uc-irvine-lib": "workspace:^",
     "@libs/utils": "workspace:^",
     "csv-parse": "5.5.3",
     "csv-stringify": "6.4.5",

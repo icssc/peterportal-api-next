@@ -107,9 +107,9 @@ importers:
       '@libs/lambda':
         specifier: workspace:^
         version: link:../../libs/lambda
-      '@libs/uc-irvine-api':
+      '@libs/uc-irvine-lib':
         specifier: workspace:^
-        version: link:../../libs/uc-irvine-api
+        version: link:../../libs/uc-irvine-lib
       '@libs/utils':
         specifier: workspace:^
         version: link:../../libs/utils
@@ -241,7 +241,7 @@ importers:
         specifier: 8.10.132
         version: 8.10.132
 
-  libs/uc-irvine-api:
+  libs/uc-irvine-lib:
     dependencies:
       '@ap0nia/camaro':
         specifier: 6.2.5
@@ -260,9 +260,9 @@ importers:
 
   libs/websoc-utils:
     dependencies:
-      '@libs/uc-irvine-api':
+      '@libs/uc-irvine-lib':
         specifier: workspace:^
-        version: link:../uc-irvine-api
+        version: link:../uc-irvine-lib
       '@peterportal-api/types':
         specifier: workspace:^
         version: link:../../packages/types
@@ -305,9 +305,9 @@ importers:
       '@libs/lambda':
         specifier: workspace:^
         version: link:../../libs/lambda
-      '@libs/uc-irvine-api':
+      '@libs/uc-irvine-lib':
         specifier: workspace:^
-        version: link:../../libs/uc-irvine-api
+        version: link:../../libs/uc-irvine-lib
       '@libs/utils':
         specifier: workspace:^
         version: link:../../libs/utils
@@ -333,9 +333,9 @@ importers:
       '@libs/db':
         specifier: workspace:^
         version: link:../../libs/db
-      '@libs/uc-irvine-api':
+      '@libs/uc-irvine-lib':
         specifier: workspace:^
-        version: link:../../libs/uc-irvine-api
+        version: link:../../libs/uc-irvine-lib
       '@libs/utils':
         specifier: workspace:^
         version: link:../../libs/utils
@@ -386,9 +386,9 @@ importers:
       '@libs/lambda':
         specifier: workspace:^
         version: link:../../libs/lambda
-      '@libs/uc-irvine-api':
+      '@libs/uc-irvine-lib':
         specifier: workspace:^
-        version: link:../../libs/uc-irvine-api
+        version: link:../../libs/uc-irvine-lib
       '@libs/utils':
         specifier: workspace:^
         version: link:../../libs/utils

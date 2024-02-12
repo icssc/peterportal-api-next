@@ -1,5 +1,5 @@
 import { PrismaClient } from "@libs/db";
-import { getTermDateData } from "@libs/uc-irvine-api/registrar";
+import { getTermDateData } from "@libs/uc-irvine-lib/registrar";
 import type {
   GE,
   Quarter,
@@ -11,8 +11,8 @@ import type {
   WebsocSection,
   WebsocSectionMeeting,
   sectionTypes,
-} from "@libs/uc-irvine-api/websoc";
-import { callWebSocAPI, getDepts, getTerms, geCodes } from "@libs/uc-irvine-api/websoc";
+} from "@libs/uc-irvine-lib/websoc";
+import { callWebSocAPI, getDepts, getTerms, geCodes } from "@libs/uc-irvine-lib/websoc";
 import { sleep } from "@libs/utils";
 import { createLogger, format, transports } from "winston";
 
