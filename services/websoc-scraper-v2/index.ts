@@ -1,5 +1,5 @@
-import { $Enums } from ".prisma/client";
-import { Prisma, PrismaClient } from "@libs/db";
+import { $Enums } from "@libs/db";
+import { PrismaClient } from "@libs/db";
 import { getTermDateData } from "@libs/uc-irvine-api/registrar";
 import type {
   GE,

@@ -1,5 +1,4 @@
-import { $Enums } from ".prisma/client";
-import { Prisma } from "@libs/db";
+import { Prisma, $Enums } from "@libs/db";
 import { WebsocAPIOptions } from "@libs/uc-irvine-api/websoc";
 
 import type { Query } from "./schema";
