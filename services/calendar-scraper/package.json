@@ -2,6 +2,7 @@
   "name": "@services/calendar-scraper",
   "version": "0.0.0",
   "private": true,
+  "description": "Automated scraper for key dates in a term",
   "license": "MIT",
   "type": "module",
   "main": "src/index.ts",

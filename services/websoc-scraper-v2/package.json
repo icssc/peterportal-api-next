@@ -2,6 +2,7 @@
   "name": "@services/websoc-scraper-v2",
   "version": "0.0.0",
   "private": true,
+  "description": "Automated scraper for WebSoc data",
   "license": "MIT",
   "main": "index.ts",
   "scripts": {
