@@ -305,9 +305,9 @@ importers:
       '@libs/db':
         specifier: workspace:^
         version: link:../../libs/db
-      '@libs/uc-irvine-api':
+      '@libs/uc-irvine-lib':
         specifier: workspace:^
-        version: link:../../libs/uc-irvine-api
+        version: link:../../libs/uc-irvine-lib
       '@libs/utils':
         specifier: workspace:^
         version: link:../../libs/utils

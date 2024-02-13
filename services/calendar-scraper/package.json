@@ -12,7 +12,7 @@
   },
   "dependencies": {
     "@libs/db": "workspace:^",
-    "@libs/uc-irvine-api": "workspace:^",
+    "@libs/uc-irvine-lib": "workspace:^",
     "@libs/utils": "workspace:^"
   },
   "devDependencies": {
