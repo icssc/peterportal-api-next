@@ -39,11 +39,9 @@ async function main() {
 
   new DocsStack(app, stackName, {
     stage,
-    env: {
-      region: "us-east-1",
-    },
-    terminationProtection: /*stage === "prod"*/ false,
+    env: { region: "us-east-1" },
+    terminationProtection: stage === "prod",
   });
 }
 
-main();
+main().then();

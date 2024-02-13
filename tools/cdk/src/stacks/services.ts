@@ -1,7 +1,7 @@
 import { Stack } from "aws-cdk-lib";
 import type { StackProps } from "aws-cdk-lib";
 import { SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
-import { Construct } from "constructs";
+import type { Construct } from "constructs";
 
 import { WebsocProxy } from "../constructs/WebsocProxy";
 import { WebsocScraperV2 } from "../constructs/WebsocScraperV2";

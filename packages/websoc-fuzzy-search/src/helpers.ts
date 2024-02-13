@@ -4,7 +4,7 @@ import { index } from "../output";
 
 import { types, fieldNames, courseFieldNames, instructorFieldNames } from "./constants";
 import { matchCourseNum, tokenizeCourseNum } from "./regex";
-import {
+import type {
   CourseMetadata,
   FilterOptions,
   InstructorMetadata,

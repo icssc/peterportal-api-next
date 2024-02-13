@@ -1,4 +1,5 @@
-import { QuarterDates, quarters } from "@peterportal-api/types";
+import type { QuarterDates } from "@peterportal-api/types";
+import { quarters } from "@peterportal-api/types";
 import { load } from "cheerio";
 import fetch from "cross-fetch";
 

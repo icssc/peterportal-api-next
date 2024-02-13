@@ -1,6 +1,6 @@
-import { Prisma } from "@libs/db";
+import type { Prisma } from "@libs/db";
 
-import { Query } from "./schema";
+import type { Query } from "./schema";
 
 /**
  * Constructs a Prisma query for the given filter parameters.

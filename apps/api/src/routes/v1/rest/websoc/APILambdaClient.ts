@@ -1,6 +1,7 @@
-import { InvokeCommand, LambdaClient, LambdaClientConfig } from "@aws-sdk/client-lambda";
+import type { LambdaClientConfig } from "@aws-sdk/client-lambda";
+import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { zeroUUID } from "@libs/lambda";
-import type { WebsocAPIResponse } from "@libs/uc-irvine-api/websoc";
+import type { WebsocAPIResponse } from "@libs/uc-irvine-lib/websoc";
 import type { Department, TermData } from "@peterportal-api/types";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 

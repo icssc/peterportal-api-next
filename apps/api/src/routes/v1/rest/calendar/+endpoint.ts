@@ -1,6 +1,6 @@
 import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
-import { getTermDateData } from "@libs/uc-irvine-api/registrar";
+import { getTermDateData } from "@libs/uc-irvine-lib/registrar";
 import type { Quarter, QuarterDates } from "@peterportal-api/types";
 import { ZodError } from "zod";
 

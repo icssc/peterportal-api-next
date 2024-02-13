@@ -1,0 +1,8 @@
+{
+  "name": "@libs/utils",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Miscellaneous utilities used by the API's components",
+  "license": "MIT",
+  "main": "src/index.ts"
+}

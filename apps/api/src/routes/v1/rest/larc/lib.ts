@@ -1,4 +1,4 @@
-import { Quarter } from "@peterportal-api/types";
+import type { Quarter } from "@peterportal-api/types";
 
 export const quarterToLarcSuffix = (quarter: Exclude<Quarter, "Summer10wk">): string => {
   switch (quarter) {
