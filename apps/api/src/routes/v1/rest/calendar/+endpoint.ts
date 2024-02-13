@@ -34,6 +34,7 @@ export const GET = createHandler(async (event, context, res) => {
         instructionEnd: true,
         finalsStart: true,
         finalsEnd: true,
+        socAvailable: true,
       },
     });
     return result
