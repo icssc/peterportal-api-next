@@ -4,6 +4,7 @@ import { geTransform, proxyRestApi } from "./lib";
 
 export const resolvers: ApolloServerOptions<BaseContext>["resolvers"] = {
   Query: {
+    allTermDates: proxyRestApi("/v1/rest/calendar"),
     calendar: proxyRestApi("/v1/rest/calendar"),
     course: proxyRestApi("/v1/rest/courses", { pathArg: "courseId" }),
     courses: proxyRestApi("/v1/rest/courses", { argsTransform: geTransform }),

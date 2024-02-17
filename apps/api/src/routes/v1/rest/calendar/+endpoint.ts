@@ -27,16 +27,7 @@ export const GET = createHandler(async (event, context, res) => {
   const { data: where } = maybeParsed;
 
   if ("year" in where) {
-    const result = await prisma.calendarTerm.findFirst({
-      where,
-      select: {
-        instructionStart: true,
-        instructionEnd: true,
-        finalsStart: true,
-        finalsEnd: true,
-        socAvailable: true,
-      },
-    });
+    const result = await prisma.calendarTerm.findFirst({ where });
     return result
       ? res.createOKResult<QuarterDates>(result, headers, requestId)
       : res.createErrorResult(
