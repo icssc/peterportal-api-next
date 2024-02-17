@@ -1,5 +1,5 @@
 import { PrismaClient } from "@libs/db";
-import { getTermDateData } from "@libs/uc-irvine-api/registrar";
+import { getTermDateData } from "@libs/uc-irvine-lib/registrar";
 import type { Quarter } from "@peterportal-api/types";
 
 const prisma = new PrismaClient();

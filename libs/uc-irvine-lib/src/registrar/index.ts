@@ -9,11 +9,13 @@ const terms = ["Fall", "Winter", "Spring"];
 
 const summerTerms = ["Summer1", "Summer10wk", "Summer2"];
 
+type ScrapedQuarterDates = Omit<QuarterDates, "year" | "quarter">;
+
 function addSingleDateRow(
   data: string[][],
   index: number,
   key: string,
-  record: Record<string, Partial<QuarterDates & { [p: string]: Date }>>,
+  record: Record<string, Partial<ScrapedQuarterDates & { [p: string]: Date }>>,
   year: string,
   offset = 0,
 ): void {
@@ -33,7 +35,7 @@ function addMultipleDateRow(
   index: number,
   keyStart: string,
   keyEnd: string,
-  record: Record<string, Partial<QuarterDates & { [p: string]: Date }>>,
+  record: Record<string, Partial<ScrapedQuarterDates & { [p: string]: Date }>>,
   year: string,
   offset = 0,
 ): void {
@@ -74,7 +76,7 @@ function addMultipleDateRow(
 /**
  * Returns relevant date data for each term in the given academic year.
  */
-export async function getTermDateData(year: string): Promise<Record<string, QuarterDates>> {
+export async function getTermDateData(year: string): Promise<Record<string, ScrapedQuarterDates>> {
   if (year.length !== 4 || isNaN(parseInt(year))) {
     throw new Error("Error: Invalid year provided.");
   }
@@ -134,7 +136,7 @@ export async function getTermDateData(year: string): Promise<Record<string, Quar
         p[c] = {};
         return p;
       },
-      {} as Record<string, Partial<QuarterDates>>,
+      {} as Record<string, Partial<ScrapedQuarterDates>>,
     );
 
   addSingleDateRow(quarterData, 2, "instructionStart", ret, year);
@@ -171,14 +173,14 @@ export async function getTermDateData(year: string): Promise<Record<string, Quar
   // Normalize all terms to start on a Monday, or a Thursday if it is Fall.
   for (const key in ret) {
     if (key.includes("Fall")) {
-      (ret[key] as QuarterDates).instructionStart.setDate(
-        (ret[key] as QuarterDates).instructionStart.getDate() -
-          ((ret[key] as QuarterDates).instructionStart.getDay() - 4),
+      (ret[key] as ScrapedQuarterDates).instructionStart.setDate(
+        (ret[key] as ScrapedQuarterDates).instructionStart.getDate() -
+          ((ret[key] as ScrapedQuarterDates).instructionStart.getDay() - 4),
       );
     } else {
-      (ret[key] as QuarterDates).instructionStart.setDate(
-        (ret[key] as QuarterDates).instructionStart.getDate() -
-          ((ret[key] as QuarterDates).instructionStart.getDay() - 1),
+      (ret[key] as ScrapedQuarterDates).instructionStart.setDate(
+        (ret[key] as ScrapedQuarterDates).instructionStart.getDate() -
+          ((ret[key] as ScrapedQuarterDates).instructionStart.getDay() - 1),
       );
     }
   }
@@ -194,7 +196,7 @@ export async function getTermDateData(year: string): Promise<Record<string, Quar
 
   for (const key in terms) {
     const yr = Number.parseInt(year) + Number(terms[key] !== "Fall");
-    (ret[`${yr} ${terms[key]}`] as QuarterDates).socAvailable = new Date(
+    (ret[`${yr} ${terms[key]}`] as ScrapedQuarterDates).socAvailable = new Date(
       yr - Number(terms[key] === "Winter"),
       months.indexOf(socAvailable[key].split(" ")[0]),
       Number.parseInt(socAvailable[key].split(" ")[1]),
@@ -203,8 +205,8 @@ export async function getTermDateData(year: string): Promise<Record<string, Quar
 
   for (const term of summerTerms) {
     const yr = Number.parseInt(year) + 1;
-    (ret[`${yr} ${term}`] as QuarterDates).socAvailable = new Date(`${yr}-03-01`);
+    (ret[`${yr} ${term}`] as ScrapedQuarterDates).socAvailable = new Date(`${yr}-03-01`);
   }
 
-  return ret as Record<string, QuarterDates>;
+  return ret as Record<string, ScrapedQuarterDates>;
 }
