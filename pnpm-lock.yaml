@@ -300,6 +300,25 @@ importers:
         specifier: 4.7.0
         version: 4.7.0
 
+  services/calendar-scraper:
+    dependencies:
+      '@libs/db':
+        specifier: workspace:^
+        version: link:../../libs/db
+      '@libs/uc-irvine-lib':
+        specifier: workspace:^
+        version: link:../../libs/uc-irvine-lib
+      '@libs/utils':
+        specifier: workspace:^
+        version: link:../../libs/utils
+    devDependencies:
+      '@peterportal-api/types':
+        specifier: workspace:^
+        version: link:../../packages/types
+      esbuild:
+        specifier: 0.20.0
+        version: 0.20.0
+
   services/websoc-proxy:
     dependencies:
       '@libs/lambda':
