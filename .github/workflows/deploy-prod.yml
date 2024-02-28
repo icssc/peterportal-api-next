@@ -46,7 +46,7 @@ jobs:
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install -P false --frozen-lockfile
 
       - name: Build API
         run: pnpm build --filter="@apps/api"
@@ -71,7 +71,7 @@ jobs:
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install -P false --frozen-lockfile
 
       - name: Build documentation
         run: pnpm build --filter="@apps/docs"
@@ -94,7 +94,7 @@ jobs:
         uses: ./.github/actions/setup-node-and-pnpm
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install -P false --frozen-lockfile
 
       - name: Build services
         run: pnpm build --filter="@services/*"
