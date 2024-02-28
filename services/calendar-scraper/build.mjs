@@ -22,7 +22,7 @@ const js = `
 
 async function buildApp() {
   const options = {
-    entryPoints: { index: "index.ts" },
+    entryPoints: { index: "src/index.ts" },
     outdir: "dist",
     outExtension: { ".js": ".mjs" },
     bundle: true,
