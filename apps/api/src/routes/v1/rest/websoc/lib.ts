@@ -1,4 +1,4 @@
-import { $Enums } from "@libs/db";
+import type { $Enums } from "@libs/db";
 import type { Prisma } from "@libs/db";
 import type { WebsocAPIOptions } from "@libs/uc-irvine-lib/websoc";
 import { notNull } from "@libs/utils";

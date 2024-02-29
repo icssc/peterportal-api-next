@@ -1,4 +1,4 @@
-import { $Enums } from "@libs/db";
+import type { $Enums } from "@libs/db";
 import { PrismaClient } from "@libs/db";
 import { getTermDateData } from "@libs/uc-irvine-lib/registrar";
 import type {
