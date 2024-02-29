@@ -195,12 +195,12 @@ export const createCourses =
         }
       }),
       geText: ge_text,
-      terms: Array.from(
-        new Set(
-          Object.values(instructorInfo)
-            .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
-            .flatMap((x) => x.courseHistory[courseId]),
-        ),
-      ).sort(sortTerms),
+      // terms: Array.from(
+      //   new Set(
+      //     Object.values(instructorInfo)
+      //       .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
+      //       .flatMap((x) => x.courseHistory[courseId]),
+      //   ),
+      // ).sort(sortTerms),
     };
   };
