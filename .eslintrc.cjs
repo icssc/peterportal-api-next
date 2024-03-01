@@ -19,6 +19,7 @@ const config = {
   ],
   rules: {
     "no-unused-vars": "off",
+    "@typescript-eslint/consistent-type-imports": "error",
     "@typescript-eslint/no-unused-vars": [
       "error",
       {

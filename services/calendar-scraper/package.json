@@ -1,21 +1,22 @@
 {
-  "name": "@services/websoc-scraper-v2",
+  "name": "@services/calendar-scraper",
   "version": "0.0.0",
   "private": true,
-  "description": "Automated scraper for WebSoc data",
+  "description": "Automated scraper for key dates in a term",
   "license": "MIT",
-  "main": "index.ts",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
   "scripts": {
     "build": "node build.mjs"
   },
   "dependencies": {
     "@libs/db": "workspace:^",
     "@libs/uc-irvine-lib": "workspace:^",
-    "@libs/utils": "workspace:^",
-    "@peterportal-api/types": "workspace:^",
-    "winston": "3.11.0"
+    "@libs/utils": "workspace:^"
   },
   "devDependencies": {
+    "@peterportal-api/types": "workspace:^",
     "esbuild": "0.20.0"
   }
 }

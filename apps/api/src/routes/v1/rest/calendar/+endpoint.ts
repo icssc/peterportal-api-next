@@ -1,8 +1,6 @@
 import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
-import { getTermDateData } from "@libs/uc-irvine-api/registrar";
-import type { Quarter, QuarterDates } from "@peterportal-api/types";
-import { ZodError } from "zod";
+import type { QuarterDates } from "@peterportal-api/types";
 
 import { QuerySchema } from "./schema";
 
@@ -14,56 +12,33 @@ async function onWarm() {
 
 export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
-  const query = event.queryStringParameters;
+  const query = event.queryStringParameters ?? {};
   const requestId = context.awsRequestId;
 
-  try {
-    const where = QuerySchema.parse(query);
+  const maybeParsed = QuerySchema.safeParse(query);
 
-    const result = await prisma.calendarTerm.findFirst({
-      where,
-      select: {
-        instructionStart: true,
-        instructionEnd: true,
-        finalsStart: true,
-        finalsEnd: true,
-      },
-    });
-
-    if (result) {
-      return res.createOKResult<QuarterDates>(result, headers, requestId);
-    }
-
-    const termDateData = await getTermDateData(
-      where.quarter === "Fall" ? where.year : (parseInt(where.year) - 1).toString(10),
-    );
-
-    await prisma.calendarTerm.createMany({
-      data: Object.entries(termDateData).map(([term, data]) => ({
-        year: term.split(" ")[0],
-        quarter: term.split(" ")[1] as Quarter,
-        ...data,
-      })),
-    });
-
-    if (!Object.keys(termDateData).length) {
-      return res.createErrorResult(
-        400,
-        `The requested term, ${where.year} ${where.quarter}, is currently unavailable.`,
-        requestId,
-      );
-    }
-
-    return res.createOKResult(
-      termDateData[[where.year, where.quarter].join(" ")],
-      headers,
+  if (!maybeParsed.success)
+    return res.createErrorResult(
+      400,
+      maybeParsed.error.issues.map((issue) => issue.message).join("; "),
       requestId,
     );
-  } catch (error) {
-    if (error instanceof ZodError) {
-      const messages = error.issues.map((issue) => issue.message);
-      return res.createErrorResult(400, messages.join("; "), requestId);
-    }
-    return res.createErrorResult(400, error, requestId);
+
+  const { data: where } = maybeParsed;
+
+  if ("year" in where) {
+    const result = await prisma.calendarTerm.findFirst({ where });
+    return result
+      ? res.createOKResult<QuarterDates>(result, headers, requestId)
+      : res.createErrorResult(
+          400,
+          `The requested term, ${where.year} ${where.quarter}, is currently unavailable.`,
+          requestId,
+        );
   }
+  return res.createOKResult(
+    await prisma.calendarTerm.findMany({ orderBy: { instructionStart: "asc" } }),
+    headers,
+    requestId,
+  );
 }, onWarm);

@@ -29,4 +29,4 @@ async function buildApp() {
   });
 }
 
-buildApp();
+buildApp().then();

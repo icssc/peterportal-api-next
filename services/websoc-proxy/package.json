@@ -2,6 +2,7 @@
   "name": "@services/websoc-proxy",
   "version": "0.0.0",
   "private": true,
+  "description": "Proxy microservice for WebSoc",
   "license": "MIT",
   "type": "module",
   "main": "src/index.ts",
@@ -11,13 +12,14 @@
   },
   "dependencies": {
     "@libs/lambda": "workspace:^",
-    "@libs/uc-irvine-api": "workspace:^",
+    "@libs/uc-irvine-lib": "workspace:^",
+    "@libs/utils": "workspace:^",
     "@libs/websoc-utils": "workspace:^"
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "@types/aws-lambda": "8.10.131",
-    "@types/node": "20.11.0",
-    "esbuild": "0.19.11"
+    "@types/aws-lambda": "8.10.132",
+    "@types/node": "20.11.10",
+    "esbuild": "0.20.0"
   }
 }

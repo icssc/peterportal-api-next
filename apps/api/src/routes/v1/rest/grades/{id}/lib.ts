@@ -1,4 +1,5 @@
-import { GradesSection, Prisma } from "@libs/db";
+import type { GradesSection, Prisma } from "@libs/db";
+import { notNull } from "@libs/utils";
 import type {
   AggregateGrades,
   AggregateGradesByOffering,
@@ -13,12 +14,7 @@ import type {
 } from "@peterportal-api/types";
 import { geCodes } from "@peterportal-api/types";
 
-import { Query } from "./schema";
-
-/**
- * type guard that asserts input is defined
- */
-export const notNull = <T>(x: T): x is NonNullable<T> => x != null;
+import type { Query } from "./schema";
 
 /**
  * Returns the lexicographical ordering of two elements.

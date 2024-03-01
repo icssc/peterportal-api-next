@@ -5,7 +5,7 @@ import type {
   WebsocSchool,
   WebsocSection,
   WebsocSectionMeeting,
-} from "@libs/uc-irvine-api/websoc";
+} from "@libs/uc-irvine-lib/websoc";
 import type {
   DayOfWeek,
   WebsocAPIResponse as NormalizedResponse,
@@ -39,18 +39,6 @@ export type EnhancedNormalizedSection = {
  */
 export const fulfilled = <T>(value: PromiseSettledResult<T>): value is PromiseFulfilledResult<T> =>
   value.status === "fulfilled";
-
-/**
- * type guard that asserts input is defined
- */
-export const notNull = <T>(x: T): x is NonNullable<T> => x != null;
-
-/**
- * Sleep for the given number of milliseconds.
- * @param duration Duration in ms.
- */
-export const sleep = async (duration: number) =>
-  new Promise((resolve) => setTimeout(resolve, duration));
 
 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 

@@ -2,6 +2,7 @@
   "name": "@libs/db",
   "version": "0.0.0",
   "private": true,
+  "description": "Wrapper package for shared Prisma Client",
   "license": "MIT",
   "type": "module",
   "main": "index.ts",
@@ -16,9 +17,9 @@
     "studio:prod": "dotenv -e ../../.env.production -- prisma studio"
   },
   "dependencies": {
-    "@prisma/client": "5.8.0"
+    "@prisma/client": "5.8.1"
   },
   "devDependencies": {
-    "prisma": "5.8.0"
+    "prisma": "5.8.1"
   }
 }

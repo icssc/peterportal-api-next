@@ -2,6 +2,7 @@
   "name": "@apps/docs",
   "version": "0.0.0",
   "private": true,
+  "description": "The documentation site for API",
   "scripts": {
     "build": "docusaurus build",
     "dev": "docusaurus start"
@@ -36,7 +37,7 @@
     "@docusaurus/module-type-aliases": "2.4.3",
     "@docusaurus/types": "2.4.3",
     "@tsconfig/docusaurus": "2.0.2",
-    "@types/node": "20.11.0",
+    "@types/node": "20.11.10",
     "typescript": "5.3.3"
   }
 }

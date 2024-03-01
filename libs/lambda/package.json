@@ -2,6 +2,7 @@
   "name": "@libs/lambda",
   "version": "0.0.0",
   "private": true,
+  "description": "Helpers for handling Lambda requests",
   "license": "MIT",
   "type": "module",
   "main": "src/index.ts",
@@ -11,6 +12,6 @@
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "@types/aws-lambda": "8.10.131"
+    "@types/aws-lambda": "8.10.132"
   }
 }

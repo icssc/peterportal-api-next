@@ -1,8 +1,9 @@
 import { Stack } from "aws-cdk-lib";
 import type { StackProps } from "aws-cdk-lib";
 import { SubnetType, Vpc } from "aws-cdk-lib/aws-ec2";
-import { Construct } from "constructs";
+import type { Construct } from "constructs";
 
+import { CalendarScraper } from "../constructs/CalendarScraper";
 import { WebsocProxy } from "../constructs/WebsocProxy";
 import { WebsocScraperV2 } from "../constructs/WebsocScraperV2";
 
@@ -26,6 +27,8 @@ export class ServicesStack extends Stack {
         },
       ],
     });
+
+    new CalendarScraper(this, `${id}-calendar-scraper`);
 
     new WebsocProxy(this, `${id}-websoc-proxy`);
 

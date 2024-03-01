@@ -1,5 +1,5 @@
-import { CourseLevel, GECategory } from "./constants";
-import { InstructorPreview } from "./instructor";
+import type { CourseLevel, GECategory } from "./constants";
+import type { InstructorPreview } from "./instructor";
 
 /**
  * An object representing a prerequisite.

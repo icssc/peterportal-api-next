@@ -6,7 +6,7 @@ import {
   waitUntilStackDeleteComplete,
   waitUntilStackUpdateComplete,
 } from "@aws-sdk/client-cloudformation";
-import { WaiterConfiguration, WaiterResult } from "@smithy/util-waiter";
+import type { WaiterConfiguration, WaiterResult } from "@smithy/util-waiter";
 
 /**
  * Wait for existing CloudFormation stack to be in an idle state.

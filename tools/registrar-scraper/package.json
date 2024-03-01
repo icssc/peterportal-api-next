@@ -2,11 +2,13 @@
   "name": "@tools/registrar-scraper",
   "version": "0.0.0",
   "private": true,
+  "description": "Unified scraper for fetching data from UCI Catalogue and Registrar",
   "license": "MIT",
   "type": "module",
   "main": "index.ts",
   "dependencies": {
     "@libs/db": "workspace:^",
+    "@libs/utils": "workspace:^",
     "@types/he": "1.2.3",
     "cheerio": "1.0.0-rc.12",
     "he": "1.2.0",
@@ -16,6 +18,6 @@
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "esbuild": "0.19.11"
+    "esbuild": "0.20.0"
   }
 }
