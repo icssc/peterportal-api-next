@@ -9,7 +9,9 @@ export class PPAPIOfflineClient {
 
   static async new(): Promise<PPAPIOfflineClient> {
     const ppapi = new PPAPIOfflineClient();
-    const res = await fetch("https://api-next.peterportal.org/v1/rest/courses/all");
+    const res = await fetch("https://api-next.peterportal.org/v1/rest/courses/all", {
+      headers: { "accept-encoding": "gzip" },
+    });
     const json: RawResponse<Course[]> = await res.json();
     if (isErrorResponse(json))
       throw new Error("Could not fetch courses cache from PeterPortal API");
