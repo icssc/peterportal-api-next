@@ -20,6 +20,11 @@ enum CourseLevel {
   Graduate
 }
 
+enum Division {
+  Undergraduate
+  Graduate
+}
+
 enum Quarter {
   Fall
   Winter
@@ -91,17 +96,11 @@ model Course {
   terms             String[]
 }
 
-model Instructor {
-  ucinetid           String   @id
-  name               String
-  shortenedName      String
-  title              String
-  email              String
-  department         String
-  schools            String[]
-  relatedDepartments String[]
-  courseHistory      Json
-  courses            Json     @default("[]")
+model Degree {
+  id       String   @id
+  name     String
+  division Division
+  Major    Major[]
 }
 
 model GradesInstructor {
@@ -146,6 +145,49 @@ model GradesSection {
 
   @@id([year, quarter, sectionCode])
   @@unique([year, quarter, sectionCode], name: "idx")
+}
+
+model Instructor {
+  ucinetid           String   @id
+  name               String
+  shortenedName      String
+  title              String
+  email              String
+  department         String
+  schools            String[]
+  relatedDepartments String[]
+  courseHistory      Json
+  courses            Json     @default("[]")
+}
+
+model Major {
+  id           String           @id
+  division     Division
+  code         String
+  degreeId     String
+  degree       Degree           @relation(fields: [degreeId], references: [id])
+  name         String
+  requirements Json
+  specs        Specialization[]
+
+  @@unique([division, code], name: "idx")
+}
+
+model Minor {
+  id           String @id
+  code         String
+  name         String
+  requirements Json
+}
+
+model Specialization {
+  id           String @id
+  code         String
+  degreeType   String
+  name         String
+  requirements Json
+  majorId      String
+  major        Major  @relation(fields: [majorId], references: [id])
 }
 
 model WebsocEnrollmentHistoryEntry {
