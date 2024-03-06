@@ -399,6 +399,9 @@ importers:
 
   tools/degreeworks-scraper:
     dependencies:
+      '@libs/db':
+        specifier: workspace:^
+        version: link:../../libs/db
       '@peterportal-api/types':
         specifier: workspace:^
         version: link:../../packages/types

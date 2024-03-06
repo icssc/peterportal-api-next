@@ -8,6 +8,7 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
+    "@libs/db": "workspace:^",
     "@peterportal-api/types": "workspace:^",
     "cross-fetch": "4.0.0",
     "dotenv": "16.4.1",

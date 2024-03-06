@@ -2,7 +2,7 @@ import type { Course } from "@peterportal-api/types";
 
 import type { Block, Program, ProgramId, Requirement, Rule } from "../types";
 
-import { PPAPIOfflineClient } from "./PPAPIOfflineClient";
+import { PPAPIOfflineClient } from ".";
 
 export class AuditParser {
   private static readonly specOrOtherMatcher = /"type":"(?:SPEC|OTHER)","value":"\w+"/g;

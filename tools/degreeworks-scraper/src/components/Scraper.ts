@@ -1,10 +1,9 @@
 import { jwtDecode } from "jwt-decode";
 import type { JwtPayload } from "jwt-decode";
 
-import { Program } from "../types";
+import type { Program } from "../types";
 
-import { AuditParser } from "./AuditParser";
-import { DegreeworksClient } from "./DegreeworksClient";
+import { AuditParser, DegreeworksClient } from ".";
 
 export class Scraper {
   private ap!: AuditParser;
@@ -166,15 +165,13 @@ export class Scraper {
   }
   get() {
     if (!this.done) throw new Error("This scraper instance has not yet finished its run.");
-    return new Map(
-      Object.entries({
-        parsedMinorPrograms: this.parsedMinorPrograms!,
-        parsedUgradPrograms: this.parsedUgradPrograms!,
-        parsedGradPrograms: this.parsedGradPrograms!,
-        parsedSpecializations: this.parsedSpecializations!,
-        degreesAwarded: this.degreesAwarded!,
-      }),
-    );
+    return {
+      parsedMinorPrograms: this.parsedMinorPrograms!,
+      parsedUgradPrograms: this.parsedUgradPrograms!,
+      parsedGradPrograms: this.parsedGradPrograms!,
+      parsedSpecializations: this.parsedSpecializations!,
+      degreesAwarded: this.degreesAwarded!,
+    };
   }
   static async new(authCookie: string): Promise<Scraper> {
     const studentId = jwtDecode<JwtPayload>(authCookie.slice("Bearer+".length))?.sub;

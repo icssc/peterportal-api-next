@@ -161,33 +161,27 @@ model Instructor {
 }
 
 model Major {
-  id           String           @id
-  division     Division
-  code         String
-  degreeId     String
-  degree       Degree           @relation(fields: [degreeId], references: [id])
-  name         String
-  requirements Json
-  specs        Specialization[]
-
-  @@unique([division, code], name: "idx")
+  id              String           @id
+  degreeId        String
+  degree          Degree           @relation(fields: [degreeId], references: [id])
+  code            String
+  name            String
+  requirements    Json
+  specializations Specialization[]
 }
 
 model Minor {
   id           String @id
-  code         String
   name         String
   requirements Json
 }
 
 model Specialization {
   id           String @id
-  code         String
-  degreeType   String
-  name         String
-  requirements Json
   majorId      String
   major        Major  @relation(fields: [majorId], references: [id])
+  name         String
+  requirements Json
 }
 
 model WebsocEnrollmentHistoryEntry {
