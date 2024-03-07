@@ -6,6 +6,7 @@ import * as winston from "winston";
 
 const LIB_SPACE_URL = "https://spaces.lib.uci.edu/spaces";
 const LIB_SPACE_AVAILABILITY_URL = "https://spaces.lib.uci.edu/spaces/availability/grid";
+const ROOM_SPACE_URL = "https://spaces.lib.uci.edu/space"
 
 //Libraries with paired library IDs
 const libraryIds: { [name: string]: string } = {
@@ -21,6 +22,8 @@ export type Room = {
   name: string;
   capacity: number;
   location: string;
+  directions: string,
+  description: string,
   startTime?: string;
   endTime?: string;
   techEnhanced?: boolean;
@@ -95,72 +98,78 @@ async function getStudyLocationIds(): Promise<StudyLocationIdMapping> {
   return studyLocationIds;
 }
 
-// TODO: Get room id Mappings
-
-//Path:
-//$('#eq-time-grid > div.fc-view-harness.fc-view-harness-passive > div > table > tbody > tr > td:nth-child(1) >
-// div > div > table > tbody > tr:nth-child(THIS is element) > td > div > div > span.fc-datagrid-cell-main > a:nth-child(2) > span').text()
-async function getRoomIds(libraryId: string): Promise<RoomIdMapping> {
-  console.log("Scraping Rooms for library ID: ", libraryId);
-  console.log("Hello");
-  const url = `${LIB_SPACE_URL}?lid=${libraryId}`;
-  console.log("URL:", url);
+async function getRoomInfo(RoomId: string): Promise<Room> {
+  console.log("Scraping Room for Info: ", RoomId);
+  const url = `${ROOM_SPACE_URL}/${RoomId}`;
+  const room: Room = {
+    id: RoomId,
+    name: "",
+    capacity: 0,
+    location: "",
+    directions: "",
+    description: "",
+    techEnhanced: false,
+  };
   try {
     const res = await fetch(url);
-    console.log("Response Status:", res.status);
     const text = await res.text();
-    console.log("Response Text:", text); 
     const $ = load(text);
-    const roomIds: RoomIdMapping = {};
-    console.log("Number of elements found:", $('.fc-datagrid-body.fc-scrollgrid-sync-table tbody tr').length);
+    
+    //Room Header
+    const roomHeader = $('#s-lc-public-header-title');
+    const roomHeaderText = roomHeader.text().trim()
+    // const roomNameRegex = /^\s*([\w\s]+)(?:\s*\(\s*Tech Enhanced\s*\))?\s*$/;
 
-    $('.fc-datagrid-body.fc-scrollgrid-sync-table tbody tr').each(function (this: Element) {
-      const eid = $(this).find('td').data('resource-id') as string;
-      const roomInfoElement = $(this).find(".fc-cell-text").first(); // Select the first .fc-cell-text element
-      const roomInfo: string = roomInfoElement.text().trim(); // Extract text content
-      console.log("Room Info:", roomInfo); // Log room information
-      const matches = roomInfo.match(/^(.*?) \(Capacity (\d+)\)$/);
-      console.log("Matches:", matches); // Log matches
+    // // Extract room name from the header text
+    // const roomNameMatch = roomHeaderText.match(roomNameRegex);
+    // const roomName = roomNameMatch ? roomNameMatch[1].trim() : "";
 
-      if (matches) {
-        const name = matches[1];
-        const capacity = parseInt(matches[2]);
+    // Room Name
+    const roomNameRegex = /^\s*([\w\s]+)/;
+    const roomNameMatch = roomHeaderText.match(roomNameRegex);
+    const roomName = roomNameMatch ? roomNameMatch[1].trim() : "";
 
-        const room: Room = {
-          id: eid.toString(),
-          name: name.trim(),
-          capacity: capacity,
-          location: "", // Not sure how to get
-        };
+    // Check if "(Tech Enhanced)" exists in the room name
+    const isTechEnhanced = /Tech Enhanced/i.test(roomHeaderText);
+    
+    //Room Location
+    const locationText = roomHeader.find('small:first-of-type').text().trim();
+    const locationRegex = /\(([^)]+)\)/;
+    const locationMatch = locationText.match(locationRegex);
+    const location = locationMatch ? locationMatch[1].trim() : "";
 
-        roomIds[eid] = room;
-      }
-    });
-    console.log("Room IDs:", roomIds);
-    return roomIds;
-  } catch (error) {
-    console.error(`Error fetching room information for library ${libraryId}:`, error);
-    return {};
-  }
-}
+    //Room Capacity
+    const capacityText = roomHeader.find('small:contains("Capacity")').text().trim();
+    const capacityMatch = capacityText.match(/Capacity: (\d+)/);
+    const capacity = capacityMatch ? parseInt(capacityMatch[1]) : 0;
 
-//Scrapes through all libraries in the library ID dictionary and returns in an "allRooms" dictionary
-async function scrapeAllLibraries(): Promise<{ [name: string]: RoomIdMapping }> {
-  const allRooms: { [name: string]: RoomIdMapping } = {};
+    //Room Directions
+    const directionsHeader = $('.s-lc-section-directions');
+    const directionsText = directionsHeader.find('p').text().trim();
 
-  // Iterate over each library
-  for (const [libraryName, libraryId] of Object.entries(libraryIds)) {
-    const rooms = await getRoomIds(libraryId);
-    allRooms[libraryName] = rooms;
-  }
-  return allRooms;
-}
+    //Room Description
+    const descriptionHeader = $('.s-lc-section-description');
+    const descriptionText = descriptionHeader.find('p')
+      .filter((index, element) => $(element).text().trim() !== '') // Filter out empty <p> tags
+      .map((index, element) => $(element).text().trim()) // Extract text content of non-empty <p> tags
+      .get() // Convert jQuery object to array
+      .join(' '); // Concatenate descriptions
 
-//test running program
-async function main() {
-  const allLibraryRooms = await scrapeAllLibraries();
-  console.log("Room information for all libraries:", allLibraryRooms);
-}
 
-main();
-
+    room.name = roomName.trim();
+    room.capacity = capacity;
+    room.location = location.trim();
+    room.directions = directionsText.trim();
+    room.description = descriptionText
+    room.techEnhanced = isTechEnhanced
+    // console.log(roomName)
+    console.log(`Room ${RoomId}:`, room)
+    return room
+    }
+    catch (error) {
+      console.error(`Error fetching room information for room ${RoomId}:`, error);
+      return room
+    }
+  } 
+  
+getRoomInfo("117634")
