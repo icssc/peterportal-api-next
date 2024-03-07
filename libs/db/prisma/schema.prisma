@@ -100,7 +100,7 @@ model Degree {
   id       String   @id
   name     String
   division Division
-  Major    Major[]
+  majors   Major[]
 }
 
 model GradesInstructor {

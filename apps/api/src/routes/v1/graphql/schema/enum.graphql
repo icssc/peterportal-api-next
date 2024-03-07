@@ -69,3 +69,8 @@ enum WebsocSectionFinalExamStatus {
   TBA_FINAL
   SCHEDULED_FINAL
 }
+"The set of valid degree divisions."
+enum DegreeDivision {
+  Undergraduate
+  Graduate
+}
