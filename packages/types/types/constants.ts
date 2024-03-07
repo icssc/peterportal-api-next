@@ -26,7 +26,7 @@ export const fullCoursesOptions = [
   "SkipFull",
   "SkipFullWaitlist",
   "FullOnly",
-  "OverEnrolled",
+  "Overenrolled",
 ] as const;
 /**
  * The list of options for filtering cancelled courses.
