@@ -6,6 +6,9 @@ import fetch from "cross-fetch";
 const CATALOGUE_BASE_URL = "https://catalogue.uci.edu";
 const URL_TO_ALL_COURSES = `${CATALOGUE_BASE_URL}/allcourses/`;
 const URL_TO_ALL_SCHOOLS = `${CATALOGUE_BASE_URL}/schoolsandprograms/`;
+const ENROLL_HIST_URL = "https://www.reg.uci.edu/perl/EnrollHist.pl";
+
+const YEAR_THRESHOLD = 9; // Number of years to look back when grabbing course history
 
 const Ia = "GE Ia: Lower Division Writing";
 const Ib = "GE Ib: Upper Division Writing";
@@ -163,6 +166,8 @@ async function getCoursesOfDepartment(deptURL: string) {
   const $ = load(await res.text());
   const courses: [string, Course][] = [];
   const deptName = normalized($(".page-title").text()).split("(")[0].trim();
+  const deptCode = normalized($(".page-title").text()).split("(")[1].slice(0, -1).trim();
+  const courseTerms = await getCourseHistory(deptCode, YEAR_THRESHOLD);
   $("#courseinventorycontainer > .courses > .courseblock").each((_, courseBlock) => {
     const header: string[] = normalized($(courseBlock).find(".courseblocktitle").text())
       .split("  ")
@@ -215,7 +220,7 @@ async function getCoursesOfDepartment(deptURL: string) {
           .map((x) => x.filter((y) => y)[1])
           .map((x) => GE_DICTIONARY[x]),
         ge_text: courseBody.filter((x) => x.match(/^\({1,2}[IV]/))[0] ?? "",
-        terms: [],
+        terms: [...(courseTerms[courseNumber] ?? [])],
       },
     ]);
   });
@@ -237,6 +242,7 @@ export async function getCourses() {
     courses.forEach((v, k) =>
       allCourses.set(k, { ...v, school: schoolMapping.get(v.department) ?? "" }),
     );
+    await sleep(1000);
   }
   if (deptsWithoutSchools.size > 0) {
     throw new Error(
@@ -246,4 +252,86 @@ export async function getCourses() {
     );
   }
   return Object.fromEntries(allCourses.entries());
+}
+
+export async function getCourseHistory(
+  department: string,
+  year_threshold: number,
+): Promise<{ [key: string]: Set<string> }> {
+  const courseTerms: { [key: string]: Set<string> } = {};
+  let page: string;
+  let continueParsing: boolean;
+  let ptr = -6;
+  const params = {
+    dept_name: department,
+    action: "Submit",
+    ptr: "",
+  };
+  try {
+    do {
+      page = await (await fetch(ENROLL_HIST_URL + "?" + new URLSearchParams(params))).text();
+      const $ = load(page);
+      const warning = $("tr td.lcRegWeb_red_message");
+      if (warning.length && warning.text().startsWith("No results found")) {
+        return courseTerms;
+      }
+      continueParsing = await parseCourseHistoryPage(page, year_threshold, courseTerms);
+      ptr += 6;
+      params["action"] = "Prev";
+      params["ptr"] = ptr.toString();
+    } while (continueParsing);
+  } catch (error) {
+    console.log(error);
+  }
+  return courseTerms;
+}
+
+async function parseCourseHistoryPage(
+  courseHistoryPage: string,
+  year_threshold: number,
+  courseTerms: { [key: string]: Set<string> },
+): Promise<boolean> {
+  const fieldLabels = {
+    term: 0,
+    courseNo: 4,
+  };
+  const currentYear = new Date().getFullYear() % 100;
+  let entryFound = false;
+  try {
+    const $ = load(courseHistoryPage);
+    let term = "";
+    $("table tbody tr").each(function (this) {
+      const entry = $(this).find("td");
+      if ($(entry).length == 15) {
+        const termValue = $(entry[fieldLabels.term]).text().trim();
+        if (termValue === "Term") {
+          return true;
+        }
+        if (termValue.length === 3) {
+          term = termValue;
+          entryFound = true;
+          const termYear = parseInt(term.replace(/\D/g, ""));
+          if (currentYear - termYear > year_threshold) {
+            entryFound = false;
+            return false;
+          }
+        }
+        if (term && termValue.length === 0) {
+          const courseNo = $(entry[fieldLabels.courseNo]).text().trim();
+          if (!courseTerms[courseNo]) {
+            courseTerms[courseNo] = new Set();
+          }
+          courseTerms[courseNo].add(term);
+        }
+      }
+      return true;
+    });
+    if ($('a:contains("Prev")').length === 0) {
+      entryFound = false;
+      return false;
+    }
+  } catch (error) {
+    console.log(error);
+  }
+  return entryFound;
 }
