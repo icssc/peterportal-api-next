@@ -17,6 +17,6 @@
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "esbuild": "0.20.0"
+    "esbuild": "0.20.1"
   }
 }
