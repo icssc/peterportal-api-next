@@ -9,7 +9,8 @@ import type { CastingContext, Parser } from "csv-parse";
 import { parse } from "csv-parse";
 import { stringify } from "csv-stringify/sync";
 
-import { __dirname, dataColumns, type Grade, handleError, logger } from "./lib";
+import { __dirname, dataColumns, handleError, logger } from "./lib";
+import type { Grade } from "./lib";
 
 export interface RawGrade {
   year: string;

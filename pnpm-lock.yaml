@@ -139,11 +139,11 @@ importers:
         version: 3.22.4
     devDependencies:
       '@bronya.js/api-construct':
-        specifier: 0.11.3
-        version: 0.11.3
+        specifier: 0.11.4
+        version: 0.11.4
       '@bronya.js/core':
-        specifier: 0.11.3
-        version: 0.11.3
+        specifier: 0.11.4
+        version: 0.11.4
       '@types/aws-lambda':
         specifier: 8.10.132
         version: 8.10.132
@@ -451,6 +451,9 @@ importers:
       cheerio:
         specifier: 1.0.0-rc.12
         version: 1.0.0-rc.12
+      cross-fetch:
+        specifier: 4.0.0
+        version: 4.0.0
       he:
         specifier: 1.2.0
         version: 1.2.0
@@ -2756,12 +2759,12 @@ packages:
       to-fast-properties: 2.0.0
     dev: false
 
-  /@bronya.js/api-construct@0.11.3:
-    resolution: {integrity: sha512-ro5/IwJQIv36k0uoYYL/pMzvFYJMlnzBOdeDylet+9T7gbXSjZEt+LKA9QjFGoqDvRl3WOQIJLUfJRollOVXng==}
+  /@bronya.js/api-construct@0.11.4:
+    resolution: {integrity: sha512-zR5G9wn9IYzy4T68fnh6S6helxjc2eaf6c0emyqY3Z6H4HpSNttK1XBnFRC+yUThYJDpcisvM3LK0ia8z+chuQ==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dependencies:
-      '@bronya.js/cli': 0.11.3
-      '@bronya.js/core': 0.11.3
+      '@bronya.js/cli': 0.11.4
+      '@bronya.js/core': 0.11.4
       acorn: 8.10.0
       acorn-typescript: 1.4.5(acorn@8.10.0)
       aws-cdk-lib: 2.124.0(constructs@10.2.69)
@@ -2773,22 +2776,22 @@ packages:
       defu: 6.1.2
       express: 4.18.2
       fs-extra: 11.1.1
-      jiti: 1.19.1
+      jiti: 1.20.0
     transitivePeerDependencies:
       - supports-color
     dev: true
 
-  /@bronya.js/cli@0.11.3:
-    resolution: {integrity: sha512-1FkvlcXR17rfSGo7cDScrxCeC1S3Ib7GJaGTa874tOtrVHZVM7T0ebyPI1lO715BVEvS+hursJElRU9MZsnQOQ==}
+  /@bronya.js/cli@0.11.4:
+    resolution: {integrity: sha512-0aABMJmIhQiIl6gqn2dcXtQCme5RC3BcN1syDxI72H3+RJrKV7Reusw/R8z5ev9lUKc6kPay+OmD7Ck2z0zYCg==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     dev: true
 
-  /@bronya.js/core@0.11.3:
-    resolution: {integrity: sha512-D5RU9y6o7KSmUjewjPR9ImR61/FQG4Xw42onn2vwiIJzCyQ7qzo1c7ecnbh7AVdldwa698kySRGne5Um/AemOA==}
+  /@bronya.js/core@0.11.4:
+    resolution: {integrity: sha512-DCRxoGsE8a63f5G/bslYi7MK3xPO6j70vXrxUEwRq5k2CtT54KcHejySzkSg3eA7FSes5l4K4LZk8yPHGi9TAQ==}
     engines: {node: '>=18', pnpm: ^8.0.0}
     hasBin: true
     dependencies:
-      '@bronya.js/cli': 0.11.3
+      '@bronya.js/cli': 0.11.4
       acorn: 8.10.0
       acorn-typescript: 1.4.5(acorn@8.10.0)
       aws-cdk-lib: 2.124.0(constructs@10.2.69)
@@ -2799,7 +2802,7 @@ packages:
       cors: 2.8.5
       defu: 6.1.2
       express: 4.18.2
-      jiti: 1.19.1
+      jiti: 1.20.0
     transitivePeerDependencies:
       - supports-color
     dev: true
@@ -9646,15 +9649,9 @@ packages:
       supports-color: 8.1.1
     dev: false
 
-  /jiti@1.19.1:
-    resolution: {integrity: sha512-oVhqoRDaBXf7sjkll95LHVS6Myyyb1zaunVwk4Z0+WPSW4gjS0pl01zYKHScTuyEhQsFxV5L4DR5r+YqSyqyyg==}
-    hasBin: true
-    dev: true
-
   /jiti@1.20.0:
     resolution: {integrity: sha512-3TV69ZbrvV6U5DfQimop50jE9Dl6J8O1ja1dvBbMba/sZ3YBEQqJ2VZRoQPVnhlzjNtU1vaXRZVrVjU4qtm8yA==}
     hasBin: true
-    dev: false
 
   /joi@17.9.2:
     resolution: {integrity: sha512-Itk/r+V4Dx0V3c7RLFdRh12IOjySm2/WGPMubBT92cQvRfYZhPM2W0hZlctjj72iES8jsRCwp7S/cRmWBnJ4nw==}

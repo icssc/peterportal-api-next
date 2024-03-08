@@ -1,7 +1,8 @@
 import { chmodSync, copyFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 
-import { Api, type ApiConstructProps } from "@bronya.js/api-construct";
+import { Api } from "@bronya.js/api-construct";
+import type { ApiConstructProps } from "@bronya.js/api-construct";
 import { createApiCliPlugins } from "@bronya.js/api-construct/plugins/cli";
 import { isCdk } from "@bronya.js/core";
 import { PrismaClient } from "@libs/db";
