@@ -1,0 +1,20 @@
+{
+  "name": "@tools/degreeworks-scraper",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "start": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@libs/db": "workspace:^",
+    "@peterportal-api/types": "workspace:^",
+    "cross-fetch": "4.0.0",
+    "dotenv": "16.4.1",
+    "jwt-decode": "4.0.0"
+  },
+  "devDependencies": {
+    "tsx": "4.7.0"
+  }
+}
