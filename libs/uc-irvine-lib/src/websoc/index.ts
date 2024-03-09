@@ -133,7 +133,7 @@ export const fullCoursesOptions = [
   "SkipFull",
   "SkipFullWaitlist",
   "FullOnly",
-  "OverEnrolled",
+  "Overenrolled",
 ] as const;
 
 /**

@@ -2,7 +2,8 @@ import { dirname } from "path";
 import { fileURLToPath } from "url";
 
 import type { Quarter } from "@peterportal-api/types";
-import winston, { type Logger } from "winston";
+import winston from "winston";
+import type { Logger } from "winston";
 import type Transport from "winston-transport";
 
 export interface Grade {

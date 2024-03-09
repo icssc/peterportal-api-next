@@ -140,6 +140,7 @@ export const createCourses =
       corequisite,
       ge_list,
       ge_text,
+      terms,
     },
   ]: [string, ScrapedCourse]): Prisma.CourseCreateManyInput => {
     const courseId = `${department} ${number}`;
@@ -196,11 +197,12 @@ export const createCourses =
       }),
       geText: ge_text,
       terms: Array.from(
-        new Set(
-          Object.values(instructorInfo)
+        new Set([
+          ...terms.map(transformTerm).filter((x) => x.length),
+          ...Object.values(instructorInfo)
             .filter((x) => Object.keys(x.courseHistory ?? {}).includes(courseId))
             .flatMap((x) => x.courseHistory[courseId]),
-        ),
+        ]),
       ).sort(sortTerms),
     };
   };

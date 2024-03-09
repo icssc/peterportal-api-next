@@ -14,15 +14,15 @@
     "@libs/lambda": "workspace:^",
     "@libs/uc-irvine-lib": "workspace:^",
     "@libs/utils": "workspace:^",
-    "csv-parse": "5.5.3",
-    "csv-stringify": "6.4.5",
-    "winston": "3.11.0",
-    "winston-transport": "4.6.0"
+    "csv-parse": "5.5.5",
+    "csv-stringify": "6.4.6",
+    "winston": "3.12.0",
+    "winston-transport": "4.7.0"
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "@types/node": "20.11.10",
+    "@types/node": "20.11.24",
     "dotenv-cli": "7.3.0",
-    "tsx": "4.7.0"
+    "tsx": "4.7.1"
   }
 }
