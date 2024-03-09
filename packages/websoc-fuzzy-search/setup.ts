@@ -2,7 +2,6 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { normalize } from "node:path";
 import { gzipSync } from "node:zlib";
 
-import { isErrorResponse } from "@peterportal-api/types";
 import type { Course, Instructor, RawResponse } from "@peterportal-api/types";
 import fetch from "cross-fetch";
 import pluralize from "pluralize";
@@ -219,7 +218,7 @@ async function main() {
   console.time("Data fetched in");
   const coursesRes = await fetch("https://api-next.peterportal.org/v1/rest/courses/all");
   const coursesJson: RawResponse<Course[]> = await coursesRes.json();
-  if (isErrorResponse(coursesJson)) throw new Error("Could not fetch courses from API.");
+  if (!coursesJson.success) throw new Error("Could not fetch courses from API.");
   coursesJson.payload.forEach(
     ({ id, department, departmentName, courseNumber, geList, courseLevel, school, title }) => {
       d.courses[id] = {
@@ -235,7 +234,7 @@ async function main() {
   );
   const instructorsRes = await fetch("https://api-next.peterportal.org/v1/rest/instructors/all");
   const instructorsJson: RawResponse<Instructor[]> = await instructorsRes.json();
-  if (isErrorResponse(instructorsJson)) throw new Error("Could not fetch instructors from API.");
+  if (!coursesJson.success) throw new Error("Could not fetch instructors from API.");
   instructorsJson.payload.forEach(({ ucinetid, shortenedName, name, schools, department }) => {
     d.instructors[ucinetid] = {
       ucinetid,

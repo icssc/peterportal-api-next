@@ -47,7 +47,7 @@ export function createOKResult<T>(
 ): APIGatewayProxyResult {
   const statusCode = 200;
   const timestamp = createTimestamp();
-  const response: Response<T> = { statusCode, timestamp, requestId, payload };
+  const response: Response<T> = { statusCode, timestamp, requestId, payload, success: true };
   const headers = { ...responseHeaders };
 
   try {
@@ -89,12 +89,12 @@ export function createErrorResult(
     e instanceof Error
       ? `${e.name}: ${e.message}`
       : typeof e === "string"
-      ? e
-      : "An unknown error has occurred. Please try again.";
+        ? e
+        : "An unknown error has occurred. Please try again.";
 
   const error = httpErrorCodes[statusCode as keyof typeof httpErrorCodes];
 
-  const body: ErrorResponse = { timestamp, requestId, statusCode, error, message };
+  const body: ErrorResponse = { timestamp, requestId, statusCode, error, message, success: false };
 
   logger.error(`${body.statusCode} ${body.error}: ${body.message}`);
 
