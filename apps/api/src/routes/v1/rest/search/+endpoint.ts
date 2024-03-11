@@ -19,18 +19,22 @@ export const GET = createHandler(async (event, context, res) => {
     const { data } = maybeParsed;
     const keys = Array.from(new Set(u.search(haystack, data.q)[0]?.map((x) => mapping[x])));
     const results: Array<Course | Instructor> = keys
-      .slice(data.offset, data.offset + data.limit)
-      .map((x) => courses[x] ?? instructors[x]);
+      .map((x) => courses[x] ?? instructors[x])
+      .filter((x) =>
+        !data.resultType ? x : data.resultType === "course" ? "id" in x : "ucinetid" in x,
+      );
     return res.createOKResult(
       {
-        count: keys.length,
-        results: results.filter((x) =>
-          !data.resultType ? x : data.resultType === "course" ? "id" in x : "ucinetid" in x,
-        ),
+        count: results.length,
+        results: results.slice(data.offset, data.offset + data.limit),
       },
       headers,
       requestId,
     );
   }
-  return res.createErrorResult(400, "Search query not provided", requestId);
+  return res.createErrorResult(
+    400,
+    maybeParsed.error.issues.map((issue) => issue.message).join("; "),
+    requestId,
+  );
 });
