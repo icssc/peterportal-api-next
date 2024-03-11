@@ -121,6 +121,7 @@ export const esbuildOptions: BuildOptions = {
           path: args.path,
           namespace,
         }));
+        build.onResolve({ filter: /virtual:search/ }, (args) => ({ path: args.path, namespace }));
         build.onLoad({ filter: /virtual:courses/, namespace }, async () => ({
           contents: `export const courses = ${JSON.stringify(
             Object.fromEntries(
@@ -133,6 +134,30 @@ export const esbuildOptions: BuildOptions = {
             Object.fromEntries((await prisma.instructor.findMany()).map((x) => [x.ucinetid, x])),
           )}`,
         }));
+        build.onLoad({ filter: /virtual:search/, namespace }, async () => {
+          const aliases = Object.fromEntries(
+            (await prisma.alias.findMany()).map((x) => [x.department, x.alias]),
+          );
+          const courses = (await prisma.course.findMany()).map(normalizeCourse);
+          const instructors = await prisma.instructor.findMany();
+          return {
+            contents: `export const haystack = ${JSON.stringify([
+              ...courses.flatMap((x) =>
+                [
+                  x.id,
+                  x.title,
+                  aliases[x.department] ? `${aliases[x.department]}${x.courseNumber}` : "",
+                ].filter((x) => x.length),
+              ),
+              ...instructors.flatMap((x) => [x.ucinetid, x.name]),
+            ])}; export const mapping = ${JSON.stringify([
+              ...courses.flatMap((x) =>
+                [x.id, x.id, aliases[x.department] ? x.id : ""].filter((x) => x.length),
+              ),
+              ...instructors.flatMap((x) => [x.ucinetid, x.ucinetid]),
+            ])}`,
+          };
+        });
       },
     },
   ],

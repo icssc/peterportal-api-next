@@ -19,3 +19,10 @@ declare module "virtual:instructors" {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   declare const instructors: Record<string, import("@peterportal-api/types").Instructor>;
 }
+/**
+ * Virtual module for caching the haystack and mappings for fuzzy search during build time.
+ */
+declare module "virtual:search" {
+  declare const haystack: string[];
+  declare const mapping: string[];
+}

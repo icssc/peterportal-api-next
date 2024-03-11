@@ -46,6 +46,11 @@ enum WebsocSectionType {
 
 // Models
 
+model Alias {
+  department String @id
+  alias      String
+}
+
 model CalendarTerm {
   year             String
   quarter          Quarter
