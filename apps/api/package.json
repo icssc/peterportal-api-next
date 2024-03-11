@@ -25,6 +25,7 @@
     "@graphql-tools/load-files": "7.0.0",
     "@graphql-tools/merge": "9.0.3",
     "@graphql-tools/utils": "10.1.0",
+    "@leeoniya/ufuzzy": "1.0.14",
     "@libs/db": "workspace:^",
     "@libs/lambda": "workspace:^",
     "@libs/uc-irvine-lib": "workspace:^",
