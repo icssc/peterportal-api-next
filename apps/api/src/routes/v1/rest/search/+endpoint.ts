@@ -17,7 +17,7 @@ export const GET = createHandler(async (event, context, res) => {
   const maybeParsed = QuerySchema.safeParse(query);
   if (maybeParsed.success) {
     const { data } = maybeParsed;
-    const keys = Array.from(new Set(u.search(haystack, data.q)[0]?.map((x) => mapping[x])));
+    const keys = Array.from(new Set(u.search(haystack, data.query)[0]?.map((x) => mapping[x])));
     const results: Array<Course | Instructor> = keys
       .map((x) => courses[x] ?? instructors[x])
       .filter((x) =>

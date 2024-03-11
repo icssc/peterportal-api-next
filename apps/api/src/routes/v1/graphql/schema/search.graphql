@@ -1,0 +1,14 @@
+type CourseSearchResult {
+  count: Int!
+  results: [Course!]!
+}
+
+type InstructorSearchResult {
+  count: Int!
+  results: [Instructor!]!
+}
+
+extend type Query {
+  searchCourses(query: String!, limit: Int, offset: Int): CourseSearchResult!
+  searchInstructors(query: String!, limit: Int, offset: Int): InstructorSearchResult!
+}
