@@ -1,3 +1,4 @@
+import { $Enums } from "@libs/db";
 import {
   anyArray,
   cancelledCoursesOptions,
@@ -73,7 +74,17 @@ export const QuerySchema = z
   )
   .refine((x) => x.cacheOnly || x.building || !x.room, {
     message: 'If "building" is provided, "room" must also be provided',
-  });
+  })
+  .refine(
+    (x) =>
+      !x.excludeRestrictionCodes ||
+      x.excludeRestrictionCodes.every((code) =>
+        Object.values($Enums.RestrictionCode).includes(code as $Enums.RestrictionCode),
+      ),
+    {
+      message: `Restriction codes must be in [${Object.values($Enums.RestrictionCode).join(", ")}]`,
+    },
+  );
 
 /**
  * Type of the parsed query: useful for passing the query as input to other functions.

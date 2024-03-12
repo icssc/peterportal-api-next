@@ -202,7 +202,6 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
   }
 
   if (parsedQuery.excludeRestrictionCodes) {
-    console.log(parsedQuery.excludeRestrictionCodes as $Enums.RestrictionCode[]);
     AND.push({
       NOT: {
         restrictionCodes: {
