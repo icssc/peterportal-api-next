@@ -3,6 +3,7 @@ import { createHandler } from "@libs/lambda";
 import type { WebsocAPIResponse } from "@libs/uc-irvine-lib/websoc";
 import { notNull } from "@libs/utils";
 import { combineAndNormalizeResponses, sortResponse } from "@libs/websoc-utils";
+import type { z } from "zod";
 import { ZodError } from "zod";
 
 import { APILambdaClient } from "./APILambdaClient";
@@ -111,7 +112,9 @@ export const GET = createHandler(async (event, context, res) => {
       queries: normalizeQuery(parsedQuery),
     });
 
-    return res.createOKResult(websocResults, headers, requestId);
+    const filteredWebsocResults = filterResults(parsedQuery, websocResults);
+
+    return res.createOKResult(filteredWebsocResults, headers, requestId);
   } catch (error) {
     if (error instanceof ZodError) {
       const messages = error.issues.map((issue) => issue.message);
@@ -120,3 +123,27 @@ export const GET = createHandler(async (event, context, res) => {
     return res.createErrorResult(400, error, requestId);
   }
 }, onWarm);
+
+function filterResults(query: z.infer<typeof QuerySchema>, websocResults: WebsocAPIResponse) {
+  const excludeRestrictions = query.excludeRestrictionCodes ?? [];
+
+  if (excludeRestrictions.length) {
+    return websocResults.schools.map((school) => {
+      const filteredDepartments = school.departments.map((department) => {
+        const filteredCourses = department.courses.map((course) => {
+          const filteredSections = course.sections.filter(
+            (section) =>
+              !section.restrictions
+                .split(/ and | or /)
+                .some((code: string) => excludeRestrictions.includes(code)),
+          );
+          return { ...course, sections: filteredSections };
+        });
+        return { ...department, courses: filteredCourses };
+      });
+      return { ...school, departments: filteredDepartments };
+    });
+  }
+
+  return websocResults;
+}
