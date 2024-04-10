@@ -1,6 +1,7 @@
 import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
 import type { WebsocAPIResponse } from "@libs/uc-irvine-lib/websoc";
+import type { WebsocCourse } from "@libs/uc-irvine-lib/websoc";
 import { notNull } from "@libs/utils";
 import { combineAndNormalizeResponses, sortResponse } from "@libs/websoc-utils";
 import type { z } from "zod";
@@ -125,20 +126,27 @@ export const GET = createHandler(async (event, context, res) => {
 }, onWarm);
 
 function filterResults(query: z.infer<typeof QuerySchema>, websocResults: WebsocAPIResponse) {
+  if (!query.excludeRestrictionCodes) {
+    return websocResults;
+  }
+
   const excludeRestrictions = query.excludeRestrictionCodes ?? [];
 
   if (excludeRestrictions.length) {
     return websocResults.schools.map((school) => {
       const filteredDepartments = school.departments.map((department) => {
-        const filteredCourses = department.courses.map((course) => {
+        const filteredCourses = department.courses.reduce((acc: WebsocCourse[], course) => {
           const filteredSections = course.sections.filter(
             (section) =>
               !section.restrictions
                 .split(/ and | or /)
                 .some((code: string) => excludeRestrictions.includes(code)),
           );
-          return { ...course, sections: filteredSections };
-        });
+          if (filteredSections.length > 0) {
+            acc.push({ ...course, sections: filteredSections });
+          }
+          return acc;
+        }, []);
         return { ...department, courses: filteredCourses };
       });
       return { ...school, departments: filteredDepartments };
