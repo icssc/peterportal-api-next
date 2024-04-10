@@ -6,7 +6,7 @@ import * as winston from "winston";
 
 const LIB_SPACE_URL = "https://spaces.lib.uci.edu/spaces";
 const LIB_SPACE_AVAILABILITY_URL = "https://spaces.lib.uci.edu/spaces/availability/grid";
-const ROOM_SPACE_URL = "https://spaces.lib.uci.edu/space"
+const ROOM_SPACE_URL = "https://spaces.lib.uci.edu/space";
 
 //Libraries with paired library IDs
 const libraryIds: { [name: string]: string } = {
@@ -22,11 +22,16 @@ export type Room = {
   name: string;
   capacity: number;
   location: string;
-  directions: string,
-  description: string,
-  startTime?: string;
-  endTime?: string;
+  description?: string;
+  directions?: string;
+  timeSlots?: TimeSlot[];
   techEnhanced?: boolean;
+};
+
+export type TimeSlot = {
+  start: Date;
+  end: string;
+  available: boolean;
 };
 
 export type StudyLocation = {
@@ -94,7 +99,6 @@ async function getStudyLocationIds(): Promise<StudyLocationIdMapping> {
       studyLocationIds[locationId] = locationName;
     }
   });
-  console.log(studyLocationIds);
   return studyLocationIds;
 }
 
@@ -106,70 +110,75 @@ async function getRoomInfo(RoomId: string): Promise<Room> {
     name: "",
     capacity: 0,
     location: "",
-    directions: "",
-    description: "",
-    techEnhanced: false,
   };
   try {
     const res = await fetch(url);
     const text = await res.text();
     const $ = load(text);
-    
+
     //Room Header
-    const roomHeader = $('#s-lc-public-header-title');
-    const roomHeaderText = roomHeader.text().trim()
-    // const roomNameRegex = /^\s*([\w\s]+)(?:\s*\(\s*Tech Enhanced\s*\))?\s*$/;
-
-    // // Extract room name from the header text
-    // const roomNameMatch = roomHeaderText.match(roomNameRegex);
-    // const roomName = roomNameMatch ? roomNameMatch[1].trim() : "";
-
-    // Room Name
-    const roomNameRegex = /^\s*([\w\s]+)/;
-    const roomNameMatch = roomHeaderText.match(roomNameRegex);
-    const roomName = roomNameMatch ? roomNameMatch[1].trim() : "";
-
-    // Check if "(Tech Enhanced)" exists in the room name
-    const isTechEnhanced = /Tech Enhanced/i.test(roomHeaderText);
-    
-    //Room Location
-    const locationText = roomHeader.find('small:first-of-type').text().trim();
-    const locationRegex = /\(([^)]+)\)/;
-    const locationMatch = locationText.match(locationRegex);
-    const location = locationMatch ? locationMatch[1].trim() : "";
-
-    //Room Capacity
-    const capacityText = roomHeader.find('small:contains("Capacity")').text().trim();
-    const capacityMatch = capacityText.match(/Capacity: (\d+)/);
-    const capacity = capacityMatch ? parseInt(capacityMatch[1]) : 0;
-
+    const roomHeader = $("#s-lc-public-header-title");
+    const roomHeaderText = roomHeader.text().trim();
+    const headerMatch = roomHeaderText.match(
+      /^(.*?)\s*(\(Tech Enhanced\))?\s*\n*\s*\((.*?)\)\s*\n*\s*Capacity:\s(\d+)/,
+    );
+    if (headerMatch) {
+      room.name = headerMatch[1].trim();
+      if (headerMatch[2]) {
+        room.techEnhanced = true;
+      }
+      room.location = headerMatch[3].trim();
+      room.capacity = parseInt(headerMatch[4], 10);
+    }
     //Room Directions
-    const directionsHeader = $('.s-lc-section-directions');
-    const directionsText = directionsHeader.find('p').text().trim();
-
+    const directionsHeader = $(".s-lc-section-directions");
+    const directionsText = directionsHeader.find("p").text().trim();
+    if (directionsText) {
+      room.directions = directionsText;
+    }
     //Room Description
-    const descriptionHeader = $('.s-lc-section-description');
-    const descriptionText = descriptionHeader.find('p')
-      .filter((index, element) => $(element).text().trim() !== '') // Filter out empty <p> tags
-      .map((index, element) => $(element).text().trim()) // Extract text content of non-empty <p> tags
+    const descriptionHeader = $(".s-lc-section-description");
+    const descriptionText = descriptionHeader
+      .find("p")
+      .filter((_, element) => $(element).text().trim() !== "") // Filter out empty <p> tags
+      .map((_, element) => $(element).text().trim()) // Extract text content of non-empty <p> tags
       .get() // Convert jQuery object to array
-      .join(' '); // Concatenate descriptions
-
-
-    room.name = roomName.trim();
-    room.capacity = capacity;
-    room.location = location.trim();
-    room.directions = directionsText.trim();
-    room.description = descriptionText
-    room.techEnhanced = isTechEnhanced
-    // console.log(roomName)
-    console.log(`Room ${RoomId}:`, room)
-    return room
+      .join(" "); // Concatenate descriptions
+    if (descriptionText) {
+      room.description = descriptionText;
     }
-    catch (error) {
-      console.error(`Error fetching room information for room ${RoomId}:`, error);
-      return room
+    console.log(`Room ${RoomId}:`, room);
+    return room;
+  } catch (error) {
+    console.error(`Error fetching room information for room ${RoomId}:`, error);
+    return room;
+  }
+}
+
+async function scrapeRoomInfo(): Promise<RoomIdMapping> {
+  const date = new Date();
+  const start = date.toLocaleDateString("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  date.setDate(date.getDate() + 1);
+  const end = date.toLocaleDateString("en-CA", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const ridMap: RoomIdMapping = {};
+  const rids: Set<string> = new Set();
+  for (const lib in libraryIds) {
+    const lid = libraryIds[lib];
+    const res = await requestSpaces(lid, start, end);
+    for (const room of res.slots) {
+      rids.add(room.itemId);
     }
-  } 
-  
-getRoomInfo("117634")
+  }
+  for (const rid of rids) {
+    ridMap[rid] = await getRoomInfo(rid);
+  }
+  return ridMap;
+}
