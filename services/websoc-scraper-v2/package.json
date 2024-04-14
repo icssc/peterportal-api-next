@@ -13,9 +13,9 @@
     "@libs/uc-irvine-lib": "workspace:^",
     "@libs/utils": "workspace:^",
     "@peterportal-api/types": "workspace:^",
-    "winston": "3.12.0"
+    "winston": "3.13.0"
   },
   "devDependencies": {
-    "esbuild": "0.20.1"
+    "esbuild": "0.20.2"
   }
 }

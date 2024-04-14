@@ -18,8 +18,8 @@
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "@types/aws-lambda": "8.10.135",
-    "@types/node": "20.11.24",
-    "esbuild": "0.20.1"
+    "@types/aws-lambda": "8.10.137",
+    "@types/node": "20.12.7",
+    "esbuild": "0.20.2"
   }
 }

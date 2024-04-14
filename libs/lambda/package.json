@@ -8,10 +8,10 @@
   "main": "src/index.ts",
   "types": "src/index.ts",
   "dependencies": {
-    "winston": "3.12.0"
+    "winston": "3.13.0"
   },
   "devDependencies": {
     "@peterportal-api/types": "workspace:^",
-    "@types/aws-lambda": "8.10.135"
+    "@types/aws-lambda": "8.10.137"
   }
 }
