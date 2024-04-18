@@ -14,7 +14,6 @@ export type BaseResponse = {
    * The status code of the request.
    */
   statusCode: number;
-  success: boolean;
 };
 
 /**
@@ -26,6 +25,8 @@ export type Response<T> = BaseResponse & {
    * The payload returned by the REST API.
    */
   payload: T;
+
+  success: true;
 };
 
 /**
@@ -40,6 +41,8 @@ export type ErrorResponse = BaseResponse & {
    * The detailed error message.
    */
   message: string;
+
+  success: false;
 };
 
 /**
