@@ -234,7 +234,7 @@ async function main() {
   );
   const instructorsRes = await fetch("https://api-next.peterportal.org/v1/rest/instructors/all");
   const instructorsJson: RawResponse<Instructor[]> = await instructorsRes.json();
-  if (!coursesJson.success) throw new Error("Could not fetch instructors from API.");
+  if (!instructorsJson.success) throw new Error("Could not fetch instructors from API.");
   instructorsJson.payload.forEach(({ ucinetid, shortenedName, name, schools, department }) => {
     d.instructors[ucinetid] = {
       ucinetid,
