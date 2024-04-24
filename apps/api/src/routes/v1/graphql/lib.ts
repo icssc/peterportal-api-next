@@ -1,6 +1,5 @@
 import type { BaseContext, HTTPGraphQLResponse } from "@apollo/server";
 import type { IFieldResolver } from "@graphql-tools/utils";
-import { isErrorResponse } from "@peterportal-api/types";
 import type { RawResponse } from "@peterportal-api/types";
 import { GraphQLError } from "graphql/error";
 
@@ -58,7 +57,7 @@ export const proxyRestApi =
         };
       });
 
-    if (isErrorResponse(data)) {
+    if (!data.success) {
       throw new GraphQLError(data.message, {
         extensions: {
           code: data.error.toUpperCase().replace(" ", "_"),
