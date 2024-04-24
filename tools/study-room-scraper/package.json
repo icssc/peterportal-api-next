@@ -7,6 +7,7 @@
   "type": "module",
   "main": "index.ts",
   "dependencies": {
+    "@libs/db": "workspace:^",
     "cheerio": "^1.0.0-rc.12",
     "cross-fetch": "4.0.0",
     "winston": "^3.11.0"
