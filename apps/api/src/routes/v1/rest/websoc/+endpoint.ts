@@ -1,7 +1,6 @@
 import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
-import type { WebsocAPIResponse } from "@libs/uc-irvine-lib/websoc";
-import type { WebsocCourse } from "@libs/uc-irvine-lib/websoc";
+import type { WebsocAPIResponse, WebsocSchool } from "@libs/uc-irvine-lib/websoc";
 import { notNull } from "@libs/utils";
 import { combineAndNormalizeResponses, sortResponse } from "@libs/websoc-utils";
 import type { z } from "zod";
@@ -132,25 +131,28 @@ function filterResults(query: z.infer<typeof QuerySchema>, websocResults: Websoc
 
   const excludeRestrictions = query.excludeRestrictionCodes ?? [];
 
-  if (excludeRestrictions.length) {
-    return websocResults.schools.map((school) => {
-      const filteredDepartments = school.departments.map((department) => {
-        const filteredCourses = department.courses.reduce((acc: WebsocCourse[], course) => {
-          const filteredSections = course.sections.filter(
-            (section) =>
-              !section.restrictions
-                .split(/ and | or /)
-                .some((code: string) => excludeRestrictions.includes(code)),
-          );
-          if (filteredSections.length > 0) {
-            acc.push({ ...course, sections: filteredSections });
-          }
-          return acc;
-        }, []);
-        return { ...department, courses: filteredCourses };
-      });
-      return { ...school, departments: filteredDepartments };
-    });
+  if (excludeRestrictions.length > 0) {
+    websocResults.schools = websocResults.schools
+      .map((school) => {
+        school.departments = school.departments
+          .map((department) => {
+            department.courses = department.courses
+              .map((course) => {
+                course.sections = course.sections.filter(
+                  (section) =>
+                    !section.restrictions
+                      .split(/ and | or /)
+                      .some((code: string) => excludeRestrictions.includes(code)),
+                );
+                return course;
+              })
+              .filter((course) => course.sections.length > 0);
+            return { ...department, courses: department.courses };
+          })
+          .filter((department) => department.courses.length > 0);
+        return { ...school, departments: school.departments };
+      })
+      .filter((school) => school.departments.length > 0) satisfies WebsocSchool[];
   }
 
   return websocResults;
