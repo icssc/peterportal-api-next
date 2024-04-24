@@ -1,16 +1,24 @@
 "An object that includes important dates for a specified quarter."
-type QuarterDates {
-  "When instruction begins for the given quarter."
+type TermDates {
+  "The year of the given term."
+  year: String!
+  "The quarter of the given term."
+  quarter: String!
+  "When instruction begins for the given term."
   instructionStart: Date!
-  "When instruction ends for the given quarter."
+  "When instruction ends for the given term."
   instructionEnd: Date!
-  "When finals begin for the given quarter."
+  "When finals begin for the given term."
   finalsStart: Date!
-  "When finals end for the given quarter."
+  "When finals end for the given term."
   finalsEnd: Date!
+  "When the Schedule of Classes becomes available for the given term."
+  socAvailable: Date!
 }
 
 extend type Query {
-  "Get important dates for a quarter."
-  calendar(year: String!, quarter: Quarter!): QuarterDates!
+  "Get all available terms and their important dates."
+  allTermDates: [TermDates!]!
+  "Get important dates for a term."
+  calendar(year: String!, quarter: Quarter!): TermDates!
 }

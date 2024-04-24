@@ -3,7 +3,8 @@ import { resolve } from "path";
 
 import { PrismaClient } from "@libs/db";
 import type { Quarter } from "@peterportal-api/types";
-import { type CastingContext, parse, type Parser } from "csv-parse";
+import { parse } from "csv-parse";
+import type { CastingContext, Parser } from "csv-parse";
 
 import { __dirname, dataColumns, handleError, logger } from "./lib";
 

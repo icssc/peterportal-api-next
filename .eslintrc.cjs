@@ -19,7 +19,6 @@ const config = {
   ],
   rules: {
     "no-unused-vars": "off",
-    "@typescript-eslint/consistent-type-imports": "error",
     "@typescript-eslint/no-unused-vars": [
       "error",
       {
@@ -28,6 +27,7 @@ const config = {
         caughtErrorsIgnorePattern: "^_",
       },
     ],
+    "import/consistent-type-specifier-style": ["error", "prefer-top-level"],
     "import/first": "error",
     "import/newline-after-import": "error",
     "import/order": [

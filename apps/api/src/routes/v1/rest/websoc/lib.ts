@@ -142,16 +142,16 @@ export function constructPrismaQuery(parsedQuery: Query): Prisma.WebsocSectionWh
   if (parsedQuery.fullCourses && parsedQuery.fullCourses !== "ANY") {
     switch (parsedQuery.fullCourses) {
       case "FullOnly":
-        AND.push({ sectionFull: true, waitlistFull: true });
+        AND.push({ sectionFull: true }, { waitlistFull: true });
         break;
-      case "OverEnrolled":
+      case "Overenrolled":
         AND.push({ overEnrolled: true });
         break;
       case "SkipFull":
-        AND.push({ sectionFull: true, waitlistFull: false });
+        AND.push({ sectionFull: false });
         break;
       case "SkipFullWaitlist":
-        AND.push({ sectionFull: false, waitlistFull: false });
+        AND.push({ sectionFull: true }, { waitlistFull: false });
     }
   }
 

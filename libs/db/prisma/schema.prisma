@@ -70,10 +70,11 @@ enum RestrictionCode {
 model CalendarTerm {
   year             String
   quarter          Quarter
-  instructionStart DateTime
-  instructionEnd   DateTime
-  finalsStart      DateTime
-  finalsEnd        DateTime
+  instructionStart DateTime @db.Date
+  instructionEnd   DateTime @db.Date
+  finalsStart      DateTime @db.Date
+  finalsEnd        DateTime @db.Date
+  socAvailable     DateTime @default("1970-01-01T00:00:00Z") @db.Date
 
   @@id([year, quarter])
   @@unique([year, quarter], name: "idx")
