@@ -147,10 +147,10 @@ function filterResults(query: z.infer<typeof QuerySchema>, websocResults: Websoc
                 return course;
               })
               .filter((course) => course.sections.length > 0);
-            return { ...department, courses: department.courses };
+            return department;
           })
           .filter((department) => department.courses.length > 0);
-        return { ...school, departments: school.departments };
+        return school;
       })
       .filter((school) => school.departments.length > 0) satisfies WebsocSchool[];
   }
