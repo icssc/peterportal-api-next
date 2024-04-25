@@ -3,12 +3,11 @@ import { createHandler } from "@libs/lambda";
 import type { WebsocAPIResponse, WebsocSchool } from "@libs/uc-irvine-lib/websoc";
 import { notNull } from "@libs/utils";
 import { combineAndNormalizeResponses, sortResponse } from "@libs/websoc-utils";
-import type { z } from "zod";
 import { ZodError } from "zod";
 
 import { APILambdaClient } from "./APILambdaClient";
 import { constructPrismaQuery, normalizeQuery } from "./lib";
-import { QuerySchema } from "./schema";
+import { Query, QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
@@ -124,7 +123,7 @@ export const GET = createHandler(async (event, context, res) => {
   }
 }, onWarm);
 
-function filterResults(query: z.infer<typeof QuerySchema>, websocResults: WebsocAPIResponse) {
+function filterResults(query: Query, websocResults: WebsocAPIResponse): WebsocAPIResponse {
   if (!query.excludeRestrictionCodes) {
     return websocResults;
   }
