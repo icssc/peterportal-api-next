@@ -262,6 +262,7 @@ model StudyRoom {
 
 model StudyLocation {
   id    String      @id
+  lid   String
   name  String
   rooms StudyRoom[]
 }

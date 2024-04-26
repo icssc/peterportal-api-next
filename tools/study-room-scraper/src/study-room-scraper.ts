@@ -1,20 +1,10 @@
 import type { StudyRoom, StudyLocation } from "@peterportal-api/types";
 import { load } from "cheerio";
 import fetch from "cross-fetch";
+import { studyLocationIds, getStudySpaces } from "libs/uc-irvine-lib/src/spaces";
 import * as winston from "winston";
 
-const LIB_SPACE_URL = "https://spaces.lib.uci.edu/spaces";
-const LIB_SPACE_AVAILABILITY_URL = "https://spaces.lib.uci.edu/spaces/availability/grid";
 const ROOM_SPACE_URL = "https://spaces.lib.uci.edu/space";
-
-//Libraries with paired library IDs
-const libraryIds: { [name: string]: string } = {
-  "Langson Library": "6539",
-  "Gateway Study Center": "6579",
-  "Science Library": "6580",
-  "Multimedia Resources Center": "6581",
-  "Grunigen Medical Library": "12189",
-};
 
 type StudyLocations = {
   [id: string]: StudyLocation;
@@ -30,37 +20,7 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
-async function requestSpaces(lid: string, start: string, end: string) {
-  /**
-   * Make post request used by "https://spaces.lib.uci.edu/spaces" to retrieve room availability.
-   *
-   * @param lid - Library ID
-   * @param start - Date format YYYY-MM-DD
-   * @param end - Date format YYYY-MM-DD
-   * @returns {object} JSON response returned by request
-   */
-  const headers = {
-    Referer: `${LIB_SPACE_URL}?lid=${lid}`,
-  };
-  const params = new URLSearchParams();
-  params.append("lid", lid);
-  params.append("gid", "0");
-  params.append("start", start);
-  params.append("end", end);
-  params.append("pageSize", "18"); // pageSize doesn't seem to affect query but is required
-  try {
-    return await fetch(LIB_SPACE_AVAILABILITY_URL, {
-      method: "POST",
-      headers: headers,
-      body: params,
-    }).then((res) => res.json());
-  } catch (error) {
-    logger.error(error);
-  }
-}
-
 async function getRoomInfo(RoomId: string): Promise<StudyRoom> {
-  console.log("Scraping Room for Info: ", RoomId);
   const url = `${ROOM_SPACE_URL}/${RoomId}`;
   const room: StudyRoom = {
     id: `${RoomId}`,
@@ -104,10 +64,10 @@ async function getRoomInfo(RoomId: string): Promise<StudyRoom> {
     if (descriptionText) {
       room.description = descriptionText;
     }
-    console.log(`Room ${RoomId}:`, room);
+    logger.info(`Scraped Room ${RoomId}`, { room });
     return room;
   } catch (error) {
-    console.error(`Error fetching room information for room ${RoomId}:`, error);
+    logger.error(`Error fetching room information for room ${RoomId}`, { error });
     return room;
   }
 }
@@ -119,7 +79,7 @@ export async function scrapeStudyLocations(): Promise<StudyLocations> {
     month: "2-digit",
     day: "2-digit",
   });
-  date.setDate(date.getDate() + 1);
+  date.setDate(date.getDate() + 3);
   const end = date.toLocaleDateString("en-CA", {
     year: "numeric",
     month: "2-digit",
@@ -127,13 +87,14 @@ export async function scrapeStudyLocations(): Promise<StudyLocations> {
   });
   const studyLocations: StudyLocations = {};
   const rids: Set<string> = new Set();
-  for (const lib in libraryIds) {
+  for (const lib in studyLocationIds) {
     const studyLocation: StudyLocation = {
-      id: libraryIds[lib],
+      id: lib,
+      lid: studyLocationIds[lib].lid,
       name: lib,
       rooms: [],
     };
-    const res = await requestSpaces(studyLocation.id, start, end);
+    const res = await getStudySpaces(studyLocation.lid, start, end);
     for (const room of res.slots) {
       if (rids.has(room.itemId)) {
         continue;

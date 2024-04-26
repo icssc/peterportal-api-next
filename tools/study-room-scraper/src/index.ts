@@ -11,6 +11,7 @@ async function main() {
     return prisma.studyLocation.create({
       data: {
         id: location.id,
+        lid: location.lid,
         name: location.name,
         rooms: {
           create: location.rooms.map((room) => ({

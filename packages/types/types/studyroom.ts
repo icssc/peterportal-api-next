@@ -41,6 +41,10 @@ export type StudyRoom = {
  */
 export type TimeSlot = {
   /**
+   * Date of the time slot (YYYY-MM-DD).
+   */
+  date: string;
+  /**
    * Start time of the time slot.
    */
   start: string;
@@ -49,9 +53,9 @@ export type TimeSlot = {
    */
   end: string;
   /**
-   * If the time slot is available.
+   * If the time slot is booked.
    */
-  available: boolean;
+  booked: boolean;
 };
 
 /**
@@ -59,9 +63,13 @@ export type TimeSlot = {
  */
 export type StudyLocation = {
   /**
-   * ID of the study location used by space.lib.
+   * ID of the study location using shortened name of the location.
    */
   id: string;
+  /**
+   * Location ID of the study location used by space.lib.
+   */
+  lid: string;
   /**
    * Name of the study location.
    */

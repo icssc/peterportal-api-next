@@ -22,6 +22,12 @@
       "require": "./src/registrar/index.ts",
       "default": "./src/registrar/index.ts"
     },
+    "./spaces": {
+      "types": "./src/spaces/index.ts",
+      "import": "./src/spaces/index.ts",
+      "require": "./src/spaces/index.ts",
+      "default": "./src/spaces/index.ts"
+    },
     "./websoc": {
       "types": "./src/websoc/index.ts",
       "import": "./src/websoc/index.ts",
