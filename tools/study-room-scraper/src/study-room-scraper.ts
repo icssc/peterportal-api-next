@@ -53,17 +53,83 @@ async function getRoomInfo(RoomId: string): Promise<StudyRoom> {
     if (directionsText) {
       room.directions = directionsText;
     }
-    //Room Description
+
     const descriptionHeader = $(".s-lc-section-description");
-    const descriptionText = descriptionHeader
-      .find("p")
-      .filter((_, element) => $(element).text().trim() !== "") // Filter out empty <p> tags
-      .map((_, element) => $(element).text().trim()) // Extract text content of non-empty <p> tags
-      .get() // Convert jQuery object to array
-      .join(" "); // Concatenate descriptions
+    let descriptionText = "";
+
+    if (RoomId === "116383") {
+      // Specific processing for the Grunigen Library case
+      descriptionText = descriptionHeader
+        .text()
+        .trim()
+        .replace(/^Description\s*/i, "")
+        .replace(/\s*\n+\s*/g, " ")
+        .replace(/Room Uses:/g, "Room Uses: ")
+        .replace(/Meetings/g, "Meetings,")
+        .replace(/Study groups/g, "Study groups,")
+        .replace(
+          /Video conferencing for users with a zoom or skype account/g,
+          "Video conferencing for users with a zoom or skype account.",
+        )
+        .replace(
+          /Open to UCI faculty, staff and students with current UCIMC badge\./g,
+          "Open to UCI faculty, staff, and students with current UCIMC badge.",
+        )
+        .replace(
+          /All meeting attendees must have their UCIMC badge to access the Study Room/g,
+          "All meeting attendees must have their UCIMC badge to access the Study Room.",
+        )
+        .replace(/Power Available/g, "Power Available.")
+        .replace(/\s{2,}/g, " ")
+        .replace(/,\s*\./g, ".");
+    } else {
+      // General processing for other rooms
+      const descriptionParts = [];
+      let combinedDescription = "";
+
+      descriptionHeader.contents().each((_, content) => {
+        if (content.nodeType === 3) {
+          const textContent = $(content).text().trim();
+          if (textContent) {
+            descriptionParts.push(textContent);
+          }
+        } else if (content.nodeType === 1) {
+          const child = $(content);
+          if (child.is("p, ul, li, strong, em, span, br")) {
+            if (child.is("ul")) {
+              child.find("li").each((_, li) => {
+                descriptionParts.push("- " + $(li).text().trim());
+              });
+            } else if (child.is("br")) {
+              descriptionParts.push("\n");
+            } else {
+              descriptionParts.push(child.text().trim());
+            }
+          }
+        }
+      });
+
+      // join parts and replace newline placeholders with commas
+      combinedDescription = descriptionParts.join(" ").replace(/\n+/g, ", ");
+
+      // clean up
+      combinedDescription = combinedDescription
+        .replace(/\s*,\s*/g, ", ")
+        .replace(/\s*\.\s*/g, ". ")
+        .replace(/\s{2,}/g, " ")
+        .replace(/\.,/g, ".")
+        .replace(/\.\s*\./g, ".");
+
+      // description ends with a single period
+      combinedDescription = combinedDescription.replace(/\.\s*$/, ".");
+
+      descriptionText = combinedDescription;
+    }
+
     if (descriptionText) {
       room.description = descriptionText;
     }
+
     logger.info(`Scraped Room ${RoomId}`, { room });
     return room;
   } catch (error) {
