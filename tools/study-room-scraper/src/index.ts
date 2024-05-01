@@ -15,23 +15,15 @@ async function main() {
         name: location.name,
         rooms: {
           create: location.rooms.map((room) => ({
-            id: room.id,
-            name: room.name,
-            capacity: room.capacity,
-            location: room.location,
-            description: room.description,
-            directions: room.directions,
-            techEnhanced: room.techEnhanced,
+            ...room,
           })),
         },
       },
     });
   });
   await prisma.$transaction([
-    prisma.studyRoom.deleteMany({
-      where: { studyLocationId: { in: Object.keys(studyLocations) } },
-    }),
-    prisma.studyLocation.deleteMany({ where: { id: { in: Object.keys(studyLocations) } } }),
+    prisma.studyRoom.deleteMany({}),
+    prisma.studyLocation.deleteMany({}),
     ...studyLocationInfo,
   ]);
 }

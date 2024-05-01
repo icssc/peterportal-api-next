@@ -6,6 +6,6 @@ export * from "./types/grades";
 export * from "./types/instructor";
 export * from "./types/larc";
 export * from "./types/response";
-export * from "./types/studyroom";
+export * from "./types/studyRoom";
 export * from "./types/websoc";
 export * from "./types/week";

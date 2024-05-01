@@ -1,7 +1,7 @@
 import type { StudyRoom, StudyLocation } from "@peterportal-api/types";
 import { load } from "cheerio";
 import fetch from "cross-fetch";
-import { studyLocationIds, getStudySpaces } from "libs/uc-irvine-lib/src/spaces";
+import { studyLocations, getStudySpaces } from "libs/uc-irvine-lib/src/spaces";
 import * as winston from "winston";
 
 const ROOM_SPACE_URL = "https://spaces.lib.uci.edu/space";
@@ -51,40 +51,33 @@ async function getRoomInfo(RoomId: string): Promise<StudyRoom> {
     const directionsHeader = $(".s-lc-section-directions");
     const directionsText = directionsHeader.find("p").text().trim();
     if (directionsText) {
-      room.directions = directionsText;
+      room.directions = directionsText.trim();
+      if (!room.directions.endsWith(".")) {
+        room.directions += ".";
+      }
     }
 
     const descriptionHeader = $(".s-lc-section-description");
     let descriptionText = "";
-
-    if (RoomId === "116383") {
+    if (room.location === "Grunigen Medical Library") {
       // Specific processing for the Grunigen Library case
-      descriptionText = descriptionHeader
-        .text()
-        .trim()
-        .replace(/^Description\s*/i, "")
-        .replace(/\s*\n+\s*/g, " ")
-        .replace(/Room Uses:/g, "Room Uses: ")
-        .replace(/Meetings/g, "Meetings,")
-        .replace(/Study groups/g, "Study groups,")
-        .replace(
-          /Video conferencing for users with a zoom or skype account/g,
-          "Video conferencing for users with a zoom or skype account.",
-        )
-        .replace(
-          /Open to UCI faculty, staff and students with current UCIMC badge\./g,
-          "Open to UCI faculty, staff, and students with current UCIMC badge.",
-        )
-        .replace(
-          /All meeting attendees must have their UCIMC badge to access the Study Room/g,
-          "All meeting attendees must have their UCIMC badge to access the Study Room.",
-        )
-        .replace(/Power Available/g, "Power Available.")
-        .replace(/\s{2,}/g, " ")
-        .replace(/,\s*\./g, ".");
+      descriptionHeader.find("p").each(function () {
+        let paraText = $(this).text().trim();
+        if (paraText.includes("\n")) {
+          paraText = paraText.replaceAll("\n", ", ");
+          if (!paraText.endsWith(":")) {
+            paraText += ". ";
+          }
+        }
+        descriptionText += paraText + " ";
+      });
+      descriptionText = descriptionText.replace(/\s{2,}/g, " ").trim(); // Remove extra spaces
+      descriptionText = descriptionText.replace(/\s+,/g, ","); // Remove spaces before commas
+      descriptionText = descriptionText.replace(/\.\s*\./g, "."); // Remove extra periods
+      descriptionText = descriptionText.replace(".,", "."); // Remove commas after periods
     } else {
       // General processing for other rooms
-      const descriptionParts = [];
+      const descriptionParts: string[] = [];
       let combinedDescription = "";
 
       descriptionHeader.contents().each((_, content) => {
@@ -123,11 +116,14 @@ async function getRoomInfo(RoomId: string): Promise<StudyRoom> {
       // description ends with a single period
       combinedDescription = combinedDescription.replace(/\.\s*$/, ".");
 
-      descriptionText = combinedDescription;
+      descriptionText = combinedDescription.trim();
     }
 
     if (descriptionText) {
       room.description = descriptionText;
+      if (!room.description.endsWith(".")) {
+        room.description += ".";
+      }
     }
 
     logger.info(`Scraped Room ${RoomId}`, { room });
@@ -151,12 +147,12 @@ export async function scrapeStudyLocations(): Promise<StudyLocations> {
     month: "2-digit",
     day: "2-digit",
   });
-  const studyLocations: StudyLocations = {};
+  const studyLocationsMap: StudyLocations = {};
   const rids: Set<string> = new Set();
-  for (const lib in studyLocationIds) {
+  for (const lib in studyLocations) {
     const studyLocation: StudyLocation = {
       id: lib,
-      lid: studyLocationIds[lib].lid,
+      lid: studyLocations[lib].lid,
       name: lib,
       rooms: [],
     };
@@ -168,7 +164,7 @@ export async function scrapeStudyLocations(): Promise<StudyLocations> {
       studyLocation.rooms.push(await getRoomInfo(room.itemId));
       rids.add(room.itemId);
     }
-    studyLocations[`${studyLocation.id}`] = studyLocation;
+    studyLocationsMap[`${studyLocation.id}`] = studyLocation;
   }
-  return studyLocations;
+  return studyLocationsMap;
 }

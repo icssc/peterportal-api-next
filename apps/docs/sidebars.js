@@ -26,6 +26,7 @@ const sidebars = {
             "developers-guide/rest-api/reference/grades",
             "developers-guide/rest-api/reference/instructors",
             "developers-guide/rest-api/reference/larc",
+            "developers-guide/rest-api/reference/study-rooms",
             "developers-guide/rest-api/reference/websoc",
             "developers-guide/rest-api/reference/week",
           ],

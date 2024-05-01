@@ -7,12 +7,12 @@ const LIB_SPACE_AVAILABILITY_URL = "https://spaces.lib.uci.edu/spaces/availabili
  * Shortened libary names mapped to their IDs used by spaces.lib.uci.edu
  * See https://www.lib.uci.edu/ for shortened names
  **/
-export const studyLocationIds: { [id: string]: { name: string; lid: string } } = {
-  langson: { name: "Langson Library", lid: "6539" },
-  gateway: { name: "Gateway Study Center", lid: "6579" },
-  science: { name: "Science Library", lid: "6580" },
-  mrc: { name: "Multimedia Resources Center", lid: "6581" },
-  gml: { name: "Grunigen Medical Library", lid: "12189" },
+export const studyLocations: { [id: string]: { name: string; lid: string } } = {
+  Langson: { name: "Langson Library", lid: "6539" },
+  Gateway: { name: "Gateway Study Center", lid: "6579" },
+  Science: { name: "Science Library", lid: "6580" },
+  MRC: { name: "Multimedia Resources Center", lid: "6581" },
+  GML: { name: "Grunigen Medical Library", lid: "12189" },
 };
 
 /**

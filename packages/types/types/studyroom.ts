@@ -79,3 +79,9 @@ export type StudyLocation = {
    */
   rooms: StudyRoom[];
 };
+
+/**
+ * The type of the payload returned on a successful response from querying
+ * ``/v1/rest/studyRooms/all``.
+ */
+export type StudyLocations = StudyLocation[];
