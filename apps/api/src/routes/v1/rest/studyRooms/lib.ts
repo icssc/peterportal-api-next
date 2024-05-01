@@ -1,6 +1,6 @@
+import { TimeSlot, StudyLocation } from "@peterportal-api/types";
 import { studyLocations } from "libs/uc-irvine-lib/src/spaces";
 import { getStudySpaces } from "libs/uc-irvine-lib/src/spaces";
-import { TimeSlot, StudyLocation } from "packages/types";
 import { studyRooms } from "virtual:studyRooms";
 
 /**

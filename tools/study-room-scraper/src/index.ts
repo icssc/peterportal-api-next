@@ -1,5 +1,5 @@
 import { PrismaClient } from "@libs/db";
-import type { StudyLocation } from "@peterportal-api/types";
+import type { StudyLocation, StudyRoom } from "@peterportal-api/types";
 
 import { scrapeStudyLocations } from "./study-room-scraper";
 
@@ -14,7 +14,7 @@ async function main() {
         lid: location.lid,
         name: location.name,
         rooms: {
-          create: location.rooms.map((room) => ({
+          create: location.rooms.map((room: StudyRoom) => ({
             ...room,
           })),
         },
