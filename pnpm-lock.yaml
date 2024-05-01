@@ -493,8 +493,8 @@ importers:
         specifier: workspace:^
         version: link:../../packages/types
       esbuild:
-        specifier: 0.19.11
-        version: 0.19.11
+        specifier: 0.20.1
+        version: 0.20.1
 
 packages:
 
