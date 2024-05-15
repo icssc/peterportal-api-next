@@ -1,4 +1,4 @@
-import { load } from "cheerio";
+import { CheerioAPI, load } from "cheerio";
 import fetch from "cross-fetch";
 
 async function fetchWebSoc() {
@@ -7,9 +7,7 @@ async function fetchWebSoc() {
   return load(body);
 }
 
-export async function getDepartments(): Promise<string[]> {
-  const $ = await fetchWebSoc();
-
+async function getDepartments($: CheerioAPI): Promise<string[]> {
   const departments: string[] = [];
   $('select[name="Dept"] option').each((_index, element) => {
     const deptText = $(element).text().trim();
@@ -22,9 +20,7 @@ export async function getDepartments(): Promise<string[]> {
   return departments;
 }
 
-export async function getTerms(): Promise<string[]> {
-  const $ = await fetchWebSoc();
-
+async function getTerms($: CheerioAPI): Promise<string[]> {
   const terms: string[] = [];
   $('select[name="YearTerm"] option').each((_index, element) => {
     const termText = $(element).text().trim();
@@ -33,3 +29,14 @@ export async function getTerms(): Promise<string[]> {
 
   return terms;
 }
+
+async function getDepartmentsTerms() {
+  const $ = await fetchWebSoc();
+
+  const terms = await getTerms($);
+  const departments = await getDepartments($);
+
+  return { departments, terms };
+}
+
+export default getDepartmentsTerms();
