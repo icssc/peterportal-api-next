@@ -43,6 +43,4 @@ async function getDepartmentsTerms() {
   return { departments, terms };
 }
 
-getDepartmentsTerms().then(console.log);
-
 export default getDepartmentsTerms;
