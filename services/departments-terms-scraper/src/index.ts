@@ -1,14 +1,14 @@
 import { load } from "cheerio";
 import fetch from "cross-fetch";
 
-async function loadWebSoc() {
+async function fetchWebSoc() {
   const response = await fetch("https://www.reg.uci.edu/perl/WebSoc");
   const body = await response.text();
   return load(body);
 }
 
 export async function getDepartments(): Promise<string[]> {
-  const $ = await loadWebSoc();
+  const $ = await fetchWebSoc();
 
   const departments: string[] = [];
   $('select[name="Dept"] option').each((_index, element) => {
@@ -23,7 +23,7 @@ export async function getDepartments(): Promise<string[]> {
 }
 
 export async function getTerms(): Promise<string[]> {
-  const $ = await loadWebSoc();
+  const $ = await fetchWebSoc();
 
   const terms: string[] = [];
   $('select[name="YearTerm"] option').each((_index, element) => {
@@ -33,6 +33,3 @@ export async function getTerms(): Promise<string[]> {
 
   return terms;
 }
-
-getDepartments().then(console.log);
-getTerms().then(console.log);
