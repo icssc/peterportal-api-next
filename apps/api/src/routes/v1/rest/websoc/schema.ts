@@ -76,11 +76,15 @@ export const QuerySchema = z
     message: 'If "building" is provided, "room" must also be provided',
   })
   .refine(
-    (x) =>
-      !x.excludeRestrictionCodes ||
-      x.excludeRestrictionCodes.every((code) =>
+    (x) => {
+      // If not excluding restriction codes, then no more validation is needed.
+      if (x.excludeRestrictionCodes == null) return true;
+
+      // Ensure that all provided restriction codes are valid.
+      return x.excludeRestrictionCodes.every((code) =>
         Object.values($Enums.RestrictionCode).includes(code as $Enums.RestrictionCode),
-      ),
+      );
+    },
     {
       message: `Restriction codes must be in [${Object.values($Enums.RestrictionCode).join(", ")}]`,
     },

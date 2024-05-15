@@ -1,17 +1,16 @@
 import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
-import type { WebsocAPIResponse, WebsocSchool } from "@libs/uc-irvine-lib/websoc";
+import type { WebsocAPIResponse } from "@libs/uc-irvine-lib/websoc";
 import { notNull } from "@libs/utils";
 import { combineAndNormalizeResponses, sortResponse } from "@libs/websoc-utils";
 import { ZodError } from "zod";
 
 import { APILambdaClient } from "./APILambdaClient";
 import { constructPrismaQuery, normalizeQuery } from "./lib";
-import { Query, QuerySchema } from "./schema";
+import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
-// let connected = false
 const lambdaClient = await APILambdaClient.new();
 
 async function onWarm() {
@@ -111,7 +110,11 @@ export const GET = createHandler(async (event, context, res) => {
       queries: normalizeQuery(parsedQuery),
     });
 
-    const filteredWebsocResults = filterResults(parsedQuery, websocResults);
+    if (!parsedQuery.excludeRestrictionCodes?.length) {
+      return res.createOKResult(websocResults, headers, requestId);
+    }
+
+    const filteredWebsocResults = filterResults(websocResults, parsedQuery.excludeRestrictionCodes);
 
     return res.createOKResult(filteredWebsocResults, headers, requestId);
   } catch (error) {
@@ -123,36 +126,27 @@ export const GET = createHandler(async (event, context, res) => {
   }
 }, onWarm);
 
-function filterResults(query: Query, websocResults: WebsocAPIResponse): WebsocAPIResponse {
-  if (!query.excludeRestrictionCodes) {
-    return websocResults;
-  }
-
-  const excludeRestrictions = query.excludeRestrictionCodes ?? [];
-
-  if (excludeRestrictions.length > 0) {
-    websocResults.schools = websocResults.schools
-      .map((school) => {
-        school.departments = school.departments
-          .map((department) => {
-            department.courses = department.courses
-              .map((course) => {
-                course.sections = course.sections.filter(
-                  (section) =>
-                    !section.restrictions
-                      .split(/ and | or /)
-                      .some((code: string) => excludeRestrictions.includes(code)),
-                );
-                return course;
-              })
-              .filter((course) => course.sections.length > 0);
-            return department;
-          })
-          .filter((department) => department.courses.length > 0);
-        return school;
-      })
-      .filter((school) => school.departments.length > 0) satisfies WebsocSchool[];
-  }
-
-  return websocResults;
+function filterResults(results: WebsocAPIResponse, restrictionCodes: string[]): WebsocAPIResponse {
+  results.schools = results.schools
+    .map((school) => {
+      school.departments = school.departments
+        .map((department) => {
+          department.courses = department.courses
+            .map((course) => {
+              course.sections = course.sections.filter(
+                (section) =>
+                  !section.restrictions
+                    .split(/ and | or /)
+                    .some((code: string) => restrictionCodes.includes(code)),
+              );
+              return course;
+            })
+            .filter((course) => course.sections.length > 0);
+          return department;
+        })
+        .filter((department) => department.courses.length > 0);
+      return school;
+    })
+    .filter((school) => school.departments.length > 0);
+  return results;
 }
