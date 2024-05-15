@@ -44,6 +44,27 @@ enum WebsocSectionType {
   Tut
 }
 
+enum RestrictionCode {
+  A
+  B
+  C
+  D
+  E
+  F
+  G
+  H
+  I
+  J
+  K
+  L
+  M
+  N
+  O
+  R
+  S
+  X
+}
+
 // Models
 
 model CalendarTerm {
@@ -224,25 +245,26 @@ model WebsocSectionMeeting {
 }
 
 model WebsocSection {
-  year          String
-  quarter       Quarter
-  sectionCode   Int
-  timestamp     DateTime
-  geCategories  Json
-  department    String
-  courseNumber  String
-  courseNumeric Int
-  instructors   WebsocSectionInstructor[]
-  courseTitle   String
-  sectionType   WebsocSectionType
-  units         String
-  meetings      WebsocSectionMeeting[]
-  maxCapacity   Int
-  sectionFull   Boolean
-  waitlistFull  Boolean
-  overEnrolled  Boolean
-  cancelled     Boolean
-  data          Json
+  year             String
+  quarter          Quarter
+  sectionCode      Int
+  timestamp        DateTime
+  geCategories     Json
+  department       String
+  courseNumber     String
+  courseNumeric    Int
+  instructors      WebsocSectionInstructor[]
+  courseTitle      String
+  sectionType      WebsocSectionType
+  units            String
+  meetings         WebsocSectionMeeting[]
+  maxCapacity      Int
+  sectionFull      Boolean
+  waitlistFull     Boolean
+  overEnrolled     Boolean
+  cancelled        Boolean
+  restrictionCodes RestrictionCode[]
+  data             Json
 
   @@id([year, quarter, sectionCode, timestamp])
   @@unique([year, quarter, sectionCode, timestamp], name: "idx")
