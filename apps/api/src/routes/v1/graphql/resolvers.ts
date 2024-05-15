@@ -23,6 +23,12 @@ export const resolvers: ApolloServerOptions<BaseContext>["resolvers"] = {
     instructors: proxyRestApi("/v1/rest/instructors"),
     allInstructors: proxyRestApi("/v1/rest/instructors/all"),
     larc: proxyRestApi("/v1/rest/larc"),
+    searchCourses: proxyRestApi("/v1/rest/search", {
+      argsTransform: (args) => ({ ...args, resultType: "course" }),
+    }),
+    searchInstructors: proxyRestApi("/v1/rest/search", {
+      argsTransform: (args) => ({ ...args, resultType: "instructors" }),
+    }),
     websoc: proxyRestApi("/v1/rest/websoc", { argsTransform: geTransform }),
     depts: proxyRestApi("/v1/rest/websoc/depts"),
     terms: proxyRestApi("/v1/rest/websoc/terms"),
