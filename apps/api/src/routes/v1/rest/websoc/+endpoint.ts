@@ -11,7 +11,6 @@ import { QuerySchema } from "./schema";
 
 const prisma = new PrismaClient();
 
-// let connected = false
 const lambdaClient = await APILambdaClient.new();
 
 async function onWarm() {
@@ -111,7 +110,13 @@ export const GET = createHandler(async (event, context, res) => {
       queries: normalizeQuery(parsedQuery),
     });
 
-    return res.createOKResult(websocResults, headers, requestId);
+    if (!parsedQuery.excludeRestrictionCodes?.length) {
+      return res.createOKResult(websocResults, headers, requestId);
+    }
+
+    const filteredWebsocResults = filterResults(websocResults, parsedQuery.excludeRestrictionCodes);
+
+    return res.createOKResult(filteredWebsocResults, headers, requestId);
   } catch (error) {
     if (error instanceof ZodError) {
       const messages = error.issues.map((issue) => issue.message);
@@ -120,3 +125,28 @@ export const GET = createHandler(async (event, context, res) => {
     return res.createErrorResult(400, error, requestId);
   }
 }, onWarm);
+
+function filterResults(results: WebsocAPIResponse, restrictionCodes: string[]): WebsocAPIResponse {
+  results.schools = results.schools
+    .map((school) => {
+      school.departments = school.departments
+        .map((department) => {
+          department.courses = department.courses
+            .map((course) => {
+              course.sections = course.sections.filter(
+                (section) =>
+                  !section.restrictions
+                    .split(/ and | or /)
+                    .some((code: string) => restrictionCodes.includes(code)),
+              );
+              return course;
+            })
+            .filter((course) => course.sections.length > 0);
+          return department;
+        })
+        .filter((department) => department.courses.length > 0);
+      return school;
+    })
+    .filter((school) => school.departments.length > 0);
+  return results;
+}

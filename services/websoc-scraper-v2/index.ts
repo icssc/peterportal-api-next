@@ -1,3 +1,4 @@
+import type { $Enums } from "@libs/db";
 import { PrismaClient } from "@libs/db";
 import { getTermDateData } from "@libs/uc-irvine-lib/registrar";
 import type {
@@ -116,6 +117,7 @@ type ProcessedSection = {
     waitlistFull: boolean;
     overEnrolled: boolean;
     cancelled: boolean;
+    restrictionCodes: $Enums.RestrictionCode[];
     data: object;
   };
 };
@@ -391,6 +393,9 @@ async function scrape(name: string, term: Term) {
                     parseInt(section.numCurrentlyEnrolled.totalEnrolled, 10) >
                     parseInt(section.maxCapacity, 10),
                   cancelled: section.sectionComment.includes("***  CANCELLED  ***"),
+                  restrictionCodes: section.restrictions
+                    ? (section.restrictions.split(/ and | or /) as $Enums.RestrictionCode[])
+                    : [],
                   data: isolateSection({ school, department, course, section }),
                 },
               };
