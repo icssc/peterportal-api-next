@@ -39,4 +39,4 @@ async function getDepartmentsTerms() {
   return { departments, terms };
 }
 
-export default getDepartmentsTerms();
+export default getDepartmentsTerms;
