@@ -319,7 +319,7 @@ importers:
         specifier: 0.20.1
         version: 0.20.1
 
-  services/departments-scraper:
+  services/departments-terms-scraper:
     dependencies:
       cheerio:
         specifier: 1.0.0-rc.12
