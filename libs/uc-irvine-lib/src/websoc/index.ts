@@ -1,5 +1,5 @@
+import type { Department, TermData } from "@anteater-api/types";
 import { transform } from "@ap0nia/camaro";
-import type { Department, TermData } from "@peterportal-api/types";
 import { load } from "cheerio";
 import fetch from "cross-fetch";
 

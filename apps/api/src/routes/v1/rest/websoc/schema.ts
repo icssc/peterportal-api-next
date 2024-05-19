@@ -1,4 +1,3 @@
-import { $Enums } from "@libs/db";
 import {
   anyArray,
   cancelledCoursesOptions,
@@ -7,7 +6,8 @@ import {
   geCodes,
   quarters,
   sectionTypes,
-} from "@peterportal-api/types";
+} from "@anteater-api/types";
+import { $Enums } from "@libs/db";
 import { z } from "zod";
 
 import { flattenDayStringsAndSplit, flattenStringsAndSplit } from "../../../../lib/utils";

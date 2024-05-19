@@ -21,7 +21,7 @@
     "pako": "2.1.0"
   },
   "devDependencies": {
-    "@peterportal-api/types": "workspace:^",
+    "@anteater-api/types": "workspace:^",
     "@types/pako": "2.0.3",
     "@types/pluralize": "0.0.33",
     "cross-fetch": "4.0.0",

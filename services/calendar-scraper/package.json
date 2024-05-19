@@ -16,7 +16,7 @@
     "@libs/utils": "workspace:^"
   },
   "devDependencies": {
-    "@peterportal-api/types": "workspace:^",
+    "@anteater-api/types": "workspace:^",
     "esbuild": "0.20.1"
   }
 }

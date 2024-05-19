@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { normalize } from "node:path";
 import { gzipSync } from "node:zlib";
 
-import type { Course, Instructor, RawResponse } from "@peterportal-api/types";
+import type { Course, Instructor, RawResponse } from "@anteater-api/types";
 import fetch from "cross-fetch";
 import pluralize from "pluralize";
 

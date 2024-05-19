@@ -1,8 +1,8 @@
 import fs from "fs";
 import { resolve } from "path";
 
+import type { Quarter } from "@anteater-api/types";
 import { PrismaClient } from "@libs/db";
-import type { Quarter } from "@peterportal-api/types";
 import { parse } from "csv-parse";
 import type { CastingContext, Parser } from "csv-parse";
 

@@ -1,6 +1,6 @@
+import type { RawResponse } from "@anteater-api/types";
 import type { BaseContext, HTTPGraphQLResponse } from "@apollo/server";
 import type { IFieldResolver } from "@graphql-tools/utils";
-import type { RawResponse } from "@peterportal-api/types";
 import { GraphQLError } from "graphql/error";
 
 function getBaseUrl() {

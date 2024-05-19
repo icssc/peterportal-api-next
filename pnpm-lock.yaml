@@ -116,7 +116,7 @@ importers:
       '@libs/websoc-utils':
         specifier: workspace:^
         version: link:../../libs/websoc-utils
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
       '@services/websoc-proxy':
@@ -179,7 +179,7 @@ importers:
         specifier: 3.12.0
         version: 3.12.0
     devDependencies:
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
       '@types/aws-lambda':
@@ -191,7 +191,7 @@ importers:
       '@ap0nia/camaro':
         specifier: 6.2.5
         version: 6.2.5
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
       cheerio:
@@ -208,7 +208,7 @@ importers:
       '@libs/uc-irvine-lib':
         specifier: workspace:^
         version: link:../uc-irvine-lib
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
 
@@ -223,7 +223,7 @@ importers:
         specifier: 2.1.0
         version: 2.1.0
     devDependencies:
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../types
       '@types/pako':
@@ -257,7 +257,7 @@ importers:
         specifier: workspace:^
         version: link:../../libs/utils
     devDependencies:
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
       esbuild:
@@ -279,7 +279,7 @@ importers:
         specifier: workspace:^
         version: link:../../libs/websoc-utils
     devDependencies:
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
       '@types/aws-lambda':
@@ -303,7 +303,7 @@ importers:
       '@libs/utils':
         specifier: workspace:^
         version: link:../../libs/utils
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
       winston:
@@ -369,7 +369,7 @@ importers:
         specifier: 4.7.0
         version: 4.7.0
     devDependencies:
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
       '@types/node':
@@ -412,7 +412,7 @@ importers:
         specifier: 3.12.0
         version: 3.12.0
     devDependencies:
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
       esbuild:

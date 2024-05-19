@@ -17,7 +17,7 @@
     "@libs/websoc-utils": "workspace:^"
   },
   "devDependencies": {
-    "@peterportal-api/types": "workspace:^",
+    "@anteater-api/types": "workspace:^",
     "@types/aws-lambda": "8.10.135",
     "@types/node": "20.11.24",
     "esbuild": "0.20.1"

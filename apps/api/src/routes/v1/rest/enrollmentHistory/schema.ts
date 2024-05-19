@@ -1,4 +1,4 @@
-import { quarters, sectionTypes } from "@peterportal-api/types";
+import { quarters, sectionTypes } from "@anteater-api/types";
 import { z } from "zod";
 
 export const QuerySchema = z
