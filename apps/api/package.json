@@ -2,7 +2,7 @@
   "name": "@apps/api",
   "version": "0.0.0",
   "private": true,
-  "description": "The workspace for PeterPortal API",
+  "description": "The workspace for the API",
   "keywords": [],
   "homepage": "https://github.com/icssc/peterportal-api-next",
   "bugs": {
