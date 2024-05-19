@@ -269,6 +269,7 @@ export async function main(): Promise<App> {
     statusCode: "500",
     templates: {
       "application/json": JSON.stringify({
+        success: false,
         timestamp: "$context.requestTime",
         requestId: "$context.requestId",
         statusCode: 500,
@@ -283,6 +284,7 @@ export async function main(): Promise<App> {
     statusCode: "404",
     templates: {
       "application/json": JSON.stringify({
+        success: false,
         timestamp: "$context.requestTime",
         requestId: "$context.requestId",
         statusCode: 404,
