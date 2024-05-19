@@ -9,6 +9,34 @@ async function onWarm() {
   await prisma.$connect();
 }
 
+const degreeRepository = {
+  majors: {
+    findMany: async () => {
+      return await prisma.major.findMany({ include: { specializations: true } });
+    },
+    findFirstById: async (id: string) => {
+      return await prisma.major.findFirst({ where: { id }, include: { specializations: true } });
+    },
+    findManyNameContains: async (degreeId: string, contains?: string) => {
+      return await prisma.major.findMany({
+        where: {
+          degreeId,
+          name: { contains, mode: "insensitive" },
+        },
+        include: { specializations: true },
+      });
+    },
+  },
+  minors: {
+    findMany: async () => {
+      return await prisma.minor.findMany({});
+    },
+    findFirstById: async (id: string) => {
+      return await prisma.minor.findFirst({ where: { id } });
+    },
+  },
+};
+
 export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
   const params = event.pathParameters ?? {};
@@ -24,96 +52,95 @@ export const GET = createHandler(async (event, context, res) => {
         headers,
         requestId,
       );
-    case "majors":
+
+    case "majors": // falls through
     case "minors": {
-      const maybeParsed = ProgramSchema.safeParse(query);
-      if (maybeParsed.success) {
-        const { data } = maybeParsed;
-        console.log(data);
-        // Ugly TypeScript kludge that lets this union typecheck properly when calling the find methods.
-        // This is real code, written by real software engineers.
-        const table =
-          params.id === "majors" ? prisma.major : (prisma.minor as unknown as typeof prisma.major);
-        if (!Object.keys(data).length)
-          return res.createOKResult(
-            await table.findMany({
-              include: { specializations: params.id === "majors" ? true : undefined },
-            }),
-            headers,
-            requestId,
-          );
-        if ("id" in data) {
-          const row = await table.findFirst({
-            where: { id: data.id },
-            include: { specializations: params.id === "majors" ? true : undefined },
-          });
+      const parsedQuery = ProgramSchema.safeParse(query);
+
+      if (!parsedQuery.success) {
+        return res.createErrorResult(
+          400,
+          parsedQuery.error.issues.map((issue) => issue.message).join("; "),
+          requestId,
+        );
+      }
+
+      switch (parsedQuery.data.type) {
+        case "id": {
+          const result = await degreeRepository[params.id].findFirstById(parsedQuery.data.id);
+          return result
+            ? res.createOKResult(result, headers, requestId)
+            : res.createErrorResult(
+                404,
+                `${params.id === "majors" ? "Major" : "Minor"} with ID ${parsedQuery.data.id} not found`,
+                requestId,
+              );
+        }
+
+        case "degreeOrName": {
+          const { degreeId, nameContains } = parsedQuery.data;
+
+          if (params.id === "minors" && degreeId != null) {
+            return res.createErrorResult(400, "Invalid input", requestId);
+          }
+
+          const result = await degreeRepository.majors.findManyNameContains(degreeId, nameContains);
+          return res.createOKResult(result, headers, requestId);
+        }
+
+        case "empty": {
+          const result = await degreeRepository[params.id].findMany();
+          return res.createOKResult(result, headers, requestId);
+        }
+      }
+      break;
+    }
+
+    case "specializations": {
+      const parsedQuery = SpecializationSchema.safeParse(query);
+
+      if (!parsedQuery.success) {
+        return res.createErrorResult(
+          400,
+          parsedQuery.error.issues.map((issue) => issue.message).join("; "),
+          requestId,
+        );
+      }
+
+      switch (parsedQuery.data.type) {
+        case "id": {
+          const row = await prisma.specialization.findFirst({ where: { id: parsedQuery.data.id } });
+
           return row
             ? res.createOKResult(row, headers, requestId)
             : res.createErrorResult(
                 404,
-                `${params.id === "majors" ? "Major" : "Minor"} with ID ${data.id} not found`,
+                `Specialization with ID ${parsedQuery.data.id} not found`,
                 requestId,
               );
         }
-        if ("degreeId" in data || "nameContains" in data) {
-          if (params.id === "minors" && data.degreeId)
-            return res.createErrorResult(400, "Invalid input", requestId);
-          return res.createOKResult(
-            await table.findMany({
-              where: {
-                degreeId: data.degreeId,
-                name: { contains: data.nameContains, mode: "insensitive" },
-              },
-              include: { specializations: params.id === "majors" ? true : undefined },
-            }),
-            headers,
-            requestId,
-          );
+
+        case "major": {
+          const result = await prisma.specialization.findMany({
+            where: { majorId: parsedQuery.data.majorId },
+          });
+          return res.createOKResult(result, headers, requestId);
         }
-      } else {
-        return res.createErrorResult(
-          400,
-          maybeParsed.error.issues.map((issue) => issue.message).join("; "),
-          requestId,
-        );
-      }
-      break;
-    }
-    case "specializations": {
-      const maybeParsed = SpecializationSchema.safeParse(query);
-      if (maybeParsed.success) {
-        const { data } = maybeParsed;
-        if (!Object.keys(data).length)
-          return res.createOKResult(await prisma.specialization.findMany(), headers, requestId);
-        if ("id" in data) {
-          const row = await prisma.specialization.findFirst({ where: { id: data.id } });
-          return row
-            ? res.createOKResult(row, headers, requestId)
-            : res.createErrorResult(404, `Specialization with ID ${data.id} not found`, requestId);
+
+        case "name": {
+          const result = await prisma.specialization.findMany({
+            where: { name: { contains: parsedQuery.data.nameContains, mode: "insensitive" } },
+          });
+          return res.createOKResult(result, headers, requestId);
         }
-        if ("majorId" in data)
-          return res.createOKResult(
-            await prisma.specialization.findMany({ where: { majorId: data.majorId } }),
-            headers,
-            requestId,
-          );
-        if ("nameContains" in data) {
-          return res.createOKResult(
-            await prisma.specialization.findMany({
-              where: { name: { contains: data.nameContains, mode: "insensitive" } },
-            }),
-            headers,
-            requestId,
-          );
+
+        case "empty": {
+          const result = await prisma.specialization.findMany();
+          return res.createOKResult(result, headers, requestId);
         }
-      } else {
-        return res.createErrorResult(
-          400,
-          maybeParsed.error.issues.map((issue) => issue.message).join("; "),
-          requestId,
-        );
       }
     }
   }
+
   return res.createErrorResult(400, "Invalid endpoint", requestId);
 }, onWarm);
