@@ -3,10 +3,7 @@ import { parse } from "node:url";
 
 import type { HTTPGraphQLRequest } from "@apollo/server";
 import { ApolloServer, HeaderMap } from "@apollo/server";
-import {
-  ApolloServerPluginLandingPageLocalDefault,
-  ApolloServerPluginLandingPageProductionDefault,
-} from "@apollo/server/plugin/landingPage/default";
+import { ApolloServerPluginLandingPageLocalDefault } from "@apollo/server/plugin/landingPage/default";
 import { loadFilesSync } from "@graphql-tools/load-files";
 import { mergeTypeDefs } from "@graphql-tools/merge";
 import { compress, logger } from "@libs/lambda";
@@ -23,11 +20,7 @@ const responseHeaders: APIGatewayProxyResult["headers"] = {
 
 const graphqlServer = new ApolloServer({
   introspection: true,
-  plugins: [
-    process.env.NODE_ENV === "development"
-      ? ApolloServerPluginLandingPageLocalDefault()
-      : ApolloServerPluginLandingPageProductionDefault({ footer: false }),
-  ],
+  plugins: [ApolloServerPluginLandingPageLocalDefault()],
   resolvers,
   typeDefs: mergeTypeDefs(loadFilesSync(join(__dirname, "schema/*.graphql"))),
 });
@@ -69,14 +62,12 @@ export const ANY: APIGatewayProxyHandler = async (event) => {
     } else {
       delete responseHeaders["content-encoding"];
     }
-    const ret = {
+    return {
       body,
       headers: responseHeaders,
       isBase64Encoded: !!method,
       statusCode,
     };
-    console.log(ret);
-    return ret;
   } catch {
     return {
       body: "",
