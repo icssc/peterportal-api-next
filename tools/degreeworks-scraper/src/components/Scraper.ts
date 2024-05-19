@@ -5,6 +5,8 @@ import type { Program } from "../types";
 
 import { AuditParser, DegreeworksClient } from ".";
 
+const JWT_HEADER_PREFIX_LENGTH = 7;
+
 export class Scraper {
   private ap!: AuditParser;
   private dw!: DegreeworksClient;
@@ -174,9 +176,8 @@ export class Scraper {
     };
   }
   static async new(authCookie: string): Promise<Scraper> {
-    const studentId = jwtDecode<JwtPayload>(authCookie.slice("Bearer+".length))?.sub;
-    if (!studentId || studentId.length !== 8)
-      throw new Error("Could not parse student ID from auth cookie.");
+    const studentId = jwtDecode<JwtPayload>(authCookie.slice(JWT_HEADER_PREFIX_LENGTH))?.sub;
+    if (studentId?.length !== 8) throw new Error("Could not parse student ID from auth cookie.");
     const headers = {
       "Content-Type": "application/json",
       Cookie: `X-AUTH-TOKEN=${authCookie}`,
