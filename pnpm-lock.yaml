@@ -86,6 +86,9 @@ importers:
 
   apps/api:
     dependencies:
+      '@anteater-api/types':
+        specifier: workspace:^
+        version: link:../../packages/types
       '@apollo/server':
         specifier: 4.10.0
         version: 4.10.0(graphql@16.8.1)
@@ -116,9 +119,6 @@ importers:
       '@libs/websoc-utils':
         specifier: workspace:^
         version: link:../../libs/websoc-utils
-      '@anteater-api/types':
-        specifier: workspace:^
-        version: link:../../packages/types
       '@services/websoc-proxy':
         specifier: workspace:^
         version: link:../../services/websoc-proxy
@@ -188,12 +188,12 @@ importers:
 
   libs/uc-irvine-lib:
     dependencies:
-      '@ap0nia/camaro':
-        specifier: 6.2.5
-        version: 6.2.5
       '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
+      '@ap0nia/camaro':
+        specifier: 6.2.5
+        version: 6.2.5
       cheerio:
         specifier: 1.0.0-rc.12
         version: 1.0.0-rc.12
@@ -205,12 +205,12 @@ importers:
 
   libs/websoc-utils:
     dependencies:
-      '@libs/uc-irvine-lib':
-        specifier: workspace:^
-        version: link:../uc-irvine-lib
       '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
+      '@libs/uc-irvine-lib':
+        specifier: workspace:^
+        version: link:../uc-irvine-lib
 
   packages/types: {}
 
@@ -294,6 +294,9 @@ importers:
 
   services/websoc-scraper-v2:
     dependencies:
+      '@anteater-api/types':
+        specifier: workspace:^
+        version: link:../../packages/types
       '@libs/db':
         specifier: workspace:^
         version: link:../../libs/db
@@ -303,9 +306,6 @@ importers:
       '@libs/utils':
         specifier: workspace:^
         version: link:../../libs/utils
-      '@anteater-api/types':
-        specifier: workspace:^
-        version: link:../../packages/types
       winston:
         specifier: 3.12.0
         version: 3.12.0
@@ -341,6 +341,28 @@ importers:
       tsx:
         specifier: 4.7.1
         version: 4.7.1
+
+  tools/degreeworks-scraper:
+    dependencies:
+      '@anteater-api/types':
+        specifier: workspace:^
+        version: link:../../packages/types
+      '@libs/db':
+        specifier: workspace:^
+        version: link:../../libs/db
+      cross-fetch:
+        specifier: 4.0.0
+        version: 4.0.0
+      dotenv:
+        specifier: 16.4.1
+        version: 16.4.1
+      jwt-decode:
+        specifier: 4.0.0
+        version: 4.0.0
+    devDependencies:
+      tsx:
+        specifier: 4.7.0
+        version: 4.7.0
 
   tools/grades-updater:
     dependencies:
@@ -3835,6 +3857,11 @@ packages:
     engines: {node: '>=12'}
     dev: true
 
+  /dotenv@16.4.1:
+    resolution: {integrity: sha512-CjA3y+Dr3FyFDOAMnxZEGtnW9KBR2M0JvvUtXNW+dYJL5ROWxP9DUHCwgFqpMk0OXCc0ljhaNTr2w/kutYIcHQ==}
+    engines: {node: '>=12'}
+    dev: false
+
   /dotenv@16.4.5:
     resolution: {integrity: sha512-ZmdL2rui+eB2YwhsWzjInR8LldtZHGDoQ1ugH85ppHKwpUHL7j7rN0Ti9NCnGiQbhaZ11FpR+7ao1dNsmduNUg==}
     engines: {node: '>=12'}
@@ -5114,6 +5141,11 @@ packages:
   /jsox@1.2.118:
     resolution: {integrity: sha512-ubYWn4WOc7HA7icvcQuIni1I7Xx4bI4KbRXbXzlr5e48hvdizeAbflBx97B629ZNH5RZnQ657Z5Z8dFgxFVrSQ==}
     hasBin: true
+    dev: false
+
+  /jwt-decode@4.0.0:
+    resolution: {integrity: sha512-+KJGIyHgkGuIq3IEBNftfhW/LfWhXUIY6OmyVWjliu5KH1y0fw7VQ8YndE2O4qZdMSd9SqbnC8GOcZEy0Om7sA==}
+    engines: {node: '>=18'}
     dev: false
 
   /kuler@2.0.0:
@@ -6501,6 +6533,17 @@ packages:
     transitivePeerDependencies:
       - supports-color
       - ts-node
+    dev: true
+
+  /tsx@4.7.0:
+    resolution: {integrity: sha512-I+t79RYPlEYlHn9a+KzwrvEwhJg35h/1zHsLC2JXvhC2mdynMv6Zxzvhv5EMV6VF5qJlLlkSnMVvdZV3PSIGcg==}
+    engines: {node: '>=18.0.0'}
+    hasBin: true
+    dependencies:
+      esbuild: 0.19.11
+      get-tsconfig: 4.7.2
+    optionalDependencies:
+      fsevents: 2.3.3
     dev: true
 
   /tsx@4.7.1:
