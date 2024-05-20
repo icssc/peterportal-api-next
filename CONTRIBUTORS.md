@@ -44,6 +44,7 @@ An up-to-date list of contributors to this repository is available [here](https:
 - Christopher Kwong ([@ChrisK-wong](https://github.com/ChrisK-wong))
 - Daniel Boghossian ([@Dg155](https://github.com/Dg155))
 - Ethan Deng ([@ethand605](https://github.com/ethand605))
+- Kevin Wu ([@KevinWu098](https://github.com/KevinWu098))
 - Yizhen Liu ([@imliuyzh](https://github.com/imliuyzh))
 - Jordan Yee ([@jordany33](https://github.com/jordany33))
 - Minh Nguyen ([@MinhxNguyen7](https://github.com/MinhxNguyen7))
