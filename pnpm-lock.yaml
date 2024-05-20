@@ -319,6 +319,31 @@ importers:
         specifier: 0.20.1
         version: 0.20.1
 
+  services/larc-scraper:
+    dependencies:
+      '@libs/db':
+        specifier: workspace:^
+        version: link:../../libs/db
+      '@libs/uc-irvine-lib':
+        specifier: workspace:^
+        version: link:../../libs/uc-irvine-lib
+      '@libs/utils':
+        specifier: workspace:^
+        version: link:../../libs/utils
+      cheerio:
+        specifier: 1.0.0-rc.12
+        version: 1.0.0-rc.12
+      cross-fetch:
+        specifier: 4.0.0
+        version: 4.0.0
+    devDependencies:
+      '@peterportal-api/types':
+        specifier: workspace:^
+        version: link:../../packages/types
+      esbuild:
+        specifier: 0.20.1
+        version: 0.20.1
+
   services/websoc-proxy:
     dependencies:
       '@libs/lambda':

@@ -181,6 +181,15 @@ model Instructor {
   courses            Json     @default("[]")
 }
 
+model LarcTerm {
+  year    String
+  quarter Quarter
+  courses Json
+
+  @@id([year, quarter])
+  @@unique([year, quarter], name: "idx")
+}
+
 model Major {
   id              String           @id
   degreeId        String
