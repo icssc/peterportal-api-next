@@ -4,15 +4,6 @@
   "private": true,
   "description": "Libraries to interface with various UC Irvine data sources",
   "keywords": [],
-  "homepage": "https://docs.api-next.peterportal.org",
-  "bugs": {
-    "url": "https://github.com/icssc/peterportal-api-next/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/icssc/peterportal-api-next",
-    "directory": "libs/uc-irvine-lib"
-  },
   "license": "MIT",
   "type": "module",
   "exports": {

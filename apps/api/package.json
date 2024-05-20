@@ -4,15 +4,6 @@
   "private": true,
   "description": "The workspace for the API",
   "keywords": [],
-  "homepage": "https://github.com/icssc/peterportal-api-next",
-  "bugs": {
-    "url": "https://github.com/icssc/peterportal-api-next/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/icssc/peterportal-api-next",
-    "directory": "apps/api"
-  },
   "license": "MIT",
   "type": "module",
   "scripts": {

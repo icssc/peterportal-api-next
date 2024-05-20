@@ -40,7 +40,7 @@ jobs:
 
     environment:
       name: staging-${{ github.event.pull_request.number }}
-      url: https://staging-${{ github.event.pull_request.number }}.api-next.peterportal.org
+      url: https://staging-${{ github.event.pull_request.number }}.anteaterapi.com
 
     steps:
       - name: Checkout repository

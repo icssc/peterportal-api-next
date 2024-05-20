@@ -2,7 +2,7 @@ import type { Course } from "@anteater-api/types";
 
 import type { Block, Program, ProgramId, Requirement, Rule } from "../types";
 
-import { PPAPIOfflineClient } from ".";
+import { APIOfflineClient } from ".";
 
 export class AuditParser {
   private static readonly specOrOtherMatcher = /"type":"(?:SPEC|OTHER)","value":"\w+"/g;
@@ -10,13 +10,13 @@ export class AuditParser {
   private static readonly wildcardMatcher = /\w@/;
   private static readonly rangeMatcher = /-\w+/;
 
-  private ppapi!: PPAPIOfflineClient;
+  private apiClient!: APIOfflineClient;
 
   private constructor() {}
 
   static async new(): Promise<AuditParser> {
     const ap = new AuditParser();
-    ap.ppapi = await PPAPIOfflineClient.new();
+    ap.apiClient = await APIOfflineClient.new();
     console.log("[AuditParser.new] AuditParser initialized");
     return ap;
   }
@@ -58,7 +58,7 @@ export class AuditParser {
     const [department, courseNumber] = courseIdLike.split(" ");
     if (courseNumber.match(AuditParser.wildcardMatcher)) {
       // Wildcard course numbers.
-      return this.ppapi.getCoursesByDepartment(
+      return this.apiClient.getCoursesByDepartment(
         department,
         (x) =>
           !!x.courseNumber.match(
@@ -75,7 +75,7 @@ export class AuditParser {
     if (courseNumber.match(AuditParser.rangeMatcher)) {
       // Course number ranges.
       const [minCourseNumber, maxCourseNumber] = courseNumber.split("-");
-      return this.ppapi.getCoursesByDepartment(
+      return this.apiClient.getCoursesByDepartment(
         department,
         (x) =>
           x.courseNumeric >= Number.parseInt(minCourseNumber, 10) &&
@@ -83,7 +83,7 @@ export class AuditParser {
       );
     }
     // Probably a normal course, just make sure that it exists.
-    const course = this.ppapi.getCourse(`${department}${courseNumber}`);
+    const course = this.apiClient.getCourse(`${department}${courseNumber}`);
     return course ? [course] : [];
   }
 

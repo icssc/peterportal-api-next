@@ -88,7 +88,7 @@ const prismaQueryEngineFile = "libquery_engine-linux-arm64-openssl-3.0.x.so.node
 /**
  * Namespace for virtual files.
  */
-const namespace = "peterportal-api-next:virtual";
+const namespace = "anteater-api:virtual";
 
 /**
  * Shared ESBuild options.
@@ -246,9 +246,9 @@ function getStage() {
  * in order to support development functionality.
  */
 export async function main(): Promise<App> {
-  const id = "peterportal-api-next";
+  const id = "anteater-api";
 
-  const zoneName = "peterportal.org";
+  const zoneName = "anteaterapi.com";
 
   const app = new App();
 
@@ -331,20 +331,20 @@ export async function main(): Promise<App> {
 
   // Set up the custom domain name and A record for the API.
   synthesized.api.addDomainName(`${id}-${stage}-domain`, {
-    domainName: `${stage === "prod" ? "" : `${stage}.`}api-next.peterportal.org`,
+    domainName: `${stage === "prod" ? "" : `${stage}.`}anteaterapi.com`,
     certificate: Certificate.fromCertificateArn(
       synthesized.api,
-      "peterportal-cert",
+      "anteaterapi-cert",
       process.env.CERTIFICATE_ARN ?? "",
     ),
   });
 
   new ARecord(synthesized.api, `${id}-${stage}-a-record`, {
-    zone: HostedZone.fromHostedZoneAttributes(synthesized.api, "peterportal-hosted-zone", {
+    zone: HostedZone.fromHostedZoneAttributes(synthesized.api, "anteaterapi-hosted-zone", {
       zoneName,
       hostedZoneId: process.env.HOSTED_ZONE_ID ?? "",
     }),
-    recordName: `${stage === "prod" ? "" : `${stage}.`}api-next`,
+    recordName: `${stage === "prod" ? "zone root" : `${stage}`}`,
     target: RecordTarget.fromAlias(new ApiGateway(synthesized.api)),
   });
 

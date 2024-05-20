@@ -48,7 +48,7 @@ export class APILambdaClient {
     }
     const res = await this.client.send(
       new InvokeCommand({
-        FunctionName: "peterportal-api-next-services-prod-websoc-proxy-function",
+        FunctionName: "anteater-api-services-prod-websoc-proxy-function",
         Payload: new TextEncoder().encode(JSON.stringify({ body: JSON.stringify(body) })),
       }),
     );

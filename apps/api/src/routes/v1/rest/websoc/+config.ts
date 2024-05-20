@@ -26,7 +26,7 @@ export const overrides: ApiPropsOverride = {
               new PolicyStatement({
                 effect: Effect.ALLOW,
                 resources: [
-                  `arn:aws:lambda:${process.env["AWS_REGION"]}:${process.env["ACCOUNT_ID"]}:function:peterportal-api-next-services-prod-websoc-proxy-function`,
+                  `arn:aws:lambda:${process.env["AWS_REGION"]}:${process.env["ACCOUNT_ID"]}:function:anteater-api-services-prod-websoc-proxy-function`,
                 ],
                 actions: ["lambda:InvokeFunction"],
               }),

@@ -2,17 +2,7 @@
   "name": "@tools/cdk",
   "version": "0.0.0",
   "private": true,
-  "description": "CDK deployment configurations for PeterPortal API",
-  "keywords": [],
-  "homepage": "https://github.com/icssc/peterportal-api-next",
-  "bugs": {
-    "url": "https://github.com/icssc/peterportal-api-next/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/icssc/peterportal-api-next",
-    "directory": "tools/cdk"
-  },
+  "description": "CDK deployment configurations for Anteater API",
   "license": "MIT",
   "type": "module",
   "scripts": {

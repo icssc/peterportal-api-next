@@ -6,9 +6,9 @@ import { GraphQLError } from "graphql/error";
 function getBaseUrl() {
   switch (process.env.NODE_ENV) {
     case "production":
-      return `https://api-next.peterportal.org`;
+      return `https://anteaterapi.com`;
     case "staging":
-      return `https://${process.env.STAGE}.api-next.peterportal.org`;
+      return `https://${process.env.STAGE}.anteaterapi.com`;
     default:
       return `http://localhost:${process.env.API_PORT ?? 8080}`;
   }

@@ -1,4 +1,4 @@
 export { AuditParser } from "./AuditParser";
 export { DegreeworksClient } from "./DegreeworksClient";
-export { PPAPIOfflineClient } from "./PPAPIOfflineClient";
+export { APIOfflineClient } from "./APIOfflineClient";
 export { Scraper } from "./Scraper";
