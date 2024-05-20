@@ -29,11 +29,8 @@ export function parseTimeSlots(slots: Slot[]): { [id: string]: TimeSlot[] } {
       end,
       booked: !!slot.className && slot.className === "s-lc-eq-checkout",
     };
-    if (!timeSlots[roomId]) {
-      timeSlots[roomId] = [timeSlot];
-    } else {
-      timeSlots[roomId].push(timeSlot);
-    }
+    timeSlots[roomId] ??= []
+    timeSlots[roomId].push(timeSlot)
   });
   return timeSlots;
 }
@@ -41,7 +38,7 @@ export function parseTimeSlots(slots: Slot[]): { [id: string]: TimeSlot[] } {
 /**
  *  Aggregate study rooms and their time slots into a StudyLocation object.
  */
-export async function aggreagteStudyRooms(
+export async function aggregateStudyRooms(
   locationId: string,
   start: string,
   end: string,
@@ -52,7 +49,7 @@ export async function aggreagteStudyRooms(
     id: locationId,
     ...studyLocations[locationId],
     rooms: Object.entries(timeSlotsMap)
-      .filter(([id, _]) => studyRooms[id])
+      .filter(([id, _]) => studyRooms[id] != null)
       .map(([id, timeSlots]) => {
         return { ...studyRooms[id], timeSlots };
       }),

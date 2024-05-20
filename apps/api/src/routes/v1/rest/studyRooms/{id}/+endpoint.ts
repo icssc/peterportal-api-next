@@ -2,7 +2,7 @@ import { createHandler } from "@libs/lambda";
 import { studyLocations } from "libs/uc-irvine-lib/src/spaces";
 import { ZodError } from "zod";
 
-import { aggreagteStudyRooms } from "../lib";
+import { aggregateStudyRooms } from "../lib";
 
 import { Query, QuerySchema } from "./schema";
 
@@ -11,18 +11,15 @@ export const GET = createHandler(async (event, context, res) => {
   const query = event.queryStringParameters;
   const requestId = context.awsRequestId;
   const { id } = event.pathParameters ?? {};
-  let parsedQuery: Query;
+  if (id == null) return res.createErrorResult(400, "Location not provided", requestId);
   try {
     switch (id) {
-      case null:
-      case undefined:
-        return res.createErrorResult(400, "Location not provided", requestId);
       case "all":
-        parsedQuery = QuerySchema.parse(query);
+        const parsedQuery = QuerySchema.parse(query);
         return res.createOKResult(
           await Promise.all(
             Object.keys(studyLocations).map(async (locationId) => {
-              return aggreagteStudyRooms(locationId, parsedQuery.start, parsedQuery.end);
+              return aggregateStudyRooms(locationId, parsedQuery.start, parsedQuery.end);
             }),
           ),
           headers,

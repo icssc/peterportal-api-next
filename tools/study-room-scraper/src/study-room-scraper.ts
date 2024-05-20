@@ -20,6 +20,70 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
+function processDescription(
+  descriptionHeader: cheerio.Cheerio,
+  location: string,
+  $: cheerio.Root,
+): string {
+  let descriptionText = "";
+  if (location === "Grunigen Medical Library") {
+    descriptionHeader.find("p").each(function () {
+      let paraText = $(this).text().trim();
+      if (paraText.includes("\n")) {
+        paraText = paraText.replaceAll("\n", ", ");
+        if (!paraText.endsWith(":")) {
+          paraText += ". ";
+        }
+      }
+      descriptionText += paraText + " ";
+    });
+    descriptionText = descriptionText.replace(/\s{2,}/g, " ").trim();
+    descriptionText = descriptionText.replace(/\s+,/g, ",");
+    descriptionText = descriptionText.replace(/\.\s*\./g, ".");
+    descriptionText = descriptionText.replace(".,", ".");
+  } else {
+    const descriptionParts: string[] = [];
+    descriptionHeader.contents().each((_, content) => {
+      if (content.nodeType === 3) {
+        const textContent = $(content).text().trim();
+        if (textContent) {
+          descriptionParts.push(textContent);
+        }
+      } else if (content.nodeType === 1) {
+        const child = $(content);
+        if (child.is("p, ul, li, strong, em, span, br")) {
+          if (child.is("ul")) {
+            child.find("li").each((_, li) => {
+              descriptionParts.push("- " + $(li).text().trim());
+            });
+          } else if (child.is("br")) {
+            descriptionParts.push("\n");
+          } else {
+            descriptionParts.push(child.text().trim());
+          }
+        }
+      }
+    });
+
+    let combinedDescription = descriptionParts.join(" ").replace(/\n+/g, ", ");
+    combinedDescription = combinedDescription
+      .replace(/\s*,\s*/g, ", ")
+      .replace(/\s*\.\s*/g, ". ")
+      .replace(/\s{2,}/g, " ")
+      .replace(/\.,/g, ".")
+      .replace(/\.\s*\./g, ".");
+
+    combinedDescription = combinedDescription.replace(/\.\s*$/, ".");
+    descriptionText = combinedDescription.trim();
+  }
+
+  if (descriptionText && !descriptionText.endsWith(".")) {
+    descriptionText += ".";
+  }
+
+  return descriptionText;
+}
+
 async function getRoomInfo(RoomId: string): Promise<StudyRoom> {
   const url = `${ROOM_SPACE_URL}/${RoomId}`;
   const room: StudyRoom = {
@@ -33,7 +97,6 @@ async function getRoomInfo(RoomId: string): Promise<StudyRoom> {
     const text = await res.text();
     const $ = load(text);
 
-    //Room Header
     const roomHeader = $("#s-lc-public-header-title");
     const roomHeaderText = roomHeader.text().trim();
     const headerMatch = roomHeaderText.match(
@@ -47,7 +110,7 @@ async function getRoomInfo(RoomId: string): Promise<StudyRoom> {
       room.location = headerMatch[3].trim();
       room.capacity = parseInt(headerMatch[4], 10);
     }
-    //Room Directions
+
     const directionsHeader = $(".s-lc-section-directions");
     const directionsText = directionsHeader.find("p").text().trim();
     if (directionsText) {
@@ -58,73 +121,7 @@ async function getRoomInfo(RoomId: string): Promise<StudyRoom> {
     }
 
     const descriptionHeader = $(".s-lc-section-description");
-    let descriptionText = "";
-    if (room.location === "Grunigen Medical Library") {
-      // Specific processing for the Grunigen Library case
-      descriptionHeader.find("p").each(function () {
-        let paraText = $(this).text().trim();
-        if (paraText.includes("\n")) {
-          paraText = paraText.replaceAll("\n", ", ");
-          if (!paraText.endsWith(":")) {
-            paraText += ". ";
-          }
-        }
-        descriptionText += paraText + " ";
-      });
-      descriptionText = descriptionText.replace(/\s{2,}/g, " ").trim(); // Remove extra spaces
-      descriptionText = descriptionText.replace(/\s+,/g, ","); // Remove spaces before commas
-      descriptionText = descriptionText.replace(/\.\s*\./g, "."); // Remove extra periods
-      descriptionText = descriptionText.replace(".,", "."); // Remove commas after periods
-    } else {
-      // General processing for other rooms
-      const descriptionParts: string[] = [];
-      let combinedDescription = "";
-
-      descriptionHeader.contents().each((_, content) => {
-        if (content.nodeType === 3) {
-          const textContent = $(content).text().trim();
-          if (textContent) {
-            descriptionParts.push(textContent);
-          }
-        } else if (content.nodeType === 1) {
-          const child = $(content);
-          if (child.is("p, ul, li, strong, em, span, br")) {
-            if (child.is("ul")) {
-              child.find("li").each((_, li) => {
-                descriptionParts.push("- " + $(li).text().trim());
-              });
-            } else if (child.is("br")) {
-              descriptionParts.push("\n");
-            } else {
-              descriptionParts.push(child.text().trim());
-            }
-          }
-        }
-      });
-
-      // join parts and replace newline placeholders with commas
-      combinedDescription = descriptionParts.join(" ").replace(/\n+/g, ", ");
-
-      // clean up
-      combinedDescription = combinedDescription
-        .replace(/\s*,\s*/g, ", ")
-        .replace(/\s*\.\s*/g, ". ")
-        .replace(/\s{2,}/g, " ")
-        .replace(/\.,/g, ".")
-        .replace(/\.\s*\./g, ".");
-
-      // description ends with a single period
-      combinedDescription = combinedDescription.replace(/\.\s*$/, ".");
-
-      descriptionText = combinedDescription.trim();
-    }
-
-    if (descriptionText) {
-      room.description = descriptionText;
-      if (!room.description.endsWith(".")) {
-        room.description += ".";
-      }
-    }
+    room.description = processDescription(descriptionHeader, room.location, $);
 
     logger.info(`Scraped Room ${RoomId}`, { room });
     return room;
@@ -148,7 +145,7 @@ export async function scrapeStudyLocations(): Promise<StudyLocations> {
     day: "2-digit",
   });
   const studyLocationsMap: StudyLocations = {};
-  const rids: Set<string> = new Set();
+  const rids = new Set<string>();
   for (const lib in studyLocations) {
     const studyLocation: StudyLocation = {
       id: lib,
@@ -156,15 +153,19 @@ export async function scrapeStudyLocations(): Promise<StudyLocations> {
       name: lib,
       rooms: [],
     };
-    const res = await getStudySpaces(studyLocation.lid, start, end);
-    for (const room of res.slots) {
-      if (rids.has(room.itemId)) {
-        continue;
+    const spaces = await getStudySpaces(studyLocation.lid, start, end);
+    for (const room of spaces.slots) {
+      if (!rids.has(room.itemId)) {
+        studyLocation.rooms.push(await getRoomInfo(room.itemId));
+        rids.add(room.itemId);
       }
-      studyLocation.rooms.push(await getRoomInfo(room.itemId));
-      rids.add(room.itemId);
     }
-    studyLocationsMap[`${studyLocation.id}`] = studyLocation;
+    studyLocationsMap[studyLocation.id] = studyLocation;
   }
   return studyLocationsMap;
 }
+getRoomInfo("44696");
+getRoomInfo("116383");
+getRoomInfo("117634");
+getRoomInfo("120645");
+getRoomInfo("51792");
