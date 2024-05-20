@@ -1,0 +1,46 @@
+type TimeSlot {
+  "Date of the time slot (YYYY-MM-DD)."
+  date: String!
+  "Start time of the time slot (HH:MM)."
+  start: String!
+  "End time of the time slot (HH:MM)."
+  end: String!
+  "If the time slot is booked."
+  booked: Boolean!
+}
+
+type StudyRoom {
+  "ID of study room used by spaces.lib."
+  id: ID!
+  "Name of the study room and its room number."
+  name: String!
+  "Number of chairs in the study room."
+  capacity: Int!
+  "Name of study location."
+  location: String!
+  "Description of the study room."
+  description: String
+  "Directions to the study room."
+  directions: String
+  "Time slots for the study room."
+  timeSlots: [TimeSlot]!
+  "If the study room has TV or other tech enhancements."
+  techEnhanced: Boolean
+}
+
+type StudyLocation {
+  "ID of the study location using shortened name of the location."
+  id: ID!
+  "Location ID of the study location used by space.lib."
+  lid: String!
+  "Name of the study location."
+  name: String!
+  "Rooms in the study location."
+  rooms: [StudyRoom!]!
+}
+
+extend type Query {
+  "Fetch all study rooms."
+  allStudyRooms(start: String!, end: String!): [StudyLocation!]!
+  studyRooms(location: String!, start: String!, end: String!): StudyLocation!
+}

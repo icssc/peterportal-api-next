@@ -305,3 +305,22 @@ model WebsocSection {
   @@id([year, quarter, sectionCode, timestamp])
   @@unique([year, quarter, sectionCode, timestamp], name: "idx")
 }
+
+model StudyRoom {
+  id              String        @id
+  name            String
+  capacity        Int
+  location        String        @default("")
+  description     String        @default("")
+  directions      String        @default("")
+  techEnhanced    Boolean       @default(false)
+  studyLocationId String
+  studyLocation   StudyLocation @relation(fields: [studyLocationId], references: [id])
+}
+
+model StudyLocation {
+  id    String      @id
+  lid   String
+  name  String
+  rooms StudyRoom[]
+}
