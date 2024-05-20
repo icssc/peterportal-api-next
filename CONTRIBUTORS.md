@@ -34,7 +34,7 @@ Contributors to Anteater API who have also contributed to the Legacy API are not
 
 ## Anteater API Contributors
 
-An up-to-date list of contributors to this repository is available [here](https://github.com/icssc/peterportal-api-next/graphs/contributors).
+An up-to-date list of individuals who have contributed code to this repository is available [here](https://github.com/icssc/peterportal-api-next/graphs/contributors). This list also includes individuals who have contributed in other ways, including (but not limited to) creating issues, providing feedback, etc.
 
 - Dalton Adcock ([@adcockdalton](https://github.com/adcockdalton))
 - Alexander Liu ([@alexanderl19](https://github.com/alexanderl19))
