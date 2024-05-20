@@ -4,17 +4,19 @@ import { ZodError } from "zod";
 
 import { aggregateStudyRooms } from "../lib";
 
-import { Query, QuerySchema } from "./schema";
+import { QuerySchema } from "./schema";
 
 export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
   const query = event.queryStringParameters;
   const requestId = context.awsRequestId;
   const { id } = event.pathParameters ?? {};
-  if (id == null) return res.createErrorResult(400, "Location not provided", requestId);
   try {
     switch (id) {
-      case "all":
+      case null:
+      case undefined:
+        return res.createErrorResult(400, "Location not provided", requestId);
+      case "all": {
         const parsedQuery = QuerySchema.parse(query);
         return res.createOKResult(
           await Promise.all(
@@ -25,8 +27,15 @@ export const GET = createHandler(async (event, context, res) => {
           headers,
           requestId,
         );
-      default:
-        return res.createErrorResult(400, "Invalid endpoint", requestId);
+      }
+      default: {
+        if (studyLocations[id]) {
+          const parsedQuery = QuerySchema.parse(query);
+          const studyRooms = await aggregateStudyRooms(id, parsedQuery.start, parsedQuery.end);
+          return res.createOKResult(studyRooms, headers, requestId);
+        }
+        return res.createErrorResult(400, `Location ${id} not found`, requestId);
+      }
     }
   } catch (e) {
     if (e instanceof ZodError) {

@@ -1,12 +1,12 @@
 import { PrismaClient } from "@libs/db";
-import type { StudyLocation, StudyRoom } from "@peterportal-api/types";
+import type { StudyRoom } from "@peterportal-api/types";
 
 import { scrapeStudyLocations } from "./study-room-scraper";
 
 const prisma = new PrismaClient();
 
 async function main() {
-  const studyLocations: { [id: string]: StudyLocation } = await scrapeStudyLocations();
+  const studyLocations = await scrapeStudyLocations();
   const studyLocationInfo = Object.values(studyLocations).map((location) => {
     return prisma.studyLocation.create({
       data: {

@@ -3,7 +3,7 @@ import { studyLocations } from "libs/uc-irvine-lib/src/spaces";
 import { ZodError } from "zod";
 
 import { aggregateStudyRooms } from "./lib";
-import { Query, QuerySchema } from "./schema";
+import { QuerySchema } from "./schema";
 
 export const GET = createHandler(async (event, context, res) => {
   const headers = event.headers;
@@ -13,8 +13,12 @@ export const GET = createHandler(async (event, context, res) => {
     const parsedQuery = QuerySchema.parse(query);
     if (!studyLocations[parsedQuery.location]) {
       return res.createErrorResult(404, `Location ${parsedQuery.location} not found`, requestId);
-    } 
-    const studyRooms = await aggregateStudyRooms(parsedQuery.location, parsedQuery.start, parsedQuery.end)
+    }
+    const studyRooms = await aggregateStudyRooms(
+      parsedQuery.location,
+      parsedQuery.start,
+      parsedQuery.end,
+    );
     return res.createOKResult(studyRooms, headers, requestId);
   } catch (e) {
     if (e instanceof ZodError) {

@@ -12,7 +12,7 @@ The study rooms endpoint allows users to get information and availability of stu
 
 ## Query parameters
 
-#### `location` string <span style={{ color: "#ff86b4" }}>Required</span>
+#### `location` string
 
 The location of the study rooms to query. Five locations are available to query:
 
@@ -38,7 +38,11 @@ The end date of time slots to query. YYYY-MM-DD format.
 <TabItem value="bash" label="cURL">
 
 ```bash
-curl "https://api-next.peterportal.org/v1/rest/studyRooms?location=Science&start=2024-04-26&end=2024-04-30""
+curl "https://api-next.peterportal.org/v1/rest/studyRooms/Science?start=2024-04-26&end=2024-04-30"
+```
+
+```bash
+curl "https://api-next.peterportal.org/v1/rest/studyRooms?location=Science&start=2024-04-26&end=2024-04-30"
 ```
 
 </TabItem>

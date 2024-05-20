@@ -1,14 +1,12 @@
 import type { StudyRoom, StudyLocation } from "@peterportal-api/types";
-import { load } from "cheerio";
+import { load, Cheerio, Element, CheerioAPI } from "cheerio";
 import fetch from "cross-fetch";
 import { studyLocations, getStudySpaces } from "libs/uc-irvine-lib/src/spaces";
 import * as winston from "winston";
 
 const ROOM_SPACE_URL = "https://spaces.lib.uci.edu/space";
 
-type StudyLocations = {
-  [id: string]: StudyLocation;
-};
+type StudyLocations = Record<string, StudyLocation>;
 
 const logger = winston.createLogger({
   level: "info",
@@ -20,27 +18,33 @@ const logger = winston.createLogger({
   transports: [new winston.transports.Console()],
 });
 
+function processGML(descriptionHeader: Cheerio<Element>, $: CheerioAPI): string {
+  let descriptionText = "";
+  descriptionHeader.find("p").each(function () {
+    let paraText = $(this).text().trim();
+    if (paraText.includes("\n")) {
+      paraText = paraText.replaceAll("\n", ", ");
+      if (!paraText.endsWith(":")) {
+        paraText += ". ";
+      }
+    }
+    descriptionText += paraText + " ";
+  });
+  descriptionText = descriptionText.replace(/\s{2,}/g, " ").trim();
+  descriptionText = descriptionText.replace(/\s+,/g, ",");
+  descriptionText = descriptionText.replace(/\.\s*\./g, ".");
+  descriptionText = descriptionText.replace(".,", ".");
+  return descriptionText;
+}
+
 function processDescription(
-  descriptionHeader: cheerio.Cheerio,
+  descriptionHeader: Cheerio<Element>,
   location: string,
-  $: cheerio.Root,
+  $: CheerioAPI,
 ): string {
   let descriptionText = "";
   if (location === "Grunigen Medical Library") {
-    descriptionHeader.find("p").each(function () {
-      let paraText = $(this).text().trim();
-      if (paraText.includes("\n")) {
-        paraText = paraText.replaceAll("\n", ", ");
-        if (!paraText.endsWith(":")) {
-          paraText += ". ";
-        }
-      }
-      descriptionText += paraText + " ";
-    });
-    descriptionText = descriptionText.replace(/\s{2,}/g, " ").trim();
-    descriptionText = descriptionText.replace(/\s+,/g, ",");
-    descriptionText = descriptionText.replace(/\.\s*\./g, ".");
-    descriptionText = descriptionText.replace(".,", ".");
+    descriptionText = processGML(descriptionHeader, $);
   } else {
     const descriptionParts: string[] = [];
     descriptionHeader.contents().each((_, content) => {
@@ -164,8 +168,3 @@ export async function scrapeStudyLocations(): Promise<StudyLocations> {
   }
   return studyLocationsMap;
 }
-getRoomInfo("44696");
-getRoomInfo("116383");
-getRoomInfo("117634");
-getRoomInfo("120645");
-getRoomInfo("51792");

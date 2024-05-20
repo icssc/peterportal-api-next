@@ -27,15 +27,9 @@ export async function getStudySpaces(lid: string, start: string, end: string) {
   const headers = {
     Referer: `${LIB_SPACE_URL}?lid=${lid}`,
   };
-  const params = new URLSearchParams();
-  params.append("lid", lid);
-  params.append("gid", "0");
-  params.append("start", start);
-  params.append("end", end);
-  params.append("pageSize", "18"); // pageSize doesn't seem to affect query but is required
   return await fetch(LIB_SPACE_AVAILABILITY_URL, {
     method: "POST",
     headers: headers,
-    body: params,
+    body: new URLSearchParams({ lid, gid: "0", start, end, pageSize: "18" }),
   }).then((res) => res.json());
 }
