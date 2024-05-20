@@ -22,5 +22,5 @@ declare module "virtual:instructors" {
 
 declare module "virtual:studyRooms" {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
-  declare const studyRooms: Record<string, import("@peterportal-api/types").StudyRoom>;
+  declare const studyRooms: Record<string, import("@anteater-api/types").StudyRoom>;
 }

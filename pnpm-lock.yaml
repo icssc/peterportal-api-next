@@ -282,7 +282,7 @@ importers:
         specifier: 4.0.0
         version: 4.0.0
     devDependencies:
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
       esbuild:
@@ -481,7 +481,7 @@ importers:
         specifier: ^3.11.0
         version: 3.11.0
     devDependencies:
-      '@peterportal-api/types':
+      '@anteater-api/types':
         specifier: workspace:^
         version: link:../../packages/types
       esbuild:

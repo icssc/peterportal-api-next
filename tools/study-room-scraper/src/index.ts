@@ -1,5 +1,5 @@
+import type { StudyRoom } from "@anteater-api/types";
 import { PrismaClient } from "@libs/db";
-import type { StudyRoom } from "@peterportal-api/types";
 
 import { scrapeStudyLocations } from "./study-room-scraper";
 

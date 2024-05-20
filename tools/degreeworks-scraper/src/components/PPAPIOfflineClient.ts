@@ -1,5 +1,5 @@
-import { isErrorResponse } from "@peterportal-api/types";
-import type { Course, RawResponse } from "@peterportal-api/types";
+import { isErrorResponse } from "@anteater-api/types";
+import type { Course, RawResponse } from "@anteater-api/types";
 import fetch from "cross-fetch";
 
 const ENDPOINT = "https://api-next.peterportal.org/v1/rest/courses/all";

@@ -1,4 +1,4 @@
-import type { Course } from "@peterportal-api/types";
+import type { Course } from "@anteater-api/types";
 
 import type { Block, Program, ProgramId, Requirement, Rule } from "../types";
 
