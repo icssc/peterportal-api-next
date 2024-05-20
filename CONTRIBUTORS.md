@@ -12,7 +12,7 @@ Contributors are listed below in alphabetical order of their GitHub username.
 
 ## [Legacy API](https://github.com/icssc/peterportal-public-api) Contributors
 
-API-Next contributors who have also contributed to the Legacy API are not listed here.
+Contributors to Anteater API who have also contributed to the Legacy API are not listed here.
 
 - Akshay ([@akins1](https://github.com/akins1))
 - Audrey Lam ([@alam7989](https://github.com/alam7989))
@@ -32,17 +32,22 @@ API-Next contributors who have also contributed to the Legacy API are not listed
 - Tianjiao Huang ([@tjhu](https://github.com/tjhu))
 - Ye Min Aung ([@ym-aung](https://github.com/ym-aung))
 
-## API-Next Contributors
+## Anteater API Contributors
 
 An up-to-date list of contributors to this repository is available [here](https://github.com/icssc/peterportal-api-next/graphs/contributors).
 
+- Dalton Adcock ([@adcockdalton](https://github.com/adcockdalton))
+- Alexander Liu ([@alexanderl19](https://github.com/alexanderl19))
+- Andrew Wang ([@andrew-wang0](https://github.com/andrew-wang0))
+- Brian Vo ([@ap0nia](https://github.com/ap0nia))
 - Benson Jing ([@bensonjing](https://github.com/bensonjing))
-- Brian Vo ([@bevm0](https://github.com/bevm0))
 - Christopher Kwong ([@ChrisK-wong](https://github.com/ChrisK-wong))
 - Daniel Boghossian ([@Dg155](https://github.com/Dg155))
 - Ethan Deng ([@ethand605](https://github.com/ethand605))
 - Yizhen Liu ([@imliuyzh](https://github.com/imliuyzh))
+- Jordan Yee ([@jordany33](https://github.com/jordany33))
 - Minh Nguyen ([@MinhxNguyen7](https://github.com/MinhxNguyen7))
 - Randy Huynh ([@RandyHuynh5815](https://github.com/RandyHuynh5815))
+- Sanskar Mishra ([@sanskarm7](https://github.com/sanskarm7))
 - Frederick Dong ([@Voark](https://github.com/Voark))
 - Yasper De Jong ([@y-dejong](https://github.com/y-dejong))
