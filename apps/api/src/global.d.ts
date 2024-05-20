@@ -19,3 +19,8 @@ declare module "virtual:instructors" {
   // eslint-disable-next-line @typescript-eslint/consistent-type-imports
   declare const instructors: Record<string, import("@peterportal-api/types").Instructor>;
 }
+
+declare module "virtual:studyRooms" {
+  // eslint-disable-next-line @typescript-eslint/consistent-type-imports
+  declare const studyRooms: Record<string, import("@peterportal-api/types").StudyRoom>;
+}

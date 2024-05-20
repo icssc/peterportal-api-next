@@ -18,7 +18,7 @@ import { App, Stack, Duration } from "aws-cdk-lib/core";
 import { config } from "dotenv";
 import type { BuildOptions } from "esbuild";
 
-import { normalizeCourse } from "./src/lib/utils";
+import { normalizeCourse, normalizeStudyRoom } from "./src/lib/utils";
 
 const prisma = new PrismaClient();
 
@@ -121,6 +121,10 @@ export const esbuildOptions: BuildOptions = {
           path: args.path,
           namespace,
         }));
+        build.onResolve({ filter: /virtual:studyRooms/ }, (args) => ({
+          path: args.path,
+          namespace,
+        }));
         build.onLoad({ filter: /virtual:courses/, namespace }, async () => ({
           contents: `export const courses = ${JSON.stringify(
             Object.fromEntries(
@@ -131,6 +135,13 @@ export const esbuildOptions: BuildOptions = {
         build.onLoad({ filter: /virtual:instructors/, namespace }, async () => ({
           contents: `export const instructors = ${JSON.stringify(
             Object.fromEntries((await prisma.instructor.findMany()).map((x) => [x.ucinetid, x])),
+          )}`,
+        }));
+        build.onLoad({ filter: /virtual:studyRooms/, namespace }, async () => ({
+          contents: `export const studyRooms = ${JSON.stringify(
+            Object.fromEntries(
+              (await prisma.studyRoom.findMany()).map(normalizeStudyRoom).map((x) => [x.id, x]),
+            ),
           )}`,
         }));
       },
