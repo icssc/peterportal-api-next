@@ -14,7 +14,7 @@ Anteater API (formerly PeterPortal API _Next_) is a student-developed and mainta
 
 ## 📖 Documentation
 
-Our documentation can be found [here](https://docs.icssc.club/ppapi).
+Our documentation can be found [here](https://docs.icssc.club/anteaterapi).
 
 ## 🤝 Contributing
 
