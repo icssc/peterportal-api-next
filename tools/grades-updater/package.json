@@ -20,7 +20,7 @@
     "winston-transport": "4.7.0"
   },
   "devDependencies": {
-    "@peterportal-api/types": "workspace:^",
+    "@anteater-api/types": "workspace:^",
     "@types/node": "20.11.24",
     "dotenv-cli": "7.3.0",
     "tsx": "4.7.1"

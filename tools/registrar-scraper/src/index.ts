@@ -1,6 +1,6 @@
+import type { Instructor } from "@anteater-api/types";
 import { PrismaClient } from "@libs/db";
 import { notNull } from "@libs/utils";
-import type { Instructor } from "@peterportal-api/types";
 
 import { getCourses } from "./course-scraper";
 import { getInstructors } from "./instructor-scraper";

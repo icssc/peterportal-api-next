@@ -1,5 +1,5 @@
+import type { Quarter } from "@anteater-api/types";
 import type { CalendarTerm } from "@libs/db";
-import type { Quarter } from "@peterportal-api/types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK_MS = 7 * DAY_MS;

@@ -1,10 +1,6 @@
-![PeterPortal API logo banner](apps/docs/static/img/banner.png)
-
 ## ℹ️ About
 
-PeterPortal API is a student-developed and maintained project that aims to provide software developers with easy access to publicly available data from the University of California, Irvine. This includes but is not limited to information on courses, instructors, past grade distributions, and much more.
-
-The _Next_ version of the PeterPortal API is rewritten from the ground up, with special emphasis placed on providing a superior experience for developers and users. This will help to further our mission of encouraging fellow student developers to create open-source applications that benefit the Anteater community.
+Anteater API (formerly PeterPortal API _Next_) is a student-developed and maintained project that aims to provide software developers with easy access to publicly available data from the University of California, Irvine. This includes but is not limited to information on courses, instructors, past grade distributions, and much more.
 
 ## 🔨 Built with
 
@@ -18,7 +14,7 @@ The _Next_ version of the PeterPortal API is rewritten from the ground up, with 
 
 ## 📖 Documentation
 
-Our documentation can be found [here](https://docs.api-next.peterportal.org).
+Our documentation can be found [here](https://docs.icssc.club/anteaterapi).
 
 ## 🤝 Contributing
 

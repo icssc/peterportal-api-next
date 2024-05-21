@@ -38,8 +38,8 @@ export function compress(body: string, acceptEncoding?: string): CompressionResu
     return { body };
   }
 
-  const matchingAlgorithm = compressionAlgorithmEntries.find(
-    (algorithm) => acceptEncoding?.includes(algorithm[0]),
+  const matchingAlgorithm = compressionAlgorithmEntries.find((algorithm) =>
+    acceptEncoding?.includes(algorithm[0]),
   );
 
   // If accept-encoding is present and not empty, prioritize gzip over deflate.

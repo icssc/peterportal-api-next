@@ -1,6 +1,6 @@
+import type { EnrollmentHistory } from "@anteater-api/types";
 import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
-import type { EnrollmentHistory } from "@peterportal-api/types";
 
 import { transformResults } from "./lib";
 import { QuerySchema } from "./schema";

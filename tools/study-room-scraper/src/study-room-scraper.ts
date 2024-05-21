@@ -1,4 +1,4 @@
-import type { StudyRoom, StudyLocation } from "@peterportal-api/types";
+import type { StudyRoom, StudyLocation } from "@anteater-api/types";
 import { load, Cheerio, Element, CheerioAPI } from "cheerio";
 import fetch from "cross-fetch";
 import { studyLocations, getStudySpaces } from "libs/uc-irvine-lib/src/spaces";

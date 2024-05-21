@@ -11,7 +11,7 @@
     "winston": "3.12.0"
   },
   "devDependencies": {
-    "@peterportal-api/types": "workspace:^",
+    "@anteater-api/types": "workspace:^",
     "@types/aws-lambda": "8.10.135"
   }
 }

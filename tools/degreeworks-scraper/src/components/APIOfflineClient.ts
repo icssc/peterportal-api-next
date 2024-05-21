@@ -1,25 +1,23 @@
-import { isErrorResponse } from "@peterportal-api/types";
-import type { Course, RawResponse } from "@peterportal-api/types";
+import type { Course, RawResponse } from "@anteater-api/types";
 import fetch from "cross-fetch";
 
-const ENDPOINT = "https://api-next.peterportal.org/v1/rest/courses/all";
+const ENDPOINT = "https://anteaterapi.com/v1/rest/courses/all";
 
-export class PPAPIOfflineClient {
+export class APIOfflineClient {
   private cache = new Map<string, Course>();
 
   private constructor() {}
 
-  static async new(): Promise<PPAPIOfflineClient> {
-    const ppapi = new PPAPIOfflineClient();
+  static async new(): Promise<APIOfflineClient> {
+    const apiClient = new APIOfflineClient();
     const res = await fetch(ENDPOINT, { headers: { "accept-encoding": "gzip" } });
     const json: RawResponse<Course[]> = await res.json();
-    if (isErrorResponse(json))
-      throw new Error("Could not fetch courses cache from PeterPortal API");
-    json.payload.forEach((y) => ppapi.cache.set(y.id, y));
+    if (!json.success) throw new Error("Could not fetch courses cache from Anteater API");
+    json.payload.forEach((y) => apiClient.cache.set(y.id, y));
     console.log(
-      `[PPAPIOfflineClient.new] Fetched and stored ${json.payload.length} courses from PeterPortal API`,
+      `[APIOfflineClient.new] Fetched and stored ${json.payload.length} courses from Anteater API`,
     );
-    return ppapi;
+    return apiClient;
   }
 
   getCourse(courseNumber: string): Course | undefined {

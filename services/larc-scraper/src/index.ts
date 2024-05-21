@@ -1,5 +1,5 @@
+import { LarcResponse, Quarter } from "@anteater-api/types";
 import { PrismaClient } from "@libs/db";
-import { LarcResponse, Quarter } from "@peterportal-api/types";
 import { load } from "cheerio";
 import { fetch } from "cross-fetch";
 

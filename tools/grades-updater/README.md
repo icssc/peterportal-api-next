@@ -1,6 +1,6 @@
 # grades-updater
 
-This directory contains the code for updating the grades cache for PeterPortal API _Next_.
+This directory contains the code for updating the grades cache for Anteater API.
 
 ## Sanitizing the Data
 

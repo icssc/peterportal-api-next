@@ -6,7 +6,7 @@ import { ServicesStack } from "../stacks/services";
 import { waitForStackIdle } from "../wait-for-stack-idle";
 
 async function main() {
-  const stackName = "peterportal-api-next-services-prod";
+  const stackName = "anteater-api-services-prod";
 
   await waitForStackIdle(stackName);
 

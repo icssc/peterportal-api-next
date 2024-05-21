@@ -1,5 +1,5 @@
+import type { EnrollmentHistory, Meeting } from "@anteater-api/types";
 import type { WebsocEnrollmentHistory, WebsocEnrollmentHistoryEntry } from "@libs/db";
-import type { EnrollmentHistory, Meeting } from "@peterportal-api/types";
 
 const stringifyDate = (date: Date) =>
   `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}`;

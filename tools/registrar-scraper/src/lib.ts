@@ -1,6 +1,6 @@
+import type { Instructor, Prerequisite, PrerequisiteTree } from "@anteater-api/types";
+import { courseLevels, divisionCodes } from "@anteater-api/types";
 import type { Prisma } from "@libs/db";
-import type { Instructor, Prerequisite, PrerequisiteTree } from "@peterportal-api/types";
-import { courseLevels, divisionCodes } from "@peterportal-api/types";
 
 export type ScrapedCourse = {
   department: string;

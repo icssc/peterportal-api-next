@@ -18,21 +18,6 @@
   "nvm": { "enabled": false },
   "packageRules": [
     {
-      "matchPackagePatterns": ["@docusaurus/*"],
-      "groupName": "Docusaurus v2",
-      "allowedVersions": "<3.0.0"
-    },
-    {
-      "matchPackagePatterns": ["react(?:-router)?"],
-      "groupName": "Docusaurus v2: React dependencies",
-      "allowedVersions": "<18.0.0"
-    },
-    {
-      "matchPackageNames": ["@mdx-js/react", "clsx", "prism-react-renderer", "prismjs"],
-      "groupName": "Docusaurus v2: other dependencies",
-      "allowedVersions": "<2.0.0"
-    },
-    {
       "matchPackageNames": ["constructs"],
       "groupName": "Constructs",
       "allowedVersions": "10.2.69"

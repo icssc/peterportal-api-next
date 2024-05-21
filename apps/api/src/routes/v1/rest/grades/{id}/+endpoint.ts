@@ -1,11 +1,11 @@
-import { PrismaClient } from "@libs/db";
-import { logger, createHandler } from "@libs/lambda";
 import type {
   AggregateGradesByCourse,
   AggregateGradesByOffering,
   GradesOptions,
   RawGrades,
-} from "@peterportal-api/types";
+} from "@anteater-api/types";
+import { PrismaClient } from "@libs/db";
+import { logger, createHandler } from "@libs/lambda";
 import { ZodError } from "zod";
 
 import {

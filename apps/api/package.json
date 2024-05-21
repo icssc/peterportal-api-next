@@ -2,17 +2,8 @@
   "name": "@apps/api",
   "version": "0.0.0",
   "private": true,
-  "description": "The workspace for PeterPortal API",
+  "description": "The workspace for the API",
   "keywords": [],
-  "homepage": "https://github.com/icssc/peterportal-api-next",
-  "bugs": {
-    "url": "https://github.com/icssc/peterportal-api-next/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/icssc/peterportal-api-next",
-    "directory": "apps/api"
-  },
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -20,6 +11,7 @@
     "dev": "bunny dev-api"
   },
   "dependencies": {
+    "@anteater-api/types": "workspace:^",
     "@apollo/server": "4.10.0",
     "@aws-sdk/client-lambda": "3.525.0",
     "@graphql-tools/load-files": "7.0.0",
@@ -30,7 +22,6 @@
     "@libs/uc-irvine-lib": "workspace:^",
     "@libs/utils": "workspace:^",
     "@libs/websoc-utils": "workspace:^",
-    "@peterportal-api/types": "workspace:^",
     "@services/websoc-proxy": "workspace:^",
     "aws-cdk-lib": "2.131.0",
     "cheerio": "1.0.0-rc.12",

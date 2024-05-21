@@ -1,8 +1,8 @@
+import type { Department, TermData } from "@anteater-api/types";
 import type { LambdaClientConfig } from "@aws-sdk/client-lambda";
 import { InvokeCommand, LambdaClient } from "@aws-sdk/client-lambda";
 import { zeroUUID } from "@libs/lambda";
 import type { WebsocAPIResponse } from "@libs/uc-irvine-lib/websoc";
-import type { Department, TermData } from "@peterportal-api/types";
 import type { APIGatewayProxyEvent, APIGatewayProxyResult, Context } from "aws-lambda";
 
 /**
@@ -48,7 +48,7 @@ export class APILambdaClient {
     }
     const res = await this.client.send(
       new InvokeCommand({
-        FunctionName: "peterportal-api-next-services-prod-websoc-proxy-function",
+        FunctionName: "anteater-api-services-prod-websoc-proxy-function",
         Payload: new TextEncoder().encode(JSON.stringify({ body: JSON.stringify(body) })),
       }),
     );

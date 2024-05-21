@@ -1,4 +1,4 @@
-import { TimeSlot, StudyLocation } from "@peterportal-api/types";
+import { TimeSlot, StudyLocation } from "@anteater-api/types";
 import { studyLocations } from "libs/uc-irvine-lib/src/spaces";
 import { getStudySpaces } from "libs/uc-irvine-lib/src/spaces";
 import { studyRooms } from "virtual:studyRooms";
@@ -29,8 +29,8 @@ export function parseTimeSlots(slots: Slot[]): { [id: string]: TimeSlot[] } {
       end,
       booked: !!slot.className && slot.className === "s-lc-eq-checkout",
     };
-    timeSlots[roomId] ??= []
-    timeSlots[roomId].push(timeSlot)
+    timeSlots[roomId] ??= [];
+    timeSlots[roomId].push(timeSlot);
   });
   return timeSlots;
 }

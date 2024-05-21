@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
 
-import type { Instructor } from "@peterportal-api/types";
+import type { Instructor } from "@anteater-api/types";
 import { load } from "cheerio";
 import type { Element } from "cheerio";
 import fetch from "cross-fetch";

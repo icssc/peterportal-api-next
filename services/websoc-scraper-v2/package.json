@@ -9,10 +9,10 @@
     "build": "node build.mjs"
   },
   "dependencies": {
+    "@anteater-api/types": "workspace:^",
     "@libs/db": "workspace:^",
     "@libs/uc-irvine-lib": "workspace:^",
     "@libs/utils": "workspace:^",
-    "@peterportal-api/types": "workspace:^",
     "winston": "3.12.0"
   },
   "devDependencies": {

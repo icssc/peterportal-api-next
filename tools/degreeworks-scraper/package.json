@@ -8,8 +8,8 @@
     "start": "tsx src/index.ts"
   },
   "dependencies": {
+    "@anteater-api/types": "workspace:^",
     "@libs/db": "workspace:^",
-    "@peterportal-api/types": "workspace:^",
     "cross-fetch": "4.0.0",
     "dotenv": "16.4.1",
     "jwt-decode": "4.0.0"

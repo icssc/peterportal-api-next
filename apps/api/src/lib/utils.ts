@@ -1,4 +1,3 @@
-import type { Course as PrismaCourse, StudyRoom as PrismaStudyRoom } from "@libs/db";
 import type {
   Course,
   CourseLevel,
@@ -7,7 +6,8 @@ import type {
   InstructorPreview,
   PrerequisiteTree,
   StudyRoom,
-} from "@peterportal-api/types";
+} from "@anteater-api/types";
+import type { Course as PrismaCourse, StudyRoom as PrismaStudyRoom } from "@libs/db";
 
 const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
 

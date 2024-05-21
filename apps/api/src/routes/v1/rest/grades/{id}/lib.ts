@@ -1,5 +1,3 @@
-import type { GradesSection, Prisma } from "@libs/db";
-import { notNull } from "@libs/utils";
 import type {
   AggregateGrades,
   AggregateGradesByOffering,
@@ -11,8 +9,10 @@ import type {
   RawGrades,
   AggregateGradesByCourse,
   AggregateGradeByCourseHeader,
-} from "@peterportal-api/types";
-import { geCodes } from "@peterportal-api/types";
+} from "@anteater-api/types";
+import { geCodes } from "@anteater-api/types";
+import type { GradesSection, Prisma } from "@libs/db";
+import { notNull } from "@libs/utils";
 
 import type { Query } from "./schema";
 
