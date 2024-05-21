@@ -344,7 +344,7 @@ export async function main(): Promise<App> {
       zoneName,
       hostedZoneId: process.env.HOSTED_ZONE_ID ?? "",
     }),
-    recordName: `${stage === "prod" ? "zone root" : `${stage}`}`,
+    recordName: `${stage === "prod" ? "" : `${stage}`}`,
     target: RecordTarget.fromAlias(new ApiGateway(synthesized.api)),
   });
 
