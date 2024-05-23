@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  db:
+    build:
+      context: libs/db
+      dockerfile: Dockerfile
+    ports:
+      - ${DATABASE_PORT}:${DATABASE_PORT}
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_DATABASE}

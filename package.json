@@ -10,6 +10,7 @@
     "build": "turbo run build",
     "ci:tsc": "npx tsc -p . --noEmit",
     "commit": "cz",
+    "db:push": "turbo run db:push",
     "deploy": "turbo run deploy",
     "destroy": "turbo run destroy",
     "dev": "dotenv -c development -- turbo run dev",
@@ -44,6 +45,9 @@
     "turbo": "1.12.4",
     "typescript": "5.3.3",
     "unconfig": "0.3.11"
+  },
+  "devDependencies": {
+    "dotenv-cli": "7.3.0"
   },
   "packageManager": "pnpm@8.15.4",
   "engines": {

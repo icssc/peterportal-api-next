@@ -20,6 +20,74 @@ Our documentation can be found [here](https://docs.icssc.club/anteaterapi).
 
 We welcome all open-source contributions! Please start by reading the [contributing guide](CONTRIBUTING.md).
 
+## ✅ Getting Started
+
+### Prerequisites
+
+Node.js environment (server-side JavaScript runtime).
+
+- [nvm (node-version-manager)](https://github.com/nvm-sh/nvm)
+- [fnm (fast-node-manager)](https://github.com/Schniz/fnm)
+
+[pnpm - performance node package manager](https://pnpm.io/installation#using-corepack)
+
+This can be easily enabled via corepack once a Node.js environment has been installed.
+
+```sh
+corepack enable pnpm
+```
+
+[Docker](https://docs.docker.com/compose/install/)
+
+Docker is used to run a PostgresSQL database instance locally for development.
+
+Other JavaScript runtimes.
+
+- [deno](https://docs.deno.com/runtime/manual/getting_started/installation)
+- [bun](https://bun.sh/docs/installation)
+
+### Developing
+
+1. Clone the repository and change directory.
+
+```sh
+git clone https://github.com/icssc/peterportal-api-next
+cd peterportal-api-next
+```
+
+2. Create a `.env` file. To get started, cloning the `.env.example` should work for now.
+
+```sh
+cp .env.example .env
+```
+
+3. Install dependencies.
+
+```sh
+pnpm install
+```
+
+4. Start local PostgresSQL database.
+
+```sh
+docker compose up -d
+```
+
+5. Push database schema.
+
+```sh
+pnpm db:push
+```
+
+6. Start development server.
+
+```sh
+pnpm dev
+```
+
+Quick overview of getting started with development. Please view the official documentation for
+additional details.
+
 ## ⚠️ Caveats
 
 Please note that while our data is obtained directly from official UCI sources, such as the Catalogue, the Public Records Office, and the Registrar, this is not an official UCI tool. While we strive to keep our data as accurate as possible with the limited support we have from the University, errors can and do happen; please take this into consideration when using this API.
