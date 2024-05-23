@@ -46,6 +46,9 @@
     "typescript": "5.3.3",
     "unconfig": "0.3.11"
   },
+  "devDependencies": {
+    "dotenv-cli": "7.3.0"
+  },
   "packageManager": "pnpm@8.15.4",
   "engines": {
     "pnpm": "8"
