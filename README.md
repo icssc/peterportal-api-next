@@ -34,6 +34,7 @@ Node.js environment (server-side JavaScript runtime).
 - [fnm (fast-node-manager)](https://github.com/Schniz/fnm)
 
 [pnpm - performance node package manager](https://pnpm.io/installation#using-corepack)
+
 This can be easily enabled via corepack once a Node.js environment has been installed.
 
 ```sh
@@ -41,6 +42,7 @@ corepack enable pnpm
 ```
 
 [Docker](https://docs.docker.com/compose/install/)
+
 Docker is used to run a PostgresSQL database instance locally for development.
 
 Other JavaScript runtimes.
