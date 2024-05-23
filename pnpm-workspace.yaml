@@ -1,7 +1,5 @@
 packages:
-  - apps/**/*
-  - docs
-  - docs/cdk
+  - apps/api
   - libs/*
   - packages/*
   - services/*

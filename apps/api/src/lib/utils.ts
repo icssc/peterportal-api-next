@@ -1,4 +1,3 @@
-import type { Course as PrismaCourse } from "@libs/db";
 import type {
   Course,
   CourseLevel,
@@ -6,7 +5,9 @@ import type {
   GECategory,
   InstructorPreview,
   PrerequisiteTree,
-} from "@peterportal-api/types";
+  StudyRoom,
+} from "@anteater-api/types";
+import type { Course as PrismaCourse, StudyRoom as PrismaStudyRoom } from "@libs/db";
 
 const days = ["Su", "M", "Tu", "W", "Th", "F", "Sa"];
 
@@ -80,5 +81,17 @@ export function normalizeCourse(course: PrismaCourse): Course {
     dependencies: course.dependencies as CoursePreview[],
     geList,
     terms: course.terms,
+  };
+}
+
+export function normalizeStudyRoom(room: PrismaStudyRoom): StudyRoom {
+  return {
+    id: room.id,
+    name: room.name,
+    capacity: room.capacity,
+    location: room.location,
+    description: room.description,
+    directions: room.directions,
+    techEnhanced: room.techEnhanced,
   };
 }

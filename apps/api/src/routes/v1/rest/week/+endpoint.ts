@@ -1,6 +1,6 @@
+import type { WeekData } from "@anteater-api/types";
 import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
-import type { WeekData } from "@peterportal-api/types";
 import { ZodError } from "zod";
 
 import { getQuarter, getWeek } from "./lib";

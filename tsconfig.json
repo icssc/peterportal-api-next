@@ -13,11 +13,5 @@
     "resolveJsonModule": true
   },
   "include": ["*.ts", "apps/**/*", "libs/**/*", "packages/**/*", "services/**/*", "tools/**/*"],
-  "exclude": [
-    "**/build/**/*",
-    "**/cdk.out/**/*",
-    "**/dist/**/*",
-    "**/node_modules/**/*",
-    "apps/docs/**/*"
-  ]
+  "exclude": ["**/build/**/*", "**/cdk.out/**/*", "**/dist/**/*", "**/node_modules/**/*"]
 }

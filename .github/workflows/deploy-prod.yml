@@ -36,7 +36,7 @@ jobs:
 
     environment:
       name: production
-      url: https://api-next.peterportal.org
+      url: https://anteaterapi.com
 
     steps:
       - name: Checkout repository
@@ -53,31 +53,6 @@ jobs:
 
       - name: Deploy API CloudFormation stack
         run: pnpm --filter="@apps/api" cdk-app deploy
-
-  deploy-documentation:
-    name: Deploy documentation CloudFormation stack and production environment
-
-    runs-on: ubuntu-latest
-
-    environment:
-      name: production-docs
-      url: https://docs.api-next.peterportal.org
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-
-      - name: Setup Node.js and pnpm
-        uses: ./.github/actions/setup-node-and-pnpm
-
-      - name: Install dependencies
-        run: pnpm install -P false --frozen-lockfile
-
-      - name: Build documentation
-        run: pnpm build --filter="@apps/docs"
-
-      - name: Deploy documentation CloudFormation stack
-        run: pnpm --filter="@tools/cdk" docs deploy
   deploy-services:
     name: Deploy services CloudFormation stack and production environment
 

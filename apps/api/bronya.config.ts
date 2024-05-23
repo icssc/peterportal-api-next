@@ -18,7 +18,7 @@ import { App, Stack, Duration } from "aws-cdk-lib/core";
 import { config } from "dotenv";
 import type { BuildOptions } from "esbuild";
 
-import { normalizeCourse } from "./src/lib/utils";
+import { normalizeCourse, normalizeStudyRoom } from "./src/lib/utils";
 
 const prisma = new PrismaClient();
 
@@ -88,7 +88,7 @@ const prismaQueryEngineFile = "libquery_engine-linux-arm64-openssl-3.0.x.so.node
 /**
  * Namespace for virtual files.
  */
-const namespace = "peterportal-api-next:virtual";
+const namespace = "anteater-api:virtual";
 
 /**
  * Shared ESBuild options.
@@ -121,6 +121,10 @@ export const esbuildOptions: BuildOptions = {
           path: args.path,
           namespace,
         }));
+        build.onResolve({ filter: /virtual:studyRooms/ }, (args) => ({
+          path: args.path,
+          namespace,
+        }));
         build.onLoad({ filter: /virtual:courses/, namespace }, async () => ({
           contents: `export const courses = ${JSON.stringify(
             Object.fromEntries(
@@ -131,6 +135,13 @@ export const esbuildOptions: BuildOptions = {
         build.onLoad({ filter: /virtual:instructors/, namespace }, async () => ({
           contents: `export const instructors = ${JSON.stringify(
             Object.fromEntries((await prisma.instructor.findMany()).map((x) => [x.ucinetid, x])),
+          )}`,
+        }));
+        build.onLoad({ filter: /virtual:studyRooms/, namespace }, async () => ({
+          contents: `export const studyRooms = ${JSON.stringify(
+            Object.fromEntries(
+              (await prisma.studyRoom.findMany()).map(normalizeStudyRoom).map((x) => [x.id, x]),
+            ),
           )}`,
         }));
       },
@@ -235,9 +246,9 @@ function getStage() {
  * in order to support development functionality.
  */
 export async function main(): Promise<App> {
-  const id = "peterportal-api-next";
+  const id = "anteater-api";
 
-  const zoneName = "peterportal.org";
+  const zoneName = "anteaterapi.com";
 
   const app = new App();
 
@@ -269,6 +280,7 @@ export async function main(): Promise<App> {
     statusCode: "500",
     templates: {
       "application/json": JSON.stringify({
+        success: false,
         timestamp: "$context.requestTime",
         requestId: "$context.requestId",
         statusCode: 500,
@@ -283,6 +295,7 @@ export async function main(): Promise<App> {
     statusCode: "404",
     templates: {
       "application/json": JSON.stringify({
+        success: false,
         timestamp: "$context.requestTime",
         requestId: "$context.requestId",
         statusCode: 404,
@@ -318,20 +331,20 @@ export async function main(): Promise<App> {
 
   // Set up the custom domain name and A record for the API.
   synthesized.api.addDomainName(`${id}-${stage}-domain`, {
-    domainName: `${stage === "prod" ? "" : `${stage}.`}api-next.peterportal.org`,
+    domainName: `${stage === "prod" ? "" : `${stage}.`}anteaterapi.com`,
     certificate: Certificate.fromCertificateArn(
       synthesized.api,
-      "peterportal-cert",
+      "anteaterapi-cert",
       process.env.CERTIFICATE_ARN ?? "",
     ),
   });
 
   new ARecord(synthesized.api, `${id}-${stage}-a-record`, {
-    zone: HostedZone.fromHostedZoneAttributes(synthesized.api, "peterportal-hosted-zone", {
+    zone: HostedZone.fromHostedZoneAttributes(synthesized.api, "anteaterapi-hosted-zone", {
       zoneName,
       hostedZoneId: process.env.HOSTED_ZONE_ID ?? "",
     }),
-    recordName: `${stage === "prod" ? "" : `${stage}.`}api-next`,
+    recordName: `${stage === "prod" ? "" : `${stage}`}`,
     target: RecordTarget.fromAlias(new ApiGateway(synthesized.api)),
   });
 

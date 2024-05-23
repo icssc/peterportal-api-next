@@ -1,0 +1,19 @@
+{
+  "name": "@tools/study-room-scraper",
+  "version": "0.0.0",
+  "private": true,
+  "description": "",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.ts",
+  "dependencies": {
+    "@libs/db": "workspace:^",
+    "cheerio": "^1.0.0-rc.12",
+    "cross-fetch": "4.0.0",
+    "winston": "^3.11.0"
+  },
+  "devDependencies": {
+    "@anteater-api/types": "workspace:^",
+    "esbuild": "0.20.1"
+  }
+}

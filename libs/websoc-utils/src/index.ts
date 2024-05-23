@@ -1,12 +1,4 @@
 import type {
-  WebsocAPIResponse,
-  WebsocCourse,
-  WebsocDepartment,
-  WebsocSchool,
-  WebsocSection,
-  WebsocSectionMeeting,
-} from "@libs/uc-irvine-lib/websoc";
-import type {
   DayOfWeek,
   WebsocAPIResponse as NormalizedResponse,
   WebsocCourse as NormalizedCourse,
@@ -15,7 +7,15 @@ import type {
   WebsocSchool as NormalizedSchool,
   WebsocSection as NormalizedSection,
   WebsocSectionMeeting as NormalizedMeeting,
-} from "@peterportal-api/types";
+} from "@anteater-api/types";
+import type {
+  WebsocAPIResponse,
+  WebsocCourse,
+  WebsocDepartment,
+  WebsocSchool,
+  WebsocSection,
+  WebsocSectionMeeting,
+} from "@libs/uc-irvine-lib/websoc";
 
 export type EnhancedSection = {
   school: WebsocSchool;

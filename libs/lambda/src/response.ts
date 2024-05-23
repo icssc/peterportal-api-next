@@ -1,4 +1,4 @@
-import type { ErrorResponse, Response } from "@peterportal-api/types";
+import type { ErrorResponse, Response } from "@anteater-api/types";
 import type { APIGatewayProxyResult } from "aws-lambda";
 
 import { compress } from "./compress";

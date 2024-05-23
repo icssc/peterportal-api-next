@@ -1,6 +1,6 @@
+import type { QuarterDates } from "@anteater-api/types";
 import { PrismaClient } from "@libs/db";
 import { createHandler } from "@libs/lambda";
-import type { QuarterDates } from "@peterportal-api/types";
 
 import { QuerySchema } from "./schema";
 

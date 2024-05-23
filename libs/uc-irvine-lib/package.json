@@ -4,15 +4,6 @@
   "private": true,
   "description": "Libraries to interface with various UC Irvine data sources",
   "keywords": [],
-  "homepage": "https://docs.api-next.peterportal.org",
-  "bugs": {
-    "url": "https://github.com/icssc/peterportal-api-next/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/icssc/peterportal-api-next",
-    "directory": "libs/uc-irvine-lib"
-  },
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -21,6 +12,12 @@
       "import": "./src/registrar/index.ts",
       "require": "./src/registrar/index.ts",
       "default": "./src/registrar/index.ts"
+    },
+    "./spaces": {
+      "types": "./src/spaces/index.ts",
+      "import": "./src/spaces/index.ts",
+      "require": "./src/spaces/index.ts",
+      "default": "./src/spaces/index.ts"
     },
     "./websoc": {
       "types": "./src/websoc/index.ts",
@@ -46,8 +43,8 @@
     "src"
   ],
   "dependencies": {
+    "@anteater-api/types": "workspace:^",
     "@ap0nia/camaro": "6.2.5",
-    "@peterportal-api/types": "workspace:^",
     "cheerio": "1.0.0-rc.12",
     "cross-fetch": "4.0.0"
   },

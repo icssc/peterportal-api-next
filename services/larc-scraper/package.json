@@ -1,0 +1,24 @@
+{
+  "name": "@services/larc-scraper",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Automated scraper for LARC sections",
+  "license": "MIT",
+  "type": "module",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@libs/db": "workspace:^",
+    "@libs/uc-irvine-lib": "workspace:^",
+    "@libs/utils": "workspace:^",
+    "cheerio": "1.0.0-rc.12",
+    "cross-fetch": "4.0.0"
+  },
+  "devDependencies": {
+    "@anteater-api/types": "workspace:^",
+    "esbuild": "0.20.1"
+  }
+}

@@ -60,33 +60,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           environment: staging-${{ github.event.pull_request.number }}
           onlyDeactivateDeployments: true
-
-  destroy-documentation:
-    name: Destroy documentation CloudFormation stack and staging environment for pull request
-
-    if: (github.event.action == 'labeled' && github.event.label.name == 'no deploy') || github.event.action == 'closed'
-
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
-
-      - name: Setup Node.js and pnpm
-        uses: ./.github/actions/setup-node-and-pnpm
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Build documentation
-        run: pnpm build --filter="@apps/docs"
-
-      - name: Destroy documentation CloudFormation stack
-        run: pnpm --filter="@tools/cdk" docs destroy
-
-      - name: Set documentation staging environment as inactive
-        uses: strumwolf/delete-deployment-environment@a4825dd9648c57da8437a4885c3fcad58beac69c # v3.0.0
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          environment: staging-${{ github.event.pull_request.number }}-docs
-          onlyDeactivateDeployments: true

@@ -1,0 +1,39 @@
+type Specialization {
+  id: String!
+  majorId: String!
+  name: String!
+  requirements: JSON!
+}
+
+type Major {
+  id: String!
+  degreeId: String!
+  code: String!
+  name: String!
+  requirements: JSON!
+  specializations: [Specialization!]!
+}
+
+type Minor {
+  id: String!
+  name: String!
+  requirements: JSON!
+}
+
+type Degree {
+  id: String!
+  name: String!
+  division: DegreeDivision!
+  majors: [Major!]!
+}
+
+extend type Query {
+  major(id: String!): Major!
+  majors(degreeId: String, nameContains: String): [Major!]!
+  minor(id: String!): Minor!
+  minors(nameContains: String): [Minor!]!
+  specialization(id: String!): Specialization!
+  specializations(nameContains: String): [Specialization!]!
+  specializationsByMajorId(majorId: String!): [Specialization!]!
+  allDegrees: [Degree!]!
+}

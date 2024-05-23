@@ -1,4 +1,4 @@
-import { quarters } from "@peterportal-api/types";
+import { quarters } from "@anteater-api/types";
 import { z } from "zod";
 
 export const QuerySchema = z.object({

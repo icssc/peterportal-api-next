@@ -1,4 +1,4 @@
-import { anyArray, divisionCodes, geCodes } from "@peterportal-api/types";
+import { anyArray, divisionCodes, geCodes } from "@anteater-api/types";
 import { z } from "zod";
 
 import { flattenStringsAndSplit } from "../../../../lib/utils";
