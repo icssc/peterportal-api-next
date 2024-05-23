@@ -73,7 +73,13 @@ pnpm install
 docker compose up -d
 ```
 
-5. Start development server.
+5. Push database schema.
+
+```sh
+pnpm db:push
+```
+
+6. Start development server.
 
 ```sh
 pnpm dev
