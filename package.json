@@ -10,6 +10,7 @@
     "build": "turbo run build",
     "ci:tsc": "npx tsc -p . --noEmit && npx tsc -p apps/docs --noEmit",
     "commit": "cz",
+    "db:push": "turbo run db:push",
     "deploy": "turbo run deploy",
     "destroy": "turbo run destroy",
     "dev": "dotenv -c development -- turbo run dev",

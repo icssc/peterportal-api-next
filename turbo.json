@@ -1,6 +1,9 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "pipeline": {
+    "db:push": {
+      "cache": false
+    },
     "generate": {
       "cache": false
     },
