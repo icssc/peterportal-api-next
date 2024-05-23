@@ -55,19 +55,25 @@ git clone https://github.com/icssc/peterportal-api-next
 cd peterportal-api-next
 ```
 
-2. Install dependencies.
+2. Create a `.env` file. To get started, cloning the `.env.example` should work for now.
+
+```sh
+cp .env.example .env
+```
+
+3. Install dependencies.
 
 ```sh
 pnpm install
 ```
 
-3. Start local PostgresSQL database.
+4. Start local PostgresSQL database.
 
 ```sh
 docker compose up -d
 ```
 
-4. Start development server.
+5. Start development server.
 
 ```sh
 pnpm dev
